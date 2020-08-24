@@ -5,21 +5,6 @@ const { Command } = require('discord.js-commando');
 var firebase = require('firebase/app');
 require('firebase/firestore');
 
-// firebase config
-var firebaseConfig = {
-    apiKey: "AIzaSyAhSTmLUzz-MeTD2X0qzfdELyoERLnzYGo",
-    authDomain: "nwplus-bot.firebaseapp.com",
-    databaseURL: "https://nwplus-bot.firebaseio.com",
-    projectId: "nwplus-bot",
-    storageBucket: "nwplus-bot.appspot.com",
-    messagingSenderId: "712141696288",
-    appId: "1:712141696288:web:62e554d609ed89bb0d3b45",
-    measurementId: "G-VPRQ5SQVCB"
-};
-
-// initialize firebase
-firebase.initializeApp(firebaseConfig);
-
 // var to hold firestore
 const db = firebase.firestore();
 
@@ -30,7 +15,7 @@ const mentorGroup = 'mentors';
 const staffGroup = 'staff'
 
 // Command export
-module.exports = class Verification extends Command {
+module.exports = class Verificaiton extends Command {
     constructor(client) {
         super(client, {
             name: 'verify',

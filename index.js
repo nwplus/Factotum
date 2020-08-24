@@ -1,5 +1,27 @@
 const commando = require('discord.js-commando');
+
 require('dotenv-flow').config();
+
+// Firebase requirements
+var firebase = require('firebase/app');
+
+// firebase config
+var firebaseConfig = {
+    apiKey: "AIzaSyAhSTmLUzz-MeTD2X0qzfdELyoERLnzYGo",
+    authDomain: "nwplus-bot.firebaseapp.com",
+    databaseURL: "https://nwplus-bot.firebaseio.com",
+    projectId: "nwplus-bot",
+    storageBucket: "nwplus-bot.appspot.com",
+    messagingSenderId: "712141696288",
+    appId: "1:712141696288:web:62e554d609ed89bb0d3b45",
+    measurementId: "G-VPRQ5SQVCB"
+};
+
+// initialize firebase
+firebase.initializeApp(firebaseConfig);
+
+
+
 const config = {
     token: process.env.token,
     owner: process.env.owner,
