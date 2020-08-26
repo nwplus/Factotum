@@ -1,18 +1,6 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-
-// Firebase requirements
-var firebase = require('firebase/app');
-require('firebase/firestore');
-
-// var to hold firestore
-const db = firebase.firestore();
-
-// collection constats
-const hackerGroup = 'hackers';
-const sponsorGroup = 'sponsors';
-const mentorGroup = 'mentors';
-const staffGroup = 'staff'
+const firebaseServices = require('../../firebase-services');
 
 // Command export
 module.exports = class Attendace extends Command {
@@ -37,7 +25,7 @@ module.exports = class Attendace extends Command {
     // Run function -> command body
     async run(message, { email }) {
         if (message.member.roles.cache.some(r => r.name === "Hacker")) {
-            if (await this.checkForValidation(email, hackerGroup) == true) {
+            if (await firebaseServices.verifyUser(email, firebaseServices.hackerGroup) == true) {
                 message.member.send('Thank you for attending nwHacks 2020. Happy hacking!!!');
                 message.member.roles.add(message.member.guild.roles.cache.find(role => role.name === "Attendee"));
                 message.guild.channels.cache.find(channel => channel.name === "logs").send("Hacker with email " + email +
@@ -55,22 +43,5 @@ module.exports = class Attendace extends Command {
         message.delete();
         
     }
-
-    // checks if the email is registerd
-    // Params: the collection you want to check on, options: check collection constants
-    async checkForValidation(email, group) {
-       var userRef = db.collection(group).doc(email);
-       var user = await userRef.get();
-       if (user.exists) {
-           userRef.set({
-               'isAttending' : true,
-           });
-           return true;
-       } else {
-           return false;
-       }
-    }
-
-
 
 };

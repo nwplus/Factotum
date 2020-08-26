@@ -1,18 +1,6 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-
-// Firebase requirements
-var firebase = require('firebase/app');
-require('firebase/firestore');
-
-// var to hold firestore
-const db = firebase.firestore();
-
-// collection constats
-const hackerGroup = 'hackers';
-const sponsorGroup = 'sponsors';
-const mentorGroup = 'mentors';
-const staffGroup = 'staff'
+const firebaseServices = require('../../firebase-services');
 
 // Command export
 module.exports = class Verificaiton extends Command {
@@ -37,7 +25,7 @@ module.exports = class Verificaiton extends Command {
     // Run function -> command body
     async run(message, { email }) {
         if (message.member.roles.cache.some(r => r.name === "Guest")) {
-            if (await this.checkForValidation(email, hackerGroup) == true) {
+            if (await firebaseServices.verifyUser(email, firebaseServices.hackerGroup) == true) {
                 message.member.send('Thank you for verifing your status with us, you now have acces to ' +
                     ' most of the server. Remember you need to !attend <your email> in the attend channel that will' +
                     ' open a few hours before the hackathon beggins.');
@@ -46,21 +34,21 @@ module.exports = class Verificaiton extends Command {
                 message.guild.channels.cache.find(channel => channel.name === "logs").send("Verified email " + email +
                     " successfully and he is now a hacker!");
             }
-            else if (await this.checkForValidation(email, sponsorGroup) == true) {
+            else if (await firebaseServices.verifyUser(email, firebaseServices.sponsorGroup) == true) {
                 message.member.send('Hi there sponsor, thank you very much for being part of nwHacks and for joining our discord!');
                 message.member.roles.add(message.member.guild.roles.cache.find(role => role.name === "Sponsor"));
                 message.member.roles.remove(message.member.guild.roles.cache.find(role => role.name === "Guest"));
                 message.guild.channels.cache.find(channel => channel.name === "logs").send("Verified email " + email +
                     " successfully and he is now a sponsor!");
             }
-            else if (await this.checkForValidation(email, mentorGroup) == true) {
+            else if (await firebaseServices.verifyUser(email, firebaseServices.mentorGroup) == true) {
                 message.member.send('Hi there mentor, thank you very much for being part of nwHacks and for joining our discord!');
                 message.member.roles.add(message.member.guild.roles.cache.find(role => role.name === "Mentor"));
                 message.member.roles.remove(message.member.guild.roles.cache.find(role => role.name === "Guest"));
                 message.guild.channels.cache.find(channel => channel.name === "logs").send("Verified email " + email +
                     " successfully and he is now a mentor!");
             }
-            else if (await this.checkForValidation(email, staffGroup) == true) {
+            else if (await firebaseServices.verifyUser(email, firebaseServices.staffGroup) == true) {
                 message.member.send('Hi there mate! Welcome to your discord! If you need to know more about what I can do please call !help.');
                 message.member.roles.add(message.member.guild.roles.cache.find(role => role.name === "Staff"));
                 message.member.roles.remove(message.member.guild.roles.cache.find(role => role.name === "Guest"));
@@ -79,22 +67,5 @@ module.exports = class Verificaiton extends Command {
         message.delete();
         
     }
-
-    // checks if the email is registerd
-    // Params: the collection you want to check on, options: check collection constants
-    async checkForValidation(email, group) {
-       var userRef = db.collection(group).doc(email);
-       var user = await userRef.get();
-       if (user.exists) {
-           userRef.set({
-               'isVerified' : true,
-           });
-           return true;
-       } else {
-           return false;
-       }
-    }
-
-
 
 };
