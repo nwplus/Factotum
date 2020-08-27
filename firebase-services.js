@@ -116,3 +116,24 @@ async function attendHacker(email) {
     }
 }
 module.exports.attendHacker = attendHacker;
+
+// Add username to boothing wait list
+function addToWaitList(username) {
+    db.collection('boothing-wait-list').doc('michelle13').set({});
+}
+module.exports.addToWaitList = addToWaitList;
+
+// get next username from wait list
+async function getFromWaitList() {
+    var docuemntQuery = await db.collection('boothing-wait-list').limit(1).get().catch(console.error);
+    var docs = docuemntQuery.docs;
+    // Check to make sure there is something in the list, if there is non then there are no more poeple in the list!
+    if (docs.length === 0) {
+        return status.FAILURE;
+    } else {
+        var uid = docs[0].id;
+        return uid;
+    }
+    
+}
+module.exports.getFromWaitList = getFromWaitList;

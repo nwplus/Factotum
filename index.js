@@ -35,6 +35,7 @@ bot.registry
     .registerDefaultTypes()
     .registerGroup('verification', 'Verification group')
     .registerGroup('utility', 'utility group')
+    .registerGroup('boothing', 'boothing group')
     .registerDefaultGroups()
     .registerDefaultCommands()
     .registerCommandsIn(__dirname + '/commands');
