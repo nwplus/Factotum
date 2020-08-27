@@ -61,6 +61,8 @@ module.exports = class GetNextWaitList extends Command {
                         var replyMessage = await message.reply('Someone has been moved successfully to the requested channel. Happy talking!');
                         discordServices.sendMessageToMember(memberToAdd, 'Hey hey, a sponsor is ready to talk to you! You are now live!');
                         replyMessage.delete({timeout: 5000});
+                        var number = await firebaseServices.numberInWaitList();
+                        message.reply('There are: ' + number + 'in the wait list.');
                     }
                 }
             

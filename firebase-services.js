@@ -189,3 +189,11 @@ async function removeFromWaitList(username) {
     }
 }
 module.exports.removeFromWaitList = removeFromWaitList;
+
+// will return the number of hackers in the waitlist
+// returns a number
+async function numberInWaitList() {
+    var collection = await db.collection('boothing-wait-list').get();
+    return collection.size;
+}
+module.exports.numberInWaitList = numberInWaitList;
