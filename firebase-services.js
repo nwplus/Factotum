@@ -119,7 +119,7 @@ module.exports.attendHacker = attendHacker;
 
 // Add username to boothing wait list
 function addToWaitList(username) {
-    db.collection('boothing-wait-list').doc('michelle13').set({});
+    db.collection('boothing-wait-list').doc('alejandra23').set({});
 }
 module.exports.addToWaitList = addToWaitList;
 
@@ -137,3 +137,24 @@ async function getFromWaitList() {
     
 }
 module.exports.getFromWaitList = getFromWaitList;
+
+// return the position of the given username
+async function positionInWaitList(username) {
+    var query = await db.collection('boothing-wait-list').get();
+
+    // make sure ther are docuemnts in the list
+    if (query.docs.length > 0) {
+
+        // Funciton to be used in findIndex
+        // returns true if its id equals the username given
+        function checkUsername(docuemnt) {
+            return document.id === username;
+        }
+
+        // Need to add 1 becuase we start counting at 0
+        return query.docs.findIndex(checkUsername) + 1;
+    } else {
+        return status.FAILURE;
+    }
+}
+module.exports.positionInWaitList = positionInWaitList;
