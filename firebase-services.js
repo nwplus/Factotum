@@ -118,14 +118,26 @@ async function attendHacker(email) {
 module.exports.attendHacker = attendHacker;
 
 // Add username to boothing wait list
-function addToWaitList(username) {
-    db.collection('boothing-wait-list').doc('alejandra23').set({});
+async function addToWaitList(username) {
+    var userRef = db.collection('boothing-wait-list').doc(username);
+    var user = await userRef.get();
+    
+    // make sure the user is not alreayd in the waitlist
+    if (!user.exists) {
+        // add user to waitlist with timestamp
+        userRef.set({
+            'time' : firebase.firestore.Timestamp.now(),
+        });
+    } else {
+        // if he is already in the waitlist then return the status
+        return status.HACKER_IN_USE;
+    }
 }
 module.exports.addToWaitList = addToWaitList;
 
 // get next username from wait list
 async function getFromWaitList() {
-    var docuemntQuery = await db.collection('boothing-wait-list').limit(1).get().catch(console.error);
+    var docuemntQuery = await db.collection('boothing-wait-list').orderBy('time').limit(1).get().catch(console.error);
     var docs = docuemntQuery.docs;
     // Check to make sure there is something in the list, if there is non then there are no more poeple in the list!
     if (docs.length === 0) {
@@ -140,15 +152,15 @@ module.exports.getFromWaitList = getFromWaitList;
 
 // return the position of the given username
 async function positionInWaitList(username) {
-    var query = await db.collection('boothing-wait-list').get();
+    var query = await db.collection('boothing-wait-list').orderBy('time').get();
 
     // make sure ther are docuemnts in the list
     if (query.docs.length > 0) {
 
         // Funciton to be used in findIndex
         // returns true if its id equals the username given
-        function checkUsername(docuemnt) {
-            return document.id === username;
+        function checkUsername(queryDoc) {
+            return queryDoc.id === username;
         }
 
         // Need to add 1 becuase we start counting at 0

@@ -41,6 +41,7 @@ module.exports = class GetNextWaitList extends Command {
                     var channelToSearch = message.guild.channels.cache.find(channel => channel.name === 'boothing-wait-list');
                     // get the member from the boothing wait list channel using firebase's stored username
                     var memberToAdd = channelToSearch.members.find(member => member.user.username === usernameFromDB);
+                    console.log(usernameFromDB);
                     // grab the voice channel to move the memeber to, uses the parameter channelName
                     var voiceChannel = message.guild.channels.cache.find(channel => channel.name === channelName);
 
