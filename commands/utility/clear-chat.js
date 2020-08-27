@@ -1,5 +1,6 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
+const discordServices = require('../../discord-services');
 
 // Command export
 module.exports = class ClearChat extends Command {
@@ -21,6 +22,7 @@ module.exports = class ClearChat extends Command {
             await message.channel.bulkDelete(100).catch(console.error);
             message.guild.channels.cache.find(channel => channel.name === "logs").send("Cleared the channel: " + message.channel.name + ". By user: " + message.author.username);
         } else {
+            discordServices.sendMessageToMember(message.member, 'Hey there, the command !clearchat is only available to Admins!');
             message.member.send('Hey there, the command !clearchat is only available to Admins!');
             message.delete();
         }

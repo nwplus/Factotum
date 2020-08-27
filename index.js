@@ -54,7 +54,7 @@ bot.on('message', message => {
     // Deletes all messages to welcome that are not !verify
     if (message.channel.name === 'welcome') {
         if (!message.content.startsWith('!verify')) {
-            message.delete();
+            message.delete({timeout: 10000});
         }
     }
 
