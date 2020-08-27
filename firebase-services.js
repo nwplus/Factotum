@@ -118,10 +118,11 @@ async function attendHacker(email) {
 module.exports.attendHacker = attendHacker;
 
 // Add username to boothing wait list
+// returns status or nothing if successfull
 async function addToWaitList(username) {
     var userRef = db.collection('boothing-wait-list').doc(username);
     var user = await userRef.get();
-    
+
     // make sure the user is not alreayd in the waitlist
     if (!user.exists) {
         // add user to waitlist with timestamp
@@ -136,6 +137,7 @@ async function addToWaitList(username) {
 module.exports.addToWaitList = addToWaitList;
 
 // get next username from wait list
+// returns status or username of next hacker
 async function getFromWaitList() {
     var docuemntQuery = await db.collection('boothing-wait-list').orderBy('time').limit(1).get().catch(console.error);
     var docs = docuemntQuery.docs;
@@ -151,6 +153,7 @@ async function getFromWaitList() {
 module.exports.getFromWaitList = getFromWaitList;
 
 // return the position of the given username
+// returns a status or index in waitlist
 async function positionInWaitList(username) {
     var query = await db.collection('boothing-wait-list').orderBy('time').get();
 
@@ -170,3 +173,19 @@ async function positionInWaitList(username) {
     }
 }
 module.exports.positionInWaitList = positionInWaitList;
+
+// will remove the username from the waitlist
+// returns a status
+async function removeFromWaitList(username) {
+    var userRef = db.collection('boothing-wait-list').doc(username);
+    var user = await userRef.get();
+
+    // make sure the user is in the waitlist before deleting
+    if (user.exists) {
+        await userRef.delete();
+        return status.HACKER_SUCCESS;
+    } else {
+        return status.FAILURE;
+    }
+}
+module.exports.removeFromWaitList = removeFromWaitList;
