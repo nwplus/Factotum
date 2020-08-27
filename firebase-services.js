@@ -139,14 +139,17 @@ module.exports.addToWaitList = addToWaitList;
 // get next username from wait list
 // returns status or username of next hacker
 async function getFromWaitList() {
-    var docuemntQuery = await db.collection('boothing-wait-list').orderBy('time').limit(1).get().catch(console.error);
+    var docuemntQuery = await db.collection('boothing-wait-list').orderBy('time').limit(2).get().catch(console.error);
     var docs = docuemntQuery.docs;
     // Check to make sure there is something in the list, if there is non then there are no more poeple in the list!
     if (docs.length === 0) {
         return status.FAILURE;
     } else {
-        var uid = docs[0].id;
-        return uid;
+        var list = [
+            docs[0].id,
+            docs[1].id,
+        ];
+        return list;
     }
     
 }

@@ -29,19 +29,30 @@ module.exports = class GetNextWaitList extends Command {
         if (message.channel.name === 'boothing-sponsor-console') {
             // only memebers with the Hacker tag can run this command!
             if (discordServices.checkForRole(message.member, discordServices.sponsorRole)) {
-                // get the next member in the waitlist, firebase stores the member's username
-                let usernameFromDB = await firebaseServices.getFromWaitList();
+                // get the next two members in the wait list or a status
+                let listOrStatus = await firebaseServices.getFromWaitList();
 
                 // if the function returns the FAILURE status then there are no more hackers in the waitlist
-                if (usernameFromDB === firebaseServices.status.FAILURE) {
+                if (listOrStatus === firebaseServices.status.FAILURE) {
                     var msg = await message.reply('There is no more poeple waiting, we will let you know when there is!');
                     msg.delete({timout : 5000});
                 } else {
+                    // user to add rn
+                    var currentUserID = listOrStatus[0];
+
+                    // user that is next in the waitlist
+                    var nextUserID = listOrStatus[1];
+
                      // get the boothing wait list channel for use later
                     var channelToSearch = message.guild.channels.cache.find(channel => channel.name === 'boothing-wait-list');
+
                     // get the member from the boothing wait list channel using firebase's stored username
-                    var memberToAdd = channelToSearch.members.find(member => member.user.username === usernameFromDB);
-                    console.log(usernameFromDB);
+                    var memberToAdd = channelToSearch.members.find(member => member.user.username === currentUserID);
+
+                    // get next member and notify that he is next
+                    var nextMember = channelToSearch.members.find(member => member.user.username === nextUserID);
+                    discordServices.sendMessageToMember(nextMember, 'You are next! Get ready to talk to a sponsor, make sure you are in the waitlist voice channel!');
+
                     // grab the voice channel to move the memeber to, uses the parameter channelName
                     var voiceChannel = message.guild.channels.cache.find(channel => channel.name === channelName);
 
@@ -62,7 +73,7 @@ module.exports = class GetNextWaitList extends Command {
                         discordServices.sendMessageToMember(memberToAdd, 'Hey hey, a sponsor is ready to talk to you! You are now live!');
                         replyMessage.delete({timeout: 5000});
                         var number = await firebaseServices.numberInWaitList();
-                        message.reply('There are: ' + number + 'in the wait list.');
+                        message.reply('There are: ' + number + ' in the wait list.');
                     }
                 }
             
