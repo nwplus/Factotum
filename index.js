@@ -34,6 +34,7 @@ const bot = new commando.Client({
 bot.registry
     .registerDefaultTypes()
     .registerGroup('verification', 'Verification group')
+    .registerGroup('utility', 'utility group')
     .registerDefaultGroups()
     .registerDefaultCommands()
     .registerCommandsIn(__dirname + '/commands');
@@ -46,6 +47,18 @@ bot.once('ready', () => {
 
 
 bot.on('error', console.error);
+
+bot.on('message', message => {
+
+
+    // Deletes all messages to welcome that are not !verify
+    if (message.channel.name === 'welcome') {
+        if (!message.content.startsWith('!verify')) {
+            message.delete();
+        }
+    }
+
+});
 
 // Listeners for the bot
 bot.on('guildMemberAdd', member => {
