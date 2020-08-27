@@ -119,7 +119,7 @@ module.exports.attendHacker = attendHacker;
 
 // Add username to boothing wait list
 // returns status or nothing if successfull
-async function addToWaitList(username) {
+async function addToWaitList(username, usernameList) {
     var userRef = db.collection('boothing-wait-list').doc(username);
     var user = await userRef.get();
 
@@ -128,6 +128,7 @@ async function addToWaitList(username) {
         // add user to waitlist with timestamp
         userRef.set({
             'time' : firebase.firestore.Timestamp.now(),
+            'buddies' : usernameList,
         });
     } else {
         // if he is already in the waitlist then return the status
@@ -144,12 +145,40 @@ async function getFromWaitList() {
     // Check to make sure there is something in the list, if there is non then there are no more poeple in the list!
     if (docs.length === 0) {
         return status.FAILURE;
+    } else if (docs.length === 1) {
+        // return only the currentList
+
+        // current group
+        var currentList = docs[0].data()['buddies'];
+        currentList.push(docs[0].id);
+
+        // remove current group
+        removeFromWaitList(docs[0].id);
+
+        // next group
+        var nextList = [];
+
+        var map = new Map([['currentGroup', currentList], ['nextGroup', nextList]]);
+
+        return map;
     } else {
-        var list = [
-            docs[0].id,
+        // return the current list and the next group
+
+        // current group
+        var currentList = docs[0].data()['buddies'];
+        currentList.push(docs[0].id);
+
+        // remove current group
+        removeFromWaitList(docs[0].id);
+
+        // next group
+        var nextList = [
             docs[1].id,
         ];
-        return list;
+
+        var map = new Map([['currentGroup', currentList], ['nextGroup', nextList]]);
+
+        return map;
     }
     
 }

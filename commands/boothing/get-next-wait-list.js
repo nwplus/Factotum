@@ -29,7 +29,7 @@ module.exports = class GetNextWaitList extends Command {
         if (message.channel.name === 'boothing-sponsor-console') {
             // only memebers with the Hacker tag can run this command!
             if (discordServices.checkForRole(message.member, discordServices.sponsorRole)) {
-                // get the next two members in the wait list or a status
+                // get status if no one in list or a map of current group and next group up
                 let listOrStatus = await firebaseServices.getFromWaitList();
 
                 // if the function returns the FAILURE status then there are no more hackers in the waitlist
@@ -38,43 +38,59 @@ module.exports = class GetNextWaitList extends Command {
                     msg.delete({timout : 5000});
                 } else {
                     // user to add rn
-                    var currentUserID = listOrStatus[0];
+                    var currentGroup = listOrStatus.get('currentGroup');
 
                     // user that is next in the waitlist
-                    var nextUserID = listOrStatus[1];
+                    var nextUserID = listOrStatus.get('nextGroup')[0];
 
                      // get the boothing wait list channel for use later
                     var channelToSearch = message.guild.channels.cache.find(channel => channel.name === 'boothing-wait-list');
 
-                    // get the member from the boothing wait list channel using firebase's stored username
-                    var memberToAdd = channelToSearch.members.find(member => member.user.username === currentUserID);
-
-                    // get next member and notify that he is next
-                    var nextMember = channelToSearch.members.find(member => member.user.username === nextUserID);
-                    discordServices.sendMessageToMember(nextMember, 'You are next! Get ready to talk to a sponsor, make sure you are in the waitlist voice channel!');
+                    // make sure there is someone next
+                    if (nextUserID.length > 0) {
+                        // get next member and notify that he is next
+                        var nextMember = channelToSearch.members.find(member => member.user.username === nextUserID);
+                        discordServices.sendMessageToMember(nextMember, 'You are next! Get ready to talk to a sponsor, make sure you are in the waitlist voice channel!');
+                    }
 
                     // grab the voice channel to move the memeber to, uses the parameter channelName
                     var voiceChannel = message.guild.channels.cache.find(channel => channel.name === channelName);
 
-                    var fut;
-                    try {
-                        // tries to add the user to the voice channel, it will fail if the user is currently not on the waitlist voice channel!
-                        fut = await memberToAdd.voice.setChannel(voiceChannel);
-                    } catch(err) {
-                        var mesg = await message.reply('This user is not in the voice channel, he has been skiped, please call the function again!');
-                        mesg.delete({timeout : 5000})
-                        discordServices.sendMessageToMember(memberToAdd, 'Hi there! We tried to get you in a voice channel with a sponsor but you were not available. ' +
-                        'Remember you need to stay in the wait list voice channel! If you would like to try again please call the command again in the boothin-wait-list text chanel.');
+                    // bool to check if someone was added
+                    var isAdded = false;
+
+                    // Try to add every member in the group to the voice channel
+                    for (var i = 0; i < currentGroup.length; i++) {
+
+                        // get the member from the boothing wait list channel using firebase's stored username
+                        var memberToAdd = await channelToSearch.members.find(member => member.user.username === currentGroup[i]);
+
+                        try {
+                            // tries to add the user to the voice channel, it will fail if the user is currently not on the waitlist voice channel!
+                            await memberToAdd.voice.setChannel(voiceChannel);
+                            isAdded = true;
+                            discordServices.sendMessageToMember(memberToAdd, 'Hey hey, a sponsor is ready to talk to you! You are now live!');
+                        } catch(err) {
+                            discordServices.sendMessageToMember(memberToAdd, 'Hi there! We tried to get you in a voice channel with a sponsor but you were not available. ' +
+                            'Remember you need to stay in the wait list voice channel! If you would like to try again please call the command again in the boothin-wait-list text chanel.' + 
+                            'If you were in a group and one of your friends made it into the private call then join the waitlist voicechannel ASAP so the sponsor can add you manualy!');
+                        }
                     }
-                    
-                    // If the attempt to add memeber to voice does not fail then proceed!
-                    if (fut != null) {
+
+                    // If no one was added then skip the group and let the sponsor know!
+                    if (isAdded === false) {
+                        var mesg = await message.reply('This users are not in the voice channel, they have been skiped, please call the function again!');
+                            mesg.delete({timeout : 5000})
+                    } else {
+                        // If someone was added then continue on
                         var replyMessage = await message.reply('Someone has been moved successfully to the requested channel. Happy talking!');
-                        discordServices.sendMessageToMember(memberToAdd, 'Hey hey, a sponsor is ready to talk to you! You are now live!');
                         replyMessage.delete({timeout: 5000});
                         var number = await firebaseServices.numberInWaitList();
                         message.reply('There are: ' + number + ' in the wait list.');
+                        
                     }
+                    
+
                 }
             
             }

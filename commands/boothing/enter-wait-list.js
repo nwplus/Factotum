@@ -13,12 +13,31 @@ module.exports = class EnterWaitList extends Command {
             memberName: 'enter wait list',
             description: 'Will add the author of the message to the boothing wait list',
             guildOnly: true,
-            args: [],
+            args: [
+                {
+                    key: 'buddy1',
+                    prompt: 'A friend to join the conversation with',
+                    type: 'member',
+                    default: '',
+                },
+                {
+                    key: 'buddy2',
+                    prompt: 'A friend to join the conversation with',
+                    type: 'member',
+                    default: '',
+                },
+                {
+                    key: 'buddy3',
+                    prompt: 'A friend to join the conversation with',
+                    type: 'member',
+                    default: '',
+                },
+            ],
         });
     }
 
     // Run function -> command body
-    async run(message) {
+    async run(message, {buddy1, buddy2, buddy3}) {
         message.delete();
         // make sure command is only used in the boothing-wait-list channel
         if (message.channel.name === 'boothing-wait-list') {
@@ -27,7 +46,19 @@ module.exports = class EnterWaitList extends Command {
                 
                 var username = message.member.user.username;
 
-                var status = await firebaseServices.addToWaitList(username);
+                // creat list of usernames of buddies
+                var usernameList = [];
+                if (buddy1 != '') {
+                    usernameList.push(buddy1.user.username);
+                }
+                if (buddy2 != '') {
+                    usernameList.push(buddy2.user.username);
+                }
+                if (buddy3 != '') {
+                    usernameList.push(buddy3.user.username);
+                }                
+
+                var status = await firebaseServices.addToWaitList(username, usernameList);
 
                 // If the user is alredy in the waitlist then tell him that
                 if (status === firebaseServices.status.HACKER_IN_USE) {
