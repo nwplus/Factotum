@@ -286,3 +286,12 @@ async function workshopRemovePrivates(workshopName, number) {
 
 }
 module.exports.workshopRemovePrivates = workshopRemovePrivates;
+
+// get number of private channels
+async function workshopPrivatChannels(workshopName) {
+    var ref = db.collection('workshops').doc(workshopName);
+    var doc = await ref.get();
+    return doc.get('privateVoiceNumber');
+
+}
+module.exports.workshopPrivatChannels = workshopPrivatChannels;
