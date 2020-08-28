@@ -229,3 +229,60 @@ async function numberInWaitList() {
     return collection.size;
 }
 module.exports.numberInWaitList = numberInWaitList;
+
+// Creates a workshop in the workshops collection
+async function createWorkshop(workshopName) {
+    var doc = await db.collection('workshops').doc(workshopName).set(
+        {
+            'privateVoiceNumber' : 0,
+        }
+    );
+}
+module.exports.createWorkshop = createWorkshop;
+
+// Remove a workshop in the workshops collection
+async function removeWorkshop(workshopName) {
+    var doc = await db.collection('workshops').doc(workshopName).delete();
+}
+module.exports.removeWorkshop = removeWorkshop;
+
+
+// updates a workshop
+async function workshopAddPrivates(workshopName, number) {
+    var ref = db.collection('workshops').doc(workshopName);
+    var doc = await ref.get();
+
+    // get current number of channels and adds them the new new number of channels
+    var current = doc.get('privateVoiceNumber');
+    console.log(current);
+    var total = number + current;
+    console.log(total);
+    ref.update({
+        'privateVoiceNumber' : total,
+    });
+    return total;
+
+}
+module.exports.workshopAddPrivates = workshopAddPrivates;
+
+// updates a workshop by remivng x number of private channels
+async function workshopRemovePrivates(workshopName, number) {
+    var ref = db.collection('workshops').doc(workshopName);
+    var doc = await ref.get();
+
+    // get current number of channels and adds them the new new number of channels
+    var current = doc.get('privateVoiceNumber');
+    var total = current - number;
+
+    // min can be 0, anything less will round up to 0
+    if (total < 0) {
+        total = 0;
+    }
+
+    ref.update({
+        'privateVoiceNumber' : total,
+    });
+    return total;
+
+}
+module.exports.workshopRemovePrivates = workshopRemovePrivates;
