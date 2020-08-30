@@ -93,7 +93,11 @@ module.exports = class GetNextWaitList extends Command {
 
                 }
             
+            } else {
+                discordServices.replyAndDelete(message, 'You do not have permision for this command, only sponsors can use it!');
             }
+        } else {
+            discordServices.replyAndDelete(message, 'This command can only be used in the boothing sponsor console channel!');
         }
     }
 

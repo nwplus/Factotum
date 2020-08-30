@@ -44,7 +44,11 @@ module.exports = class CreateWorkshop extends Command {
 
                 // report success of workshop creation
                 message.reply('Workshop session named: ' + workshopName + ' created succesfully. Any other commands will require this name as paramter.');
-            }   
+            } else {
+                discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
+            }
+        } else {
+            discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
         }
     }
 

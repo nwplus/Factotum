@@ -51,3 +51,10 @@ function discordLog(guild, message) {
     guild.channels.cache.find(channel => channel.name === "logs").send(message);
 }
 module.exports.discordLog = discordLog;
+
+// reply to message and delete 5 seconds later
+function replyAndDelete(message, reply) {
+    var msg = await message.reply(reply);
+    msg.delete({timeout: 5000});
+}
+module.exports.replyAndDelete = replyAndDelete;

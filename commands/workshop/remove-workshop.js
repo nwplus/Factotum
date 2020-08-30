@@ -40,7 +40,11 @@ module.exports = class RemoveWorkshop extends Command {
 
                 // report success of workshop creation
                 message.reply('Workshop session named: ' + workshopName + ' removed succesfully!');
-            }   
+            } else {
+                discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
+            }
+        } else {
+            discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
         }
     }
 

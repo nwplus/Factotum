@@ -4,13 +4,13 @@ const firebaseServices = require('../../firebase-services');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class WorkshopShuffle extends Command {
+module.exports = class WorkshopCallBack extends Command {
     constructor(client) {
         super(client, {
-            name: 'shuffleworkshop',
+            name: 'callback',
             group: 'workshop',
-            memberName: 'shuffle everyone',
-            description: 'Will shuffle everyone in the main channel into the private channels',
+            memberName: 'call back to main voice channel',
+            description: 'Will return everyone to the workshops main voice channel',
             guildOnly: true,
             args: [
                 {
@@ -45,27 +45,17 @@ module.exports = class WorkshopShuffle extends Command {
                         // get the general voice channel
                         var generalVoice = await category.children.find(channel => channel.name === workshopName + '-general-voice');
 
-                        // get members in general voice channel
-                        var members = generalVoice.memebers;
-
-                        // get number of members in the voice channel
-                        var numberOfMembers = members.length;
-
-                        // get channels
-                        var channels = [];
+                        // loop over channels and get all member to move back to main voice channel
                         for (var index = 0; index < numberOfChannels; i++) {
-                            channels.push(
-                                await category.children.find(channel => channel.name === workshopName + '-' + index)
-                            );
-                        }
+                            var channel = await category.children.find(channel => channel.name === workshopName + '-' + index);
 
-                        // shuffle the member list
-                        this.shuffleArray(members);
+                            var members = channel.members;
 
-                        // add the members into the channels
-                        for(var index = 0; index < numberOfMembers; i++) {
-                            await members[index].voice.setChannel(channels[index % numberOfChannels]).catch(console.error);
+                            for (var i = 0; i < members.length; i++) {
+                                await members[i].voice.setChannel(generalVoice);
+                            }
                         }
+                        
 
                         // report success of workshop shuffling
                         message.reply('Workshop session named: ' + workshopName + ' members have been shuffled into the private channels!');

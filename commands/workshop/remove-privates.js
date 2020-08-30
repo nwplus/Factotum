@@ -62,7 +62,11 @@ module.exports = class RemovePrivates extends Command {
                     // if the category does not excist
                     message.reply('The workshop named: ' + workshopName +', does not excist! Did not remove voice channels.');
                 }
-            }   
+            } else {
+                discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
+            }
+        } else {
+            discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
         }
     }
 

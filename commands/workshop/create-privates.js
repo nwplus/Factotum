@@ -52,15 +52,17 @@ module.exports = class CreatePrivates extends Command {
                         message.guild.channels.create(workshopName + '-' + index, {type: 'voice', parent: category});
                     }
 
-                   
-
                     // report success of workshop creation
                     message.reply('Workshop session named: ' + workshopName + ' now has ' + number + ' voice channels.');
                 } else {
                     // if the category does not excist
                     message.reply('The workshop named: ' + workshopName +', does not excist! Did not create voice channels.');
                 }
-            }   
+            } else {
+                discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
+            }
+        } else {
+            discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
         }
     }
 
