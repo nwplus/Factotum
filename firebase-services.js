@@ -295,3 +295,63 @@ async function workshopPrivatChannels(workshopName) {
 
 }
 module.exports.workshopPrivatChannels = workshopPrivatChannels;
+
+// add hacker to workshop ta help list
+async function addToTAHelp(workshopName, username) {
+    // get workshop ref
+    var workshopRef =  db.collection('workshops').doc(workshopName);
+
+    // get list
+    var workshop = await workshopRef.get();
+    var list = workshop.get('taHelpList');
+
+    // return a failure if list does not excist
+    if (list == undefined) {
+        return status.FAILURE;
+    } else if (list.includes(username)) {
+        return status.HACKER_IN_USE;
+    }
+
+    // add to list
+    await workshopRef.update({
+        'taHelpList' : firebase.firestore.FieldValue.arrayUnion(username),
+    });
+
+    return status.HACKER_SUCCESS;
+
+}
+module.exports.addToTAHelp = addToTAHelp;
+
+// Will create the taHelpList field for workshop
+async function intiTAHelpFor(workshopName) {
+    var workshopRef = db.collection('workshops').doc(workshopName).update({
+        'taHelpList' : [],
+    });
+}
+module.exports.intiTAHelpFor = intiTAHelpFor;
+
+// will get the next person in the workshop ta help list
+async function getFromTAHelpList(workshopName) {
+
+    var workshopRef = db.collection('workshops').doc(workshopName);
+    var workshop = await workshopRef.get();
+
+    var list = workshop.get('taHelpList');
+
+    if (list === undefined) {
+        return status.FAILURE;
+    }
+
+    var nextUser = list.shift();
+
+    if (nextUser === undefined) {
+        return status.MENTOR_IN_USE;
+    }
+
+    await workshopRef.update({
+        'taHelpList' : list,
+    });
+
+    return nextUser;
+}
+module.exports.getFromTAHelpList = getFromTAHelpList;
