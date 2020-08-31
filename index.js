@@ -63,6 +63,8 @@ bot.on('message', message => {
 });
 
 // Listeners for the bot
+
+// If someone joins the server they get the guest role!
 bot.on('guildMemberAdd', member => {
     member.roles.add(member.guild.roles.cache.find(role => role.name === "Guest"));
     member.send("Welcome to the nwHacks Server, please verify your status with us in the welcome channel" +

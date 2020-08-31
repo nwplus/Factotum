@@ -4,12 +4,12 @@ const firebaseServices = require('../../firebase-services');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class CreatePrivates extends Command {
+module.exports = class CreatePrivatesFor extends Command {
     constructor(client) {
         super(client, {
-            name: 'createprivates',
+            name: 'createprivatesfor',
             group: 'workshop',
-            memberName: 'create private voice channels',
+            memberName: 'create private voice channels for a workshop',
             description: 'Will create x number of private voice channels for given workshop',
             guildOnly: true,
             args: [

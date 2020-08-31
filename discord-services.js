@@ -53,7 +53,7 @@ function discordLog(guild, message) {
 module.exports.discordLog = discordLog;
 
 // reply to message and delete 5 seconds later
-function replyAndDelete(message, reply) {
+async function replyAndDelete(message, reply) {
     var msg = await message.reply(reply);
     msg.delete({timeout: 5000});
 }

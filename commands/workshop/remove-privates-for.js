@@ -4,10 +4,10 @@ const firebaseServices = require('../../firebase-services');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class RemovePrivates extends Command {
+module.exports = class RemovePrivatesFor extends Command {
     constructor(client) {
         super(client, {
-            name: 'removeprivates',
+            name: 'removeprivatesfor',
             group: 'workshop',
             memberName: 'remove private voice channels',
             description: 'Will remove x number of private voice channels for given workshop',
@@ -48,11 +48,10 @@ module.exports = class RemovePrivates extends Command {
                     // we remove one because we are counting from 0
                     var index = total + number - 1;
 
-                    // create voice channels
-                    // we add grater and equals because we started cration from 0
+                    // remove voice channels
                     for (; index >= total; index--) {
                         var channelName = workshopName + '-' + index;
-                        var channel = await message.guild.channels.cache.find(channel => channel.name === channelName);
+                        var channel = await category.children.find(channel => channel.name === channelName);
                         channel.delete();
                     }
 
