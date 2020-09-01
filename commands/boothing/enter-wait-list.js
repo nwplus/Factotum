@@ -69,6 +69,10 @@ module.exports = class EnterWaitList extends Command {
 
                     discordServices.sendMessageToMember(message.member, 'Hey there! We got you singed up to talk to a sponsor! Sit tight in the voice channel. If you ' +
                     'are not in the voice channel when its your turn you will be skipped, and we do not want that to happen! You are number: ' + number + ' in the wait list.');
+
+                    // get boothing sponsor console channel
+                    var channel = await message.guild.channels.cache.get('748397163997954108');
+                    channel.send('There are: ' + number + ' hackers waiting in line!');
                 }
             }   
         }

@@ -4,10 +4,10 @@ const firebaseServices = require('../../firebase-services');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class GetNextWaitList extends Command {
+module.exports = class GetNext extends Command {
     constructor(client) {
         super(client, {
-            name: 'getnextwaitlist',
+            name: 'getnext',
             group: 'boothing',
             memberName: 'get the next member in the wait',
             description: 'Will get the next member in the wait list into the given voice channel',
@@ -46,16 +46,16 @@ module.exports = class GetNextWaitList extends Command {
                         // user to add rn
                         var currentGroup = listOrStatus.get('currentGroup');
 
-                        // user that is next in the waitlist
-                        var nextUserID = listOrStatus.get('nextGroup')[0];
+                        // user that is next in the waitlist as a list
+                        var nextUserID = listOrStatus.get('nextGroup');
 
-                            // get the boothing wait list channel for use later
+                        // get the boothing wait list channel for use later
                         var channelToSearch = message.guild.channels.cache.find(channel => channel.name === 'boothing-wait-list');
 
                         // make sure there is someone next
                         if (nextUserID.length > 0) {
                             // get next member and notify that he is next
-                            var nextMember = channelToSearch.members.find(member => member.user.username === nextUserID);
+                            var nextMember = channelToSearch.members.find(member => member.user.username === nextUserID[0]);
                             discordServices.sendMessageToMember(nextMember, 'You are next! Get ready to talk to a sponsor, make sure you are in the waitlist voice channel!');
                         }
 
@@ -89,7 +89,7 @@ module.exports = class GetNextWaitList extends Command {
                             var replyMessage = await message.reply('Someone has been moved successfully to the requested channel. Happy talking!');
                             replyMessage.delete({timeout: 5000});
                             var number = await firebaseServices.numberInWaitList();
-                            message.reply('There are: ' + number + ' in the wait list.');
+                            message.channel.send('There are: ' + number + ' in the wait list.');
                             
                         }
                         
