@@ -355,3 +355,14 @@ async function getFromTAHelpList(workshopName) {
     return nextUser;
 }
 module.exports.getFromTAHelpList = getFromTAHelpList;
+
+// will get the remaining users in ta wait list
+async function leftInTAHelpList(workshopName) {
+    var workshopRef = db.collection('workshops').doc(workshopName);
+    var workshop = await workshopRef.get();
+
+    var list = workshop.get('taHelpList');
+
+    return list.length;
+}
+module.exports.leftInTAHelpList = leftInTAHelpList;

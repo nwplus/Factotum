@@ -42,6 +42,11 @@ module.exports = class AskForHelp extends Command {
             } else {
                 discordServices.sendMessageToMember(message.member, 'Hey there! We got you singed up to talk to a TA! Sit tight in the voice channel. If you ' +
                 'are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!');
+
+                // get ta console
+                var channel = await message.guild.channels.cache.find(channel => channel.name === workshop + '-ta-console');
+                var number = await firebaseServices.leftInTAHelpList(workshop);
+                channel.send('There are: ' + number + ' hackers waiting in line!');
             }
         }    
     }

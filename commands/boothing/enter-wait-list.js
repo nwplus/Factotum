@@ -74,7 +74,11 @@ module.exports = class EnterWaitList extends Command {
                     var channel = await message.guild.channels.cache.get('748397163997954108');
                     channel.send('There are: ' + number + ' hackers waiting in line!');
                 }
+            } else {
+                discordServices.replyAndDelete(message, 'This command can only be ran by hackers!');
             }   
+        } else {
+            discordServices.replyAndDelete(message, 'This command can only be ran in the boothing-wait-list channel!');
         }
     }
 

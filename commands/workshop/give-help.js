@@ -10,15 +10,9 @@ module.exports = class GiveHelp extends Command {
             name: 'givehelp',
             group: 'workshop',
             memberName: 'get next hacker help',
-            description: 'Will get the next hacker that needs TA help',
+            description: 'Will get the next hacker that needs TA help and move him/her to the voice channel where the mentor is',
             guildOnly: true,
-            args: [
-                {
-                    key: 'channelName',
-                    prompt: 'name of voice channel to add to',
-                    type: 'string',
-                }
-            ],
+            args: [],
         });
     }
 
@@ -44,10 +38,10 @@ module.exports = class GiveHelp extends Command {
                     discordServices.replyAndDelete(message, 'This can only be called in a ta console!');
                 } else {
 
-                    // grab the voice channel to move the memeber to, uses the parameter channelName
-                    var voiceChannel = await message.guild.channels.cache.find(channel => channel.name === channelName);
+                    // grab the voice channel to move the memeber to, uses the channel the command sender is in
+                    var voiceChannel = message.member.voice.channel;
 
-                    // make sure the given voice channel is correct
+                    // make sure the mentor is in a voice channel
                     if (voiceChannel != undefined) {
                         // bool to check if someone was added
                         var isAdded = false;
@@ -76,8 +70,8 @@ module.exports = class GiveHelp extends Command {
                             // If someone was added then continue on
                             var replyMessage = await message.reply('Someone has been moved successfully to the requested channel. Happy helping!');
                             replyMessage.delete({timeout: 5000});
-                            var number = await firebaseServices.numberInWaitList();
-                            message.reply('There are: ' + number + ' in the TA help wait list.');
+                            var number = await firebaseServices.leftInTAHelpList(workshop);
+                            message.channel.send('There are: ' + number + ' in the TA help wait list.');
                             
                         }
                     } else {

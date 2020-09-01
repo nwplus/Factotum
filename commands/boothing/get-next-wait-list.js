@@ -10,15 +10,9 @@ module.exports = class GetNext extends Command {
             name: 'getnext',
             group: 'boothing',
             memberName: 'get the next member in the wait',
-            description: 'Will get the next member in the wait list into the given voice channel',
+            description: 'Will get the next member in the wait list into the voice channel where the command sender is',
             guildOnly: true,
-            args: [
-                {
-                    key: 'channelName',
-                    prompt: 'name of voice channel to add to',
-                    type: 'string',
-                }
-            ],
+            args: [],
         });
     }
 
@@ -31,9 +25,9 @@ module.exports = class GetNext extends Command {
             if (discordServices.checkForRole(message.member, discordServices.sponsorRole)) {
 
                 // grab the voice channel to move the memeber to, uses the parameter channelName
-                var voiceChannel = message.guild.channels.cache.find(channel => channel.name === channelName);
+                var voiceChannel = message.member.voice.channel;
 
-                // make sure the given voice channel is valid
+                // make sure the sponsor is in a voice channel
                 if (voiceChannel != undefined) {
                     // get status if no one in list or a map of current group and next group up
                     let listOrStatus = await firebaseServices.getFromWaitList();
@@ -50,7 +44,7 @@ module.exports = class GetNext extends Command {
                         var nextUserID = listOrStatus.get('nextGroup');
 
                         // get the boothing wait list channel for use later
-                        var channelToSearch = message.guild.channels.cache.find(channel => channel.name === 'boothing-wait-list');
+                        var channelToSearch = message.guild.channels.cache.get(discordServices.boothingWaitList);
 
                         // make sure there is someone next
                         if (nextUserID.length > 0) {

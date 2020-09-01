@@ -16,8 +16,9 @@ module.exports = {boothingWaitList};
 
 
 // Checks if the memeber has a role, returns true if it does
-function checkForRole(member, role) {
-    if(member.roles.cache.get(role) != undefined) {
+async function checkForRole(member, role) {
+    var hasRole = await member.roles.cache.get(role);
+    if(hasRole != undefined) {
         return true;
     } else {
         return false;
