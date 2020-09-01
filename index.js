@@ -4,6 +4,7 @@ require('dotenv-flow').config();
 
 // Firebase requirements
 var firebase = require('firebase/app');
+const discordServices = require('./discord-services');
 
 // firebase config
 var firebaseConfig = {
@@ -56,7 +57,8 @@ bot.on('message', message => {
     // Deletes all messages to welcome that are not !verify
     if (message.channel.name === 'welcome') {
         if (!message.content.startsWith('!verify')) {
-            message.delete({timeout: 10000});
+            discordServices.replyAndDelete(message, 'This channel is only to run the verify command.');
+            message.delete({timeout: 2000});
         }
     }
 
@@ -66,7 +68,8 @@ bot.on('message', message => {
 
 // If someone joins the server they get the guest role!
 bot.on('guildMemberAdd', member => {
-    member.roles.add(member.guild.roles.cache.find(role => role.name === "Guest"));
+    discordServices.addRoleToMember(member, discordServices.guestRole);
+    //member.roles.add(member.guild.roles.cache.find(role => role.name === "Guest"));
     member.send("Welcome to the nwHacks Server, please verify your status with us in the welcome channel" +
         " by using the !verify <your email> command. If you have any questions feel free to contact our staff " +
         "at the welcome-support channel. We are so excited to have you here!");

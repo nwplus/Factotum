@@ -1,19 +1,23 @@
 
 
 // Available Roles
-const guestRole = 'Guest';
-const hackerRole = 'Hacker';
-const attendeeRole = 'Attendee';
-const mentorRole = 'Mentor';
-const sponsorRole = 'Sponsor';
-const staffRole = 'Staff';
-const adminRole = 'Admin';
+const guestRole = '742896900419747961';
+const hackerRole = '738519785028976741';
+const attendeeRole = '742896999556448357';
+const mentorRole = '747527454200955051';
+const sponsorRole = '738519983981723748';
+const staffRole = '738519363904077916';
+const adminRole = '738491577596641311';
 module.exports = {guestRole, hackerRole, attendeeRole, mentorRole, sponsorRole, staffRole, adminRole};
+
+// Common channels
+const boothingWaitList = '748370272049954927';
+module.exports = {boothingWaitList};
 
 
 // Checks if the memeber has a role, returns true if it does
 function checkForRole(member, role) {
-    if(member.roles.cache.some(r => r.name === role)) {
+    if(member.roles.cache.get(role) != undefined) {
         return true;
     } else {
         return false;
@@ -29,13 +33,13 @@ module.exports.sendMessageToMember = sendMessageToMember;
 
 // Add a role to a member
 function addRoleToMember(member, addRole) {
-    member.roles.add(member.guild.roles.cache.find(role => role.name === addRole));
+    member.roles.add(addRole);
 }
 module.exports.addRoleToMember = addRoleToMember;
 
 // Remove a role to a member
 function removeRolToMember(member, removeRole) {
-    member.roles.remove(member.guild.roles.cache.find(role => role.name === removeRole));
+    member.roles.remove(removeRole);
 }
 module.exports.removeRolToMember = removeRolToMember;
 
@@ -48,7 +52,7 @@ module.exports.replaceRoleToMember = replaceRoleToMember;
 
 // Log a message on the log channel
 function discordLog(guild, message) {
-    guild.channels.cache.find(channel => channel.name === "logs").send(message);
+    guild.channels.cache.get('743197503884755045').send(message);
 }
 module.exports.discordLog = discordLog;
 

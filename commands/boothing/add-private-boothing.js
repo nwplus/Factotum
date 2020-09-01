@@ -49,7 +49,7 @@ module.exports = class CreatePrivates extends Command {
 
                 // create voice channels
                 for (var index = amount + 1; index <= total; index++) {
-                    message.guild.channels.create('Private-' + index, {type: 'voice', parent: category});
+                    message.guild.channels.create('Private-' + index, {type: 'voice', parent: category,});
                 }
 
                 // report success of workshop creation

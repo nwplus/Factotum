@@ -30,7 +30,7 @@ module.exports = class CreatePrivatesFor extends Command {
     // Run function -> command body
     async run(message, {workshopName, number}) {
         message.delete();
-        // make sure command is only used in the boothing-wait-list channel
+        // make sure command is only used in the admin console
         if (message.channel.name === 'console') {
             // only memebers with the Hacker tag can run this command!
             if (discordServices.checkForRole(message.member, discordServices.adminRole)) {
