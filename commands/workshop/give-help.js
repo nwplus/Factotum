@@ -64,12 +64,10 @@ module.exports = class GiveHelp extends Command {
 
                         // If no one was added then skip the hacker and let the TA know!
                         if (isAdded === false) {
-                            var mesg = await message.reply('The hacker is not in the voice channel, they have been skiped, please call the function again!');
-                                mesg.delete({timeout : 5000})
+                            discordServices.replyAndDelete(message, 'The hacker is not in the voice channel, they have been skiped, please call the function again!');
                         } else {
                             // If someone was added then continue on
-                            var replyMessage = await message.reply('Someone has been moved successfully to the requested channel. Happy helping!');
-                            replyMessage.delete({timeout: 5000});
+                            discordServices.replyAndDelete(message, 'Someone has been moved successfully to the requested channel. Happy helping!');
                             var number = await firebaseServices.leftInTAHelpList(workshop);
                             message.channel.send('There are: ' + number + ' in the TA help wait list.');
                             

@@ -12,6 +12,7 @@ module.exports = {guestRole, hackerRole, attendeeRole, mentorRole, sponsorRole, 
 
 // Common channels
 const boothingWaitList = '748370272049954927';
+const adminLogChannel = '743197503884755045';
 module.exports = {boothingWaitList};
 
 
@@ -53,7 +54,7 @@ module.exports.replaceRoleToMember = replaceRoleToMember;
 
 // Log a message on the log channel
 function discordLog(guild, message) {
-    guild.channels.cache.get('743197503884755045').send(message);
+    guild.channels.cache.get(adminLogChannel).send(message);
 }
 module.exports.discordLog = discordLog;
 

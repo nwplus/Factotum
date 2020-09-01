@@ -34,8 +34,7 @@ module.exports = class GetNext extends Command {
 
                     // if the function returns the FAILURE status then there are no more hackers in the waitlist
                     if (listOrStatus === firebaseServices.status.FAILURE) {
-                        var msg = await message.reply('There is no more poeple waiting, we will let you know when there is!');
-                        msg.delete({timout : 5000});
+                        discordServices.replyAndDelete(message, 'There is no more poeple waiting, we will let you know when there is!');
                     } else {
                         // user to add rn
                         var currentGroup = listOrStatus.get('currentGroup');
