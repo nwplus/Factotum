@@ -1,19 +1,25 @@
-
+const { Command } = require('discord.js-commando');
 
 // Available Roles
-const guestRole = '742896900419747961';
-const hackerRole = '738519785028976741';
-const attendeeRole = '742896999556448357';
-const mentorRole = '747527454200955051';
-const sponsorRole = '738519983981723748';
-const staffRole = '738519363904077916';
-const adminRole = '738491577596641311';
-module.exports = {guestRole, hackerRole, attendeeRole, mentorRole, sponsorRole, staffRole, adminRole};
+var guestRole = '742896900419747961';
+var hackerRole = '738519785028976741';
+var attendeeRole = '742896999556448357';
+var mentorRole = '747527454200955051';
+var sponsorRole = '738519983981723748';
+var staffRole = '738519363904077916';
+var adminRole = '738491577596641311';
+module.exports.hackerRole = hackerRole;
+module.exports.guestRole = guestRole;
+module.exports.adminRole = adminRole;
+module.exports.attendeeRole = attendeeRole;
+module.exports.mentorRole = mentorRole;
+module.exports.sponsorRole = sponsorRole;
+module.exports.staffRole = staffRole;
 
 // Common channels
-const boothingWaitList = '748370272049954927';
-const adminLogChannel = '743197503884755045';
-module.exports = {boothingWaitList};
+var boothingWaitList = '748370272049954927';
+var adminLogChannel = '743197503884755045';
+module.exports.boothingWaitList = boothingWaitList;
 
 
 // Checks if the memeber has a role, returns true if it does
