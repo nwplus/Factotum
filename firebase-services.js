@@ -324,6 +324,7 @@ module.exports.addToTAHelp = addToTAHelp;
 async function intiTAHelpFor(workshopName) {
     var workshopRef = db.collection('workshops').doc(workshopName).update({
         'taHelpList' : [],
+        'questions' : [],
     });
 }
 module.exports.intiTAHelpFor = intiTAHelpFor;
@@ -364,3 +365,27 @@ async function leftInTAHelpList(workshopName) {
     return list.length;
 }
 module.exports.leftInTAHelpList = leftInTAHelpList;
+
+// add question to the question bank
+async function addQuestionTo(workshopName, question, username) {
+    // get workshop ref
+    var workshopRef =  db.collection('workshops').doc(workshopName);
+
+    // get list
+    var workshop = await workshopRef.get();
+    var list = workshop.get('questions');
+
+    // return a failure if list does not excist
+    if (list == undefined) {
+        return status.FAILURE;
+    }
+
+    // add to list
+    await workshopRef.update({
+        'questions' : firebase.firestore.FieldValue.arrayUnion({'name' : username, 'question' : question}),
+    });
+
+    return status.HACKER_SUCCESS;
+
+}
+module.exports.addQuestionTo = addQuestionTo;
