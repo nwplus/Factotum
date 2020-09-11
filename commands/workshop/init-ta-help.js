@@ -36,10 +36,45 @@ module.exports = class InitTAHelp extends Command {
                 // make sure the workshop excists
                 if (category != undefined) {
 
+                    // grab general voice and update permission to no speak for attendees
+                    var generalVoice = await category.children.find(channel => channel.name === workshopName + '-general-voice');
+                    generalVoice.updateOverwrite(discordServices.attendeeRole, {
+                        SPEAK : false
+                    });
+                    generalVoice.updateOverwrite(discordServices.mentorRole, {
+                        SPEAK : true, 
+                        MOVE_MEMBERS : true,
+                    });
+                    generalVoice.updateOverwrite(discordServices.staffRole, {
+                        SPEAK : true, 
+                        MOVE_MEMBERS : true,
+                    })
+
                      firebaseServices.intiTAHelpFor(workshopName);
 
                      // create TA console
-                     message.guild.channels.create(workshopName + '-TA-console', {type: 'text', parent: category});
+                     message.guild.channels.create(workshopName + '-TA-console', {type: 'text', parent: category,  permissionOverwrites: [
+                        {
+                            id: discordServices.hackerRole,
+                            deny: ['VIEW_CHANNEL'],
+                        },
+                        {
+                            id: discordServices.attendeeRole,
+                            deny: ['VIEW_CHANNEL'],
+                        },
+                        {
+                            id: discordServices.sponsorRole,
+                            deny: ['VIEW_CHANNEL'],
+                        },
+                        {
+                            id: discordServices.mentorRole,
+                            allow: ['VIEW_CHANNEL'],
+                        },
+                        {
+                            id: discordServices.staffRole,
+                            allow: ['VIEW_CHANNEL'],
+                        }
+                    ]});
 
                     // report success of workshop creation
                     message.reply('Workshop session named: ' + workshopName + ' now has TA help functionality.');

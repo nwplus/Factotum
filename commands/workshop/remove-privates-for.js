@@ -30,8 +30,8 @@ module.exports = class RemovePrivatesFor extends Command {
     // Run function -> command body
     async run(message, {workshopName, number}) {
         message.delete();
-        // make sure command is only used in the boothing-wait-list channel
-        if (message.channel.name === 'console') {
+        // make sure command is only used in the admin console
+        if (message.channel.id === '748955441484005488') {
             // only memebers with the Hacker tag can run this command!
             if (discordServices.checkForRole(message.member, discordServices.adminRole)) {
                 
@@ -44,19 +44,23 @@ module.exports = class RemovePrivatesFor extends Command {
                      // udpate db and get total number of channels
                      var total = await firebaseServices.workshopRemovePrivates(workshopName, number);
 
+                    // grab the final number of channels there should be, no less than 0
+                    var final = total - number;
+                    if (final < 0) {
+                        final = 0;
+                    }
+
                     // grab index where channel naming should start, in case there are already channels made
                     // we remove one because we are counting from 0
-                    var index = total + number - 1;
-
                     // remove voice channels
-                    for (; index >= total; index--) {
+                    for (var index = total - 1; index >= final; index--) {
                         var channelName = workshopName + '-' + index;
                         var channel = await category.children.find(channel => channel.name === channelName);
                         channel.delete();
                     }
 
                     // report success of channel deletions
-                    message.reply('Workshop session named: ' + workshopName + ' now has ' + number + ' voice channels.');
+                    message.reply('Workshop session named: ' + workshopName + ' now has ' + final + ' voice channels.');
                 } else {
                     // if the category does not excist
                     message.reply('The workshop named: ' + workshopName +', does not excist! Did not remove voice channels.');

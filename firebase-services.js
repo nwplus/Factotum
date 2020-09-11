@@ -254,9 +254,7 @@ async function workshopAddPrivates(workshopName, number) {
 
     // get current number of channels and adds them the new new number of channels
     var current = doc.get('privateVoiceNumber');
-    console.log(current);
     var total = number + current;
-    console.log(total);
     ref.update({
         'privateVoiceNumber' : total,
     });
@@ -282,7 +280,7 @@ async function workshopRemovePrivates(workshopName, number) {
     ref.update({
         'privateVoiceNumber' : total,
     });
-    return total;
+    return current;
 
 }
 module.exports.workshopRemovePrivates = workshopRemovePrivates;

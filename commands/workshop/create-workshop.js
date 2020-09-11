@@ -31,10 +31,31 @@ module.exports = class CreateWorkshop extends Command {
             if (discordServices.checkForRole(message.member, discordServices.adminRole)) {
                 
                 // Create category
-                var category = await message.guild.channels.create(workshopName, {type: 'category'});
+                var category = await message.guild.channels.create(workshopName, {type: 'category',  permissionOverwrites: [
+                    {
+                        id: discordServices.hackerRole,
+                        deny: ['VIEW_CHANNEL'],
+                    },
+                    {
+                        id: discordServices.attendeeRole,
+                        allow: ['VIEW_CHANNEL'],
+                    },
+                    {
+                        id: discordServices.mentorRole,
+                        allow: ['VIEW_CHANNEL'],
+                    },
+                    {
+                        id: discordServices.sponsorRole,
+                        allow: ['VIEW_CHANNEL'],
+                    },
+                    {
+                        id: discordServices.staffRole,
+                        allow: ['VIEW_CHANNEL'],
+                    }
+                ]});
 
                 // create text channel
-                message.guild.channels.create(workshopName + '-text', {type: 'text', parent: category},);
+                message.guild.channels.create(workshopName + '-text', {type: 'text', parent: category,});
 
                 // create general voice
                 message.guild.channels.create(workshopName + '-general-voice', {type: 'voice', parent: category});

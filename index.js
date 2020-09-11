@@ -55,7 +55,7 @@ bot.on('message', message => {
 
 
     // Deletes all messages to welcome that are not !verify
-    if (message.channel.name === 'welcome') {
+    if (message.channel.id === '743192401434378271') {
         if (!message.content.startsWith('!verify')) {
             discordServices.replyAndDelete(message, 'This channel is only to run the verify command.');
             message.delete({timeout: 2000});

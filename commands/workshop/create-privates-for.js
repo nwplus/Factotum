@@ -31,7 +31,7 @@ module.exports = class CreatePrivatesFor extends Command {
     async run(message, {workshopName, number}) {
         message.delete();
         // make sure command is only used in the admin console
-        if (message.channel.name === 'console') {
+        if (message.channel.id === '748955441484005488') {
             // only memebers with the Hacker tag can run this command!
             if (discordServices.checkForRole(message.member, discordServices.adminRole)) {
                 
@@ -49,7 +49,30 @@ module.exports = class CreatePrivatesFor extends Command {
 
                     // create voice channels
                     for (; index < total; index++) {
-                        message.guild.channels.create(workshopName + '-' + index, {type: 'voice', parent: category});
+                        message.guild.channels.create(workshopName + '-' + index, {type: 'voice', parent: category, permissionOverwrites : [
+                            {
+                                id: discordServices.hackerRole,
+                                deny: ['VIEW_CHANNEL'],
+                            },
+                            {
+                                id: discordServices.attendeeRole,
+                                deny: ['VIEW_CHANNEL'],
+                                allow: ['USE_VAD', 'SPEAK'],
+                            },
+                            {
+                                id: discordServices.sponsorRole,
+                                deny: ['VIEW_CHANNEL'],
+                            },
+                            {
+                                id: discordServices.mentorRole,
+                                allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
+                            },
+                            {
+                                id: discordServices.staffRole,
+                                allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
+                            }
+                        ]
+                        }).catch(console.error);
                     }
 
                     // report success of workshop creation
