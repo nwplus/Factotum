@@ -24,8 +24,8 @@ firebase.initializeApp(firebaseConfig);
 
 
 const config = {
-    token: process.env.token,
-    owner: process.env.owner,
+    token: process.env.TOKEN,
+    owner: process.env.OWNER,
 }
 const bot = new commando.Client({
     commandPrefix: '!',
@@ -75,6 +75,5 @@ bot.on('guildMemberAdd', member => {
         "at the welcome-support channel. We are so excited to have you here!");
 });
 
-
-bot.login(config.token);
+bot.login(config.token).catch(console.error);
 

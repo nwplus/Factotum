@@ -50,7 +50,7 @@ module.exports = class CreatePrivates extends Command {
                 // create voice channels
                 for (var index = amount + 1; index <= total; index++) {
                     var channel = await message.guild.channels.create('Private-' + index, {type: 'voice', parent: category});
-                    await channel.createOverwrite(discordServices.hackerRole, {VIEW_CHANNEL: false, SEND_MESSAGES: false,});
+                    await channel.createOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false, SPEAK: true, VIDEO: true, USE_VAD: true});
                 }
 
                 // report success of workshop creation
