@@ -47,9 +47,11 @@ module.exports = class GetNext extends Command {
 
                         // make sure there is someone next
                         if (nextUserID.length > 0) {
-                            // get next member and notify that he is next
-                            var nextMember = channelToSearch.members.find(member => member.user.username === nextUserID[0]);
-                            discordServices.sendMessageToMember(nextMember, 'You are next! Get ready to talk to a sponsor, make sure you are in the waitlist voice channel!');
+                            for (var i = 0; i < nextUserID.length ; i++) {
+                                // get next member and notify that he is next
+                                var nextMember = channelToSearch.members.find(member => member.user.username === nextUserID[i]);
+                                discordServices.sendMessageToMember(nextMember, 'You are next! Get ready to talk to a sponsor, make sure you are in the waitlist voice channel!');
+                            }
                         }
 
                         // bool to check if someone was added
