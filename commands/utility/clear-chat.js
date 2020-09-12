@@ -21,12 +21,16 @@ module.exports = class ClearChat extends Command {
         if (discordServices.checkForRole(message.member, discordServices.adminRole)) {
             await message.channel.bulkDelete(100, true).catch(console.error);
             discordServices.discordLog(message.guild, "Cleared the channel: " + message.channel.name + ". By user: " + message.author.username);
-           // var commands = message.client.registry.commands.array();
-           // var length = commands.length;
+            var commands = this.client.registry.commands.array();
+            var length = commands.length;
 
-           // for (var i = 0; i < length; i++) {
-           //     message.channel.send(commands[i].details);
-           // }
+            for (var i = 0; i < length; i++) {
+                if (commands[i].details != '') {
+                    //message.channel.send(commands[i].details).catch(console.error);
+                    console.log(commands[i].details);
+                }
+                
+            }
         } else {
             discordServices.replyAndDelete(message.member, 'Hey there, the command !clearchat is only available to Admins!');
         }
