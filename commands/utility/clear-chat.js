@@ -53,6 +53,10 @@ module.exports = class ClearChat extends Command {
             else if (message.channel.id === '748955441484005488') {
                 commands = this.client.registry.commands.array();
             }
+            // crate channel
+            else if (message.channel.id === '754396445494214789') {
+                commands = this.client.registry.findCommands('createchannel');
+            }
             // if there are no commands to send then return
             else {
                 return;
