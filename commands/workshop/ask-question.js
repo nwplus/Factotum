@@ -47,8 +47,19 @@ module.exports = class AskQuestion extends Command {
 
                 // get ta console
                 var channel = await message.guild.channels.cache.find(channel => channel.name === workshop + '-ta-console');
-                channel.send('A new quesiton has been asked: ' + question + '. Please respond to this message with the answer to start a conversation.');
-                // TODO
+                var finalMessage = await channel.send('A new quesiton has been asked: ' + question + '. Please react to this message to start a conversation.');
+                await finalMessage.react('✅');
+                const filter = (reaction, user) => {
+                    return reaction.emoji.id === '✅';
+                }
+
+                var collector = await finalMessage.createReactionCollector(filter, {time : 10000, max : 2});
+                console.log(collector);
+                collector.on('collect', (reaction, user) => {
+                    console.log('reacted by: ' + user.tag);
+                    //this.stop(); 
+                });
+
             }
         }    
     }
