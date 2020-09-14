@@ -10,7 +10,7 @@ module.exports = class AskForHelp extends Command {
             name: 'askta',
             group: 'h_workshop',
             memberName: 'request for ta help',
-            description: 'Will add user to TA help list',
+            description: 'Will add the command caller (user) to the workshop ta wait list. When a ta is ready, the user will be moved to a voice channel. For this to work the user must be on the workshop\'s voice channel.',
             guild: true,
             args: [],
         });
@@ -21,8 +21,8 @@ module.exports = class AskForHelp extends Command {
                 
         message.delete();
 
-        // only memebers with the Hacker tag can run this command!
-        if (discordServices.checkForRole(message.member, discordServices.hackerRole)) {
+        // only memebers with the Attendee tag can run this command!
+        if (discordServices.checkForRole(message.member, discordServices.attendeeRole)) {
                 
             // name of user
             var username = message.member.user.username;       

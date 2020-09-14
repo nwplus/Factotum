@@ -10,7 +10,7 @@ module.exports = class RemoveFromWaitList extends Command {
             name: 'removefromwaitlist',
             group: 'h_boothing',
             memberName: 'remove user from the wait list',
-            description: 'Will remove the user who called the command from the wait list',
+            description: 'Will remove the command caller (user) from the sponsor wait list as well as any other users tagged on the original command.',
             args: [],
         });
     }

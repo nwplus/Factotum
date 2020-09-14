@@ -10,7 +10,7 @@ module.exports = class AskQuestion extends Command {
             name: 'askquestion',
             group: 'h_workshop',
             memberName: 'ask a question to the ta team',
-            description: 'Will ask a question to the TA team and get responded via private',
+            description: 'Will add a question to the workshop question list and notify TAs about the question.',
             guild: true,
             args: [
                 {
@@ -35,32 +35,38 @@ module.exports = class AskQuestion extends Command {
             
             // get workshop name
             var workshop = message.channel.name;
-            workshop = workshop.slice(0, workshop.indexOf('text') - 1);
 
-            var status = await firebaseServices.addQuestionTo(workshop, question, username);
+            var index = workshop.indexOf('text');
 
-            // If the user is alredy in the waitlist then tell him that
-            if (status === firebaseServices.status.FAILURE) {
-                discordServices.sendMessageToMember(message.member, 'Hey there! This command can not be used because the TA functionality is not in use for this workshop');
-            } else {
-                discordServices.sendMessageToMember(message.member, 'Hey there! We got your question! Expect an answer from one of our TAs soon or for it to be answered during '
-                + 'the workshop! If you need emidiate help please ask to see a TA.');
+            // check if the channel is a workshop text channel
+            if(index != -1) {
+                workshop = workshop.slice(0, index - 1);
 
-                // get ta console
-                var channel = await message.guild.channels.cache.find(channel => channel.name === workshop + '-ta-console');
-                var finalMessage = await channel.send('A new quesiton has been asked: ' + question + '. Please react to this message to start a conversation.');
-                await finalMessage.react('✅');
-                const filter = (reaction, user) => {
-                    return reaction.emoji.id === '✅';
+                var status = await firebaseServices.addQuestionTo(workshop, question, username);
+
+                // If the user is alredy in the waitlist then tell him that
+                if (status === firebaseServices.status.FAILURE) {
+                    discordServices.sendMessageToMember(message.member, 'Hey there! This command can not be used because the TA functionality is not in use for this workshop');
+                } else {
+                    discordServices.sendMessageToMember(message.member, 'Hey there! We got your question! Expect an answer from one of our TAs soon or for it to be answered during '
+                    + 'the workshop! If you need emidiate help please ask to see a TA.');
+
+                    // get ta console
+                    var channel = await message.guild.channels.cache.find(channel => channel.name === workshop + '-ta-console');
+                    var finalMessage = await channel.send('A new quesiton has been asked: ' + question + '. Please react to this message to start a conversation.');
+                    await finalMessage.react('✅');
+                    const filter = (reaction, user) => {
+                        return reaction.emoji.id === '✅';
+                    }
+
+                    var collector = await finalMessage.createReactionCollector(filter, {time : 10000, max : 2});
+                    console.log(collector);
+                    collector.on('collect', (reaction, user) => {
+                        console.log('reacted by: ' + user.tag);
+                        //this.stop(); 
+                    });
+
                 }
-
-                var collector = await finalMessage.createReactionCollector(filter, {time : 10000, max : 2});
-                console.log(collector);
-                collector.on('collect', (reaction, user) => {
-                    console.log('reacted by: ' + user.tag);
-                    //this.stop(); 
-                });
-
             }
         }    
     }

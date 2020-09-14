@@ -10,7 +10,7 @@ module.exports = class Verificaiton extends Command {
             name: 'verify',
             group: 'verification',
             memberName: 'hacker verificaiton',
-            description: 'Will verify a guest to its correct role if his/her email is in our databse',
+            description: 'Will verify a guest to its correct role if their email is in our database.',
             guildOnly: true,
             args: [
                 {

@@ -10,7 +10,7 @@ module.exports = class CreateChannel extends Command {
             name: 'createchannel',
             group: 'utility',
             memberName: 'create a private voice or text channel',
-            description: 'Will create a private voice or text channel only visible to creator and any friends tagged in the command',
+            description: 'Will create a private voice or text channel only visible to whomever calls the command and any users tagged in the command, as well as server admins due to server limitations. ',
             guildOnly: true,
             args: [
                 {

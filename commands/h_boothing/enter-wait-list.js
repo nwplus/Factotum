@@ -11,7 +11,7 @@ module.exports = class EnterWaitList extends Command {
             name: 'enterwaitlist',
             group: 'h_boothing',
             memberName: 'enter wait list',
-            description: 'Will add the author of the message to the boothing wait list',
+            description: 'Will add the command caller (user) to the sponsor wait list as well as any users tagged on the message. User and tagged friends need to be in the sponsor\'s general voice channel to work.',
             guildOnly: true,
             args: [
                 {
@@ -41,8 +41,8 @@ module.exports = class EnterWaitList extends Command {
         message.delete();
         // make sure command is only used in the boothing-wait-list channel
         if (message.channel.name === 'boothing-wait-list') {
-            // only memebers with the Hacker tag can run this command!
-            if (discordServices.checkForRole(message.member, discordServices.hackerRole)) {
+            // only memebers with the Attendee tag can run this command!
+            if (discordServices.checkForRole(message.member, discordServices.attendeeRole)) {
                 
                 var username = message.member.user.username;
 

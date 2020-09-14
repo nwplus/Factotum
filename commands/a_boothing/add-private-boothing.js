@@ -10,7 +10,7 @@ module.exports = class CreatePrivates extends Command {
             name: 'createprivates',
             group: 'a_boothing',
             memberName: 'create private voice channels',
-            description: 'Will create x number of private voice channels for given workshop',
+            description: 'Will create x number of private voice channels for the sponsor boothing category.',
             guildOnly: true,
             args: [
                 {
@@ -28,7 +28,7 @@ module.exports = class CreatePrivates extends Command {
         // make sure command is only used in the boothing-wait-list channel
         if (message.channel.name === 'boothing-sponsor-console') {
             // only memebers with the Hacker tag can run this command!
-            if (discordServices.checkForRole(message.member, discordServices.adminRole)) {
+            if (discordServices.checkForRole(message.member, discordServices.staffRole)) {
                 
                 // get category
                 var category = await message.guild.channels.cache.get('738528333935018034');
@@ -51,6 +51,7 @@ module.exports = class CreatePrivates extends Command {
                 for (var index = amount + 1; index <= total; index++) {
                     var channel = await message.guild.channels.create('Private-' + index, {type: 'voice', parent: category});
                     await channel.createOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false, SPEAK: true, VIDEO: true, USE_VAD: true});
+                    await channel.createOverwrite(discordServices.mentorRole, {VIEW_CHANNEL: false, SPEAK: true, VIDEO: true, USE_VAD: true});
                 }
 
                 // report success of workshop creation

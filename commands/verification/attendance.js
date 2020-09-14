@@ -10,7 +10,7 @@ module.exports = class Attendace extends Command {
             name: 'attend',
             group: 'verification',
             memberName: 'hacker attendance',
-            description: 'Will mark a hacker as attending and upgrade role to Attendee',
+            description: 'Will mark a hacker as attending and upgrade role to Attendee. Can only be called once!',
             guildOnly: true,
             args: [
                 {

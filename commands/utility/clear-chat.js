@@ -10,7 +10,7 @@ module.exports = class ClearChat extends Command {
             name: 'clearchat',
             group: 'utility',
             memberName: 'clear chat utility',
-            description: 'Will clear the entire chat. Only available to admins!',
+            description: 'Will clear up to 100 newest messages from the channel. Messages older than two weeks will not be deleted. Then will send message with available commands in the channel, if any.',
             guildOnly: true,
             args: [],
         });

@@ -10,7 +10,7 @@ module.exports = class GetNext extends Command {
             name: 'getnext',
             group: 's_boothing',
             memberName: 'get the next member in the wait',
-            description: 'Will get the next member in the wait list into the voice channel where the command sender is',
+            description: 'Will get the top group in the wait list into the command invoker\'s voice channel and the next group up will receive a message from the bot. If the group is unavailable then they will be skipped.',
             guildOnly: true,
             args: [],
         });
