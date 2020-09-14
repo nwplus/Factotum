@@ -8,7 +8,7 @@ module.exports = class GiveHelp extends Command {
     constructor(client) {
         super(client, {
             name: 'givehelp',
-            group: 'workshop',
+            group: 'm_workshop',
             memberName: 'get next hacker help',
             description: 'Will get the next hacker that needs TA help and move him/her to the voice channel where the mentor is',
             guildOnly: true,

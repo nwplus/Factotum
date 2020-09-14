@@ -8,7 +8,7 @@ module.exports = class GetNext extends Command {
     constructor(client) {
         super(client, {
             name: 'getnext',
-            group: 'boothing',
+            group: 's_boothing',
             memberName: 'get the next member in the wait',
             description: 'Will get the next member in the wait list into the voice channel where the command sender is',
             guildOnly: true,

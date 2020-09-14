@@ -9,7 +9,7 @@ module.exports = class EnterWaitList extends Command {
     constructor(client) {
         super(client, {
             name: 'enterwaitlist',
-            group: 'boothing',
+            group: 'h_boothing',
             memberName: 'enter wait list',
             description: 'Will add the author of the message to the boothing wait list',
             guildOnly: true,

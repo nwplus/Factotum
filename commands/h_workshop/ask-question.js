@@ -8,9 +8,10 @@ module.exports = class AskQuestion extends Command {
     constructor(client) {
         super(client, {
             name: 'askquestion',
-            group: 'workshop',
+            group: 'h_workshop',
             memberName: 'ask a question to the ta team',
             description: 'Will ask a question to the TA team and get responded via private',
+            guild: true,
             args: [
                 {
                     key: 'question',

@@ -23,14 +23,14 @@ module.exports = class ClearChat extends Command {
             await message.channel.bulkDelete(100, true).catch(console.error);
             discordServices.discordLog(message.guild, "Cleared the channel: " + message.channel.name + ". By user: " + message.author.username);
             
-            var commands;
+            var commands = [];
 
             // start if stair to know channel and thus know commands to print
             // boothing channels
             if (message.channel.name.startsWith('boothing-sponsor-console')) {
-                commands = this.client.registry.findGroups('boothing')[0].commands.array();
+                commands = this.client.registry.findGroups('s_boothing')[0].commands.array();
             } else if (message.channel.name.startsWith('boothing-wait-list')) {
-                commands = this.client.registry.findCommands('enterwaitlist');
+                commands = this.client.registry.findGroups('h_boothing')[0].commands.array();
             } 
             // if in the verify channel <welcome>
             else if (message.channel.id === '743192401434378271') {
@@ -43,15 +43,23 @@ module.exports = class ClearChat extends Command {
             // workshop stuff
             // ta console
             else if (message.channel.name.includes('-ta-console')) {
-                commands = this.client.registry.findCommands('givehelp');
+                commands = this.client.registry.findGroups('m_workshop')[0].commands.array();
             }
             // workshop text
             else if (message.channel.name.includes('-text')) {
-                commands = this.client.registry.findCommands('ask');
+                commands = this.client.registry.findGroups('h_workshop')[0].commands.array();
             }
             // admin console
             else if (message.channel.id === '748955441484005488') {
-                commands = this.client.registry.commands.array();
+                // grab all the admin command groups
+                var commandGroups = this.client.registry.findGroups('a_');
+                // add all the commands from the command groups
+                commandGroups.forEach((value,index) => {
+                    //console.log(commandGroups[index]['commands'].array());
+                    value['commands'].array().forEach((value, index) => {
+                        commands.push(value);
+                    })
+                });
             }
             // crate channel
             else if (message.channel.id === '754396445494214789') {

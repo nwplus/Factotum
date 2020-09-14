@@ -8,7 +8,7 @@ module.exports = class CreateWorkshop extends Command {
     constructor(client) {
         super(client, {
             name: 'createworkshop',
-            group: 'workshop',
+            group: 'a_workshop',
             memberName: 'create a workshop',
             description: 'Will create a category, a text channel and voice channel',
             guildOnly: true,

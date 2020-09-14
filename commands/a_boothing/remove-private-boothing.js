@@ -4,13 +4,13 @@ const firebaseServices = require('../../firebase-services');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class CreatePrivates extends Command {
+module.exports = class RemovePrivates extends Command {
     constructor(client) {
         super(client, {
-            name: 'createprivates',
-            group: 'boothing',
-            memberName: 'create private voice channels',
-            description: 'Will create x number of private voice channels for given workshop',
+            name: 'removeprivates',
+            group: 'a_boothing',
+            memberName: 'remove private voice channels',
+            description: 'Will remove x number of private voice channels for given workshop',
             guildOnly: true,
             args: [
                 {
@@ -45,12 +45,17 @@ module.exports = class CreatePrivates extends Command {
                 // number of channels
                 var amount = channels.array().length;
 
-                var total = amount + number;                
+                // make sure there are enough channels to remove
+                if (amount < number) {
+                    number = amount;
+                }
 
-                // create voice channels
-                for (var index = amount + 1; index <= total; index++) {
-                    var channel = await message.guild.channels.create('Private-' + index, {type: 'voice', parent: category});
-                    await channel.createOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false, SPEAK: true, VIDEO: true, USE_VAD: true});
+                var total = amount - number;
+
+                // remove voice channels
+                for (var index = amount; index > total; index--) {
+                    var channel = await category.children.find(channel => channel.name === 'Private-' + index);
+                    channel.delete();
                 }
 
                 // report success of workshop creation

@@ -8,7 +8,7 @@ module.exports = class RemoveWorkshop extends Command {
     constructor(client) {
         super(client, {
             name: 'removeworkshop',
-            group: 'workshop',
+            group: 'a_workshop',
             memberName: 'remove a workshop',
             description: 'Will remove the cateogry and everything inside',
             guildOnly: true,

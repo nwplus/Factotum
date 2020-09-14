@@ -8,7 +8,7 @@ module.exports = class RequestPosition extends Command {
     constructor(client) {
         super(client, {
             name: 'requestposition',
-            group: 'boothing',
+            group: 'h_boothing',
             memberName: 'request position in wait list',
             description: 'Will retrun the position of the user in the wait list',
             args: [],

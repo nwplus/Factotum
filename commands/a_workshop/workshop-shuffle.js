@@ -8,7 +8,7 @@ module.exports = class WorkshopShuffle extends Command {
     constructor(client) {
         super(client, {
             name: 'shuffleworkshop',
-            group: 'workshop',
+            group: 'a_workshop',
             memberName: 'shuffle everyone',
             description: 'Will shuffle everyone in the main channel into the private channels',
             guildOnly: true,

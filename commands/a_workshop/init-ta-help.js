@@ -8,7 +8,7 @@ module.exports = class InitTAHelp extends Command {
     constructor(client) {
         super(client, {
             name: 'inittahelpfor',
-            group: 'workshop',
+            group: 'a_workshop',
             memberName: 'initialize ta help for',
             description: 'Will initialize the ta help funcitonality for the given workshop',
             guildOnly: true,

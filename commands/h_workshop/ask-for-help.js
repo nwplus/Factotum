@@ -8,9 +8,10 @@ module.exports = class AskForHelp extends Command {
     constructor(client) {
         super(client, {
             name: 'askta',
-            group: 'workshop',
+            group: 'h_workshop',
             memberName: 'request for ta help',
             description: 'Will add user to TA help list',
+            guild: true,
             args: [],
         });
     }

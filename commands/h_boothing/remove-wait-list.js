@@ -8,7 +8,7 @@ module.exports = class RemoveFromWaitList extends Command {
     constructor(client) {
         super(client, {
             name: 'removefromwaitlist',
-            group: 'boothing',
+            group: 'h_boothing',
             memberName: 'remove user from the wait list',
             description: 'Will remove the user who called the command from the wait list',
             args: [],
