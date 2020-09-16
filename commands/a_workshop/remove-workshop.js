@@ -10,7 +10,7 @@ module.exports = class RemoveWorkshop extends Command {
             name: 'removeworkshop',
             group: 'a_workshop',
             memberName: 'remove a workshop',
-            description: 'Will remove the cateogry and everything inside',
+            description: 'Will remove the category and everything inside for the given workshop.',
             guildOnly: true,
             args: [
                 {
@@ -25,10 +25,10 @@ module.exports = class RemoveWorkshop extends Command {
     // Run function -> command body
     async run(message, {workshopName}) {
         message.delete();
-        // make sure command is only used in the boothing-wait-list channel
-        if (message.channel.name === 'console') {
+        // make sure command is only used in the admin console
+        if (discordServices.isAdminConsole(message.channel) === true) {
             // only memebers with the Hacker tag can run this command!
-            if (discordServices.checkForRole(message.member, discordServices.adminRole)) {
+            if (discordServices.checkForRole(message.member, discordServices.staffRole)) {
                 
                 // Create category
                 var category = await message.guild.channels.cache.find(channel => channel.name === workshopName);

@@ -10,7 +10,7 @@ module.exports = class InitTAHelp extends Command {
             name: 'inittahelpfor',
             group: 'a_workshop',
             memberName: 'initialize ta help for',
-            description: 'Will initialize the ta help funcitonality for the given workshop',
+            description: 'Will initialize the ta help functionality for the given workshop. General voice channel will be muted for all hackers.',
             guildOnly: true,
             args: [
                 {
@@ -25,10 +25,10 @@ module.exports = class InitTAHelp extends Command {
     // Run function -> command body
     async run(message, {workshopName}) {
         message.delete();
-        // make sure command is only used in the boothing-wait-list channel
-        if (message.channel.name === 'console') {
+        // make sure command is only used in the admin console
+        if (discordServices.isAdminConsole(message.channel) === true) {
             // only memebers with the Hacker tag can run this command!
-            if (discordServices.checkForRole(message.member, discordServices.adminRole)) {
+            if (discordServices.checkForRole(message.member, discordServices.staffRole)) {
                 
                 // get category
                 var category = await message.guild.channels.cache.find(channel => channel.name === workshopName);

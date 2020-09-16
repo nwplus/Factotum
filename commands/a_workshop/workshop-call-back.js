@@ -10,7 +10,7 @@ module.exports = class WorkshopCallBack extends Command {
             name: 'callback',
             group: 'a_workshop',
             memberName: 'call back to main voice channel',
-            description: 'Will return everyone to the workshops main voice channel',
+            description: 'Will return everyone to the workshop\'s main voice channel.',
             guildOnly: true,
             args: [
                 {
@@ -26,9 +26,9 @@ module.exports = class WorkshopCallBack extends Command {
     async run(message, {workshopName}) {
         message.delete();
         // make sure command is only used in the boothing-wait-list channel
-        if (message.channel.name === 'console') {
+        if (discordServices.isAdminConsole(message.channel) === true) {
             // only memebers with the Hacker tag can run this command!
-            if (discordServices.checkForRole(message.member, discordServices.adminRole)) {
+            if (discordServices.checkForRole(message.member, discordServices.staffRole)) {
 
                 // get category
                 var category = await message.guild.channels.cache.find(channel => channel.name === workshopName).catch(console.error);

@@ -10,7 +10,7 @@ module.exports = class CreatePrivatesFor extends Command {
             name: 'createprivatesfor',
             group: 'a_workshop',
             memberName: 'create private voice channels for a workshop',
-            description: 'Will create x number of private voice channels for given workshop',
+            description: 'Will create x number of private voice channels for given workshop.',
             guildOnly: true,
             args: [
                 {
@@ -31,9 +31,9 @@ module.exports = class CreatePrivatesFor extends Command {
     async run(message, {workshopName, number}) {
         message.delete();
         // make sure command is only used in the admin console
-        if (message.channel.id === '748955441484005488') {
+        if (discordservices.isAdminConsole(message.channel) === true) {
             // only memebers with the Hacker tag can run this command!
-            if (discordServices.checkForRole(message.member, discordServices.adminRole)) {
+            if (discordServices.checkForRole(message.member, discordServices.staffRole)) {
                 
                 // get category
                 var category = await message.guild.channels.cache.find(channel => channel.name === workshopName);

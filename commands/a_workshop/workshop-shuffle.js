@@ -10,7 +10,7 @@ module.exports = class WorkshopShuffle extends Command {
             name: 'shuffleworkshop',
             group: 'a_workshop',
             memberName: 'shuffle everyone',
-            description: 'Will shuffle everyone in the main channel into the private channels',
+            description: 'Will shuffle everyone in the main channel into the available private channels.',
             guildOnly: true,
             args: [
                 {
@@ -25,10 +25,10 @@ module.exports = class WorkshopShuffle extends Command {
     // Run function -> command body
     async run(message, {workshopName}) {
         message.delete();
-        // make sure command is only used in the boothing-wait-list channel
-        if (message.channel.name === 'console') {
+        // make sure command is only used in the admin console
+        if (discordServices.isAdminConsole(message.channel) === true) {
             // only memebers with the Hacker tag can run this command!
-            if (discordServices.checkForRole(message.member, discordServices.adminRole)) {
+            if (discordServices.checkForRole(message.member, discordServices.staffRole)) {
 
                 // get category
                 var category = await message.guild.channels.cache.find(channel => channel.name === workshopName).catch(console.error);

@@ -72,3 +72,8 @@ async function replyAndDelete(message, reply) {
     msg.delete({timeout: 5000});
 }
 module.exports.replyAndDelete = replyAndDelete;
+
+function isAdminConsole(channel) {
+    return channel.id === '748955441484005488';
+}
+module.exports.isAdminConsole = isAdminConsole;

@@ -10,7 +10,7 @@ module.exports = class CreateWorkshop extends Command {
             name: 'createworkshop',
             group: 'a_workshop',
             memberName: 'create a workshop',
-            description: 'Will create a category, a text channel and voice channel',
+            description: 'Will create a category, a text channel and voice channel for the given workshop name.',
             guildOnly: true,
             args: [
                 {
@@ -25,8 +25,8 @@ module.exports = class CreateWorkshop extends Command {
     // Run function -> command body
     async run(message, {workshopName}) {
         message.delete();
-        // make sure command is only used in the boothing-wait-list channel
-        if (message.channel.name === 'console') {
+        // make sure command is only used in the admin console
+        if (discordServices.isAdminConsole(message.channel) === true) {
             // only memebers with the Hacker tag can run this command!
             if (discordServices.checkForRole(message.member, discordServices.adminRole)) {
                 
