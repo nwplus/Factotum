@@ -50,7 +50,7 @@ module.exports = class ClearChat extends Command {
                 commands = this.client.registry.findGroups('h_workshop')[0].commands.array();
             }
             // admin console
-            else if (message.channel.id === '748955441484005488') {
+            else if (discordServices.isAdminConsole(message.channel) === true) {
                 // grab all the admin command groups
                 var commandGroups = this.client.registry.findGroups('a_');
                 // add all the commands from the command groups
