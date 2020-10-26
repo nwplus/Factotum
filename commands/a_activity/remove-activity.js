@@ -8,7 +8,7 @@ module.exports = class RemoveActivity extends Command {
     constructor(client) {
         super(client, {
             name: 'removeactivity',
-            group: 'a_workshop',
+            group: 'a_activity',
             memberName: 'remove an activity',
             description: 'Will remove the category and everything inside it for the given activity',
             guildOnly: true,

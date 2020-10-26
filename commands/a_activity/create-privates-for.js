@@ -8,7 +8,7 @@ module.exports = class CreatePrivatesFor extends Command {
     constructor(client) {
         super(client, {
             name: 'createprivatesfor',
-            group: 'a_workshop',
+            group: 'a_activity',
             memberName: 'create private voice channels for a workshop',
             description: 'Will create x number of private voice channels for given workshop.',
             guildOnly: true,

@@ -39,7 +39,7 @@ bot.registry
     .registerGroup('a_boothing', 'boothing group for admins')
     .registerGroup('h_boothing', 'boothing group for hackers')
     .registerGroup('s_boothing', 'boothing group for sponsorship')
-    .registerGroup('a_workshop', 'workshop group for admins')
+    .registerGroup('a_activity', 'activity group for admins')
     .registerGroup('h_workshop', 'workshop group for hackers')
     .registerGroup('m_workshop', 'workshop group for mentors and tas')
     .registerDefaultGroups()

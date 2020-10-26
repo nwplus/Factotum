@@ -8,7 +8,7 @@ module.exports = class RemovePrivatesFor extends Command {
     constructor(client) {
         super(client, {
             name: 'removeprivatesfor',
-            group: 'a_workshop',
+            group: 'a_activity',
             memberName: 'remove private voice channels',
             description: 'Will remove x number of private voice channels for given workshop.',
             guildOnly: true,

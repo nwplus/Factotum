@@ -8,7 +8,7 @@ module.exports = class ActivityCallback extends Command {
     constructor(client) {
         super(client, {
             name: 'callback',
-            group: 'a_workshop',
+            group: 'a_activity',
             memberName: 'call back to main voice channel',
             description: 'Will return everyone to the workshop\'s main voice channel.',
             guildOnly: true,

@@ -8,7 +8,7 @@ module.exports = class NewActivity extends Command {
     constructor(client) {
         super(client, {
             name: 'newactivity',
-            group: 'a_workshop',
+            group: 'a_activity',
             memberName: 'create a new activity',
             description: 'Will create a category, a text channel and voice channel for the given activity name.',
             guildOnly: true,
