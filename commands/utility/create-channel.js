@@ -15,7 +15,7 @@ module.exports = class CreateChannel extends Command {
             args: [
                 {
                     key: 'channelType',
-                    prompt: 'type of channel',
+                    prompt: 'type of channel, one of voice or text',
                     type: 'string',
                     validate: (val) => {
                         return val === 'voice' || val === 'text';
@@ -50,12 +50,15 @@ module.exports = class CreateChannel extends Command {
 
             var channel;
 
+            // grab channel creation category
+            var category = await message.channel.parent
+
             if (channelType === 'text') {
                 // create text channel
-                channel = await message.guild.channels.create(message.author.username + '-private-channel', {type: 'text'});
+                channel = await message.guild.channels.create(message.author.username + '-private-channel', {type: 'text', parent: category});
             } else if (channelType === 'voice') {
                 // create voice channel
-                channel = await message.guild.channels.create(message.author.username + '-private-channel', {type: 'voice'});
+                channel = await message.guild.channels.create(message.author.username + '-private-channel', {type: 'voice', parent: category});
             }
 
             // update permission for users to be able to view
