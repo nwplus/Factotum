@@ -12,6 +12,7 @@ const hackerGroup = 'hackers';
 const sponsorGroup = 'sponsors';
 const mentorGroup = 'mentors';
 const staffGroup = 'staff'
+const activityGroup = 'activities'
 
 // Enum used internaly for firebase functions returns
 const internalStatus = {
@@ -231,25 +232,25 @@ async function numberInWaitList() {
 module.exports.numberInWaitList = numberInWaitList;
 
 // Creates a workshop in the workshops collection
-async function createWorkshop(workshopName) {
-    var doc = await db.collection('workshops').doc(workshopName).set(
+async function createActivity(workshopName) {
+    var doc = await db.collection(activityGroup).doc(workshopName).set(
         {
             'privateVoiceNumber' : 0,
         }
     );
 }
-module.exports.createWorkshop = createWorkshop;
+module.exports.createActivity = createActivity;
 
 // Remove a workshop in the workshops collection
-async function removeWorkshop(workshopName) {
-    var doc = await db.collection('workshops').doc(workshopName).delete();
+async function removeActivity(workshopName) {
+    var doc = await db.collection(activityGroup).doc(workshopName).delete();
 }
-module.exports.removeWorkshop = removeWorkshop;
+module.exports.removeActivity = removeActivity;
 
 
 // updates a workshop
-async function workshopAddPrivates(workshopName, number) {
-    var ref = db.collection('workshops').doc(workshopName);
+async function activityAddPrivates(workshopName, number) {
+    var ref = db.collection(activityGroup).doc(workshopName);
     var doc = await ref.get();
 
     // get current number of channels and adds them the new new number of channels
@@ -261,11 +262,11 @@ async function workshopAddPrivates(workshopName, number) {
     return total;
 
 }
-module.exports.workshopAddPrivates = workshopAddPrivates;
+module.exports.activityAddPrivates = activityAddPrivates;
 
 // updates a workshop by remivng x number of private channels
-async function workshopRemovePrivates(workshopName, number) {
-    var ref = db.collection('workshops').doc(workshopName);
+async function activityRemovePrivates(workshopName, number) {
+    var ref = db.collection(activityGroup).doc(workshopName);
     var doc = await ref.get();
 
     // get current number of channels and adds them the new new number of channels
@@ -283,21 +284,21 @@ async function workshopRemovePrivates(workshopName, number) {
     return current;
 
 }
-module.exports.workshopRemovePrivates = workshopRemovePrivates;
+module.exports.activityRemovePrivates = activityRemovePrivates;
 
 // get number of private channels
-async function workshopPrivatChannels(workshopName) {
-    var ref = db.collection('workshops').doc(workshopName);
+async function activityPrivateChannels(activityName) {
+    var ref = db.collection(activityGroup).doc(activityName);
     var doc = await ref.get();
     return doc.get('privateVoiceNumber');
 
 }
-module.exports.workshopPrivatChannels = workshopPrivatChannels;
+module.exports.activityPrivateChannels = activityPrivateChannels;
 
 // add hacker to workshop ta help list
 async function addToTAHelp(workshopName, username) {
     // get workshop ref
-    var workshopRef =  db.collection('workshops').doc(workshopName);
+    var workshopRef =  db.collection(activityGroup).doc(workshopName);
 
     // get list
     var workshop = await workshopRef.get();
@@ -322,7 +323,7 @@ module.exports.addToTAHelp = addToTAHelp;
 
 // Will create the taHelpList field for workshop
 async function intiTAHelpFor(workshopName) {
-    var workshopRef = db.collection('workshops').doc(workshopName).update({
+    var workshopRef = db.collection(activityGroup).doc(workshopName).update({
         'taHelpList' : [],
         'questions' : [],
     });
@@ -332,7 +333,7 @@ module.exports.intiTAHelpFor = intiTAHelpFor;
 // will get the next person in the workshop ta help list
 async function getFromTAHelpList(workshopName) {
 
-    var workshopRef = db.collection('workshops').doc(workshopName);
+    var workshopRef = db.collection(activityGroup).doc(workshopName);
     var workshop = await workshopRef.get();
 
     var list = workshop.get('taHelpList');
@@ -357,7 +358,7 @@ module.exports.getFromTAHelpList = getFromTAHelpList;
 
 // will get the remaining users in ta wait list
 async function leftInTAHelpList(workshopName) {
-    var workshopRef = db.collection('workshops').doc(workshopName);
+    var workshopRef = db.collection(activityGroup).doc(workshopName);
     var workshop = await workshopRef.get();
 
     var list = workshop.get('taHelpList');
@@ -369,7 +370,7 @@ module.exports.leftInTAHelpList = leftInTAHelpList;
 // add question to the question bank
 async function addQuestionTo(workshopName, question, username) {
     // get workshop ref
-    var workshopRef =  db.collection('workshops').doc(workshopName);
+    var workshopRef =  db.collection(activityGroup).doc(workshopName);
 
     // get list
     var workshop = await workshopRef.get();

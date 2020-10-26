@@ -4,18 +4,18 @@ const firebaseServices = require('../../firebase-services');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class WorkshopShuffle extends Command {
+module.exports = class ActivityShuffle extends Command {
     constructor(client) {
         super(client, {
-            name: 'shuffleworkshop',
+            name: 'shuffle',
             group: 'a_workshop',
-            memberName: 'shuffle everyone',
+            memberName: 'shuffle everyone in activity',
             description: 'Will shuffle everyone in the main channel into the available private channels.',
             guildOnly: true,
             args: [
                 {
-                    key: 'workshopName',
-                    prompt: 'the workshop name',
+                    key: 'activityName',
+                    prompt: 'the activity name',
                     type: 'string',
                 },
             ],
@@ -23,7 +23,7 @@ module.exports = class WorkshopShuffle extends Command {
     }
 
     // Run function -> command body
-    async run(message, {workshopName}) {
+    async run(message, {activityName}) {
         message.delete();
         // make sure command is only used in the admin console
         if (discordServices.isAdminConsole(message.channel) === true) {
@@ -31,19 +31,19 @@ module.exports = class WorkshopShuffle extends Command {
             if (discordServices.checkForRole(message.member, discordServices.staffRole)) {
 
                 // get category
-                var category = await message.guild.channels.cache.find(channel => channel.name === workshopName).catch(console.error);
+                var category = await message.guild.channels.cache.find(channel => channel.name === activityName).catch(console.error);
 
                 // check if the category excist if not then do nothing
                 if (category != undefined) {
                     
                     // get number of channels
-                    var numberOfChannels = firebaseServices.workshopPrivatChannels(workshopName);
+                    var numberOfChannels = firebaseServices.activityPrivateChannels(activityName);
 
                     // Check if there are private channels if not do nothing
                     if (numberOfChannels != 0) {
 
                         // get the general voice channel
-                        var generalVoice = await category.children.find(channel => channel.name === workshopName + '-general-voice');
+                        var generalVoice = await category.children.find(channel => channel.name === activityName + '-general-voice');
 
                         // get members in general voice channel
                         var members = generalVoice.memebers;
@@ -55,7 +55,7 @@ module.exports = class WorkshopShuffle extends Command {
                         var channels = [];
                         for (var index = 0; index < numberOfChannels; i++) {
                             channels.push(
-                                await category.children.find(channel => channel.name === workshopName + '-' + index)
+                                await category.children.find(channel => channel.name === activityName + '-' + index)
                             );
                         }
 
@@ -67,15 +67,15 @@ module.exports = class WorkshopShuffle extends Command {
                             await members[index].voice.setChannel(channels[index % numberOfChannels]).catch(console.error);
                         }
 
-                        // report success of workshop shuffling
-                        message.reply('Workshop session named: ' + workshopName + ' members have been shuffled into the private channels!');
+                        // report success of activity shuffling
+                        message.reply('Activity named: ' + activityName + ' members have been shuffled into the private channels!');
                     } else {
                         // report failure due to no private channels
-                        message.reply('Workshop session named: ' + workshopName + ' members were not shuffled because there are no private channels!');
+                        message.reply('Activity named: ' + activityName + ' members were not shuffled because there are no private channels!');
                     }
                 } else {
-                    // report failure due to no private channels
-                    message.reply('Workshop session named: ' + workshopName + ' members were not shuffled because the workshop does not excist!');
+                    // report failure due to no category names like activityName
+                    message.reply('Activity named: ' + activityName + ' members were not shuffled because the activity does not excist!');
                 }
                 
             } else {

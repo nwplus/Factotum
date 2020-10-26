@@ -4,18 +4,18 @@ const firebaseServices = require('../../firebase-services');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class CreateWorkshop extends Command {
+module.exports = class NewActivity extends Command {
     constructor(client) {
         super(client, {
-            name: 'createworkshop',
+            name: 'newactivity',
             group: 'a_workshop',
-            memberName: 'create a workshop',
-            description: 'Will create a category, a text channel and voice channel for the given workshop name.',
+            memberName: 'create a new activity',
+            description: 'Will create a category, a text channel and voice channel for the given activity name.',
             guildOnly: true,
             args: [
                 {
-                    key: 'workshopName',
-                    prompt: 'the workshop name',
+                    key: 'activityName',
+                    prompt: 'the activity name',
                     type: 'string',
                 },
             ],
@@ -23,7 +23,7 @@ module.exports = class CreateWorkshop extends Command {
     }
 
     // Run function -> command body
-    async run(message, {workshopName}) {
+    async run(message, {activityName}) {
         message.delete();
         // make sure command is only used in the admin console
         if (discordServices.isAdminConsole(message.channel) === true) {
@@ -31,7 +31,7 @@ module.exports = class CreateWorkshop extends Command {
             if (discordServices.checkForRole(message.member, discordServices.adminRole)) {
                 
                 // Create category
-                var category = await message.guild.channels.create(workshopName, {type: 'category',  permissionOverwrites: [
+                var category = await message.guild.channels.create(activityName, {type: 'category',  permissionOverwrites: [
                     {
                         id: discordServices.hackerRole,
                         deny: ['VIEW_CHANNEL'],
@@ -55,16 +55,16 @@ module.exports = class CreateWorkshop extends Command {
                 ]});
 
                 // create text channel
-                message.guild.channels.create(workshopName + '-text', {type: 'text', parent: category,});
+                message.guild.channels.create(activityName + '-text', {type: 'text', parent: category,});
 
                 // create general voice
-                message.guild.channels.create(workshopName + '-general-voice', {type: 'voice', parent: category});
+                message.guild.channels.create(activityName + '-general-voice', {type: 'voice', parent: category});
 
                 // create workshop in db
-                firebaseServices.createWorkshop(workshopName);
+                firebaseServices.createActivity(activityName);
 
-                // report success of workshop creation
-                message.reply('Workshop session named: ' + workshopName + ' created succesfully. Any other commands will require this name as paramter.');
+                // report success of activity creation
+                message.reply('Activity session named: ' + activityName + ' created succesfully. Any other commands will require this name as paramter.');
             } else {
                 discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
             }

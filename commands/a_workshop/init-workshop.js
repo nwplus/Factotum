@@ -4,17 +4,17 @@ const firebaseServices = require('../../firebase-services');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class InitTAHelp extends Command {
+module.exports = class InitWorkshop extends Command {
     constructor(client) {
         super(client, {
-            name: 'inittahelpfor',
+            name: 'initworkshop',
             group: 'a_workshop',
-            memberName: 'initialize ta help for',
-            description: 'Will initialize the ta help functionality for the given workshop. General voice channel will be muted for all hackers.',
+            memberName: 'initialize workshop funcitonality for activity',
+            description: 'Will initialize the workshop functionality for the given workshop. General voice channel will be muted for all hackers.',
             guildOnly: true,
             args: [
                 {
-                    key: 'workshopName',
+                    key: 'activityName',
                     prompt: 'the workshop name',
                     type: 'string',
                 }
@@ -23,7 +23,7 @@ module.exports = class InitTAHelp extends Command {
     }
 
     // Run function -> command body
-    async run(message, {workshopName}) {
+    async run(message, {activityName}) {
         message.delete();
         // make sure command is only used in the admin console
         if (discordServices.isAdminConsole(message.channel) === true) {
@@ -31,13 +31,13 @@ module.exports = class InitTAHelp extends Command {
             if (discordServices.checkForRole(message.member, discordServices.staffRole)) {
                 
                 // get category
-                var category = await message.guild.channels.cache.find(channel => channel.name === workshopName);
+                var category = await message.guild.channels.cache.find(channel => channel.name === activityName);
 
                 // make sure the workshop excists
                 if (category != undefined) {
 
                     // grab general voice and update permission to no speak for attendees
-                    var generalVoice = await category.children.find(channel => channel.name === workshopName + '-general-voice');
+                    var generalVoice = await category.children.find(channel => channel.name === activityName + '-general-voice');
                     generalVoice.updateOverwrite(discordServices.attendeeRole, {
                         SPEAK : false
                     });
@@ -50,10 +50,10 @@ module.exports = class InitTAHelp extends Command {
                         MOVE_MEMBERS : true,
                     })
 
-                     firebaseServices.intiTAHelpFor(workshopName);
+                     firebaseServices.intiTAHelpFor(activityName);
 
                      // create TA console
-                     message.guild.channels.create(workshopName + '-TA-console', {type: 'text', parent: category,  permissionOverwrites: [
+                     message.guild.channels.create(activityName + '-TA-console', {type: 'text', parent: category,  permissionOverwrites: [
                         {
                             id: discordServices.hackerRole,
                             deny: ['VIEW_CHANNEL'],
@@ -77,10 +77,10 @@ module.exports = class InitTAHelp extends Command {
                     ]});
 
                     // report success of workshop creation
-                    message.reply('Workshop session named: ' + workshopName + ' now has TA help functionality.');
+                    message.reply('Activity named: ' + activityName + ' now has workshop functionality.');
                 } else {
                     // if the category does not excist
-                    message.reply('The workshop named: ' + workshopName +', does not excist! Did not create voice channels.');
+                    message.reply('The activity named: ' + activityName +', does not exist! Did not create voice channels.');
                 }
             } else {
                 discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
