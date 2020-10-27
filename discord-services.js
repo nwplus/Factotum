@@ -1,4 +1,7 @@
+
 const { Command } = require('discord.js-commando');
+const firebaseServices = require('./firebase-services')
+
 
 // Available Roles
 var guestRole = '742896900419747961';
@@ -77,3 +80,68 @@ function isAdminConsole(channel) {
     return channel.id === '748955441484005488';
 }
 module.exports.isAdminConsole = isAdminConsole;
+
+// will add given number of voice channels to the given activity, the category object of the activity is necessary
+async function addVoiceChannelsToActivity(activityName, number, category, channelManager) {
+    // udpate db and get total number of channels
+    var total = await firebaseServices.activityAddPrivates(activityName, number);
+
+    // grab index where channel naming should start, in case there are already channels made
+    var index = total - number;
+
+    // create voice channels
+    for (; index < total; index++) {
+        channelManager.create(activityName + '-' + index, {type: 'voice', parent: category, permissionOverwrites : [
+            {
+                id: hackerRole,
+                deny: ['VIEW_CHANNEL'],
+            },
+            {
+                id: attendeeRole,
+                deny: ['VIEW_CHANNEL'],
+                allow: ['USE_VAD', 'SPEAK'],
+            },
+            {
+                id: sponsorRole,
+                deny: ['VIEW_CHANNEL'],
+            },
+            {
+                id: mentorRole,
+                allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
+            },
+            {
+                id: staffRole,
+                allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
+            }
+        ]
+        }).catch(console.error);
+    }
+
+    return total;
+}
+module.exports.addVoiceChannelsToActivity = addVoiceChannelsToActivity;
+
+// will remove given number of voice channels from the activity
+// returns the final number of channels in the activity
+async function removeVoiceChannelsToActivity(activityName, number, category){
+    // udpate db and get total number of channels
+    var total = await firebaseServices.activityRemovePrivates(activityName, number);
+
+    // grab the final number of channels there should be, no less than 0
+    var final = total - number;
+    if (final < 0) {
+        final = 0;
+    }
+
+    // grab index where channel naming should start, in case there are already channels made
+    // we remove one because we are counting from 0
+    // remove voice channels
+    for (var index = total - 1; index >= final; index--) {
+        var channelName = activityName + '-' + index;
+        var channel = await category.children.find(channel => channel.name === channelName);
+        channel.delete();
+    }
+
+    return final;
+}
+module.exports.removeVoiceChannelsToActivity = removeVoiceChannelsToActivity;

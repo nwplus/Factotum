@@ -1,15 +1,16 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
+const firebaseServices = require('../../firebase-services');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class RemovePrivatesFor extends Command {
+module.exports = class InitCoffeeChats extends Command {
     constructor(client) {
         super(client, {
-            name: 'removeprivatesfor',
+            name: 'initcoffeechats',
             group: 'a_activity',
-            memberName: 'remove private voice channels',
-            description: 'Will remove x number of private voice channels for given workshop.',
+            memberName: 'initialize coffee chat funcitonality for activity',
+            description: 'Will initialize the coffee chat functionality for the given workshop.',
             guildOnly: true,
             args: [
                 {
@@ -18,20 +19,20 @@ module.exports = class RemovePrivatesFor extends Command {
                     type: 'string',
                 },
                 {
-                    key: 'number',
-                    prompt: 'number of private channels to remove',
-                    type: 'integer',
-                },
+                    key: 'numOfGroups',
+                    prompt: 'number of groups to participate in coffee chat',
+                    type: 'integer'
+                }
             ],
         });
     }
 
     // Run function -> command body
-    async run(message, {activityName, number}) {
+    async run(message, {activityName, numOfGroups}) {
         message.delete();
         // make sure command is only used in the admin console
         if (discordServices.isAdminConsole(message.channel) === true) {
-            // only memebers with the Hacker tag can run this command!
+            // only memebers with the Staff tag can run this command!
             if (discordServices.checkForRole(message.member, discordServices.staffRole)) {
                 
                 // get category
@@ -39,14 +40,17 @@ module.exports = class RemovePrivatesFor extends Command {
 
                 // make sure the workshop excists
                 if (category != undefined) {
+                    
+                    // initialize firebase fields
+                    firebaseServices.initCoffeeChat(activityName);
 
-                    var final = await discordServices.removeVoiceChannelsToActivity(activityName, number, category);
+                    discordServices.addVoiceChannelsToActivity(activityName, numOfGroups, category, message.guild.channels);
 
-                    // report success of channel deletions
-                    message.reply('Workshop session named: ' + activityName + ' now has ' + final + ' voice channels.');
+                    // report success of coffee chat creation
+                    message.reply('Activity named: ' + activityName + ' now has coffee chat functionality.');
                 } else {
                     // if the category does not excist
-                    message.reply('The workshop named: ' + activityName +', does not excist! Did not remove voice channels.');
+                    message.reply('The activity named: ' + activityName +', does not exist! No action taken.');
                 }
             } else {
                 discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');

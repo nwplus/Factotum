@@ -4,7 +4,6 @@ require('dotenv-flow').config();
 
 // Firebase requirements
 var firebase = require('firebase/app');
-const discordServices = require('./discord-services');
 
 // firebase config
 var firebaseConfig = {
@@ -21,7 +20,7 @@ var firebaseConfig = {
 // initialize firebase
 firebase.initializeApp(firebaseConfig);
 
-
+const discordServices = require('./discord-services');
 
 const config = {
     token: process.env.TOKEN,

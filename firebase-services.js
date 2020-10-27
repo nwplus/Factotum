@@ -322,13 +322,21 @@ async function addToTAHelp(workshopName, username) {
 module.exports.addToTAHelp = addToTAHelp;
 
 // Will create the taHelpList field for workshop
-async function intiTAHelpFor(workshopName) {
-    var workshopRef = db.collection(activityGroup).doc(workshopName).update({
+async function initWorkshop(activityName) {
+    var workshopRef = db.collection(activityGroup).doc(activityName).update({
         'taHelpList' : [],
         'questions' : [],
     });
 }
-module.exports.intiTAHelpFor = intiTAHelpFor;
+module.exports.initWorkshop = initWorkshop;
+
+// Will create the taHelpList field for workshop
+async function initCoffeeChat(activityName) {
+    var workshopRef = db.collection(activityGroup).doc(activityName).update({
+        'teams' : [],
+    });
+}
+module.exports.initCoffeeChat = initCoffeeChat;
 
 // will get the next person in the workshop ta help list
 async function getFromTAHelpList(workshopName) {

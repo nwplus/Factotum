@@ -1,6 +1,5 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const firebaseServices = require('../../firebase-services');
 const discordServices = require('../../discord-services');
 
 // Command export
@@ -14,7 +13,7 @@ module.exports = class CreatePrivatesFor extends Command {
             guildOnly: true,
             args: [
                 {
-                    key: 'workshopName',
+                    key: 'activityName',
                     prompt: 'the workshop name',
                     type: 'string',
                 },
@@ -28,58 +27,26 @@ module.exports = class CreatePrivatesFor extends Command {
     }
 
     // Run function -> command body
-    async run(message, {workshopName, number}) {
+    async run(message, {activityName, number}) {
         message.delete();
         // make sure command is only used in the admin console
-        if (discordservices.isAdminConsole(message.channel) === true) {
+        if (discordServices.isAdminConsole(message.channel) === true) {
             // only memebers with the Hacker tag can run this command!
             if (discordServices.checkForRole(message.member, discordServices.staffRole)) {
                 
                 // get category
-                var category = await message.guild.channels.cache.find(channel => channel.name === workshopName);
+                var category = await message.guild.channels.cache.find(channel => channel.name === activityName);
 
                 // make sure the workshop excists
                 if (category != undefined) {
 
-                     // udpate db and get total number of channels
-                     var total = await firebaseServices.workshopAddPrivates(workshopName, number);
-
-                    // grab index where channel naming should start, in case there are already channels made
-                    var index = total - number;
-
-                    // create voice channels
-                    for (; index < total; index++) {
-                        message.guild.channels.create(workshopName + '-' + index, {type: 'voice', parent: category, permissionOverwrites : [
-                            {
-                                id: discordServices.hackerRole,
-                                deny: ['VIEW_CHANNEL'],
-                            },
-                            {
-                                id: discordServices.attendeeRole,
-                                deny: ['VIEW_CHANNEL'],
-                                allow: ['USE_VAD', 'SPEAK'],
-                            },
-                            {
-                                id: discordServices.sponsorRole,
-                                deny: ['VIEW_CHANNEL'],
-                            },
-                            {
-                                id: discordServices.mentorRole,
-                                allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
-                            },
-                            {
-                                id: discordServices.staffRole,
-                                allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
-                            }
-                        ]
-                        }).catch(console.error);
-                    }
+                    var final = await discordServices.addVoiceChannelsToActivity(activityName, number, category, message.guild.channels);
 
                     // report success of workshop creation
-                    message.reply('Workshop session named: ' + workshopName + ' now has ' + number + ' voice channels.');
+                    message.reply('Workshop session named: ' + activityName + ' now has ' + final + ' voice channels.');
                 } else {
                     // if the category does not excist
-                    message.reply('The workshop named: ' + workshopName +', does not excist! Did not create voice channels.');
+                    message.reply('The workshop named: ' + activityName +', does not excist! Did not create voice channels.');
                 }
             } else {
                 discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
