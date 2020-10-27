@@ -2,7 +2,6 @@
 const { Command } = require('discord.js-commando');
 const firebaseServices = require('../../firebase-services');
 const discordServices = require('../../discord-services');
-const { firestore } = require('firebase');
 
 // Command export
 module.exports = class EnterWaitList extends Command {
