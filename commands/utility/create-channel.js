@@ -84,7 +84,7 @@ module.exports = class CreateChannel extends Command {
                 });
             }
         } else {
-            discordServices.replyAndDelete(message.member, 'Hey there, the !createchanel command is only available in the create-channel channel.');
+            discordServices.replyAndDelete(message, 'Hey there, the !createchanel command is only available in the create-channel channel.');
         }
     }
 

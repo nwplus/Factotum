@@ -59,16 +59,20 @@ module.exports = class StartBoothing extends Command {
 
                         // if reaction is of group ask for group members
                         if (reaction.emoji.name === '👨‍👩‍👦‍👦') {
-                            await message.channel.send('<@' + user.id + '> Please tag all your group members in a message!').then(async () => {
+                            await message.channel.send('<@' + user.id + '> Please tag all your group members in a message!').then(async msg => {
                                 // filter for message collector, only from this user
                                 const msgFilter = m => m.author.id === user.id;
                                 
                                 await msg.channel.awaitMessages(msgFilter, {max: 1}).then(ms => {
                                     // given a list of messages, so grab firts
-                                    var m = ms.first()
+                                    var m = ms.first();
                                     // grab all the mentions in the message
-                                    var members = m.mentions.members
+                                    var members = m.mentions.members;
                                     members.each(mem => usernameList.push(mem.user.username));
+
+                                    // remove messages
+                                    m.delete();
+                                    msg.delete();
                                 })
                             });
                         }
@@ -80,8 +84,10 @@ module.exports = class StartBoothing extends Command {
                             discordServices.sendMessageToMember(user, 'Hey there! It seems you are already on the wait list, if you would like to ' +
                             'know your spot please run the !requestposition command right here!');
                         } else {
+                            // get number of hackers in wait list
                             var number = await firebaseServices.numberInWaitList();
-
+                            
+                            // message to be sent to hacker
                             const dmEmbed = new Discord.MessageEmbed()
                                 .setColor(discordServices.embedColor)
                                 .setTitle('Sponsor Boothing Wait List')
@@ -89,16 +95,18 @@ module.exports = class StartBoothing extends Command {
                                 'are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!')
                                 .addField('Wait list position', 'You are number: ' + number + ' in the wait list.')
                                 .addField('!position', 'Command you can call in this DM to get your spot in the wait list.')
-                                .addField('Remove from Wait List', 'If you want to be removed from the wait list please react this message with 🚫.')
-
+                                .addField('Remove from Wait List', 'If you want to be removed from the wait list please react this message with 🚫.');
+                            
+                            // send message to hacker and react with emoji 
                             var dm = await discordServices.sendMessageToMember(user, dmEmbed);
-
                             await dm.react('🚫');
-
+                            
+                            // filter for emoji to remove from wait list
                             const dmFilter = (reaction, sr) => {
                                 return reaction.emoji.name === '🚫' && sr.id === user.id;
                             };
 
+                            // await reaction to remove from wait list
                             dm.awaitReactions(dmFilter, {max: 1})
                                 .then(async collected => {
                                     // remove original dm message
