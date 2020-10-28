@@ -73,7 +73,7 @@ module.exports = class ClearChat extends Command {
             var length = commands.length;
 
             const textEmbed = new Discord.MessageEmbed()
-                .setColor('#0099ff')
+                .setColor(discordServices.embedColor)
                 .setTitle('Commands Available in this Channel')
                 .setDescription('The following are all the available commands in this channel, for more information about a specific command please call !help <command_name>.')
                 .setTimestamp();

@@ -21,6 +21,10 @@ module.exports.mentorRole = mentorRole;
 module.exports.sponsorRole = sponsorRole;
 module.exports.staffRole = staffRole;
 
+// other project wide vars
+var embedColor = '#0099ff'
+module.exports.embedColor = embedColor;
+
 // Common channels
 var boothingWaitList = '748370272049954927';
 var adminLogChannel = '743197503884755045';
@@ -39,8 +43,12 @@ async function checkForRole(member, role) {
 module.exports.checkForRole = checkForRole;
 
 // Send a Direct meesage to a member
-function sendMessageToMember(member, message) {
-    member.send(message);
+async function sendMessageToMember(member, message, isDelete = false) {
+    var msg = await member.send(message);
+    if (isDelete === true) {
+        msg.delete({timeout: 5000})
+    }
+    return msg;
 }
 module.exports.sendMessageToMember = sendMessageToMember;
 

@@ -7,9 +7,9 @@ const discordServices = require('../../discord-services');
 module.exports = class RequestPosition extends Command {
     constructor(client) {
         super(client, {
-            name: 'requestposition',
+            name: 'position',
             group: 'h_boothing',
-            memberName: 'request position in wait list',
+            memberName: 'position in wait list',
             description: 'Will return the position of the user in the sponsor wait list.',
             args: [],
         });
