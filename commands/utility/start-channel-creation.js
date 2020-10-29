@@ -4,7 +4,7 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
 // Command export
-module.exports = class CreateChannel extends Command {
+module.exports = class StartChannelCreation extends Command {
     constructor(client) {
         super(client, {
             name: 'startcc',
@@ -101,7 +101,7 @@ module.exports = class CreateChannel extends Command {
                     });
                 })
             } else {
-                discordServices.replyAndDelete(message, 'Hey there, the !creatcc command is only available in the create-channel channel.');
+                discordServices.replyAndDelete(message, 'Hey there, the !startcc command is only available in the create-channel channel.');
             }
         } else {
             discordServices.replyAndDelete(message, 'Hey there, the !startcc command is only for staff!')
