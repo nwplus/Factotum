@@ -7,10 +7,10 @@ const discordServices = require('../../discord-services');
 module.exports = class ActivityShuffle extends Command {
     constructor(client) {
         super(client, {
-            name: 'shuffle',
+            name: 'gshuffle',
             group: 'a_activity',
-            memberName: 'shuffle everyone in activity',
-            description: 'Will shuffle everyone in the main channel into the available private channels.',
+            memberName: 'group shuffle in activity',
+            description: 'Will shuffle groups in the main channel into the available private channels.',
             guildOnly: true,
             args: [
                 {
@@ -46,10 +46,7 @@ module.exports = class ActivityShuffle extends Command {
                         var generalVoice = await category.children.find(channel => channel.name === activityName + '-general-voice');
 
                         // get members in general voice channel
-                        var members = generalVoice.members;
-
-                        // get number of members in the voice channel
-                        var numberOfMembers = members.length;
+                        var members = await generalVoice.members;
 
                         // get channels
                         var channels = [];
@@ -59,23 +56,30 @@ module.exports = class ActivityShuffle extends Command {
                             );
                         }
 
-                        // shuffle the member list
-                        this.shuffleArray(members);
+                        // get teams from firebase
+                        // some firebase call given activityName and number of groups to get
+                        var groups = await firebaseServices.getGroupsFromCoffeChat(activityName);
 
                         // add the members into the channels
-                        for(var index = 0; index < numberOfMembers; index++) {
-                            await members[index].voice.setChannel(channels[index % numberOfChannels]).catch(console.error);
+                        for(var index = 0; index < groups.length; index++) {
+                            var group = groups[index];
+                            await group['members'].forEach(async (item, i) => {
+                                var member = await members.find(guildMember => guildMember.user.username === item);
+                                if (member != undefined) {
+                                    await member.voice.setChannel(channels[index]).catch(console.error);
+                                }
+                            })
                         }
 
                         // report success of activity shuffling
-                        message.reply('Activity named: ' + activityName + ' members have been shuffled into the private channels!');
+                        message.reply('Activity named: ' + activityName + ' groups have been shuffled into the private channels!');
                     } else {
                         // report failure due to no private channels
-                        message.reply('Activity named: ' + activityName + ' members were not shuffled because there are no private channels!');
+                        message.reply('Activity named: ' + activityName + ' groups were not shuffled because there are no private channels!');
                     }
                 } else {
                     // report failure due to no category names like activityName
-                    message.reply('Activity named: ' + activityName + ' members were not shuffled because the activity does not excist!');
+                    message.reply('Activity named: ' + activityName + ' groups were not shuffled because the activity does not excist!');
                 }
                 
             } else {
@@ -85,12 +89,4 @@ module.exports = class ActivityShuffle extends Command {
             discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
         }
     }
-
-    shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
-
 };

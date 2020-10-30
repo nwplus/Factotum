@@ -31,13 +31,13 @@ module.exports = class ActivityCallback extends Command {
             if (discordServices.checkForRole(message.member, discordServices.staffRole)) {
 
                 // get category
-                var category = await message.guild.channels.cache.find(channel => channel.name === activityName).catch(console.error);
+                var category = await message.guild.channels.cache.find(channel => channel.name === activityName);
 
                 // check if the category excist if not then do nothing
                 if (category != undefined) {
                     
                     // get number of channels
-                    var numberOfChannels = firebaseServices.activityPrivateChannels(activityName);
+                    var numberOfChannels = await firebaseServices.activityPrivateChannels(activityName);
 
                     // Check if there are private channels if not do nothing
                     if (numberOfChannels != 0) {
@@ -46,19 +46,17 @@ module.exports = class ActivityCallback extends Command {
                         var generalVoice = await category.children.find(channel => channel.name === activityName + '-general-voice');
 
                         // loop over channels and get all member to move back to main voice channel
-                        for (var index = 0; index < numberOfChannels; i++) {
+                        for (var index = 0; index < numberOfChannels; index++) {
                             var channel = await category.children.find(channel => channel.name === activityName + '-' + index);
 
                             var members = channel.members;
 
-                            for (var i = 0; i < members.length; i++) {
-                                await members[i].voice.setChannel(generalVoice);
-                            }
+                            members.forEach(member => member.voice.setChannel(generalVoice));
                         }
                         
 
                         // report success of activty shuffling
-                        message.reply('Activity named: ' + activityName + ' members have been shuffled into the private channels!');
+                        message.reply('Activity named: ' + activityName + ' members have been called back!');
                     } else {
                         // report failure due to no private channels
                         message.reply('Activity named: ' + activityName + ' members were not called back because there are no private channels!');

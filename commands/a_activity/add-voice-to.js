@@ -3,13 +3,13 @@ const { Command } = require('discord.js-commando');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class RemovePrivatesFor extends Command {
+module.exports = class CreatePrivatesFor extends Command {
     constructor(client) {
         super(client, {
-            name: 'removeprivatesfor',
+            name: 'addvoiceto',
             group: 'a_activity',
-            memberName: 'remove private voice channels',
-            description: 'Will remove x number of private voice channels for given workshop.',
+            memberName: 'create private voice channels for a workshop',
+            description: 'Will create x number of private voice channels for given workshop.',
             guildOnly: true,
             args: [
                 {
@@ -19,7 +19,7 @@ module.exports = class RemovePrivatesFor extends Command {
                 },
                 {
                     key: 'number',
-                    prompt: 'number of private channels to remove',
+                    prompt: 'number of private channels',
                     type: 'integer',
                 },
             ],
@@ -40,13 +40,13 @@ module.exports = class RemovePrivatesFor extends Command {
                 // make sure the workshop excists
                 if (category != undefined) {
 
-                    var final = await discordServices.removeVoiceChannelsToActivity(activityName, number, category);
+                    var final = await discordServices.addVoiceChannelsToActivity(activityName, number, category, message.guild.channels);
 
-                    // report success of channel deletions
+                    // report success of workshop creation
                     message.reply('Workshop session named: ' + activityName + ' now has ' + final + ' voice channels.');
                 } else {
                     // if the category does not excist
-                    message.reply('The workshop named: ' + activityName +', does not excist! Did not remove voice channels.');
+                    message.reply('The workshop named: ' + activityName +', does not excist! Did not create voice channels.');
                 }
             } else {
                 discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');

@@ -7,7 +7,7 @@ const discordServices = require('../../discord-services');
 module.exports = class InitWorkshop extends Command {
     constructor(client) {
         super(client, {
-            name: 'initworkshop',
+            name: 'initw',
             group: 'a_activity',
             memberName: 'initialize workshop funcitonality for activity',
             description: 'Will initialize the workshop functionality for the given workshop. General voice channel will be muted for all hackers.',

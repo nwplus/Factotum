@@ -330,14 +330,6 @@ async function initWorkshop(activityName) {
 }
 module.exports.initWorkshop = initWorkshop;
 
-// Will create the taHelpList field for workshop
-async function initCoffeeChat(activityName) {
-    var workshopRef = db.collection(activityGroup).doc(activityName).update({
-        'teams' : [],
-    });
-}
-module.exports.initCoffeeChat = initCoffeeChat;
-
 // will get the next person in the workshop ta help list
 async function getFromTAHelpList(workshopName) {
 
@@ -398,3 +390,25 @@ async function addQuestionTo(workshopName, question, username) {
 
 }
 module.exports.addQuestionTo = addQuestionTo;
+
+// Will create the taHelpList field for workshop
+async function initCoffeeChat(activityName) {
+    var workshopRef = db.collection(activityGroup).doc(activityName).update({
+        'teams' : [],
+    });
+}
+module.exports.initCoffeeChat = initCoffeeChat;
+
+// add group to coffee chat list
+async function addGroupToCoffeeChat(activityName, groupMembers) {
+    db.collection(activityGroup).doc(activityName).update({
+        'teams' : firebase.firestore.FieldValue.arrayUnion({'members' : groupMembers}),
+    });
+}
+module.exports.addGroupToCoffeeChat = addGroupToCoffeeChat;
+
+// grab all groups from the coffe chat activity
+async function getGroupsFromCoffeChat(activityName) {
+    return await (await db.collection(activityGroup).doc(activityName).get()).get('teams');
+}
+module.exports.getGroupsFromCoffeChat = getGroupsFromCoffeChat;

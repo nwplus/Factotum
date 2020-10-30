@@ -8,7 +8,7 @@ const Discord = require('discord.js');
 module.exports = class StartBoothing extends Command {
     constructor(client) {
         super(client, {
-            name: 'startboothing',
+            name: 'startb',
             group: 'a_boothing',
             memberName: 'start boothing',
             description: 'Will send a message where hackers can react to to enter the wait list.',

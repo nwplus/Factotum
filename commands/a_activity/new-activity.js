@@ -17,6 +17,10 @@ module.exports = class NewActivity extends Command {
                     key: 'activityName',
                     prompt: 'the activity name',
                     type: 'string',
+                    validate: (val) => {
+                        return ! (val.indexOf(' ') >= 0);
+                    }
+
                 },
             ],
         });
@@ -29,7 +33,6 @@ module.exports = class NewActivity extends Command {
         if (discordServices.isAdminConsole(message.channel) === true) {
             // only memebers with the Hacker tag can run this command!
             if (discordServices.checkForRole(message.member, discordServices.adminRole)) {
-                
                 // Create category
                 var category = await message.guild.channels.create(activityName, {type: 'category',  permissionOverwrites: [
                     {
