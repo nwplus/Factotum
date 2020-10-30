@@ -55,11 +55,11 @@ bot.once('ready', () => {
 
 bot.on('error', console.error);
 
-bot.on('message', message => {
+bot.on('message', async message => {
 
     // Deletes all messages to welcome that are not !verify or that are not from a staff or the bot
     if (message.channel.id === '743192401434378271') {
-        if (!message.content.startsWith('!verify') && ( !message.author.id === '742908587386339340' || !discordServices.checkForRole(message.member, discordServices.staffRole) ) ) {
+        if (!message.content.startsWith('!verify') && message.author.bot === false && !( await discordServices.checkForRole(message.member, discordServices.staffRole)) ) {
             discordServices.replyAndDelete(message, 'This channel is only to run the verify command.');
             message.delete({timeout: 2000});
         }
@@ -72,7 +72,6 @@ bot.on('message', message => {
 // If someone joins the server they get the guest role!
 bot.on('guildMemberAdd', member => {
     discordServices.addRoleToMember(member, discordServices.guestRole);
-    //member.roles.add(member.guild.roles.cache.find(role => role.name === "Guest"));
     member.send("Welcome to the nwHacks Server, please verify your status with us in the welcome channel" +
         " by using the !verify <your email> command. If you have any questions feel free to contact our staff " +
         "at the welcome-support channel. We are so excited to have you here!");
