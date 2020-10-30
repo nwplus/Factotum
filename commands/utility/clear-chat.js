@@ -55,7 +55,6 @@ module.exports = class ClearChat extends Command {
                 var commandGroups = this.client.registry.findGroups('a_');
                 // add all the commands from the command groups
                 commandGroups.forEach((value,index) => {
-                    //console.log(commandGroups[index]['commands'].array());
                     value['commands'].array().forEach((value, index) => {
                         commands.push(value);
                     })

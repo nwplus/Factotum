@@ -34,8 +34,6 @@ module.exports = class Verificaiton extends Command {
 
                 // Call the verify function to get status
                 var status = await firebaseServices.verify(email);
-
-                console.log(status);
     
                 switch(status) {
                     case firebaseServices.status.HACKER_SUCCESS:

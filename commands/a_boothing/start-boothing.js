@@ -202,11 +202,7 @@ module.exports = class StartBoothing extends Command {
                                 // udpate sponsor channel list
                                 var embed = sponsorMsg.embeds[0];
                                 var fields = embed.fields;
-                                fields = fields.filter(field => {
-                                    console.log(field);
-                                    console.log(field.name);
-                                    return ! field.name.includes(user.username);
-                                });
+                                fields = fields.filter(field => ! field.name.includes(user.username));
                                 embed.fields = fields;
                                 sponsorMsg.edit(embed);
                                    
