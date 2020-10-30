@@ -18,7 +18,7 @@ module.exports = class StartTeamFormation extends Command {
     async run (message) {
         message.delete();
         // can only be called my staff
-        if (discordServices.checkForRole(message.member, discordServices.staffRole)) {
+        if ((await discordServices.checkForRole(message.member, discordServices.staffRole))) {
             // can only be called in the team formation information channel
             if (message.channel.id === '770354140961570857') {
                 // grab current channel

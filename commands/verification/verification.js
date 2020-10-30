@@ -30,10 +30,12 @@ module.exports = class Verificaiton extends Command {
         // Make sure it is only used in the welcome channel
         if (message.channel.name === 'welcome') {
             // Make sure only guests can call this command
-            if (discordServices.checkForRole(message.member, discordServices.guestRole) === true) {
+            if ((await discordServices.checkForRole(message.member, discordServices.guestRole)) === true) {
 
                 // Call the verify function to get status
                 var status = await firebaseServices.verify(email);
+
+                console.log(status);
     
                 switch(status) {
                     case firebaseServices.status.HACKER_SUCCESS:

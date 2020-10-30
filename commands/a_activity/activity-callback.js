@@ -28,7 +28,7 @@ module.exports = class ActivityCallback extends Command {
         // make sure command is only used in the boothing-wait-list channel
         if (discordServices.isAdminConsole(message.channel) === true) {
             // only memebers with the Hacker tag can run this command!
-            if (discordServices.checkForRole(message.member, discordServices.staffRole)) {
+            if ((await discordServices.checkForRole(message.member, discordServices.staffRole))) {
 
                 // get category
                 var category = await message.guild.channels.cache.find(channel => channel.name === activityName);

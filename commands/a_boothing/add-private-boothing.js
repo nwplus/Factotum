@@ -28,7 +28,7 @@ module.exports = class CreatePrivates extends Command {
         // make sure command is only used in the boothing-wait-list channel
         if (message.channel.name === 'boothing-sponsor-console') {
             // only memebers with the Hacker tag can run this command!
-            if (discordServices.checkForRole(message.member, discordServices.staffRole)) {
+            if ((await discordServices.checkForRole(message.member, discordServices.staffRole))) {
                 
                 // get category
                 var category = await message.guild.channels.cache.get('738528333935018034');

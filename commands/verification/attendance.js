@@ -28,7 +28,7 @@ module.exports = class Attendace extends Command {
         // make sure command is only used in the attend-channel channel
         if (message.channel.name === 'attend-channel') {
             // only memebers with the Hacker tag can run this command!
-            if (discordServices.checkForRole(message.member, discordServices.hackerRole)) {
+            if ((await discordServices.checkForRole(message.member, discordServices.hackerRole))) {
 
                 // call the firebas services attendhacker function
                 var status = await firebaseServices.attendHacker(email);

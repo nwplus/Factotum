@@ -34,7 +34,7 @@ module.exports = class InitCoffeeChats extends Command {
         // make sure command is only used in the admin console
         if (discordServices.isAdminConsole(message.channel) === true) {
             // only memebers with the Staff tag can run this command!
-            if (discordServices.checkForRole(message.member, discordServices.staffRole)) {
+            if ((await discordServices.checkForRole(message.member, discordServices.staffRole))) {
                 
                 // get category
                 var category = await message.guild.channels.cache.find(channel => channel.name === activityName);

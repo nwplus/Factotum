@@ -22,7 +22,7 @@ module.exports = class GetNext extends Command {
         // make sure command is only used in the boothing-sponsor-console channel
         if (message.channel.name === 'boothing-sponsor-console') {
             // only memebers with the Hacker tag can run this command!
-            if (discordServices.checkForRole(message.member, discordServices.sponsorRole)) {
+            if ((await discordServices.checkForRole(message.member, discordServices.sponsorRole))) {
 
                 // grab the voice channel to move the memeber to, uses the parameter channelName
                 var voiceChannel = message.member.voice.channel;

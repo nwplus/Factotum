@@ -22,7 +22,7 @@ module.exports = class AskForHelp extends Command {
         message.delete();
 
         // only memebers with the Attendee tag can run this command!
-        if (discordServices.checkForRole(message.member, discordServices.attendeeRole)) {
+        if ((await discordServices.checkForRole(message.member, discordServices.attendeeRole))) {
                 
             // name of user
             var username = message.member.user.username;       

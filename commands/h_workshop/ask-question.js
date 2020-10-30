@@ -28,7 +28,7 @@ module.exports = class AskQuestion extends Command {
         message.delete();
 
         // only memebers with the Hacker tag can run this command!
-        if (discordServices.checkForRole(message.member, discordServices.attendeeRole)) {
+        if ((await discordServices.checkForRole(message.member, discordServices.attendeeRole))) {
                 
             // name of user
             var username = message.member.user.username;       

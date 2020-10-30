@@ -41,7 +41,7 @@ module.exports = class EnterWaitList extends Command {
         // make sure command is only used in the boothing-wait-list channel
         if (message.channel.name === 'boothing-wait-list') {
             // only memebers with the Attendee tag can run this command!
-            if (discordServices.checkForRole(message.member, discordServices.attendeeRole)) {
+            if ((await discordServices.checkForRole(message.member, discordServices.attendeeRole))) {
                 
                 var username = message.member.user.username;
 

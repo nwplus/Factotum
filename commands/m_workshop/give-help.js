@@ -20,7 +20,7 @@ module.exports = class GiveHelp extends Command {
     async run(message) {
         message.delete();
             // only memebers with the Hacker tag can run this command!
-            if (discordServices.checkForRole(message.member, discordServices.mentorRole)) {
+            if ((await discordServices.checkForRole(message.member, discordServices.mentorRole))) {
 
                 // get workshop name and make sure command is called in a workshop ta-console channel
                 var workshop = message.channel.name;
