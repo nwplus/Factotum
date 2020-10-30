@@ -4,7 +4,7 @@ const firebaseServices = require('../../firebase-services');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class ActivityShuffle extends Command {
+module.exports = class GroupShuffle extends Command {
     constructor(client) {
         super(client, {
             name: 'gshuffle',
@@ -57,7 +57,6 @@ module.exports = class ActivityShuffle extends Command {
                         }
 
                         // get teams from firebase
-                        // some firebase call given activityName and number of groups to get
                         var groups = await firebaseServices.getGroupsFromCoffeChat(activityName);
 
                         // add the members into the channels

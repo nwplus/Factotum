@@ -4,13 +4,13 @@ const firebaseServices = require('../../firebase-services');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class ActivityShuffle extends Command {
+module.exports = class MentorShuffle extends Command {
     constructor(client) {
         super(client, {
-            name: 'shuffle',
+            name: 'mshuffle',
             group: 'a_activity',
-            memberName: 'shuffle everyone in activity',
-            description: 'Will shuffle everyone in the main channel into the available private channels.',
+            memberName: 'mentor shuffle in activity',
+            description: 'Will shuffle mentors in the main channel into the available private channels.',
             guildOnly: true,
             args: [
                 {
@@ -46,7 +46,9 @@ module.exports = class ActivityShuffle extends Command {
                         var generalVoice = await category.children.find(channel => channel.name === activityName + '-general-voice');
 
                         // get members in general voice channel
-                        var members = generalVoice.members;
+                        var mentors = await generalVoice.members.filter(member => {
+                            return discordServices.checkForRole(member, discordServices.mentorRole) === true;
+                        });
 
                         // get channels
                         var channels = [];
@@ -56,25 +58,22 @@ module.exports = class ActivityShuffle extends Command {
                             );
                         }
 
-                        // shuffle the member list
-                        this.shuffleArray(members);
-
-                        // add the members into the channels
-                        var index = 0;
-                        members.each(member => {
-                            member.voice.setChannel(channels[index % numberOfChannels]).catch(console.error);
-                            index++;
-                        })
+                        // add the mentors into the channels
+                        var channelIndex = 0;
+                        mentors.each(mentor => {
+                            mentor.voice.setChannel(channels[channelIndex % numberOfChannels]).catch(console.error);
+                            channelIndex++;
+                        });
 
                         // report success of activity shuffling
-                        message.reply('Activity named: ' + activityName + ' members have been shuffled into the private channels!');
+                        message.reply('Activity named: ' + activityName + ' mentors have been shuffled into the private channels!');
                     } else {
                         // report failure due to no private channels
-                        message.reply('Activity named: ' + activityName + ' members were not shuffled because there are no private channels!');
+                        message.reply('Activity named: ' + activityName + ' mentors were not shuffled because there are no private channels!');
                     }
                 } else {
                     // report failure due to no category names like activityName
-                    message.reply('Activity named: ' + activityName + ' members were not shuffled because the activity does not excist!');
+                    message.reply('Activity named: ' + activityName + ' mentors were not shuffled because the activity does not excist!');
                 }
                 
             } else {
@@ -84,12 +83,4 @@ module.exports = class ActivityShuffle extends Command {
             discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
         }
     }
-
-    shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
-
 };
