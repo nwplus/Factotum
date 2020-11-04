@@ -10,7 +10,7 @@ var firebaseConfig = {
     apiKey: process.env.FIREBASEAPIKEY,
     authDomain: process.env.FIREBASEAUTHDOMAIN,
     databaseURL: process.env.FIREBASEURL,
-    projectId: process.env.FIREBASEPROJECTID,
+    projectId: "nwplus-bot",
     storageBucket: process.env.FIREBASEBUCKET,
     messagingSenderId: process.env.FIREBASESENDERID,
     appId: process.env.FIREBASEAPPID,
