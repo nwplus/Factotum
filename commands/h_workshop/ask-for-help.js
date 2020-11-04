@@ -34,7 +34,9 @@ module.exports = class AskForHelp extends Command {
 
             workshop = workshop.slice(0, workshop.indexOf('text') - 1);
 
-            var status = await firebaseWorkshops.addHacker(workshop, username);
+            var response = await firebaseWorkshops.addHacker(workshop, username);
+            var status = response[0];
+            var position = response[1];
 
             // If the user is alredy in the waitlist then tell him that
             if (status === firebaseServices.status.HACKER_IN_USE) {
@@ -48,8 +50,7 @@ module.exports = class AskForHelp extends Command {
 
                 // get ta console
                 var channel = await message.guild.channels.cache.find(channel => channel.name === workshop + '-ta-console');
-                var number = await firebaseWorkshops.leftToHelp(workshop);
-                channel.send('There are: ' + number + ' hackers waiting in line!');
+                channel.send('There are: ' + position + ' hackers waiting in line!');
             }
         }    
     }

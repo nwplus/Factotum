@@ -4,6 +4,7 @@ require('firebase/firestore');
 
 // var to hold firestore
 const db = firebase.firestore();
+module.exports.db = db;
 
 // collection constats
 const groups = {

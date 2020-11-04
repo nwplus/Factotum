@@ -2,11 +2,14 @@ const firebase = require('firebase/app');
 require('firebase/firestore');
 const services = require('./firebase-services');
 
+const db = services.db;
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////// Workshop ////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 // add hacker to workshop ta help list
+// return status and position in list
 async function addHacker(workshopName, username) {
     // get workshop ref
     var workshopRef =  db.collection(services.groups.activityGroup).doc(workshopName);
@@ -23,11 +26,12 @@ async function addHacker(workshopName, username) {
     }
 
     // add to list
-    await workshopRef.update({
+    var res = await workshopRef.update({
         'taHelpList' : firebase.firestore.FieldValue.arrayUnion(username),
     });
 
-    return services.status.HACKER_SUCCESS;
+    // return list with status and then position in wait list
+    return [services.status.HACKER_SUCCESS, list.length + 1];
 
 }
 module.exports.addHacker = addHacker;

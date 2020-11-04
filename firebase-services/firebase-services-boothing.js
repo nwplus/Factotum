@@ -2,6 +2,9 @@ const firebase = require('firebase/app');
 require('firebase/firestore');
 const services = require('./firebase-services');
 
+const db = services.db;
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////// Boothing ////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -105,8 +108,11 @@ async function addToWaitList(username, usernameList) {
         });
     } else {
         // if he is already in the waitlist then return the status
-        return services.status.HACKER_IN_USE;
+        return [services.status.HACKER_IN_USE];
     }
+
+    // return position in wait list
+    return [services.status.HACKER_SUCCESS, userRef.collection.length];
 }
 module.exports.addToWaitList = addToWaitList;
 

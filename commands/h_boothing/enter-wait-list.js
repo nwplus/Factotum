@@ -58,14 +58,15 @@ module.exports = class EnterWaitList extends Command {
                     usernameList.push(buddy3.user.username);
                 }                
 
-                var status = await firebaseBoothing.addToWaitList(username, usernameList);
+                var response = await firebaseBoothing.addToWaitList(username, usernameList);
+                var status = response[0];
 
                 // If the user is alredy in the waitlist then tell him that
                 if (status === firebaseServices.status.HACKER_IN_USE) {
                     discordServices.sendMessageToMember(message.member, 'Hey there! It seems you are already on the wait list, if you would like to ' +
                     'know your spot please run the !requestposition command right here!');
                 } else {
-                    var number = await firebaseBoothing.numberInWaitList();
+                    var number = response[1];
 
                     discordServices.sendMessageToMember(message.member, 'Hey there! We got you singed up to talk to a sponsor! Sit tight in the voice channel. If you ' +
                     'are not in the voice channel when its your turn you will be skipped, and we do not want that to happen! You are number: ' + number + ' in the wait list.');
