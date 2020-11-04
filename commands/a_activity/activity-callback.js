@@ -1,6 +1,6 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const firebaseServices = require('../../firebase-services');
+const firebaseActivity = require('../../firebase-services/firebase-services-activities')
 const discordServices = require('../../discord-services');
 
 // Command export
@@ -37,7 +37,7 @@ module.exports = class ActivityCallback extends Command {
                 if (category != undefined) {
                     
                     // get number of channels
-                    var numberOfChannels = await firebaseServices.activityPrivateChannels(activityName);
+                    var numberOfChannels = await firebaseActivity.numOfVoiceChannels(activityName);
 
                     // Check if there are private channels if not do nothing
                     if (numberOfChannels != 0) {

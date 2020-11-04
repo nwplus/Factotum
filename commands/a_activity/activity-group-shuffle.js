@@ -1,6 +1,7 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const firebaseServices = require('../../firebase-services');
+const firebaseActivity = require('../../firebase-services/firebase-services-activities');
+const firebaseCoffeChats = require('../../firebase-services/firebase-services-coffeechats');
 const discordServices = require('../../discord-services');
 
 // Command export
@@ -37,7 +38,7 @@ module.exports = class GroupShuffle extends Command {
                 if (category != undefined) {
                     
                     // get number of channels
-                    var numberOfChannels = await firebaseServices.activityPrivateChannels(activityName);
+                    var numberOfChannels = await firebaseActivity.numOfVoiceChannels(activityName);
 
                     // Check if there are private channels if not do nothing
                     if (numberOfChannels != 0) {
@@ -57,7 +58,7 @@ module.exports = class GroupShuffle extends Command {
                         }
 
                         // get teams from firebase
-                        var groups = await firebaseServices.getGroupsFromCoffeChat(activityName);
+                        var groups = await firebaseCoffeChats.getGroup(activityName);
 
                         // add the members into the channels
                         for(var index = 0; index < groups.length; index++) {

@@ -1,6 +1,5 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const firebaseServices = require('../../firebase-services');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
@@ -9,7 +8,7 @@ module.exports = class AskQuestion extends Command {
     constructor(client) {
         super(client, {
             name: 'ask',
-            group: 'h_workshop',
+            group: 'utility',
             memberName: 'ask anonymus question with thread',
             description: 'Will send the question to the same channel, and add emoji collector for thread like support.',
             args: [

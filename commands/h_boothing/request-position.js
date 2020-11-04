@@ -1,6 +1,8 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const firebaseServices = require('../../firebase-services');
+const firebaseServices = require('../../firebase-services/firebase-services');
+
+const firebaseBoothing = require('../../firebase-services/firebase-services-boothing');
 const discordServices = require('../../discord-services');
 
 // Command export
@@ -22,7 +24,7 @@ module.exports = class RequestPosition extends Command {
         var username = message.author.username;
 
         // call the firebase function
-        var index = await firebaseServices.positionInWaitList(username);
+        var index = await firebaseBoothing.positionInWaitList(username);
 
         // if there was an error it is because there are no users in the wait list
         if (index === firebaseServices.status.FAILURE) {
