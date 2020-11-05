@@ -37,7 +37,7 @@ module.exports = class ClearChat extends Command {
                 commands = this.client.registry.findCommands('verify');
             } 
             // if in the attend channel <attend-channel>
-            else if (message.channel.id === discordServices.verifyChannel) {
+            else if (message.channel.id === discordServices.attendChannel) {
                 commands = this.client.registry.findCommands('attend');
             } 
             // workshop stuff
