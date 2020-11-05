@@ -46,7 +46,7 @@ module.exports = class CreateChannel extends Command {
     async run (message, {channelType, buddy1, buddy2, buddy3}) {
         message.delete();
         // can only be called in the channel-creation channel
-        if (message.channel.id === '754396445494214789') {
+        if (message.channel.id === discordServices.channelcreationChannel) {
 
             var channel;
 

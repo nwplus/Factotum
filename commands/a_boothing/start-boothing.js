@@ -40,7 +40,7 @@ module.exports = class StartBoothing extends Command {
                 await msg.react('👨‍👩‍👦‍👦');
 
                 // send wait list message to sponsors
-                var sponsorChannel = await message.guild.channels.resolve('748397163997954108');
+                var sponsorChannel = await message.guild.channels.resolve(discordServices.sponsorConsoleChannel);
 
                 const sponsorEmbed = new Discord.MessageEmbed()
                     .setColor(discordServices.embedColor)

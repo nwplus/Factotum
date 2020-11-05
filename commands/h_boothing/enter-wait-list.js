@@ -70,7 +70,7 @@ module.exports = class EnterWaitList extends Command {
                     'are not in the voice channel when its your turn you will be skipped, and we do not want that to happen! You are number: ' + number + ' in the wait list.');
 
                     // get boothing sponsor console channel
-                    var channel = await message.guild.channels.cache.get('748397163997954108');
+                    var channel = await message.guild.channels.cache.get(discordServices.sponsorConsoleChannel);
                     channel.send('There are: ' + number + ' hackers waiting in line!');
                 }
             } else {

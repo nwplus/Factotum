@@ -27,8 +27,25 @@ module.exports.embedColor = embedColor;
 
 // Common channels
 var boothingWaitList = '748370272049954927';
+var adminConsolChannel = '748955441484005488';
 var adminLogChannel = '743197503884755045';
 module.exports.boothingWaitList = boothingWaitList;
+var welcomeChannel = '743192401434378271';
+module.exports.welcomeChannel = welcomeChannel;
+var sponsorConsoleChannel = '748397163997954108';
+module.exports.sponsorConsoleChannel = sponsorConsoleChannel;
+var verifyChannel = '747581999363129474';
+module.exports.verifyChannel = verifyChannel;
+var sponsorCategory = '738528333935018034';
+module.exports.sponsorCategory = sponsorCategory;
+var teamformationChannel = '770354140961570857';
+module.exports.teamformationChannel = teamformationChannel;
+var recruitingChannel = '770354487595499592';
+module.exports.recruitingChannel = recruitingChannel;
+var lookingforteamChannel = '770354521733857320';
+module.exports.lookingforteamChannel = lookingforteamChannel;
+var channelcreationChannel = '754396445494214789';
+module.exports.channelcreationChannel = channelcreationChannel;
 
 
 // Checks if the memeber has a role, returns true if it does
@@ -85,7 +102,7 @@ async function replyAndDelete(message, reply) {
 module.exports.replyAndDelete = replyAndDelete;
 
 function isAdminConsole(channel) {
-    return channel.id === '748955441484005488';
+    return channel.id === adminConsolChannel;
 }
 module.exports.isAdminConsole = isAdminConsole;
 

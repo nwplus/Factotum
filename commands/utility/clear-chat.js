@@ -33,11 +33,11 @@ module.exports = class ClearChat extends Command {
                 commands = this.client.registry.findGroups('h_boothing')[0].commands.array();
             } 
             // if in the verify channel <welcome>
-            else if (message.channel.id === '743192401434378271') {
+            else if (message.channel.id === discordServices.welcomeChannel) {
                 commands = this.client.registry.findCommands('verify');
             } 
             // if in the attend channel <attend-channel>
-            else if (message.channel.id === '747581999363129474') {
+            else if (message.channel.id === discordServices.verifyChannel) {
                 commands = this.client.registry.findCommands('attend');
             } 
             // workshop stuff
@@ -60,8 +60,8 @@ module.exports = class ClearChat extends Command {
                     })
                 });
             }
-            // crate channel
-            else if (message.channel.id === '754396445494214789') {
+            // create channel
+            else if (message.channel.id === discordServices.channelcreationChannel) {
                 commands = this.client.registry.findCommands('createchannel');
             }
             // if there are no commands to send then return
