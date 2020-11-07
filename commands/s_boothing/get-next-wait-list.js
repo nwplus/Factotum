@@ -1,6 +1,8 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const firebaseServices = require('../../firebase-services');
+const firebaseServices = require('../../firebase-services/firebase-services');
+
+const firebaseBoothing = require('../../firebase-services/firebase-services-boothing')
 const discordServices = require('../../discord-services');
 
 // Command export
@@ -30,7 +32,7 @@ module.exports = class GetNext extends Command {
                 // make sure the sponsor is in a voice channel
                 if (voiceChannel != undefined) {
                     // get status if no one in list or a map of current group and next group up
-                    let listOrStatus = await firebaseServices.getFromWaitList();
+                    let listOrStatus = await firebaseBoothing.getFromWaitList();
 
                     // if the function returns the FAILURE status then there are no more hackers in the waitlist
                     if (listOrStatus === firebaseServices.status.FAILURE) {
@@ -83,7 +85,7 @@ module.exports = class GetNext extends Command {
                             // If someone was added then continue on
                             var replyMessage = await message.reply('Someone has been moved successfully to the requested channel. Happy talking!');
                             replyMessage.delete({timeout: 5000});
-                            var number = await firebaseServices.numberInWaitList();
+                            var number = await firebaseBoothing.numberInWaitList();
                             message.channel.send('There are: ' + number + ' in the wait list.');
                             
                         }

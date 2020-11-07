@@ -1,7 +1,6 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
 const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
 
 // Command export
 module.exports = class CreateChannel extends Command {

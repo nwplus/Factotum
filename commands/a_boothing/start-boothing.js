@@ -1,6 +1,7 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const firebaseServices = require('../../firebase-services');
+const firebaseServices = require('../../firebase-services/firebase-services');
+const firebaseBoothing = require('../../firebase-services/firebase-services-boothing')
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
@@ -68,7 +69,7 @@ module.exports = class StartBoothing extends Command {
                     }
 
                     if (sponsorVoice != null) {
-                        var listOrStatus = await firebaseServices.getNextForBooth(boothName);
+                        var listOrStatus = await firebaseBoothing.getNextForBooth(boothName);
 
                         // if failure let sponsor know there are no groups
                         if (listOrStatus === firebaseServices.status.FAILURE) {
@@ -121,7 +122,7 @@ module.exports = class StartBoothing extends Command {
                 var boothName = 'Example Name';
 
                 // init the booth in firebase
-                firebaseServices.startBooth(boothName, sponsorMsg.id);
+                firebaseBoothing.startBooth(boothName, sponsorMsg.id);
 
                 // filter to be used for emoji collector
                 const filter = (reaction, user) => {
@@ -159,7 +160,7 @@ module.exports = class StartBoothing extends Command {
                         });
                     }
 
-                    var statusOrSpot = await firebaseServices.addGroupToBooth(boothName, username, usernameList);
+                    var statusOrSpot = await firebaseBoothing.addGroupToBooth(boothName, username, usernameList);
 
                     // If the user is alredy in the waitlist then tell him that
                     if (statusOrSpot === firebaseServices.status.HACKER_IN_USE) {
@@ -195,7 +196,7 @@ module.exports = class StartBoothing extends Command {
                                 dm.delete({timeout: 3000})
 
                                 // remove from wait list
-                                var status = await firebaseServices.removeGroupFromBooth(boothName, username);
+                                var status = await firebaseBoothing.removeGroupFromBooth(boothName, username);
 
                                 discordServices.sendMessageToMember(user, 'Hey there! You have ben removed from the waitlist, thanks for letting us know!', true);
 

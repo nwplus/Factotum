@@ -1,6 +1,8 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const firebaseServices = require('../../firebase-services');
+const firebaseServices = require('../../firebase-services/firebase-services');
+
+const firebaseWorkshops = require('../../firebase-services/firebase-services-workshops');
 const discordServices = require('../../discord-services');
 
 // Command export
@@ -39,7 +41,7 @@ module.exports = class GiveHelp extends Command {
                     if (voiceChannel != undefined) {
 
                         // get status if no one in list or a map of current group and next group up
-                        let userOrStatus = await firebaseServices.getFromTAHelpList(workshop);
+                        let userOrStatus = await firebaseWorkshops.getNext(workshop);
 
                         // if the function returns the FAILURE status then the call was made in a wrong channel
                         // a mentor in use will be called when no one needs help
@@ -73,7 +75,7 @@ module.exports = class GiveHelp extends Command {
                             } else {
                                 // If someone was added then continue on
                                 discordServices.replyAndDelete(message, 'Someone has been moved successfully to the requested channel. Happy helping!');
-                                var number = await firebaseServices.leftInTAHelpList(workshop);
+                                var number = await firebaseWorkshops.leftToHelp(workshop);
                                 message.channel.send('There are: ' + number + ' in the TA help wait list.');
                             }
                         }

@@ -1,6 +1,7 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const firebaseServices = require('../../firebase-services');
+const firebaseServices = require('../../firebase-services/firebase-services');
+
 const discordServices = require('../../discord-services');
 
 // Command export

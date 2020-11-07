@@ -72,11 +72,12 @@ module.exports = class StartTeamFormation extends Command {
                     // send message to hacker via DM
                     var dmMsg = await user.send(dmMessage);
                     
-                    // add the reaction
+                    // add done/ready reaction
                     await dmMsg.react('🇩');
 
+
                     // general filter for user input only, not the bot!
-                    const filter = (reaction, user) => reaction.emoji.name === '🇩' && user.id != dmMsg.author.id;
+                    const filter = (reaction, user) => (reaction.emoji.name === '🇩') && user.bot === false;
 
                     // await one reaction
                     const dmCollector = await dmMsg.createReactionCollector(filter, {max: 1});
@@ -89,11 +90,14 @@ module.exports = class StartTeamFormation extends Command {
                         const trueFilter = m => true;
 
                         // await type of channel
-                        confDm.channel.awaitMessages(trueFilter, {max: 1, timout: 10000}).then(async (msgs) => {
+                        confDm.channel.awaitMessages(trueFilter, {max: 1, time: 10000, errors: ['time']}).then(async (msgs) => {
                             // given list
                             var msg = msgs.first();
 
                             var content = msg.content;
+
+                            // message sent to either channel
+                            var sentMessage;
 
                             // add post to corresponding channel
                             if (isTeam) {
@@ -101,19 +105,36 @@ module.exports = class StartTeamFormation extends Command {
                                 var channel = message.guild.channels.cache.get(discordServices.recruitingChannel);
 
                                 // send message
-                                channel.send('<@' + user.id +'> and their team is looking for more team members! Information about them can be found below:\n' + content);
+                                sentMessage = await channel.send('<@' + user.id +'> and their team is looking for more team members! Information about them can be found below:\n' + content);
                             } else {
                                 // channel to send post to 
                                 var channel = message.guild.channels.cache.get(discordServices.lookingforteamChannel);
 
                                 // send message
-                                channel.send('<@' + user.id +'>  is looking for a team to join! Information about them can be found below:\n' + content);
+                                sentMessage = await channel.send('<@' + user.id +'>  is looking for a team to join! Information about them can be found below:\n' + content);
                             }
 
-                            // remove the messages
-                            await confDm.delete();
-
                             // we would want to remove their message, but that is not possible!
+
+                            // add remove reaction
+                            await dmMsg.react('⛔');
+
+                            // filter for remove reaction
+                            const removeFilter = (reaction, user) => reaction.emoji.name === '⛔' && user.bot === false;
+
+                            // add reaction collector for remove emoji
+                            const removeCollector = await dmMsg.createReactionCollector(removeFilter, {max: 1});
+
+                            removeCollector.on('collect', async (reac, user) => {
+                                // remove message sent to channel
+                                sentMessage.delete();
+
+                                // confirm deletion
+                                user.send('This is great! You are now ready to hack! Have fun with your new team! Your message has been deleted.').then(msg => msg.delete({timeout: 5000}));
+                                
+                                // remove this message
+                                dmMsg.delete();
+                            });
 
                             // confirm the post has been received
                             if (isTeam) {
@@ -123,6 +144,11 @@ module.exports = class StartTeamFormation extends Command {
                                 user.send('Thanks for sending me your information, you should see it pop up in the respective channel under the team formation category.' +
                                 'Once you find your ideal team please react to my original message with ⛔ so I can remove your post. Happy hacking!!!').then(msg => msg.delete({timeout: 5000}));
                             }
+
+                            // remove the messages
+                            await confDm.delete();
+                        }).catch((reason) => {
+                            console.log(reason);
                         });
                     });
                 });

@@ -1,6 +1,7 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const firebaseServices = require('../../firebase-services');
+const firebaseActivity = require('../../firebase-services/firebase-services-activities');
+const firebaseCoffeeChats = require('../../firebase-services/firebase-services-coffeechats');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
@@ -43,9 +44,9 @@ module.exports = class InitCoffeeChats extends Command {
                 if (category != undefined) {
                     
                     // initialize firebase fields
-                    firebaseServices.initCoffeeChat(activityName);
+                    firebaseCoffeeChats.initCoffeeChat(activityName);
 
-                    discordServices.addVoiceChannelsToActivity(activityName, numOfGroups, category, message.guild.channels);
+                    await discordServices.addVoiceChannelsToActivity(activityName, numOfGroups, category, message.guild.channels);
 
                     // add group creation text channel
                     var joinActivityChannel = await message.guild.channels.create(activityName + '-join-activity', {
@@ -96,7 +97,7 @@ module.exports = class InitCoffeeChats extends Command {
                             })
 
                             // add group to activity list
-                            firebaseServices.addGroupToCoffeeChat(activityName, groupMembers);
+                            firebaseCoffeeChats.addGroup(activityName, groupMembers);
 
                             promt.delete();
                             joinActivityChannel.send('<@' + user.id + '> Your team has been added to the activity! Make sure you follow the instructions in the main channel.').then(msg => {

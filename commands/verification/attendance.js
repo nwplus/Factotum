@@ -1,6 +1,7 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const firebaseServices = require('../../firebase-services');
+const firebaseServices = require('../../firebase-services/firebase-services');
+
 const discordServices = require('../../discord-services');
 
 // Command export
@@ -41,7 +42,7 @@ module.exports = class Attendace extends Command {
                         discordServices.discordLog(message.guild, "Hacker with email " + email +
                             " is attending nwHacks 2020!");
                         break;
-                    case firebaseServices.status.MENTOR_IN_USE:
+                    case firebaseServices.status.HACKER_IN_USE:
                         discordServices.sendMessageToMember(message.member, 'Hi there, this email is already marked as attending, have a great day!');
                         break;
                     case firebaseServices.status.FAILURE:

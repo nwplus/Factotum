@@ -1,6 +1,6 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const firebaseServices = require('../../firebase-services');
+const firebaseWorkshops = require('../../firebase-services/firebase-services-workshops');
 const discordServices = require('../../discord-services');
 
 // Command export
@@ -50,7 +50,7 @@ module.exports = class InitWorkshop extends Command {
                         MOVE_MEMBERS : true,
                     })
 
-                     firebaseServices.intiTAHelpFor(activityName);
+                     firebaseWorkshops.initWorkshop(activityName);
 
                      // create TA console
                      message.guild.channels.create(activityName + '-TA-console', {type: 'text', parent: category,  permissionOverwrites: [

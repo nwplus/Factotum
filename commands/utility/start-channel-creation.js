@@ -66,32 +66,51 @@ module.exports = class StartChannelCreation extends Command {
 
                                 channel.send('<@' + user.id + '> Please tag all the invited users to this private ' + channelType + ' channel. Type none if no guests are welcomed.').then(async msg => {
                                     // await guests
-                                    channel.awaitMessages(filter, {max: 1, timout: 10000}).then(async msgsWithGuests => {
+                                    channel.awaitMessages(filter, {max: 1, time: 10000}).then(async msgsWithGuests => {
                                         var msgWithGuests = msgsWithGuests.first();
 
                                         // get the mentions from the message
                                         var guests = msgWithGuests.mentions.members;
 
-                                        // create channel
-                                        var newChannel = await message.guild.channels.create(user.username + '-private-channel', {type: channelType, parent: category});
+                                        // ask for channel name
+                                        channel.send('<@' + user.id + '> What do you want to name the channel? If you don\'t care then send \'default\'!').then(async msg => {
+                                            channel.awaitMessages(filter, {max: 1, time: 10000}).then(async msgsName => {
+                                                var channelNameMSG = msgsName.first();
 
-                                        // update permission for users to be able to view
-                                        newChannel.updateOverwrite(discordServices.everyoneRole, {
-                                            VIEW_CHANNEL : false,
-                                        })
-                                        newChannel.updateOverwrite(user, {
-                                            VIEW_CHANNEL : true,
+                                                var channelName = channelNameMSG.content;
+
+                                                // if channelName is default then use default
+                                                if (channelName === 'default') {
+                                                    channelName = user.username + '-private-channel';
+                                                }
+
+                                                // create channel
+                                                var newChannel = await message.guild.channels.create(channelName, {type: channelType, parent: category});
+
+                                                // update permission for users to be able to view
+                                                newChannel.updateOverwrite(discordServices.everyoneRole, {
+                                                    VIEW_CHANNEL : false,
+                                                })
+                                                newChannel.updateOverwrite(user, {
+                                                    VIEW_CHANNEL : true,
+                                                });
+
+                                                // add guests
+                                                guests.each(mem => newChannel.updateOverwrite(mem.user, {
+                                                    VIEW_CHANNEL : true,
+                                                }));
+                                                
+                                                // remove messeges
+                                                msg.delete();
+                                                channelNameMSG.delete();
+
+                                            }).catch((errors) => console.log(errors));
                                         });
 
-                                        // add guests
-                                        guests.each(mem => newChannel.updateOverwrite(mem.user, {
-                                            VIEW_CHANNEL : true,
-                                        }));
-                                        
-                                        // remove messeges
-                                        msg.delete();
+                                        // delete message
                                         msgWithGuests.delete();
-                                    })
+                                        msg.delete();
+                                    });
                                 });
                             } else {
                                 // report the error and ask to try again

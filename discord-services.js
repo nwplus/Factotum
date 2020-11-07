@@ -1,6 +1,6 @@
 
-const firebaseServices = require('./firebase-services')
-
+const { Command } = require('discord.js-commando');
+const firebaseActivity = require('./firebase-services/firebase-services-activities');
 
 // Available Roles
 var guestRole = '742896900419747961';
@@ -135,7 +135,7 @@ module.exports.isAdminConsole = isAdminConsole;
 // will add given number of voice channels to the given activity, the category object of the activity is necessary
 async function addVoiceChannelsToActivity(activityName, number, category, channelManager) {
     // udpate db and get total number of channels
-    var total = await firebaseServices.activityAddPrivates(activityName, number);
+    var total = await firebaseActivity.addVoiceChannels(activityName, number);
 
     // grab index where channel naming should start, in case there are already channels made
     var index = total - number;
@@ -176,7 +176,7 @@ module.exports.addVoiceChannelsToActivity = addVoiceChannelsToActivity;
 // returns the final number of channels in the activity
 async function removeVoiceChannelsToActivity(activityName, number, category){
     // udpate db and get total number of channels
-    var total = await firebaseServices.activityRemovePrivates(activityName, number);
+    var total = await firebaseActivity.removeVoiceChannels(activityName, number);
 
     // grab the final number of channels there should be, no less than 0
     var final = total - number;

@@ -1,6 +1,8 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const firebaseServices = require('../../firebase-services');
+const firebaseServices = require('../../firebase-services/firebase-services');
+
+const firebaseWorkshops = require('../../firebase-services/firebase-services-workshops');
 const discordServices = require('../../discord-services');
 
 // Command export
@@ -42,7 +44,7 @@ module.exports = class AskQuestion extends Command {
             if(index != -1) {
                 workshop = workshop.slice(0, index - 1);
 
-                var status = await firebaseServices.addQuestionTo(workshop, question, username);
+                var status = await firebaseWorkshops.addQuestionTo(workshop, question, username);
 
                 // If the user is alredy in the waitlist then tell him that
                 if (status === firebaseServices.status.FAILURE) {
