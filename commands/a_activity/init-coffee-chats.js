@@ -31,7 +31,7 @@ module.exports = class InitCoffeeChats extends Command {
 
     // Run function -> command body
     async run(message, {activityName, numOfGroups}) {
-        message.delete();
+        discordServices.deleteMessage(message);
         // make sure command is only used in the admin console
         if (discordServices.isAdminConsole(message.channel) === true) {
             // only memebers with the Staff tag can run this command!

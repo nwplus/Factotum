@@ -16,7 +16,7 @@ module.exports = class StartTeamFormation extends Command {
     }
 
     async run (message) {
-        message.delete();
+        discordServices.deleteMessage(message);
         // can only be called my staff
         if ((await discordServices.checkForRole(message.member, discordServices.staffRole))) {
             // can only be called in the team formation information channel
@@ -127,7 +127,7 @@ module.exports = class StartTeamFormation extends Command {
 
                             removeCollector.on('collect', async (reac, user) => {
                                 // remove message sent to channel
-                                sentMessage.delete();
+                                sentdiscordServices.deleteMessage(message);
 
                                 // confirm deletion
                                 user.send('This is great! You are now ready to hack! Have fun with your new team! Your message has been deleted.').then(msg => msg.delete({timeout: 5000}));

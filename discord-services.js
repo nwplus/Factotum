@@ -196,3 +196,11 @@ async function removeVoiceChannelsToActivity(activityName, number, category){
     return final;
 }
 module.exports.removeVoiceChannelsToActivity = removeVoiceChannelsToActivity;
+
+// deletes a message if the message hasn't been deleted already
+function deleteMessage(message) {
+    if (message.deleted === false) {
+        message.delete();
+    }
+}
+module.exports.deleteMessage = deleteMessage;

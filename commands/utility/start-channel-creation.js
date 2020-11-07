@@ -16,7 +16,7 @@ module.exports = class StartChannelCreation extends Command {
     }
 
     async run (message) {
-        message.delete();
+        discordServices.deleteMessage(message);
         // can only be called my staff
         if ((await discordServices.checkForRole(message.member, discordServices.staffRole))) {
             // can only be called in the channel-creation channel

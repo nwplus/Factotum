@@ -24,7 +24,7 @@ module.exports = class AskQuestion extends Command {
     // Run function -> command body
     async run(message, {question}) {
                 
-        message.delete();
+        discordServices.deleteMessage(message);
 
         // only memebers with the Hacker tag can run this command!
         if ((await discordServices.checkForRole(message.member, discordServices.attendeeRole))) {

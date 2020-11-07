@@ -25,7 +25,7 @@ module.exports = class GroupShuffle extends Command {
 
     // Run function -> command body
     async run(message, {activityName}) {
-        message.delete();
+        discordServices.deleteMessage(message);
         // make sure command is only used in the admin console
         if (discordServices.isAdminConsole(message.channel) === true) {
             // only memebers with the Hacker tag can run this command!
@@ -36,6 +36,15 @@ module.exports = class GroupShuffle extends Command {
 
                 // check if the category excist if not then do nothing
                 if (category != undefined) {
+
+                    // get teams from firebase
+                    var groups = await firebaseCoffeChats.getGroup(activityName);
+
+                    // if there are no teams we skip
+                    if (groups === undefined) {
+                        discordServices.replyAndDelete(message, 'This activity is not marked as a coffee chat, thus no groups exist!');
+                        return;
+                    }
                     
                     // get number of channels
                     var numberOfChannels = await firebaseActivity.numOfVoiceChannels(activityName);
@@ -56,9 +65,6 @@ module.exports = class GroupShuffle extends Command {
                                 await category.children.find(channel => channel.name === activityName + '-' + index)
                             );
                         }
-
-                        // get teams from firebase
-                        var groups = await firebaseCoffeChats.getGroup(activityName);
 
                         // add the members into the channels
                         for(var index = 0; index < groups.length; index++) {

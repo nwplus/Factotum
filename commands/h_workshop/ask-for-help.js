@@ -21,7 +21,7 @@ module.exports = class AskForHelp extends Command {
     // Run function -> command body
     async run(message) {
                 
-        message.delete();
+        discordServices.deleteMessage(message);
 
         // only memebers with the Attendee tag can run this command!
         if ((await discordServices.checkForRole(message.member, discordServices.attendeeRole))) {

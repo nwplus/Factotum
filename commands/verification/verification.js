@@ -27,7 +27,7 @@ module.exports = class Verificaiton extends Command {
     // Run function -> command body
     async run(message, { email }) {
         // Delete the message
-        message.delete();
+        discordServices.deleteMessage(message);
         // Make sure it is only used in the welcome channel
         if (message.channel.name === 'welcome') {
             // Make sure only guests can call this command

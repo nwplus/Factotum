@@ -20,7 +20,7 @@ module.exports = class StartBoothing extends Command {
 
     // Run function -> command body
     async run(message) {
-        message.delete();
+        discordServices.deleteMessage(message);
         // make sure command is only used in the boothing-wait-list channel
         if (message.channel.name === 'boothing-wait-list') {
             // only memebers with the Attendee tag can run this command!

@@ -28,7 +28,7 @@ module.exports = class RemovePrivatesFor extends Command {
 
     // Run function -> command body
     async run(message, {activityName, number}) {
-        message.delete();
+        discordServices.deleteMessage(message);
         // make sure command is only used in the admin console
         if (discordServices.isAdminConsole(message.channel) === true) {
             // only memebers with the Hacker tag can run this command!

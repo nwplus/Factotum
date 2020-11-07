@@ -38,7 +38,7 @@ module.exports = class EnterWaitList extends Command {
 
     // Run function -> command body
     async run(message, {buddy1, buddy2, buddy3}) {
-        message.delete();
+        discordServices.deleteMessage(message);
         // make sure command is only used in the boothing-wait-list channel
         if (message.channel.name === 'boothing-wait-list') {
             // only memebers with the Attendee tag can run this command!

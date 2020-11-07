@@ -17,7 +17,7 @@ module.exports = class ClearChat extends Command {
     }
 
     async run (message) {
-        message.delete();
+        discordServices.deleteMessage(message);
         // only admins can use this command inside the guild
         if ((await discordServices.checkForRole(message.member, discordServices.adminRole))) {
             await message.channel.bulkDelete(100, true).catch(console.error);

@@ -23,7 +23,7 @@ module.exports = class CreatePrivates extends Command {
 
     // Run function -> command body
     async run(message, {number}) {
-        message.delete();
+        discordServices.deleteMessage(message);
         // make sure command is only used in the boothing-wait-list channel
         if (message.channel.name === 'boothing-sponsor-console') {
             // only memebers with the Hacker tag can run this command!

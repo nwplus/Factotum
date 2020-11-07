@@ -20,7 +20,7 @@ module.exports = class GiveHelp extends Command {
 
     // Run function -> command body
     async run(message) {
-        message.delete();
+        discordServices.deleteMessage(message);
             // only memebers with the Hacker tag can run this command!
             if ((await discordServices.checkForRole(message.member, discordServices.mentorRole))) {
 

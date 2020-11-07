@@ -57,7 +57,7 @@ module.exports = class Attendace extends Command {
         } else {
             discordServices.sendMessageToMember(message.member, 'Hi there, the !attend command is only available in the attend-channel channel.');
         }
-        message.delete();
+        discordServices.deleteMessage(message);
     }
 
 };
