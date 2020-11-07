@@ -1,6 +1,6 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const firebaseServices = require('../../firebase-services');
+const firebaseActivity = require('../../firebase-services/firebase-services-activities');
 const discordServices = require('../../discord-services');
 
 // Command export
@@ -64,7 +64,7 @@ module.exports = class NewActivity extends Command {
                 message.guild.channels.create(activityName + '-general-voice', {type: 'voice', parent: category});
 
                 // create workshop in db
-                firebaseServices.createActivity(activityName);
+                firebaseActivity.create(activityName);
 
                 // report success of activity creation
                 message.reply('Activity session named: ' + activityName + ' created succesfully. Any other commands will require this name as paramter.');

@@ -43,7 +43,9 @@ bot.registry
     .registerGroup('m_workshop', 'workshop group for mentors and tas')
     .registerGroup('a_teamformation', 'team formation group for admins')
     .registerDefaultGroups()
-    .registerDefaultCommands()
+    .registerDefaultCommands({
+        unknownCommand: false,
+    })
     .registerCommandsIn(__dirname + '/commands');
 
 bot.once('ready', () => {

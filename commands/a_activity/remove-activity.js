@@ -1,6 +1,6 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const firebaseServices = require('../../firebase-services');
+const firebaseActivity = require('../../firebase-services/firebase-services-activities');
 const discordServices = require('../../discord-services');
 
 // Command export
@@ -36,7 +36,7 @@ module.exports = class RemoveActivity extends Command {
                 category.delete().catch(console.error);
 
                 // create workshop in db
-                firebaseServices.removeActivity(activityName);
+                firebaseActivity.remove(activityName);
 
                 // report success of activity removal
                 message.reply('Activity named: ' + activityName + ' removed succesfully!');
