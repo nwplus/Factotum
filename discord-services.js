@@ -2,7 +2,6 @@
 const { Command } = require('discord.js-commando');
 const firebaseActivity = require('./firebase-services/firebase-services-activities');
 
-
 // Available Roles
 var guestRole = '742896900419747961';
 var hackerRole = '738519785028976741';
@@ -26,9 +25,52 @@ var embedColor = '#0099ff'
 module.exports.embedColor = embedColor;
 
 // Common channels
+
+// where hackers join the wait list to talk to a sponsor
+// at the moment its only one, planned to extend to multiple
 var boothingWaitList = '748370272049954927';
-var adminLogChannel = '743197503884755045';
 module.exports.boothingWaitList = boothingWaitList;
+// only sponsors should have access to this channel, this is
+// where they accept/get the next group to talk to them
+var sponsorConsoleChannel = '748397163997954108';
+module.exports.sponsorConsoleChannel = sponsorConsoleChannel;
+// the category where the sponsorConsole and boothingwaitlist
+// channels are, used to add more private voice channels
+var sponsorCategory = '738528333935018034';
+module.exports.sponsorCategory = sponsorCategory;
+
+// console where most commands are accessible, only staff
+// should have access to this
+var adminConsolChannel = '748955441484005488';
+// channel where the bot can log important things like verifications, 
+// clear chat calls, etc
+var adminLogChannel = '743197503884755045';
+
+// channel where guests will use the !verify command,
+// usualy the welcome channel
+var welcomeChannel = '743192401434378271';
+module.exports.welcomeChannel = welcomeChannel;
+
+// where hackers can call the !attend command, usually a 
+// hidden channel in a hidden category, open only day of the event
+var attendChannel = '747581999363129474';
+module.exports.attendChannel = attendChannel;
+
+// where hackers can emoji to let the bot know if they are looking
+// for a team or a hacker(s)
+var teamformationChannel = '770354140961570857';
+module.exports.teamformationChannel = teamformationChannel;
+// channel where team bios are posted, hackers shouldn't be able to post
+var recruitingChannel = '770354487595499592';
+module.exports.recruitingChannel = recruitingChannel;
+// channel where hacker bios are posted, hackers shouldn't be able to post
+var lookingforteamChannel = '770354521733857320';
+module.exports.lookingforteamChannel = lookingforteamChannel;
+
+// where hackers and other users can call the !createchannel command
+// to create new private channels for them and their team
+var channelcreationChannel = '754396445494214789';
+module.exports.channelcreationChannel = channelcreationChannel;
 
 
 // Checks if the memeber has a role, returns true if it does
@@ -42,7 +84,7 @@ async function checkForRole(member, role) {
 }
 module.exports.checkForRole = checkForRole;
 
-// Send a Direct meesage to a member
+// Send a Direct meesage to a member, option to delete after 5 seconds
 async function sendMessageToMember(member, message, isDelete = false) {
     var msg = await member.send(message);
     if (isDelete === true) {
@@ -84,8 +126,9 @@ async function replyAndDelete(message, reply) {
 }
 module.exports.replyAndDelete = replyAndDelete;
 
+// true if channel is admin console channel
 function isAdminConsole(channel) {
-    return channel.id === '748955441484005488';
+    return channel.id === adminConsolChannel;
 }
 module.exports.isAdminConsole = isAdminConsole;
 

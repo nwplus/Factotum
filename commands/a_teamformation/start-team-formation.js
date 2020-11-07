@@ -20,7 +20,7 @@ module.exports = class StartTeamFormation extends Command {
         // can only be called my staff
         if ((await discordServices.checkForRole(message.member, discordServices.staffRole))) {
             // can only be called in the team formation information channel
-            if (message.channel.id === '770354140961570857') {
+            if (message.channel.id === discordServices.teamformationChannel) {
                 // grab current channel
                 var channel = message.channel;
                 
@@ -102,13 +102,13 @@ module.exports = class StartTeamFormation extends Command {
                             // add post to corresponding channel
                             if (isTeam) {
                                 // channel to send post to 
-                                var channel = message.guild.channels.cache.get('770354487595499592');
+                                var channel = message.guild.channels.cache.get(discordServices.recruitingChannel);
 
                                 // send message
                                 sentMessage = await channel.send('<@' + user.id +'> and their team is looking for more team members! Information about them can be found below:\n' + content);
                             } else {
                                 // channel to send post to 
-                                var channel = message.guild.channels.cache.get('770354521733857320');
+                                var channel = message.guild.channels.cache.get(discordServices.lookingforteamChannel);
 
                                 // send message
                                 sentMessage = await channel.send('<@' + user.id +'>  is looking for a team to join! Information about them can be found below:\n' + content);

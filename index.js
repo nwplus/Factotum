@@ -60,7 +60,7 @@ bot.on('error', console.error);
 bot.on('message', async message => {
 
     // Deletes all messages to welcome that are not !verify or that are not from a staff or the bot
-    if (message.channel.id === '743192401434378271') {
+    if (message.channel.id === discordServices.welcomeChannel) {
         if (!message.content.startsWith('!verify') && message.author.bot === false && !( await (await discordServices.checkForRole(message.member, discordServices.staffRole))) ) {
             discordServices.replyAndDelete(message, 'This channel is only to run the verify command.');
             message.delete({timeout: 2000});

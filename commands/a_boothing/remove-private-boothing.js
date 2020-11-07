@@ -30,7 +30,7 @@ module.exports = class RemovePrivates extends Command {
             if ((await discordServices.checkForRole(message.member, discordServices.staffRole))) {
                 
                 // get category
-                var category = await message.guild.channels.cache.get('738528333935018034');
+                var category = await message.guild.channels.cache.get(discordServices.sponsorCategory);
 
                 // get private channels
                 var channels = category.children.filter((value, index) => {

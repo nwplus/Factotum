@@ -20,7 +20,7 @@ module.exports = class StartChannelCreation extends Command {
         // can only be called my staff
         if ((await discordServices.checkForRole(message.member, discordServices.staffRole))) {
             // can only be called in the channel-creation channel
-            if (message.channel.id === '754396445494214789') {
+            if (message.channel.id === discordServices.channelcreationChannel) {
                 // grab current channel
                 var channel = message.channel;
 
