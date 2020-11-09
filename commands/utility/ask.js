@@ -46,19 +46,27 @@ module.exports = class AskQuestion extends Command {
                 // add answered emoji!
                 await msg.react('✅');
 
+                // add upvote emoji
+                await msg.react('⏫');
+
+                // add delete emoji
+                await msg.react('⛔');
+
                 // filter for emoji, not this bot!
-                const emojiFilter = (reaction, user) => user.bot != true && (reaction.emoji.name === '🇷' || reaction.emoji.name === '✅');
+                const emojiFilter = (reaction, user) => user.bot != true && (reaction.emoji.name === '🇷' || reaction.emoji.name === '✅' || reaction.emoji.name === '⛔');
 
                 const collector = msg.createReactionCollector(emojiFilter);
 
                 collector.on('collect', async (reaction, user) => {
-                    // check emoji and only user who asked the question
+                    // check for checkmark emoji and only user who asked the question
                     if (reaction.emoji.name === '✅' && user.id === message.author.id) {
                         // change color
                         msg.embeds[0].setColor('#80c904');
                         // change title and edit embed
                         var title = '✅ ANSWERED ' + msg.embeds[0].title;
                         msg.edit(msg.embeds[0].setTitle(title));
+                    } else if (reaction.emoji.name === '⛔') {
+                        msg.delete();
                     } else {
                         // if response emoji
 
