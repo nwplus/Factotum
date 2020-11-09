@@ -39,44 +39,58 @@ module.exports = class AskQuestion extends Command {
                 .setDescription(question);
             
             // send message and add emoji collector
-            curChannel.send(qEmbed).then((msg) => {
+            curChannel.send(qEmbed).then(async (msg) => {
                 // emoji msg
-                msg.react('🇷');
+                await msg.react('🇷');
+
+                // add answered emoji!
+                await msg.react('✅');
 
                 // filter for emoji, not this bot!
-                const emojiFilter = (reaction, user) => reaction.emoji.name === '🇷' && user.id != msg.author.id;
+                const emojiFilter = (reaction, user) => user.bot != true && (reaction.emoji.name === '🇷' || reaction.emoji.name === '✅');
 
                 const collector = msg.createReactionCollector(emojiFilter);
 
                 collector.on('collect', async (reaction, user) => {
-                    // promt the response
-                    var promt = await curChannel.send('<@' + user.id + '> Please send your response within 10 seconds! If you want to cancel write cancel.');
+                    // check emoji and only user who asked the question
+                    if (reaction.emoji.name === '✅' && user.id === message.author.id) {
+                        // change color
+                        msg.embeds[0].setColor('#80c904');
+                        // change title and edit embed
+                        var title = '✅ ANSWERED ' + msg.embeds[0].title;
+                        msg.edit(msg.embeds[0].setTitle(title));
+                    } else {
+                        // if response emoji
 
-                    // filter and message await only one
-                    // only user who emojied this message will be able to add a rely to it
-                    const responseFilter = m => m.author.id === user.id;
+                        // promt the response
+                        var promt = await curChannel.send('<@' + user.id + '> Please send your response within 10 seconds! If you want to cancel write cancel.');
 
-                    curChannel.awaitMessages(responseFilter, {max: 1, time: 10000, errors: ['time']}).then( (msgs) => {
-                        var response = msgs.first();
+                        // filter and message await only one
+                        // only user who emojied this message will be able to add a rely to it
+                        const responseFilter = m => m.author.id === user.id;
 
-                        // if cancel then do nothing
-                        if (response.content.toLowerCase() != 'cancel') {
-                            // add a field to the message embed with the response
-                            msg.edit(msg.embeds[0].addField(user.username + ' Responded:', response.content));
+                        curChannel.awaitMessages(responseFilter, {max: 1, time: 10000, errors: ['time']}).then( (msgs) => {
+                            var response = msgs.first();
 
-                            curChannel.send('<@' + user.id + '> Thank you for your response!').then(msg => msg.delete({timeout: 2000}));
-                        }
+                            // if cancel then do nothing
+                            if (response.content.toLowerCase() != 'cancel') {
+                                // add a field to the message embed with the response
+                                msg.edit(msg.embeds[0].addField(user.username + ' Responded:', response.content));
 
-                        // delete messages
-                        promt.delete();
-                        response.delete();
-                    }).catch((msgs) => {
-                        promt.delete();
-                        curChannel.send('<@' + user.id + '> Time is up! When you are ready to respond, emoji again!').then(msg => msg.delete({timeout: 2000}));
-                    });
+                                curChannel.send('<@' + user.id + '> Thank you for your response!').then(msg => msg.delete({timeout: 2000}));
+                            }
 
-                    // delete the reaciton
-                    reaction.users.remove(user.id);
+                            // delete messages
+                            promt.delete();
+                            response.delete();
+                        }).catch((msgs) => {
+                            promt.delete();
+                            curChannel.send('<@' + user.id + '> Time is up! When you are ready to respond, emoji again!').then(msg => msg.delete({timeout: 2000}));
+                        });
+
+                        // delete the reaciton
+                        reaction.users.remove(user.id);
+                    }
                 });
             });
 
