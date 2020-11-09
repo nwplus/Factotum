@@ -77,10 +77,10 @@ module.exports = class InitWorkshop extends Command {
                     ]});
 
                     // report success of workshop creation
-                    message.reply('Activity named: ' + activityName + ' now has workshop functionality.');
+                    discordServices.replyAndDelete(message,'Activity named: ' + activityName + ' now has workshop functionality.');
                 } else {
                     // if the category does not excist
-                    message.reply('The activity named: ' + activityName +', does not exist! Did not create voice channels.');
+                    discordServices.replyAndDelete(message,'The activity named: ' + activityName +', does not exist! Did not create voice channels.');
                 }
             } else {
                 discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');

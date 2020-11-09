@@ -39,7 +39,7 @@ module.exports = class RemoveActivity extends Command {
                 firebaseActivity.remove(activityName);
 
                 // report success of activity removal
-                message.reply('Activity named: ' + activityName + ' removed succesfully!');
+                discordServices.replyAndDelete(message,'Activity named: ' + activityName + ' removed succesfully!');
             } else {
                 discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
             }

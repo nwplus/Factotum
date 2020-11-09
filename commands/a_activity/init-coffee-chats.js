@@ -109,10 +109,10 @@ module.exports = class InitCoffeeChats extends Command {
                     });
 
                     // report success of coffee chat creation
-                    message.reply('Activity named: ' + activityName + ' now has coffee chat functionality.');
+                    discordServices.replyAndDelete(message,'Activity named: ' + activityName + ' now has coffee chat functionality.');
                 } else {
                     // if the category does not excist
-                    message.reply('The activity named: ' + activityName +', does not exist! No action taken.');
+                    discordServices.replyAndDelete(message,'The activity named: ' + activityName +', does not exist! No action taken.');
                 }
             } else {
                 discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');

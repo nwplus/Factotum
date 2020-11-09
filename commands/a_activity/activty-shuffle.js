@@ -67,14 +67,14 @@ module.exports = class ActivityShuffle extends Command {
                         })
 
                         // report success of activity shuffling
-                        message.reply('Activity named: ' + activityName + ' members have been shuffled into the private channels!');
+                        discordServices.replyAndDelete(message,'Activity named: ' + activityName + ' members have been shuffled into the private channels!');
                     } else {
                         // report failure due to no private channels
-                        message.reply('Activity named: ' + activityName + ' members were not shuffled because there are no private channels!');
+                        discordServices.replyAndDelete(message,'Activity named: ' + activityName + ' members were not shuffled because there are no private channels!');
                     }
                 } else {
                     // report failure due to no category names like activityName
-                    message.reply('Activity named: ' + activityName + ' members were not shuffled because the activity does not excist!');
+                    discordServices.replyAndDelete(message,'Activity named: ' + activityName + ' members were not shuffled because the activity does not excist!');
                 }
                 
             } else {

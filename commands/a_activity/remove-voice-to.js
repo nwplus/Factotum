@@ -43,10 +43,10 @@ module.exports = class RemovePrivatesFor extends Command {
                     var final = await discordServices.removeVoiceChannelsToActivity(activityName, number, category);
 
                     // report success of channel deletions
-                    message.reply('Workshop session named: ' + activityName + ' now has ' + final + ' voice channels.');
+                    discordServices.replyAndDelete(message,'Workshop session named: ' + activityName + ' now has ' + final + ' voice channels.');
                 } else {
                     // if the category does not excist
-                    message.reply('The workshop named: ' + activityName +', does not excist! Did not remove voice channels.');
+                    discordServices.replyAndDelete(message,'The workshop named: ' + activityName +', does not excist! Did not remove voice channels.');
                 }
             } else {
                 discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');

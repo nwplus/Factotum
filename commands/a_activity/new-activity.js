@@ -68,7 +68,7 @@ module.exports = class NewActivity extends Command {
                 firebaseActivity.create(activityName);
 
                 // report success of activity creation
-                message.reply('Activity session named: ' + activityName + ' created succesfully. Any other commands will require this name as paramter.');
+                discordServices.replyAndDelete(message,'Activity session named: ' + activityName + ' created succesfully. Any other commands will require this name as paramter.');
 
                 // send message to console with emoji commands
                 // message embed

@@ -56,14 +56,14 @@ module.exports = class ActivityCallback extends Command {
                         
 
                         // report success of activty shuffling
-                        message.reply('Activity named: ' + activityName + ' members have been called back!');
+                        discordServices.replyAndDelete(message,'Activity named: ' + activityName + ' members have been called back!');
                     } else {
                         // report failure due to no private channels
-                        message.reply('Activity named: ' + activityName + ' members were not called back because there are no private channels!');
+                        discordServices.replyAndDelete(message,'Activity named: ' + activityName + ' members were not called back because there are no private channels!');
                     }
                 } else {
                     // report failure due to no activity
-                    message.reply('Activity named: ' + activityName + ' does not exist. No action taken.');
+                    discordServices.replyAndDelete(message,'Activity named: ' + activityName + ' does not exist. No action taken.');
                 }
                 
             } else {

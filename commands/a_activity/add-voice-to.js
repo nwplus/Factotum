@@ -43,10 +43,10 @@ module.exports = class CreatePrivatesFor extends Command {
                     var final = await discordServices.addVoiceChannelsToActivity(activityName, number, category, message.guild.channels);
 
                     // report success of workshop creation
-                    message.reply('Workshop session named: ' + activityName + ' now has ' + final + ' voice channels.');
+                    discordServices.replyAndDelete(message,'Workshop session named: ' + activityName + ' now has ' + final + ' voice channels.');
                 } else {
                     // if the category does not excist
-                    message.reply('The workshop named: ' + activityName +', does not excist! Did not create voice channels.');
+                    discordServices.replyAndDelete(message,'The workshop named: ' + activityName +', does not excist! Did not create voice channels.');
                 }
             } else {
                 discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
