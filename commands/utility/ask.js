@@ -77,14 +77,19 @@ module.exports = class AskQuestion extends Command {
                         // only user who emojied this message will be able to add a rely to it
                         const responseFilter = m => m.author.id === user.id;
 
-                        curChannel.awaitMessages(responseFilter, {max: 1, time: 10000, errors: ['time']}).then( (msgs) => {
+                        curChannel.awaitMessages(responseFilter, {max: 1, time: 10000, errors: ['time']}).then( async (msgs) => {
                             var response = msgs.first();
 
                             // if cancel then do nothing
                             if (response.content.toLowerCase() != 'cancel') {
-                                // add a field to the message embed with the response
-                                msg.edit(msg.embeds[0].addField(user.username + ' Responded:', response.content));
-
+                                // if user has a mentor role, they get a spcial title
+                                if ((await discordServices.checkForRole(response.member, discordServices.mentorRole))) {
+                                    msg.edit(msg.embeds[0].addField('🤓 ' + user.username + ' Responded:', response.content));
+                                } else {
+                                    // add a field to the message embed with the response
+                                    msg.edit(msg.embeds[0].addField(user.username + ' Responded:', response.content));
+                                }
+                                // thanks user for their response
                                 curChannel.send('<@' + user.id + '> Thank you for your response!').then(msg => msg.delete({timeout: 2000}));
                             }
 
