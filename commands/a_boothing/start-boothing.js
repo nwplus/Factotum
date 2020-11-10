@@ -58,6 +58,7 @@ module.exports = class StartBoothing extends Command {
                 const getNextCollector = sponsorMsg.createReactionCollector(getNextFilter);
 
                 getNextCollector.on('collect', async (reaction, user) => {
+                    // remove the reaction
                     reaction.users.remove(user.id);
 
                     // grab the sponsors voice channel
@@ -102,7 +103,7 @@ module.exports = class StartBoothing extends Command {
                             }
 
                             // if no one was added skip this team and let the sponsor know!
-                            if (isAdded.length === false) {
+                            if (isAdded === false) {
                                 sponsorChannel.send('<@' + user.id + '> The team is not available right now! They have been skiped, please try again.').then(msg => msg.delete({timeout: 5000}));
                             } else {
                                 sponsorChannel.send('<@' + user.id + '> The group has been added! Happy talking!!!').then(msg => msg.delete({timeout: 5000}));
