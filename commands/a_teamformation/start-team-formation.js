@@ -60,12 +60,14 @@ module.exports = class StartTeamFormation extends Command {
                     if (isTeam) {
                         dmMessage.setTitle('Team Formation - Team Format');
                         dmMessage.setDescription('We are very exited for you to find your perfect team members! Please copy and paste the following format in your next message. ' +
-                        'Try to respond to all the sections! Once you are ready to submit, please react to this message with 🇩 and then send me your information!');
+                        'Try to respond to all the sections! Once you are ready to submit, please react to this message with 🇩 and then send me your information!\n' + 
+                        'Once you find a hacker, please come back and click the ⛔ emoji.');
                         dmMessage.addField('Format:', 'This \n is a \n format!');
                     } else {
                         dmMessage.setTitle('Team Formation - Hacker Format');
                         dmMessage.setDescription('We are very exited for you to find your perfect team! Please copy and paste the following format in your next message. ' +
-                        'Try to respond to all the sections! Once you are ready to submit, please react to this message with 🇩 and then send me your information!');
+                        'Try to respond to all the sections! Once you are ready to submit, please react to this message with 🇩 and then send me your information!\n' + 
+                        'Once you find a team, please come back and click the ⛔ emoji.');
                         dmMessage.addField('Format:', 'This \n is a \n format!');
                     }
 
@@ -127,13 +129,15 @@ module.exports = class StartTeamFormation extends Command {
 
                             removeCollector.on('collect', async (reac, user) => {
                                 // remove message sent to channel
-                                sentdiscordServices.deleteMessage(message);
+                                discordServices.deleteMessage(sentMessage);
 
                                 // confirm deletion
                                 user.send('This is great! You are now ready to hack! Have fun with your new team! Your message has been deleted.').then(msg => msg.delete({timeout: 5000}));
                                 
                                 // remove this message
                                 dmMsg.delete();
+
+
                             });
 
                             // confirm the post has been received

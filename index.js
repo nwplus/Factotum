@@ -52,6 +52,10 @@ bot.registry
 bot.once('ready', () => {
     console.log(`Logged in as ${bot.user.tag}!`);
     bot.user.setActivity('Ready to hack!');
+    discordServices.embedColor = '#FDAB9F';
+
+    // check roles
+    // bot.guilds.
 });
 
 
