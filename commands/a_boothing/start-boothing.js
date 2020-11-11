@@ -26,6 +26,7 @@ module.exports = class StartBoothing extends Command {
             // only memebers with the Attendee tag can run this command!
             if ((await discordServices.checkForRole(message.member, discordServices.staffRole))) {
                 
+                ////// hacker side message
                 // message to send describing the different emojis
                 const textEmbed = new Discord.MessageEmbed()
                     .setColor(discordServices.embedColor)
@@ -40,6 +41,7 @@ module.exports = class StartBoothing extends Command {
                 await msg.react('😎');
                 await msg.react('👨‍👩‍👦‍👦');
 
+                ////// sponsor side message
                 // send wait list message to sponsors
                 var sponsorChannel = await message.guild.channels.resolve(discordServices.sponsorConsoleChannel);
 

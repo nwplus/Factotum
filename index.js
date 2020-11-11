@@ -42,6 +42,7 @@ bot.registry
     .registerGroup('h_workshop', 'workshop group for hackers')
     .registerGroup('m_workshop', 'workshop group for mentors and tas')
     .registerGroup('a_teamformation', 'team formation group for admins')
+    .registerGroup('a_mentors', 'mentor group for admins')
     .registerDefaultGroups()
     .registerDefaultCommands({
         unknownCommand: false,
