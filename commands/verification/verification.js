@@ -42,6 +42,7 @@ module.exports = class Verificaiton extends Command {
                         ' most of the server. Remember you need to !attend <your email> in the attend channel that will' +
                         ' open a few hours before the hackathon beggins.');
                         discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.hackerRole);
+                        discordServices.addRoleToMember(message.member,discordServices.rookie0Role);
                         discordServices.discordLog(message.guild, "Verified email " + email +
                             " successfully and he is now a hacker!");
                         break;
