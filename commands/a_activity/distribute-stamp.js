@@ -30,7 +30,6 @@ module.exports = class DistributeStamp extends Command {
     }
 
     async run(message, {activityName,timeLimit}) {
-        message.delete();
     //doesn't run if it is called by someone who is not staff nor admin or if it is not called in admin console
         if (!await(discordServices.checkForRole(message.member,discordServices.adminRole))) {
             discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
@@ -47,6 +46,8 @@ module.exports = class DistributeStamp extends Command {
             .setTitle('React within the next ' + timeLimit + ' seconds to get a stamp for ' + activityName + '!');
         targetChannel.send(qEmbed).then((msg) => {
             const emojiFilter = (reaction,user) => user.id != msg.author.id;
+            let emoji = '👍';
+            msg.react(emoji);
             const collector = msg.createReactionCollector(emojiFilter, {time: (1000 * timeLimit)});
             //seenUsers keeps track of which users have already reacted to the message
             var seenUsers = [];
@@ -84,7 +85,7 @@ module.exports = class DistributeStamp extends Command {
         } else if (!isNaN(curRole.name.substring(curRole.name.length - 1))) {
             //case for if curRole ends in 1 digit
             stampNumber = parseInt(curRole.name.substring(curRole.name.length - 1)); 
-            if (stampNumber === 6) {
+            if (stampNumber === 5) {
                 //manually set newRole to Life - 6 if stampNumber = 6 because otherwise it will end up being MEE6
                 newRole = message.guild.roles.cache.find(role => role.id === discordServices.life6Role);
             } else if (stampNumber === 9) {
