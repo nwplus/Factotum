@@ -61,8 +61,10 @@ module.exports = class DistributeStamp extends Command {
             });
             //edits the embedded message to notify people when it stops collecting reacts
             collector.on('end', collected => {
-                msg.edit(qEmbed.addField('Time\'s up! No more responses are being collected.',
-                'Thanks for participating in ' + activityName + '!'));
+                if (msg.guild.channels.cache.find(channel => channel.name === targetChannel.name)) {
+                    msg.edit(qEmbed.addField('Time\'s up! No more responses are being collected.',
+                    'Thanks for participating in ' + activityName + '!'));
+                }
             })
         })
     }
