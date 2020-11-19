@@ -51,10 +51,6 @@ module.exports = class ClearChat extends Command {
                 else if (message.channel.name.includes('-ta-console')) {
                     commands = this.client.registry.findGroups('m_workshop')[0].commands.array();
                 }
-                // workshop text
-                else if (message.channel.name.includes('-text')) {
-                    commands = this.client.registry.findGroups('h_workshop')[0].commands.array();
-                }
                 // admin console
                 else if (discordServices.isAdminConsole(message.channel) === true) {
                     // grab all the admin command groups
