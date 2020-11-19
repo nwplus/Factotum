@@ -49,9 +49,54 @@ bot.registry
     })
     .registerCommandsIn(__dirname + '/commands');
 
-bot.once('ready', () => {
+bot.once('ready', async () => {
     console.log(`Logged in as ${bot.user.tag}!`);
     bot.user.setActivity('Ready to hack!');
+    discordServices.embedColor = '#FDAB9F';
+
+    // check roles
+    // we asume the bot is only in one guild!
+    var roleManager = await bot.guilds.cache.first().roles.fetch();
+
+    // roles we are looking for
+    // dict key: role name, value: list of color and then id (snowflake)
+    var initialRoles = new Map([
+        ['Guest', ['#969C9F']], ['Hacker', ['#006798']], ['Attendee', ['#0099E1']],
+        ['Mentor', ['#CC7900']], ['Sponsor', ['#F8C300']], ['Staff', ['#00D166']]
+    ]);
+
+    // found roles, dict same as above
+    var foundRoles = new Map();
+
+    // loop over every role to search for roles we need
+    roleManager.cache.each((role) => {
+        // remove from roles list if name matches and add it to found roles
+        if (initialRoles.has(role.name)) {
+            foundRoles.set(role.name, [role.color, role.id]);
+            initialRoles.delete(role.name);
+        }
+    });
+
+    // loop over remaining roles to create them
+    for (let [key, value] of initialRoles) {
+        var roleObject = await roleManager.create({
+            data: {
+                name: key,
+                color: value[0],
+            }
+        });
+        // add role to found roles because it has been created
+        foundRoles.set(key, [value[0], roleObject.id]);
+    }
+
+    // update values for discord services role snowflake
+    discordServices.everyoneRole = roleManager.everyone.id;
+    discordServices.hackerRole = foundRoles.get('Hacker')[1];
+    discordServices.guestRole = foundRoles.get('Guest')[1];
+    discordServices.attendeeRole = foundRoles.get('Attendee')[1];
+    discordServices.mentorRole = foundRoles.get('Mentor')[1];
+    discordServices.sponsorRole = foundRoles.get('Sponsor')[1];
+    discordServices.staffRole = foundRoles.get('Staff')[1];
 });
 
 

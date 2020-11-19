@@ -17,13 +17,6 @@ const groups = {
 }
 module.exports.groups = groups;
 
-const hackerGroup = 'hackers';
-const sponsorGroup = 'sponsors';
-const mentorGroup = 'mentors';
-const staffGroup = 'staff';
-const activityGroup = 'activities';
-const boothGroup = 'booths';
-
 // Enum used internaly for firebase functions returns
 const internalStatus = {
     // Everything worked well
@@ -36,15 +29,15 @@ const internalStatus = {
 
 // Enum used publicly for firebase function returns
 const status = {
-    HACKER_SUCCESS: 1,
-    HACKER_IN_USE: 2,
-    SPONSOR_SUCCESS: 3,
-    SPONSOR_IN_USE: 4,
-    MENTOR_SUCCESS: 5,
-    MENTOR_IN_USE: 6,
-    STAFF_SUCCESS: 7,
-    STAFF_IN_USE: 8,
-    FAILURE: 0,
+    HACKER_SUCCESS: "C1",
+    HACKER_IN_USE: "C2",
+    SPONSOR_SUCCESS: "C3",
+    SPONSOR_IN_USE: "C4",
+    MENTOR_SUCCESS: "C5",
+    MENTOR_IN_USE: "C6",
+    STAFF_SUCCESS: "C7",
+    STAFF_IN_USE: "C8",
+    FAILURE: "C0",
 }
 module.exports.status = status;
 
@@ -74,28 +67,28 @@ async function verifyUser(email, group) {
 // be the very end case.
 async function verify(email) {
     // Check if hacker
-    var sts = await verifyUser(email, hackerGroup);
+    var sts = await verifyUser(email, groups.hackerGroup);
     if(sts == internalStatus.SUCCESS) {
         return status.HACKER_SUCCESS;
     } else if(sts == internalStatus.FAILTURE_IN_USE) {
         return status.HACKER_IN_USE;
     } else {
         // Check if sponsor
-        sts = await verifyUser(email, sponsorGroup);
+        sts = await verifyUser(email, groups.sponsorGroup);
         if(sts == internalStatus.SUCCESS) {
             return status.SPONSOR_SUCCESS;
         } else if(sts == internalStatus.FAILTURE_IN_USE) {
             return status.SPONSOR_IN_USE;
         } else {
             // Check if mentor
-            sts = await verifyUser(email, mentorGroup);
+            sts = await verifyUser(email, groups.mentorGroup);
             if(sts == internalStatus.SUCCESS) {
                 return status.MENTOR_SUCCESS;
             } else if(sts == internalStatus.FAILTURE_IN_USE) {
                 return status.MENTOR_IN_USE;
             } else {
                 // Check if staff
-                sts = await verifyUser(email, staffGroup);
+                sts = await verifyUser(email, groups.staffGroup);
                 if(sts == internalStatus.SUCCESS) {
                     return status.STAFF_SUCCESS;
                 } else if(sts == internalStatus.FAILTURE_IN_USE) {
@@ -112,7 +105,7 @@ module.exports.verify = verify;
 
 // sets the attendance to true for this email, this only works with hackers!
 async function attendHacker(email) {
-    var userRef = db.collection(hackerGroup).doc(email);
+    var userRef = db.collection(groups.hackerGroup).doc(email);
     var user = await userRef.get();
     if (user.exists) {
         data = user.data();

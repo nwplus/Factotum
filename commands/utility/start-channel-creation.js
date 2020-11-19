@@ -17,114 +17,110 @@ module.exports = class StartChannelCreation extends Command {
 
     async run (message) {
         discordServices.deleteMessage(message);
-        // can only be called my staff
+
+        // can only be called by staff
         if ((await discordServices.checkForRole(message.member, discordServices.staffRole))) {
-            // can only be called in the channel-creation channel
-            if (message.channel.id === discordServices.channelcreationChannel) {
-                // grab current channel
-                var channel = message.channel;
+            discordServices.replyAndDelete(message, 'Hey there, the !startcc command is only for staff!');
+            return;
+        }
+        // can only be called in the channel-creation channel
+        if (message.channel.id === discordServices.channelcreationChannel) {
+            discordServices.replyAndDelete(message, 'Hey there, the !startcc command is only available in the create-channel channel.');
+            return;
+        }
 
-                // grab channel creation category
-                var category = await message.channel.parent
-                
-                // create and send embed message to channel with emoji collector
-                const msgEmbed = new Discord.MessageEmbed()
-                    .setColor(discordServices.embedColor)
-                    .setTitle('Private Channel Creation')
-                    .setDescription('Do you need a private channel to work with your friends? Or a voice channel to get to know a mentor, here you can create privte text or voice channels.' +
-                        ' However do know that server admins will have access to these channels, and the bot will continue to monitor for bad language, so please follow the rules!')
-                    .addField('Ready for a channel of your own?', 'Just react this message with any emoji and the bot will ask you a few simple questions.');
-                
-                var cardMessage = await channel.send(msgEmbed);
+        // grab current channel
+        var channel = message.channel;
 
-                // filter for emoji collector, all emojis should work!
-                const emojiFilter = m => true;
+        // grab channel creation category
+        var category = await message.channel.parent;
+        
+        // create and send embed message to channel with emoji collector
+        const msgEmbed = new Discord.MessageEmbed()
+            .setColor(discordServices.embedColor)
+            .setTitle('Private Channel Creation')
+            .setDescription('Do you need a private channel to work with your friends? Or a voice channel to get to know a mentor, here you can create privte text or voice channels.' +
+                ' However do know that server admins will have access to these channels, and the bot will continue to monitor for bad language, so please follow the rules!')
+            .addField('Ready for a channel of your own?', 'Just react this message with any emoji and the bot will ask you a few simple questions.');
+        
+        var cardMessage = await channel.send(msgEmbed);
 
-                // set collector
-                var mainCollector = await cardMessage.createReactionCollector(emojiFilter);
+        // main collector works with any emoji
+        var mainCollector = await cardMessage.createReactionCollector(m => true);
 
-                mainCollector.on('collect', (reaction, user) => {
-                    
-                    // general filter for user input only
-                    const filter = m => m.author.id === user.id;
+        mainCollector.on('collect', (reaction, user) => {
+            
+            // general filter that only works with user who reacted
+            const filter = m => m.author.id === user.id;
 
-                    // ask user for type of channel
-                    channel.send('<@'+ user.id + '> Do you want a voice or text channel? Please respond within 10 seconds.').then(async msg => {
-                        // await type of channel
-                        channel.awaitMessages(filter, {max: 1, timout: 10000}).then(msgstypes => {
-                            // given list
-                            var msgtype = msgstypes.first();
+            // ask user for type of channel
+            channel.send('<@'+ user.id + '> Do you want a "voice" or "text" channel? Please respond within 10 seconds.').then(async msg => {
+                channel.awaitMessages(filter, {max: 1, timout: 10000}).then(msgsChannelTypes => {
 
-                            var channelType = msgtype.content;
+                    var msgChannelType = msgsChannelTypes.first();
+                    var channelType = msgtype.content;
 
-                            // remove two messages
+                    // remove promt and user message
+                    msg.delete();
+                    msgChannelType.delete();
+
+                    // make sure input is valid
+                    if (channelType != 'voice' || channelType != 'text') {
+                        // report the error and ask to try again
+                        discordServices.replyAndDelete(message, 'Wrong input, please respond with "voice" or "text" only. Try again.');
+                        return;
+                    }
+
+                    // promt for other users that are invited to this channel, the guests
+                    channel.send('<@' + user.id + '> Please tag all the invited users to this private ' + channelType + ' channel. Type "none" if no guests are welcomed. You have 15 seconds.').then(async msg => {
+                        channel.awaitMessages(filter, {max: 1, time: 15000}).then(async msgsWithGuests => {
+                            var msgWithGuests = msgsWithGuests.first();
+
+                            // get the mentions from the message
+                            var guests = msgWithGuests.mentions.members;
+
+                            // remove promt and user message
                             msg.delete();
-                            msgtype.delete();
+                            msgWithGuests.delete();
 
-                            // make sure input is valid
-                            if (channelType === 'voice' || channelType === 'text') {
+                            // ask for channel name
+                            channel.send('<@' + user.id + '> What do you want to name the channel? If you don\'t care then send "default"!').then(async msg => {
+                                channel.awaitMessages(filter, {max: 1, time: 10000}).then(async msgsName => {
+                                    var channelNameMSG = msgsName.first();
+                                    var channelName = channelNameMSG.content;
 
-                                channel.send('<@' + user.id + '> Please tag all the invited users to this private ' + channelType + ' channel. Type none if no guests are welcomed.').then(async msg => {
-                                    // await guests
-                                    channel.awaitMessages(filter, {max: 1, time: 10000}).then(async msgsWithGuests => {
-                                        var msgWithGuests = msgsWithGuests.first();
+                                    // if channelName is default then use default
+                                    if (channelName === 'default') {
+                                        channelName = user.username + '-private-channel';
+                                    }
 
-                                        // get the mentions from the message
-                                        var guests = msgWithGuests.mentions.members;
+                                    // create channel
+                                    var newChannel = await message.guild.channels.create(channelName, {type: channelType, parent: category});
 
-                                        // ask for channel name
-                                        channel.send('<@' + user.id + '> What do you want to name the channel? If you don\'t care then send \'default\'!').then(async msg => {
-                                            channel.awaitMessages(filter, {max: 1, time: 10000}).then(async msgsName => {
-                                                var channelNameMSG = msgsName.first();
-
-                                                var channelName = channelNameMSG.content;
-
-                                                // if channelName is default then use default
-                                                if (channelName === 'default') {
-                                                    channelName = user.username + '-private-channel';
-                                                }
-
-                                                // create channel
-                                                var newChannel = await message.guild.channels.create(channelName, {type: channelType, parent: category});
-
-                                                // update permission for users to be able to view
-                                                newChannel.updateOverwrite(discordServices.everyoneRole, {
-                                                    VIEW_CHANNEL : false,
-                                                })
-                                                newChannel.updateOverwrite(user, {
-                                                    VIEW_CHANNEL : true,
-                                                });
-
-                                                // add guests
-                                                guests.each(mem => newChannel.updateOverwrite(mem.user, {
-                                                    VIEW_CHANNEL : true,
-                                                }));
-                                                
-                                                // remove messeges
-                                                msg.delete();
-                                                channelNameMSG.delete();
-
-                                            }).catch((errors) => console.log(errors));
-                                        });
-
-                                        // delete message
-                                        msgWithGuests.delete();
-                                        msg.delete();
+                                    // update permission for users to be able to view
+                                    newChannel.updateOverwrite(discordServices.everyoneRole, {
+                                        VIEW_CHANNEL : false,
+                                    })
+                                    newChannel.updateOverwrite(user, {
+                                        VIEW_CHANNEL : true,
                                     });
-                                });
-                            } else {
-                                // report the error and ask to try again
-                                discordServices.replyAndDelete(message, 'Wrong input, please respond with voice or text only. Try again.');
-                            }
+
+                                    // add guests
+                                    guests.each(mem => newChannel.updateOverwrite(mem.user, {
+                                        VIEW_CHANNEL : true,
+                                    }));
+                                    
+                                    // remove promt and user message with channel name
+                                    msg.delete();
+                                    channelNameMSG.delete();
+
+                                }).catch((errors) => console.log(errors));
+                            });
                         });
                     });
-                })
-            } else {
-                discordServices.replyAndDelete(message, 'Hey there, the !startcc command is only available in the create-channel channel.');
-            }
-        } else {
-            discordServices.replyAndDelete(message, 'Hey there, the !startcc command is only for staff!')
-        }
+                });
+            });
+        });
         
     }
 

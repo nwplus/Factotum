@@ -29,31 +29,32 @@ module.exports = class CreatePrivatesFor extends Command {
     // Run function -> command body
     async run(message, {activityName, number}) {
         discordServices.deleteMessage(message);
+
         // make sure command is only used in the admin console
-        if (discordServices.isAdminConsole(message.channel) === true) {
-            // only memebers with the Hacker tag can run this command!
-            if ((await discordServices.checkForRole(message.member, discordServices.staffRole))) {
-                
-                // get category
-                var category = await message.guild.channels.cache.find(channel => channel.name === activityName);
-
-                // make sure the workshop excists
-                if (category != undefined) {
-
-                    var final = await discordServices.addVoiceChannelsToActivity(activityName, number, category, message.guild.channels);
-
-                    // report success of workshop creation
-                    discordServices.replyAndDelete(message,'Workshop session named: ' + activityName + ' now has ' + final + ' voice channels.');
-                } else {
-                    // if the category does not excist
-                    discordServices.replyAndDelete(message,'The workshop named: ' + activityName +', does not excist! Did not create voice channels.');
-                }
-            } else {
-                discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
-            }
-        } else {
+        if (! discordServices.isAdminConsole(message.channel)) {
             discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
+            return;   
         }
+        // only memebers with the staff tag can run this command!
+        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+            discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
+            return;             
+        }
+
+        // get category
+        var category = await message.guild.channels.cache.find(channel => channel.name === activityName);
+
+        // if no category then report failure and return
+        if (category === undefined) {
+            // if the category does not excist
+            discordServices.replyAndDelete(message,'The workshop named: ' + activityName +', does not excist! Did not create voice channels.');
+            return;
+        }
+        
+        var final = await discordServices.addVoiceChannelsToActivity(activityName, number, category, message.guild.channels);
+
+        // report success of workshop creation
+        discordServices.replyAndDelete(message,'Workshop session named: ' + activityName + ' now has ' + final + ' voice channels.');
     }
 
 };

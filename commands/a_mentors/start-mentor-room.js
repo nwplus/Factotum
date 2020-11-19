@@ -67,7 +67,7 @@ module.exports = class StartMentors extends Command {
                     }
 
                     // create mentor help public channels category
-                    var publicHelpCategory = message.guild.channels.create('Mentor Help', {type: 'category', permissionOverwrites: [
+                    var publicHelpCategory = await message.guild.channels.create('Mentor Help', {type: 'category', permissionOverwrites: [
                         {
                             id: discordServices.hackerRole,
                             deny: ['VIEW_CHANNEL'],
@@ -96,6 +96,9 @@ module.exports = class StartMentors extends Command {
                     discordServices.replyAndDelete(message, 'A mentor cave has been found, nothing created!');
                     var mentorCaveCategory = possibleMentorCaveCategorys.first();
                     var mentorConsole = mentorCaveCategory.children.find(channel => channel.name === 'mentor-console');
+                    // remove messages in mentor console
+                    mentorConsole.bulkDelete(100, true);
+                    var publicHelpCategory = await message.guild.channels.cache.find((channel => channel.type === 'category' && channel.name === 'Mentor Help'));
                 }
 
                 // if we couldnt find the mentor console channel ask for the name of the channel!   
@@ -133,7 +136,9 @@ module.exports = class StartMentors extends Command {
                     .setDescription('Hi mentor! Thank you for being here, please read over all the available roles. And choose those you would feel ' + 
                     'confortable answering questions for. When someone sends in a help ticket, and has specificed one of your roles, you will get pinged!');
 
-                // mentor emojis with title, we will use a map, keys are emojis, values are list of role name without M- and role snowflake
+                // mentor emojis with title, we will use a map, 
+                // key :  emoji name, 
+                // value : [role name, role snowflake, role wait list message id]
                 var mentorEmojis = new Map();
                 
                 // loop over all the mentor emojis and add a field explaining each
@@ -159,23 +164,24 @@ module.exports = class StartMentors extends Command {
                     // let user know we found roles
                     message.channel.send('<@' + message.author.id + '> I have found Mentor roles already clreated, please react to each role with the corresponding emoji!').then(msg => msg.delete({timeout: 8000}));
                 }
-                
+
+                // for each found role, ask what emoji they want to use for it!
                 await initialMentorRoles.each(async role => {
                     var getInitialEmojiMsg = await message.channel.send('<@' + message.author.id + '> React with emoji for role named: ' + role.name);
                 
-                    const reactionFilter = (reaction, user) => user.id === message.author.id;
+                    const reactionFilter = (reaction, user) => user.id === message.author.id && !mentorEmojis.has(reaction.emoji.name);
 
                     getInitialEmojiMsg.awaitReactions(reactionFilter, {max: 1}).then(reactions => {
                         var reaction = reactions.first();
 
-                        // add emoji and role to list
-                        mentorEmojis.set(reaction.emoji.name, [role.name.substring(2), role.id]);
-
                         // update mentor message
-                        mentorConsoleMsg.edit(mentorConsoleMsg.embeds[0].addField(role.name.substring(2), 'Click the ' + reaction.emoji.name + 'emoji!'));
+                        mentorConsoleMsg.edit(mentorConsoleMsg.embeds[0].addField(role.name.substring(2), 'Click the ' + reaction.emoji.name + ' emoji!'));
 
                         // react to message
                         mentorConsoleMsg.react(reaction.emoji.name);
+
+                        // add emoji to list with role name, role id and waitlist message id
+                        mentorEmojis.set(reaction.emoji.name, [role.name.substring(2), role.id, waitlist.id]);
 
                         // remove msgs
                         getInitialEmojiMsg.delete();
@@ -230,7 +236,7 @@ module.exports = class StartMentors extends Command {
                                     mentorEmojis.set(reaction.emoji.name, [nameMsg.content, newRole.id]);
 
                                     // add public text channel
-                                    message.guid.channels.create(nameMsg.content + '-help', {type: 'text', parent: publicHelpCategory});
+                                    message.guild.channels.create(nameMsg.content + '-help', {type: 'text', parent: publicHelpCategory});
 
                                     // let user know the action was succesfull
                                     message.channel.send('<@' + user.id + '> The role has been added!').then(msg => msg.delete({timeout: 5000}));

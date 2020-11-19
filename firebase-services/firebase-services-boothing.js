@@ -35,7 +35,7 @@ async function addGroupToBooth(boothName, captain, group) {
         });
         return (await waitlist.get()).docs.length;
     } else {
-        return services.services.status.HACKER_IN_USE;
+        return services.status.HACKER_IN_USE;
     }
 }
 module.exports.addGroupToBooth = addGroupToBooth;
@@ -85,7 +85,7 @@ module.exports.positionInBooth = positionInBooth;
 
 // remove the group from a booth wait list
 async function removeGroupFromBooth(boothName, captain) {
-    db.collection(services.groups.boothGroup).doc(boothName).collection('waitlist').doc(captain).delete();
+    db.collection(services.groups.boothGroup).doc(boothName).collection('waitlist').doc(captain).delete().catch(err => console.log(err));
 }
 module.exports.removeGroupFromBooth = removeGroupFromBooth;
 
