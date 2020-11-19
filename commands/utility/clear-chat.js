@@ -33,24 +33,14 @@ module.exports = class ClearChat extends Command {
             var commands = [];
             // only proceed if we want the commands
             if (isCommands) {
-                // start if stair to know channel and thus know commands to print
-                // boothing channels
-                if (message.channel.name.startsWith('boothing-sponsor-console')) {
-                    commands = this.client.registry.findGroups('s_boothing')[0].commands.array();
-                }
                 // if in the verify channel <welcome>
-                else if (message.channel.id === discordServices.welcomeChannel) {
+                if (message.channel.id === discordServices.welcomeChannel) {
                     commands = this.client.registry.findCommands('verify');
                 } 
                 // if in the attend channel <attend-channel>
                 else if (message.channel.id === discordServices.attendChannel) {
                     commands = this.client.registry.findCommands('attend');
                 } 
-                // workshop stuff
-                // ta console
-                else if (message.channel.name.includes('-ta-console')) {
-                    commands = this.client.registry.findGroups('m_workshop')[0].commands.array();
-                }
                 // admin console
                 else if (discordServices.isAdminConsole(message.channel) === true) {
                     // grab all the admin command groups
