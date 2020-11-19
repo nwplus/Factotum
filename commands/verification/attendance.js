@@ -26,38 +26,39 @@ module.exports = class Attendace extends Command {
 
     // Run function -> command body
     async run(message, { email }) {
-        // make sure command is only used in the attend-channel channel
-        if (message.channel.name === 'attend-channel') {
-            // only memebers with the Hacker tag can run this command!
-            if ((await discordServices.checkForRole(message.member, discordServices.hackerRole))) {
-
-                // call the firebas services attendhacker function
-                var status = await firebaseServices.attendHacker(email);
-
-                // Check the returned status and act accordingly!
-                switch(status) {
-                    case firebaseServices.status.HACKER_SUCCESS:
-                        discordServices.sendMessageToMember(message.member, 'Thank you for attending nwHacks 2020. Happy hacking!!!');
-                        discordServices.addRoleToMember(message.member, discordServices.attendeeRole);
-                        discordServices.discordLog(message.guild, "Hacker with email " + email +
-                            " is attending nwHacks 2020!");
-                        break;
-                    case firebaseServices.status.HACKER_IN_USE:
-                        discordServices.sendMessageToMember(message.member, 'Hi there, this email is already marked as attending, have a great day!');
-                        break;
-                    case firebaseServices.status.FAILURE:
-                        discordServices.sendMessageToMember(message.member, 'Hi there, the email you tried to attend with is not' +
-                        ' in our system, please make sure your email is well typed. If you think this is an error' +
-                        ' please contact us in the welcome-support channel.');
-                        break;
-                }
-            } else {
-                discordServices.sendMessageToMember(message.member, 'Hi there, it seems you are already marked as attendee, or you do not need to be marked as attendee. Happy hacking!');
-            }
-        } else {
-            discordServices.sendMessageToMember(message.member, 'Hi there, the !attend command is only available in the attend-channel channel.');
-        }
         discordServices.deleteMessage(message);
+
+        // make sure command is only used in the attend-channel channel
+        if (message.channel.name != 'attend-channel') {
+            discordServices.sendMessageToMember(message.member, 'Hi there, the !attend command is only available in the attend-channel channel.', true);
+            return;   
+        }
+        // only memebers with the Hacker tag can run this command!
+        if (!(await discordServices.checkForRole(message.member, discordServices.hackerRole))) {
+            discordServices.sendMessageToMember(message.member, 'Hi there, it seems you are already marked as attendee, or you do not need to be marked as attendee. Happy hacking!', true);
+            return;
+        }
+        
+        // call the firebase services attendhacker function
+        var status = await firebaseServices.attendHacker(email);
+
+        // Check the returned status and act accordingly!
+        switch(status) {
+            case firebaseServices.status.HACKER_SUCCESS:
+                discordServices.sendMessageToMember(message.member, 'Thank you for attending nwHacks 2020. Happy hacking!!!');
+                discordServices.addRoleToMember(message.member, discordServices.attendeeRole);
+                discordServices.discordLog(message.guild, "Hacker with email " + email +
+                    " is attending nwHacks 2020!");
+                break;
+            case firebaseServices.status.HACKER_IN_USE:
+                discordServices.sendMessageToMember(message.member, 'Hi there, this email is already marked as attending, have a great day!');
+                break;
+            case firebaseServices.status.FAILURE:
+                discordServices.sendMessageToMember(message.member, 'Hi there, the email you tried to attend with is not' +
+                ' in our system, please make sure your email is well typed. If you think this is an error' +
+                ' please contact us in the welcome-support channel.');
+                break;
+        }
     }
 
 };
