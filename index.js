@@ -85,12 +85,9 @@ bot.once('ready', async () => {
                 color: value[0],
             }
         });
-        console.log('in foreach adding role to map');
         // add role to found roles because it has been created
         foundRoles.set(key, [value[0], roleObject.id]);
     }
-
-    console.log(foundRoles);
 
     // update values for discord services role snowflake
     discordServices.everyoneRole = roleManager.everyone.id;
