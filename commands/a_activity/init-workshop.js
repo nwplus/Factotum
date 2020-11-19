@@ -129,9 +129,9 @@ module.exports = class InitWorkshop extends Command {
                             // If the user is alredy in the waitlist then tell him that
                             if (status === firebaseServices.status.HACKER_IN_USE) {
                                 discordServices.sendMessageToMember(user, 'Hey there! It seems you are already on the wait list, if you would like to ' +
-                                'know your spot please run the !requestposition command right here!');
+                                'know your spot please run the !requestposition command right here!', true);
                             } else if (status === firebaseServices.status.FAILURE) {
-                                discordServices.sendMessageToMember(user, 'Hey there! This command can not be used because the TA functionality is not in use for this workshop');
+                                discordServices.sendMessageToMember(user, 'Hey there! This command can not be used because the TA functionality is not in use for this workshop', true);
                             } else {
                                 discordServices.sendMessageToMember(user, 'Hey there! We got you singed up to talk to a TA! Sit tight in the voice channel. If you ' +
                                 'are not in the voice channel when its your turn you will be skipped, and we do not want that to happen! You are number: ' + position + ' in the wait list.');
@@ -140,6 +140,10 @@ module.exports = class InitWorkshop extends Command {
                                 var embed = taConsole.embeds[0];
                                 taConsole.edit(embed.addField('#' + embed.fields.length + ' ' + user.username, question));
                             }
+
+                            // delete promt and user msg
+                            qPromt.delete();
+                            msgs.first().delete();
                         });
                     });
 
@@ -153,7 +157,7 @@ module.exports = class InitWorkshop extends Command {
                         reaction.users.remove(user.id);
 
                         // grab the ta and their voice channel
-                        var ta = message.guild.members.fetch(user.id);
+                        var ta = await message.guild.members.fetch(user.id);
                         var taVoice = ta.voice.channel;
 
                         // check that the ta is in a voice channel
