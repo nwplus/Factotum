@@ -37,9 +37,7 @@ module.exports = class ClearChat extends Command {
                 // boothing channels
                 if (message.channel.name.startsWith('boothing-sponsor-console')) {
                     commands = this.client.registry.findGroups('s_boothing')[0].commands.array();
-                } else if (message.channel.name.startsWith('boothing-wait-list')) {
-                    commands = this.client.registry.findGroups('h_boothing')[0].commands.array();
-                } 
+                }
                 // if in the verify channel <welcome>
                 else if (message.channel.id === discordServices.welcomeChannel) {
                     commands = this.client.registry.findCommands('verify');
