@@ -19,12 +19,12 @@ module.exports = class StartChannelCreation extends Command {
         discordServices.deleteMessage(message);
 
         // can only be called by staff
-        if ((await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'Hey there, the !startcc command is only for staff!');
             return;
         }
         // can only be called in the channel-creation channel
-        if (message.channel.id === discordServices.channelcreationChannel) {
+        if (message.channel.id != discordServices.channelcreationChannel) {
             discordServices.replyAndDelete(message, 'Hey there, the !startcc command is only available in the create-channel channel.');
             return;
         }
@@ -55,17 +55,17 @@ module.exports = class StartChannelCreation extends Command {
 
             // ask user for type of channel
             channel.send('<@'+ user.id + '> Do you want a "voice" or "text" channel? Please respond within 10 seconds.').then(async msg => {
-                channel.awaitMessages(filter, {max: 1, timout: 10000}).then(msgsChannelTypes => {
+                channel.awaitMessages(filter, {max: 1, timout: 10000}).then(async msgsChannelTypes => {
 
-                    var msgChannelType = msgsChannelTypes.first();
-                    var channelType = msgtype.content;
+                    var msgChannelType = await msgsChannelTypes.first();
+                    var channelType = msgChannelType.content;
 
                     // remove promt and user message
                     msg.delete();
                     msgChannelType.delete();
 
                     // make sure input is valid
-                    if (channelType != 'voice' || channelType != 'text') {
+                    if (channelType != 'voice' && channelType != 'text') {
                         // report the error and ask to try again
                         discordServices.replyAndDelete(message, 'Wrong input, please respond with "voice" or "text" only. Try again.');
                         return;
@@ -113,6 +113,18 @@ module.exports = class StartChannelCreation extends Command {
                                     // remove promt and user message with channel name
                                     msg.delete();
                                     channelNameMSG.delete();
+
+                                    // DM to creator with emoji collector
+                                    var dmMsg = await user.send('Your private channel' + channelName +' has been created, when you are done with it, please react to this meesage with 🚫 to delete the channel.')
+
+                                    dmMsg.react('🚫');
+
+                                    const deleteFilter = (react, user) => !user.bot && react.emoji.name === '🚫';
+                                    dmMsg.awaitReactions(deleteFilter, {max: 1}).then(reacts => {
+                                        newChannel.delete();
+                                        dmMsg.delete();
+                                        user.send('Private channel has been delete succesfully').then(msg => msg.delete({timeout: 5000}));
+                                    });
 
                                 }).catch((errors) => console.log(errors));
                             });
