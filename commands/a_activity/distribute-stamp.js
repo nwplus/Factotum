@@ -43,7 +43,7 @@ module.exports = class DistributeStamp extends Command {
         var targetChannel = message.guild.channels.cache.find(channel => channel.name === (activityName + "-text"));
         const qEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
-            .setTitle('React within the next ' + timeLimit + ' seconds to get a stamp for ' + activityName + '!');
+            .setTitle('React within ' + timeLimit + ' seconds of the posting of this message to get a stamp for ' + activityName + '!');
         targetChannel.send(qEmbed).then((msg) => {
             const emojiFilter = (reaction,user) => user.id != msg.author.id;
             let emoji = '👍';
@@ -62,8 +62,7 @@ module.exports = class DistributeStamp extends Command {
             //edits the embedded message to notify people when it stops collecting reacts
             collector.on('end', collected => {
                 if (msg.guild.channels.cache.find(channel => channel.name === targetChannel.name)) {
-                    msg.edit(qEmbed.addField('Time\'s up! No more responses are being collected.',
-                    'Thanks for participating in ' + activityName + '!'));
+                    msg.edit(qEmbed.setTitle('Time\'s up! No more responses are being collected. Thanks for participating in ' + activityName + '!'));
                 }
             })
         })
