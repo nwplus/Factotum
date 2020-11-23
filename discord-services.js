@@ -98,6 +98,11 @@ module.exports.lookingforteamChannel = lookingforteamChannel;
 var channelcreationChannel = '754396445494214789';
 module.exports.channelcreationChannel = channelcreationChannel;
 
+// where the bot will send reports to
+// should be a admin or mod only channel
+var incomingReportChannel = '780305617267982366';
+module.exports.incomingReportChannel = incomingReportChannel;
+
 
 // Checks if the memeber has a role, returns true if it does
 async function checkForRole(member, role) {
