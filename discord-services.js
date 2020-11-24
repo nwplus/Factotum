@@ -11,19 +11,19 @@ var sponsorRole = '738519983981723748';
 var staffRole = '738519363904077916';
 var adminRole = '738491577596641311';
 var everyoneRole = '738475671977722058';
-var rookie0Role = '776690929557831680';
-var rookie1Role = '776694051482107944';
-var star2Role = '777163284679229461';
-var star3Role = '777163346456870913';
-var star4Role = '777163367814922250';
-var life5Role = '777163388631253002';
-var life6Role = '777163410269011990';
-var life7Role = '777163427328163850';
-var life8Role = '777163452560048168';
-var life9Role = '777163468053938186';
-var eagle10Role = '777163488019480586';
-var eagle11Role = '777163506902237196';
-var eagle12Role = '777163524568776704';
+var stamp0Role = '776690929557831680';
+var stamp1Role = '776694051482107944';
+var stamp2Role = '777163284679229461';
+var stamp3Role = '777163346456870913';
+var stamp4Role = '777163367814922250';
+var stamp5Role = '777163388631253002';
+var stamp6Role = '777163410269011990';
+var stamp7Role = '777163427328163850';
+var stamp8Role = '777163452560048168';
+var stamp9Role = '777163468053938186';
+var stamp10Role = '777163488019480586';
+var stamp11Role = '777163506902237196';
+var stamp12Role = '777163524568776704';
 module.exports.everyoneRole = everyoneRole;
 module.exports.hackerRole = hackerRole;
 module.exports.guestRole = guestRole;
@@ -32,19 +32,19 @@ module.exports.attendeeRole = attendeeRole;
 module.exports.mentorRole = mentorRole;
 module.exports.sponsorRole = sponsorRole;
 module.exports.staffRole = staffRole;
-module.exports.rookie0Role = rookie0Role;
-module.exports.rookie1Role = rookie1Role;
-module.exports.star2Role = star2Role;
-module.exports.star3Role = star3Role;
-module.exports.star4Role = star4Role;
-module.exports.life5Role = life5Role;
-module.exports.life6Role = life6Role;
-module.exports.life7Role = life7Role;
-module.exports.life8Role = life8Role;
-module.exports.life9Role = life9Role;
-module.exports.eagle10Role = eagle10Role;
-module.exports.eagle11Role = eagle11Role;
-module.exports.eagle12Role = eagle12Role;
+module.exports.stamp0Role = stamp0Role;
+module.exports.stamp1Role = stamp1Role;
+module.exports.stamp2Role = stamp2Role;
+module.exports.stamp3Role = stamp3Role;
+module.exports.stamp4Role = stamp4Role;
+module.exports.stamp5Role = stamp5Role;
+module.exports.stamp6Role = stamp6Role;
+module.exports.stamp7Role = stamp7Role;
+module.exports.stamp8Role = stamp8Role;
+module.exports.stamp9Role = stamp9Role;
+module.exports.stamp10Role = stamp10Role;
+module.exports.stamp11Role = stamp11Role;
+module.exports.stamp12Role = stamp12Role;
 
 // other project wide vars
 var embedColor = '#0099ff'
@@ -168,7 +168,7 @@ async function addVoiceChannelsToActivity(activityName, number, category, channe
     // udpate db and get total number of channels
     var total = await firebaseActivity.addVoiceChannels(activityName, number);
 
-    // grab index where channel naming should start, in case there are already channels made
+    // grab index where channel naming should stampt, in case there are already channels made
     var index = total - number;
 
     // create voice channels
@@ -215,7 +215,7 @@ async function removeVoiceChannelsToActivity(activityName, number, category){
         final = 0;
     }
 
-    // grab index where channel naming should start, in case there are already channels made
+    // grab index where channel naming should stampt, in case there are already channels made
     // we remove one because we are counting from 0
     // remove voice channels
     for (var index = total - 1; index >= final; index--) {

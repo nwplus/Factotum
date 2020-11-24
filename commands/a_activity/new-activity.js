@@ -85,13 +85,16 @@ module.exports = class NewActivity extends Command {
                     '🔃 Will callback all users from all channels to the general channel.\n' + 
                     '👨‍👩‍👧‍👦 Will shuffle all the groups around the available channels.\n' + 
                     '🦜 Will shuffle all the mentors around the available channels.\n' +
-                    '🏕️ Will activate a stamp distribution that will be open for 20 seconds.\n'); 
+                    '🏕️ Will activate a stamp distribution that will be open for 20 seconds.\n' +
+                    '🏎️ [FOR WORKSHOPS] Will send an embedded message asking how the speed is.\n' +
+                    '✍️ [FOR WORKSHOPS] Will send an embedded message asking how the difficulty is.\n' +
+                    '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.'); 
 
                 // send message
                 var msgConsole = await message.channel.send(msgEmbed);
 
                 // emojis
-                var emojis = ['🧑🏽‍💼', '☕', '⏫', '⏬', '⛔', '🌬️', '🔃', '👨‍👩‍👧‍👦', '🦜','🏕️'];
+                var emojis = ['🧑🏽‍💼', '☕', '⏫', '⏬', '⛔', '🌬️', '🔃', '👨‍👩‍👧‍👦', '🦜','🏕️','🏎️','✍️','🧑‍🏫'];
 
                 // respond to message with emojis
                 emojis.forEach(emoji => msgConsole.react(emoji));
@@ -159,6 +162,12 @@ module.exports = class NewActivity extends Command {
                         commandRegistry.findCommands('mshuffle', true)[0].run(message, {activityName: activityName});
                     } else if (emojiName === emojis[9]) {
                         commandRegistry.findCommands('distribute-stamp', true)[0].run(message, {activityName: activityName, timeLimit: 20});
+                    } else if (emojiName === emojis[10]) {
+                        commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'speed'});
+                    } else if (emojiName === emojis[11]) {
+                        commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'difficulty'});
+                    } else if (emojiName === emojis[12]) {
+                        commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'explanations'});
                     }
                 });
 

@@ -2,12 +2,6 @@ const { Command } = require('discord.js-commando');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
-//placeholder role names mostly taken from actual scout ranks:
-//0-1 stamps: rookie
-//2-4 stamps: star
-//5-9 stamps: life
-//10+ stamps: eagle
-
 module.exports = class DistributeStamp extends Command {
     constructor(client) {
         super(client, {
