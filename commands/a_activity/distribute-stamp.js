@@ -63,7 +63,7 @@ module.exports = class DistributeStamp extends Command {
     }
 
     //replaces user's current role with the next one
-    parseRole(member,user,curRole,message,activityName,seenUsers) {
+    async parseRole(member,user,curRole,message,activityName,seenUsers) {
         if (seenUsers.includes(user.id)) {
             return seenUsers;
         }
@@ -82,10 +82,10 @@ module.exports = class DistributeStamp extends Command {
             stampNumber = parseInt(curRole.name.substring(curRole.name.length - 1)); 
             if (stampNumber === 5) {
                 //manually set newRole to Life - 6 if stampNumber = 6 because otherwise it will end up being MEE6
-                newRole = message.guild.roles.cache.find(role => role.id === discordServices.life6Role);
+                newRole = message.guild.roles.cache.find(role => role.id === discordServices.stamp6Role);
             } else if (stampNumber === 9) {
                 //manually set newRole to Eagle - 10 since it transitions between single and double digits
-                newRole = message.guild.roles.cache.find(role => role.id === discordServices.eagle10Role);
+                newRole = message.guild.roles.cache.find(role => role.id === discordServices.stamp10Role);
             } else {
                 //look in all the server's roles to find one that matches the stampNumber
                 stampNumber++;
@@ -104,11 +104,11 @@ module.exports = class DistributeStamp extends Command {
         //we have provided
         if (newRole == null) {
             newRole = curRole;
-            user.send('A problem occurred. Please contact an organizer/admin.');
+            await user.send('A problem occurred. Please contact an organizer/admin.');
         } 
         //replace curRole with newRole and send dm with details
         discordServices.replaceRoleToMember(member, curRole, newRole);
-        user.send('You have been upgraded from ' + curRole.name + ' to ' + newRole.name + ' for attending ' + activityName + '!');
+        await user.send('You have been upgraded from ' + curRole.name + ' to ' + newRole.name + ' for attending ' + activityName + '!');
         return seenUsers;
     } 
 };
