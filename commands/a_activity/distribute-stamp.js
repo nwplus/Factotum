@@ -51,7 +51,10 @@ module.exports = class DistributeStamp extends Command {
                 //for each role the user has, check if it ends with a number and if it does, change to
                 //next stamp number
                 const member = message.guild.member(user);
-                member.roles.cache.forEach(role => seenUsers = this.parseRole(member,user,role,message,activityName,seenUsers));
+                if (!seenUsers.includes(user.id)) {
+                    member.roles.cache.forEach(role => this.parseRole(member,user,role,message,activityName));
+                    seenUsers.push(user.id);
+                }
             });
             //edits the embedded message to notify people when it stops collecting reacts
             collector.on('end', collected => {
@@ -63,10 +66,7 @@ module.exports = class DistributeStamp extends Command {
     }
 
     //replaces user's current role with the next one
-    async parseRole(member,user,curRole,message,activityName,seenUsers) {
-        if (seenUsers.includes(user.id)) {
-            return seenUsers;
-        }
+    async parseRole(member,user,curRole,message,activityName) {
         var stampNumber; //keep track of which role should be next based on number of stamps
         var newRole; //next role based on stampNumber
         //case for if curRole ends in 2 digits
@@ -94,10 +94,8 @@ module.exports = class DistributeStamp extends Command {
                     parseInt(role.name.substring(role.name.length - 1)) === stampNumber);
             }
         } else {
-            //if role doesn't end in a digit then return
-            return seenUsers;
+            return;
         }
-        seenUsers.push(user.id); //adds user to seen users list
 
         //shouldn't happen but check just in case something goes wrong and no matching role was found
         //then remain at the same role. most likely case would be getting more than the number of stamps 
@@ -109,6 +107,5 @@ module.exports = class DistributeStamp extends Command {
         //replace curRole with newRole and send dm with details
         discordServices.replaceRoleToMember(member, curRole, newRole);
         await user.send('You have been upgraded from ' + curRole.name + ' to ' + newRole.name + ' for attending ' + activityName + '!');
-        return seenUsers;
     } 
 };

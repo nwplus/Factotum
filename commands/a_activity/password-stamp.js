@@ -31,11 +31,11 @@ module.exports = class DistributeStamp extends Command {
             return;
         } 
 
-        var targetChannel = message.guild.channels.cache.find(channel => channel.name === (sponsorName + "-banter"));
+        var targetChannel = await message.guild.channels.cache.find(channel => channel.name === (sponsorName + "-banter"));
         const qEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle('React with anything to claim a stamp for attending ' + sponsorName + '\'s booth!')
-            .setDescription('Once you react to this message, you will have 3 attempts in the next minute to enter the correct password.');
+            .setDescription('Once you react to this message, you will have 3 attempts in the next 30 seconds to enter the correct password.');
         targetChannel.send(qEmbed).then((msg) => {
             const emojiFilter = (reaction,user) => user.id != msg.author.id;
             let emoji = '👍';
