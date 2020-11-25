@@ -156,9 +156,9 @@ module.exports = class InitWorkshop extends Command {
                         // collect the question the hacker has
                         const questionFilter = m => m.author.id === user.id;
 
-                        var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or quesiton. You have 10 seconds to respond');
+                        var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 10 seconds to respond');
 
-                        helpChannel.awaitMessages(questionFilter, { max: 1, time: 10000 }).then(async msgs => {
+                        helpChannel.awaitMessages(questionFilter, { max: 1, time: 10000,error:['time'] }).then(async msgs => {
                             // get question
                             var question = msgs.first().content;
 
@@ -174,7 +174,7 @@ module.exports = class InitWorkshop extends Command {
                             } else if (status === firebaseServices.status.FAILURE) {
                                 discordServices.sendMessageToMember(user, 'Hey there! This command can not be used because the TA functionality is not in use for this workshop', true);
                             } else {
-                                discordServices.sendMessageToMember(user, 'Hey there! We got you singed up to talk to a TA! Sit tight in the voice channel. If you ' +
+                                discordServices.sendMessageToMember(user, 'Hey there! We got you signed up to talk to a TA! Sit tight in the voice channel. If you ' +
                                     'are not in the voice channel when its your turn you will be skipped, and we do not want that to happen! You are number: ' + position + ' in the wait list.');
 
                                 // update message embed with new user in list
@@ -185,7 +185,10 @@ module.exports = class InitWorkshop extends Command {
                             // delete promt and user msg
                             qPromt.delete();
                             msgs.first().delete();
-                        });
+                        })
+                        .catch (() => {
+                            qPromt.delete();
+                        })
                     });
 
                     // add reacton to get next in this message!
@@ -234,8 +237,8 @@ module.exports = class InitWorkshop extends Command {
                         if (isAdded) {
                             taChannel.send('<@' + user.id + '> A hacker was moved to your voice channel! Thanks for your help!!!').then(msg => msg.delete({ timeout: 5000 }));
                         } else {
-                            taChannel.send('<@' + user.id + '> We had someone that needed help, but we were unable to move him to your voice channel. ' +
-                                'They have been notified and skiped. Please help someone else!').then(msg => msg.delete({ timeout: 8000 }));
+                            taChannel.send('<@' + user.id + '> We had someone that needed help, but we were unable to move them to your voice channel. ' +
+                                'They have been notified and skipped. Please help someone else!').then(msg => msg.delete({ timeout: 8000 }));
                         }
 
                         // remove hacker from the embed list
@@ -251,7 +254,7 @@ module.exports = class InitWorkshop extends Command {
                     discordServices.replyAndDelete(message, 'The activity named: ' + activityName + ', does not exist! Did not create voice channels.');
                 }
             } else {
-                discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
+                discordServices.replyAndDelete(message, 'You do not have permission for this command, only admins can use it!');
             }
         } else {
             discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
