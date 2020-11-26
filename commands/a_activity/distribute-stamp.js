@@ -38,11 +38,11 @@ module.exports = class DistributeStamp extends Command {
         const qEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle('React within ' + timeLimit + ' seconds of the posting of this message to get a stamp for ' + activityName + '!');
-        targetChannel.send(qEmbed).then((msg) => {
+        targetChannel.send(qEmbed).then(async (msg) => {
             const emojiFilter = (reaction,user) => user.id != msg.author.id;
             let emoji = '👍';
             msg.react(emoji);
-            const collector = msg.createReactionCollector(emojiFilter, {time: (1000 * timeLimit)});
+            const collector = await msg.createReactionCollector(emojiFilter, {time: (1000 * timeLimit)});
             //seenUsers keeps track of which users have already reacted to the message
             var seenUsers = [];
 
@@ -52,7 +52,7 @@ module.exports = class DistributeStamp extends Command {
                 //next stamp number
                 const member = message.guild.member(user);
                 if (!seenUsers.includes(user.id)) {
-                    member.roles.cache.forEach(role => this.parseRole(member,user,role,message,activityName));
+                    member.roles.cache.forEach(async role => (await this.parseRole(member,user,role,message,activityName)));
                     seenUsers.push(user.id);
                 }
             });

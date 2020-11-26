@@ -59,12 +59,12 @@ module.exports = class DistributeStamp extends Command {
                 var incorrectPasswords = 0;
                 const filter = m => user.id === m.author.id;
                 //message collector for the user's password attempts
-                const pwdCollector = dmMessage.channel.createMessageCollector(filter,{time: 30000, max: 3});
+                const pwdCollector = await dmMessage.channel.createMessageCollector(filter,{time: 30000, max: 3});
 
-                pwdCollector.on('collect', m => {
+                pwdCollector.on('collect', async m => {
                     //update role and stop collecting if password matches
                     if (m.content === password) {
-                        member.roles.cache.forEach(role => this.parseRole(member, user, role, message, sponsorName));
+                        member.roles.cache.forEach(async role => (await this.parseRole(member, user, role, message, sponsorName)));
                         correctPassword = true;
                         //discordServices.deleteMessage(msgs);
                         //discordServices.deleteMessage(dmMessage);
@@ -72,7 +72,7 @@ module.exports = class DistributeStamp extends Command {
                     } else if (incorrectPasswords < 2) {
                         //add 1 to number of incorrect guesses and prompts user to try again
                         incorrectPasswords++;
-                        user.send("Incorrect. Please try again.");
+                        await user.send("Incorrect. Please try again.");
                     } 
                 })
                 pwdCollector.on('end', collected => {
