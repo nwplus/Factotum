@@ -110,14 +110,22 @@ module.exports = class StartTeamFormation extends Command {
 
             var sentMessage;
 
+            const publicEmbed = new Discord.MessageEmbed()
+                .setTitle('Information about them can be found below:')
+                .setDescription(content)
+
             if (isTeam) {
+                // set color
+                publicEmbed.setColor(discordServices.tfTeamEmbedColor);
                 // get recruiting channel and send message
                 var channel = message.guild.channels.cache.get(discordServices.recruitingChannel);
-                sentMessage = await channel.send('<@' + user.id + '> and their team is looking for more team members! Information about them can be found below:\n' + content);
+                sentMessage = await channel.send('<@' + user.id + '> and their team are looking for more team members!', {embed: publicEmbed});
             } else {
+                //
+                publicEmbed.setColor(discordServices.tfHackerEmbedColor);
                 // get looking for team channel and send message
                 var channel = message.guild.channels.cache.get(discordServices.lookingforteamChannel);
-                sentMessage = await channel.send('<@' + user.id + '>  is looking for a team to join! Information about them can be found below:\n' + content);
+                sentMessage = await channel.send('<@' + user.id + '>  is looking for a team to join!', {embed: publicEmbed});
             }
 
             // we would want to remove their message, but that is not possible!
