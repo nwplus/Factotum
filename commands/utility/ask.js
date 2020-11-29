@@ -76,7 +76,7 @@ module.exports = class AskQuestion extends Command {
                     // only user who emojied this message will be able to add a reply to it
                     const responseFilter = m => m.author.id === user.id;
 
-                    curChannel.awaitMessages(responseFilter, {max: 1, time: 10000, errors: ['time']}).then( async (msgs) => {
+                    curChannel.awaitMessages(responseFilter, {max: 1, time: 15000, errors: ['time']}).then( async (msgs) => {
                         var response = msgs.first();
 
                         // if cancel then do nothing
