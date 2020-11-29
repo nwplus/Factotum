@@ -90,10 +90,13 @@ module.exports = class InitWorkshop extends Command {
             ]
         });
 
+        // embed color for mentors
+        var mentorColor = (await message.guild.roles.fetch(discordServices.mentorRole)).color
+
         //makes ta console for workshop
         var targetChannel = message.guild.channels.cache.find(channel => channel.name === (activityName + "-ta-console"));
         const consoleEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(mentorColor)
             .setTitle('Main console for ' + activityName)
             .setDescription('Here are some commands:\n' +
                 '🏕️ Will activate a stamp distribution that will be open for 20 seconds.\n' +
@@ -131,7 +134,7 @@ module.exports = class InitWorkshop extends Command {
 
         // embed message for TA console
         const taEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(mentorColor)
             .setTitle('The Wait List')
             .setDescription('This is the wait list, it will always stay up to date! To get the next hacker that needs help click 🤝');
 
