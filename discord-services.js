@@ -51,6 +51,10 @@ module.exports.embedColor = embedColor;
 
 // Common channels
 
+// announcement channel
+var announcementChannel = '770353479905968138';
+module.exports.announcementChannel = announcementChannel;
+
 // where hackers join the wait list to talk to a sponsor
 // at the moment its only one, planned to extend to multiple
 var boothingWaitList = '748370272049954927';

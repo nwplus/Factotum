@@ -21,6 +21,7 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 const discordServices = require('./discord-services');
+const firebaseServices = require('./firebase-services/firebase-services');
 
 const config = {
     token: process.env.TOKEN,
@@ -52,11 +53,11 @@ bot.registry
 bot.once('ready', async () => {
     console.log(`Logged in as ${bot.user.tag}!`);
     bot.user.setActivity('Ready to hack!');
-    discordServices.embedColor = '#FDAB9F';
 
     // check roles
     // we asume the bot is only in one guild!
-    var roleManager = await bot.guilds.cache.first().roles.fetch();
+    var guild = bot.guilds.cache.first();
+    var roleManager = await guild.roles.fetch();
 
     // roles we are looking for
     // dict key: role name, value: list of color and then id (snowflake)
@@ -97,6 +98,15 @@ bot.once('ready', async () => {
     discordServices.mentorRole = foundRoles.get('Mentor')[1];
     discordServices.sponsorRole = foundRoles.get('Sponsor')[1];
     discordServices.staffRole = foundRoles.get('Staff')[1];
+
+    // start query listener for announcements
+    firebaseServices.db.collection('announcements').onSnapshot(querySnapshot => {
+        querySnapshot.docChanges().forEach(change => {
+            if (change.type === 'added') {
+                guild.channels.resolve(discordServices.announcementChannel).send('<@&' + discordServices.attendeeRole + '> ANNOUNCEMENT!\n' + change.doc.data()['text']);
+            }
+        })
+    })
 });
 
 
