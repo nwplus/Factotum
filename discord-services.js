@@ -1,5 +1,4 @@
 
-const { Command } = require('discord.js-commando');
 const firebaseActivity = require('./firebase-services/firebase-services-activities');
 
 // Available Roles
@@ -164,7 +163,7 @@ function isAdminConsole(channel) {
 module.exports.isAdminConsole = isAdminConsole;
 
 // will add given number of voice channels to the given activity, the category object of the activity is necessary
-async function addVoiceChannelsToActivity(activityName, number, category, channelManager) {
+async function addVoiceChannelsToActivity(activityName, number, category, channelManager, maxUsers = 0) {
     // udpate db and get total number of channels
     var total = await firebaseActivity.addVoiceChannels(activityName, number);
 
@@ -195,8 +194,8 @@ async function addVoiceChannelsToActivity(activityName, number, category, channe
                 id: staffRole,
                 allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
             }
-        ]
-        }).catch(console.error);
+        ],
+        userLimit: maxUsers === 0 ? undefined : maxUsers}).catch(console.error);
     }
 
     return total;
