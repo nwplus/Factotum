@@ -52,17 +52,30 @@ module.exports = class AskQuestion extends Command {
         
         // send message and add emoji collector
         curChannel.send(qEmbed).then(async (msg) => {
+
+            // list of users currently responding
+            var onResponse = [];
             
-            await msg.react('🇷');  // respond emoji
-            await msg.react('✅');  // answered emoji!
-            await msg.react('⏫');  // upvote emoji
-            await msg.react('⛔');  // delete emoji
+            msg.react('🇷');  // respond emoji
+            msg.react('✅');  // answered emoji!
+            msg.react('⏫');  // upvote emoji
+            msg.react('⛔');  // delete emoji
 
             // filter and collector
             const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '🇷' || reaction.emoji.name === '✅' || reaction.emoji.name === '⛔');
             const collector = msg.createReactionCollector(emojiFilter);
 
             collector.on('collect', async (reaction, user) => {
+                // delete the reaciton
+                reaction.users.remove(user.id);
+
+                // make sure user is not already responding
+                if (onResponse.includes(user.id)) {
+                    return;
+                } else {
+                    onResponse.push(user.id);
+                }
+
                 // check for checkmark emoji and only user who asked the question
                 if (reaction.emoji.name === '✅' && user.id === message.author.id) {
                     // change color
@@ -103,13 +116,16 @@ module.exports = class AskQuestion extends Command {
                         // delete messages
                         promt.delete();
                         response.delete();
+
+                        // remove user from on response list
+                        onResponse.splice(onResponse.indexOf(user.id), 1);
                     }).catch((msgs) => {
                         promt.delete();
                         curChannel.send('<@' + user.id + '> Time is up! When you are ready to respond, emoji again!').then(msg => msg.delete({timeout: 2000}));
-                    });
 
-                    // delete the reaciton
-                    reaction.users.remove(user.id);
+                        // remove user from on response list
+                        onResponse.splice(onResponse.indexOf(user.id), 1);
+                    });
                 }
             });
         });
