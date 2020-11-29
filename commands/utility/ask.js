@@ -69,27 +69,15 @@ module.exports = class AskQuestion extends Command {
                 // delete the reaciton
                 reaction.users.remove(user.id);
 
-                // make sure user is not already responding
-                if (onResponse.includes(user.id)) {
-                    return;
-                } else {
-                    onResponse.push(user.id);
-                }
+                // add response to question
+                if (reaction.emoji.name === '🇷') {
+                    // make sure user is not already responding
+                    if (onResponse.includes(user.id)) {
+                        return;
+                    } else {
+                        onResponse.push(user.id);
+                    }
 
-                // check for checkmark emoji and only user who asked the question
-                if (reaction.emoji.name === '✅' && user.id === message.author.id) {
-                    // change color
-                    msg.embeds[0].setColor('#80c904');
-                    // change title and edit embed
-                    var title = '✅ ANSWERED ' + msg.embeds[0].title;
-                    msg.edit(msg.embeds[0].setTitle(title));
-                } 
-                // remove emoji will remove the message
-                else if (reaction.emoji.name === '⛔') {
-                    msg.delete();
-                } 
-                // add response to question emoji
-                else {
                     // promt the response
                     var promt = await curChannel.send('<@' + user.id + '> Please send your response within 10 seconds! If you want to cancel write cancel.');
 
@@ -125,6 +113,18 @@ module.exports = class AskQuestion extends Command {
                         onResponse.splice(onResponse.indexOf(user.id), 1);
                     });
                 }
+                // check for checkmark emoji and only user who asked the question
+                else if (reaction.emoji.name === '✅' && user.id === message.author.id) {
+                    // change color
+                    msg.embeds[0].setColor('#80c904');
+                    // change title and edit embed
+                    var title = '✅ ANSWERED ' + msg.embeds[0].title;
+                    msg.edit(msg.embeds[0].setTitle(title));
+                } 
+                // remove emoji will remove the message
+                else if (reaction.emoji.name === '⛔') {
+                    msg.delete();
+                } 
             });
         });
     }
