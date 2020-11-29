@@ -38,6 +38,9 @@ module.exports = class NewActivity extends Command {
             return;
         }
 
+        // remove all characters except numbers, letters and -
+        activityName = activityName.replace(/[^0-9a-zA-Z-]/g, '');
+
         // replace all spaces for - in activity name 
         activityName = activityName.split(' ').join('-').trim();
 
