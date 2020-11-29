@@ -53,8 +53,8 @@ module.exports = class DistributeStamp extends Command {
         }
 
         // target channel is where the collector will be sent, at this point is the message's channel
+        var targetChannel = message.channel;
 
-        var targetChannel = await message.guild.channels.cache.find(channel => channel.name === (sponsorName + "-banter"));
         const qEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle('React with anything to claim a stamp for attending ' + sponsorName + '\'s booth!')
