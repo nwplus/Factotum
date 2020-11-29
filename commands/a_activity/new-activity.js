@@ -38,15 +38,40 @@ module.exports = class NewActivity extends Command {
             return;
         }
 
+        
+        // replace all spaces for - in activity name 
+        activityName = activityName.split(' ').join('-').trim();
+
         // remove all characters except numbers, letters and -
         activityName = activityName.replace(/[^0-9a-zA-Z-]/g, '');
 
-        // replace all spaces for - in activity name 
-        activityName = activityName.split(' ').join('-').trim();
       
       
         // guard variables
         var isAmongUs = false;
+
+        var category = await message.guild.channels.create(activityName, {type: 'category',  permissionOverwrites: [
+            {
+                id: discordServices.hackerRole,
+                deny: ['VIEW_CHANNEL'],
+            },
+            {
+                id: discordServices.attendeeRole,
+                allow: ['VIEW_CHANNEL'],
+            },
+            {
+                id: discordServices.mentorRole,
+                allow: ['VIEW_CHANNEL'],
+            },
+            {
+                id: discordServices.sponsorRole,
+                allow: ['VIEW_CHANNEL'],
+            },
+            {
+                id: discordServices.staffRole,
+                allow: ['VIEW_CHANNEL'],
+            }
+        ]});
       
         // create text channel
         message.guild.channels.create(activityName + '-text', {type: 'text', parent: category,});
@@ -167,6 +192,7 @@ module.exports = class NewActivity extends Command {
             } else if (emojiName === emojis[12]) {
                   commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'explanations'});
             } else if (emojiName === emojis[13] && !isAmongUs && !isWorkshop && !isCoffeeChats) {
+                  isAmongUs = true;
                   commandRegistry.findCommands('initau', true)[0].run(message, {activityName: activityName, numOfChannels: 3});
             }
         });
