@@ -46,8 +46,10 @@ module.exports.stamp11Role = stamp11Role;
 module.exports.stamp12Role = stamp12Role;
 
 // other project wide vars
-var embedColor = '#26fff4'
+var embedColor = '#26fff4';
 module.exports.embedColor = embedColor;
+var questionEmbedColor = '#f4ff26';
+module.exports.questionEmbedColor = questionEmbedColor;
 var announcementEmbedColor = '#8f26ff';
 module.exports.announcementEmbedColor = announcementEmbedColor;
 var tfTeamEmbedColor = '#1929ff';
