@@ -68,6 +68,9 @@ module.exports = class StartMentors extends Command {
             // mentor console channel to ask for tags
             var mentorConsole = await message.guild.channels.create('mentor-console', {type: 'text', parent: mentorCaveCategory});
 
+            // mentor incoming tickets
+            var incomingTicketsChannel = await message.guild.channels.create('incoming-tickets', {type: 'text', parent: mentorCaveCategory});
+
             // create a couple of voice channels for mentors to use
             for (var i = 0; i < 3; i++) {
                 message.guild.channels.create('Room ' + i, {type: 'voice', parent: mentorCaveCategory});
@@ -79,9 +82,18 @@ module.exports = class StartMentors extends Command {
             discordServices.replyAndDelete(message, 'A mentor cave has been found, nothing created!');
             var mentorCaveCategory = possibleMentorCaveCategorys.first();
             var mentorConsole = mentorCaveCategory.children.find(channel => channel.name === 'mentor-console');
+            var incomingTicketsChannel = mentorCaveCategory.children.find(channel => channel.name === 'incoming-tickets');
             // remove messages in mentor console
             mentorConsole.bulkDelete(100, true);
         }
+
+        // if we couldnt find the mentor console channel ask for the name of the channel!   
+        if (mentorConsole === undefined) {
+            return;
+            // TODO ask for name of channel and fetch it
+        }
+
+
 
         // check for public mentor help category
         var publicHelpCategory = await message.guild.channels.cache.find((channel => channel.type === 'category' && channel.name === 'Mentor Help'));
@@ -122,12 +134,6 @@ module.exports = class StartMentors extends Command {
             }
         }
 
-        // if we couldnt find the mentor console channel ask for the name of the channel!   
-        if (mentorConsole === undefined) {
-            return;
-            // TODO ask for name of channel and fetch it
-        }
-
         
         ////// send message to admin console
         // message embed
@@ -157,7 +163,7 @@ module.exports = class StartMentors extends Command {
 
         // mentor emojis with title, we will use a map, 
         // key :  emoji name, 
-        // value : [role name, role snowflake, role wait list message id]
+        // value : [role name, role snowflake]
         var mentorEmojis = new Map();
         
         // loop over all the mentor emojis and add a field explaining each
@@ -181,8 +187,9 @@ module.exports = class StartMentors extends Command {
             .setColor(discordServices.embedColor)
             .setTitle('Ticket Request System')
             .setDescription('If you or your team want to talk with a mentor follow the isntrucitons below:' + 
-            '\n* React to this message with ' + requestTicketEmoji + ' and follow instructions' + 
-            '\n* Once done, wait for a mentor to accept your ticket!');
+            '\n* React to this message with the correct emoji and follow instructions' + 
+            '\n* Once done, wait for a mentor to accept your ticket!')
+            .addField('For a general ticket:', 'React with ' + requestTicketEmoji);
         
         var requestTicketMsg = await requestTicketChannel.send(requestTicketEmbed);
         requestTicketMsg.react(requestTicketEmoji);
@@ -214,7 +221,11 @@ module.exports = class StartMentors extends Command {
                 mentorConsoleMsg.react(reaction.emoji.name);
 
                 // add emoji to list with role name, role id and waitlist message id
-                mentorEmojis.set(reaction.emoji.name, [role.name.substring(2), role.id, waitlist.id]);
+                mentorEmojis.set(reaction.emoji.name, [role.name.substring(2), role.id]);
+
+                // add to ticket system embed
+                requestTicketMsg.edit(requestTicketMsg.embeds[0].addField('If your question involves ' + role.name.substring(2) + ':', 'React to this message with ' + reaction.emoji.name));
+                requestTicketMsg.react(reaction.emoji.name);
 
                 // remove msgs
                 getInitialEmojiMsg.delete();
@@ -271,6 +282,10 @@ module.exports = class StartMentors extends Command {
                             // add public text channel
                             message.guild.channels.create(nameMsg.content + '-help', {type: 'text', parent: publicHelpCategory});
 
+                            // add to ticket system embed
+                            requestTicketMsg.edit(requestTicketMsg.embeds[0].addField('If your question involves ' + nameMsg.content + ':', 'React to this message with ' + reaction.emoji.name));
+                            requestTicketMsg.react(reaction.emoji.name);
+
                             // let user know the action was succesfull
                             message.channel.send('<@' + user.id + '> The role has been added!').then(msg => msg.delete({timeout: 5000}));
                         }
@@ -302,12 +317,105 @@ module.exports = class StartMentors extends Command {
         });
 
         ////// hacker request ticket collector
-        const hackerFilter = (reaction, user) => !user.bot && reaction.emoji.name === requestTicketEmoji;
+
+        // count of tickets created
+        var ticketCount = 0;
+
+        const hackerFilter = (reaction, user) => !user.bot && (mentorEmojis.has(reaction.emoji.name) || reaction.emoji.name === requestTicketEmoji);
 
         const requestTicketCollector = await requestTicketMsg.createReactionCollector(hackerFilter);
 
         requestTicketCollector.on('collect', async (reaction, user) => {
+            // prmot for team members and the one liner
+            requestTicketChannel.send('<@' + user.id + '> Please send ONE message with: \n* A one liner of your problem \n* Mention your team members.').then(msg => {
+                requestTicketChannel.awaitMessages(m => m.author.id === user.id, {max: 1}).then(msgs => {
+                    // remove reaction from ticket system
+                    reaction.users.remove(user.id);
 
+                    // get mentor role associated to reaction
+                    var mentorInfo = mentorEmojis.get(reaction.emoji.name);
+                    if (mentorInfo === undefined) {
+                        var mentorRoleID = discordServices.mentorRole;
+                    } else {
+                        var mentorRoleID = mentorInfo[1];
+                    }
+
+                    var hackerTicketMentions = msgs.first().mentions;
+                    var hackerTicketContent = msgs.first().content;
+
+                    // delete message and promt
+                    msg.delete();
+                    msgs.each(msg => msg.delete());
+
+                    // mentor side ticket embed
+                    const mentorTicketEmbed = new Discord.MessageEmbed()
+                        .setColor(discordServices.embedColor)
+                        .setTitle('A new question has been asked!')
+                        .setDescription(hackerTicketContent)
+                        .addField('They are requesting:', '<@&' + mentorRoleID + '>')
+                        .addField('Can you help them?', 'If so, react to this message with 🤝.');
+                    
+                    // send ticket to mentor side
+                    incomingTicketsChannel.send('<@&' + mentorRoleID + '>', mentorTicketEmbed).then(ticketMsg => {
+                        ticketMsg.react('🤝');
+
+                        ticketMsg.awaitReactions((reaction, user) => !user.bot && reaction.emoji.name === '🤝', {max: 1}).then(async reactions => {
+                            // update embed to reflect someone is help
+                            ticketMsg.edit(ticketMsg.embeds[0].setColor('#80c904'));
+                            
+                            var mentorUser = reactions.first().users.cache.find(user => !user.bot);
+
+                            // create category with channels
+                            var ticketCategory = await message.guild.channels.create('Ticket-' + ticketCount, {type: 'category',});
+                            ticketCategory.updateOverwrite(discordServices.everyoneRole, {'VIEW_CHANNEL': false});
+                            ticketCategory.updateOverwrite(mentorUser, {'VIEW_CHANNEL': true, 'USE_VAD': true});
+                            ticketCategory.updateOverwrite(user, {'VIEW_CHANNEL': true, 'USE_VAD': true});
+                            hackerTicketMentions.members.each(member => ticketCategory.updateOverwrite(member, {'VIEW_CHANNEL': true, 'USE_VAD': true}));
+
+                            // text channel
+                            var ticketTextChannel = await message.guild.channels.create('banter', {type: 'text', parent: ticketCategory});
+                            // voice channel
+                            var ticketVoiceChannel = await message.guild.channels.create('discussion', {type: 'voice', parent: ticketCategory});
+
+                            // send message to text channel taging the team and mentor
+                            const newChannelEmbed = new Discord.MessageEmbed()
+                                .setColor(discordServices.embedColor)
+                                .setTitle('Original Question')
+                                .setDescription(hackerTicketContent)
+                                .addField('Thank you for helping this team.', '<@' + mentorUser + '> Best of luck!')
+                                .addField('When done:', '* React to this message with 👋🏽 to lose access to these channels!');
+
+                            ticketTextChannel.send(newChannelEmbed).then(async msg => {
+                                var reactionCount = 0;
+                                var maxReactions = hackerTicketMentions.members.array().length + 2;
+
+                                msg.react('👋🏽');
+                                const loseAccessCollector = await msg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '👋🏽', {max: maxReactions});
+                                
+                                loseAccessCollector.on('collect', async (reaction, user) => {
+                                    reactionCount += 1;
+                                    
+                                    if (reactionCount === maxReactions) {
+                                        await ticketTextChannel.delete();
+                                        await ticketVoiceChannel.delete();
+                                        await ticketCategory.delete();
+                                    } else {
+                                        ticketCategory.updateOverwrite(user, {'VIEW_CHANNEL': false});
+                                    }
+                                });
+                            });
+
+                            // send message with parties involved and delete immediately, just so they get notified
+                            ticketTextChannel.send('<@' + mentorUser + '>').then(msg => msg.delete());
+                            ticketTextChannel.send('<@' + user.id + '>').then(msg => msg.delete());
+                            hackerTicketMentions.members.each(member => ticketTextChannel.send('<@' + member.id + '>').then(msg => msg.delete()));
+                        });
+                    });
+                });
+            });
+
+            // update number of tickets
+            ticketCount += 1;
         });
 
     }
