@@ -20,7 +20,7 @@ module.exports = class StartMentors extends Command {
     // Run function -> command body
     async run(message) {
         discordServices.deleteMessage(message);
-        
+
         // make sure command is only used in the admin console
         if (!discordServices.isAdminConsole(message.channel)) {
             discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
@@ -73,8 +73,22 @@ module.exports = class StartMentors extends Command {
                 message.guild.channels.create('Room ' + i, {type: 'voice', parent: mentorCaveCategory});
             }
 
+            // report success of activity creation
+            discordServices.replyAndDelete(message,'The mentor cateogry has been create succesfully!');
+        } else {
+            discordServices.replyAndDelete(message, 'A mentor cave has been found, nothing created!');
+            var mentorCaveCategory = possibleMentorCaveCategorys.first();
+            var mentorConsole = mentorCaveCategory.children.find(channel => channel.name === 'mentor-console');
+            // remove messages in mentor console
+            mentorConsole.bulkDelete(100, true);
+        }
+
+        // check for public mentor help category
+        var publicHelpCategory = await message.guild.channels.cache.find((channel => channel.type === 'category' && channel.name === 'Mentor Help'));
+
+        if (publicHelpCategory === undefined) {
             // create mentor help public channels category
-            var publicHelpCategory = await message.guild.channels.create('Mentor Help', {type: 'category', permissionOverwrites: [
+            publicHelpCategory = await message.guild.channels.create('Mentor Help', {type: 'category', permissionOverwrites: [
                 {
                     id: discordServices.hackerRole,
                     deny: ['VIEW_CHANNEL'],
@@ -97,15 +111,15 @@ module.exports = class StartMentors extends Command {
                 }
             ]});
 
-            // report success of activity creation
-            discordServices.replyAndDelete(message,'The mentor cateogry has been create succesfully!');
+            // create request ticket channel
+            var requestTicketChannel = await message.guild.channels.create('request-ticket', {type: 'text', parent: publicHelpCategory});
         } else {
-            discordServices.replyAndDelete(message, 'A mentor cave has been found, nothing created!');
-            var mentorCaveCategory = possibleMentorCaveCategorys.first();
-            var mentorConsole = mentorCaveCategory.children.find(channel => channel.name === 'mentor-console');
-            // remove messages in mentor console
-            mentorConsole.bulkDelete(100, true);
-            var publicHelpCategory = await message.guild.channels.cache.find((channel => channel.type === 'category' && channel.name === 'Mentor Help'));
+            // look for request ticket channel
+            var requestTicketChannel = await publicHelpCategory.children.find(channel => channel.name === 'request-ticket');
+            if (requestTicketChannel === undefined) {
+                // create request ticket channel
+                var requestTicketChannel = await message.guild.channels.create('request-ticket', {type: 'text', parent: publicHelpCategory});
+            }
         }
 
         // if we couldnt find the mentor console channel ask for the name of the channel!   
@@ -261,6 +275,7 @@ module.exports = class StartMentors extends Command {
         ////// mentor collector
         // filter and collector
         const mentorFilter = (reaction, user) => user.bot === false && mentorEmojis.has(reaction.emoji.name);
+        const mentorFilter = (reaction, user) => !user.bot && mentorEmojis.has(reaction.emoji.name);
 
         const mentorCollector = mentorConsoleMsg.createReactionCollector(mentorFilter);
 
