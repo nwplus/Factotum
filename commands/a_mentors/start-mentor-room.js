@@ -129,8 +129,6 @@ module.exports = class StartMentors extends Command {
         }
 
         
-        
-
         ////// send message to admin console
         // message embed
         const msgEmbed = new Discord.MessageEmbed()
@@ -152,7 +150,7 @@ module.exports = class StartMentors extends Command {
         ////// send message to mentor console
         // embed for mentor console
         const mentorEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(( await message.guild.roles.resolve(discordServices.mentorRole)).color)
             .setTitle('Mentor Role Console')
             .setDescription('Hi mentor! Thank you for being here, please read over all the available roles. And choose those you would feel ' + 
             'confortable answering questions for. When someone sends in a help ticket, and has specificed one of your roles, you will get pinged!');
@@ -226,7 +224,7 @@ module.exports = class StartMentors extends Command {
 
         ///// admin console collector
         // filter
-        const emojiFilter = (reaction, user) => user.bot != true && adminEmojis.includes(reaction.emoji.name);
+        const emojiFilter = (reaction, user) => !user.bot && adminEmojis.includes(reaction.emoji.name);
 
         // create collector
         const emojiCollector = await msgConsole.createReactionCollector(emojiFilter);
@@ -288,10 +286,9 @@ module.exports = class StartMentors extends Command {
 
         ////// mentor collector
         // filter and collector
-        const mentorFilter = (reaction, user) => user.bot === false && mentorEmojis.has(reaction.emoji.name);
         const mentorFilter = (reaction, user) => !user.bot && mentorEmojis.has(reaction.emoji.name);
 
-        const mentorCollector = mentorConsoleMsg.createReactionCollector(mentorFilter);
+        const mentorCollector = await mentorConsoleMsg.createReactionCollector(mentorFilter);
 
         mentorCollector.on('collect', async (reaction, user) => {
             // member
