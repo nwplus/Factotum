@@ -123,7 +123,13 @@ module.exports = class AskQuestion extends Command {
                 } 
                 // remove emoji will remove the message
                 else if (reaction.emoji.name === '⛔') {
-                    msg.delete();
+                    // check that user is staff
+                    if ((await discordServices.checkForRole((await msg.guild.members.fetch(user)), discordServices.staffRole))) {
+                        msg.delete();
+                    } else {
+                        discordServices.sendMessageToMember(user, 'Deleting a question is only available to staff!', true);
+                    }
+                    
                 } 
             });
         });
