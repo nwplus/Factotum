@@ -100,8 +100,17 @@ bot.once('ready', async () => {
     discordServices.sponsorRole = foundRoles.get('Sponsor')[1];
     discordServices.staffRole = foundRoles.get('Staff')[1];
 
+    // var to mark if gotten documents once
+    var isInitState = true;
+
     // start query listener for announcements
     firebaseServices.db.collection('announcements').onSnapshot(querySnapshot => {
+        // exit if we are at the initial state
+        if (isInitState) {
+            isInitState = false;
+            return;
+        }
+
         querySnapshot.docChanges().forEach(change => {
             if (change.type === 'added') {
                 const embed = new Discord.MessageEmbed()
