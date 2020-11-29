@@ -18,10 +18,6 @@ module.exports = class NewActivity extends Command {
                     key: 'activityName',
                     prompt: 'the activity name',
                     type: 'string',
-                    validate: (val) => {
-                        return ! (val.indexOf(' ') >= 0);
-                    }
-
                 },
             ],
         });
@@ -41,6 +37,9 @@ module.exports = class NewActivity extends Command {
             discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
             return;
         }
+
+        // replace all spaces for - in activity name 
+        activityName = activityName.split(' ').join('-').trim();
 
         // Create category
         var category = await message.guild.channels.create(activityName, {type: 'category',  permissionOverwrites: [
