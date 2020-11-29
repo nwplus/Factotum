@@ -20,7 +20,7 @@ module.exports = class UnknownCommand extends Command {
         if (message.channel.type === 'dm') {
             return;
         } else {
-            message.delete();
+            discordServices.deleteMessage(message);
             message.reply('This is an unknown command!').then(msg => msg.delete({timeout: 3000}));
         }
         

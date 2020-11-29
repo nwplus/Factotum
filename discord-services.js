@@ -11,6 +11,19 @@ var sponsorRole = '738519983981723748';
 var staffRole = '738519363904077916';
 var adminRole = '738491577596641311';
 var everyoneRole = '738475671977722058';
+var stamp0Role = '776690929557831680';
+var stamp1Role = '776694051482107944';
+var stamp2Role = '777163284679229461';
+var stamp3Role = '777163346456870913';
+var stamp4Role = '777163367814922250';
+var stamp5Role = '777163388631253002';
+var stamp6Role = '777163410269011990';
+var stamp7Role = '777163427328163850';
+var stamp8Role = '777163452560048168';
+var stamp9Role = '777163468053938186';
+var stamp10Role = '777163488019480586';
+var stamp11Role = '777163506902237196';
+var stamp12Role = '777163524568776704';
 module.exports.everyoneRole = everyoneRole;
 module.exports.hackerRole = hackerRole;
 module.exports.guestRole = guestRole;
@@ -19,6 +32,19 @@ module.exports.attendeeRole = attendeeRole;
 module.exports.mentorRole = mentorRole;
 module.exports.sponsorRole = sponsorRole;
 module.exports.staffRole = staffRole;
+module.exports.stamp0Role = stamp0Role;
+module.exports.stamp1Role = stamp1Role;
+module.exports.stamp2Role = stamp2Role;
+module.exports.stamp3Role = stamp3Role;
+module.exports.stamp4Role = stamp4Role;
+module.exports.stamp5Role = stamp5Role;
+module.exports.stamp6Role = stamp6Role;
+module.exports.stamp7Role = stamp7Role;
+module.exports.stamp8Role = stamp8Role;
+module.exports.stamp9Role = stamp9Role;
+module.exports.stamp10Role = stamp10Role;
+module.exports.stamp11Role = stamp11Role;
+module.exports.stamp12Role = stamp12Role;
 
 // other project wide vars
 var embedColor = '#0099ff'
@@ -71,6 +97,11 @@ module.exports.lookingforteamChannel = lookingforteamChannel;
 // to create new private channels for them and their team
 var channelcreationChannel = '754396445494214789';
 module.exports.channelcreationChannel = channelcreationChannel;
+
+// where the bot will send reports to
+// should be a admin or mod only channel
+var incomingReportChannel = '780305617267982366';
+module.exports.incomingReportChannel = incomingReportChannel;
 
 
 // Checks if the memeber has a role, returns true if it does
@@ -137,7 +168,7 @@ async function addVoiceChannelsToActivity(activityName, number, category, channe
     // udpate db and get total number of channels
     var total = await firebaseActivity.addVoiceChannels(activityName, number);
 
-    // grab index where channel naming should start, in case there are already channels made
+    // grab index where channel naming should stampt, in case there are already channels made
     var index = total - number;
 
     // create voice channels
@@ -184,7 +215,7 @@ async function removeVoiceChannelsToActivity(activityName, number, category){
         final = 0;
     }
 
-    // grab index where channel naming should start, in case there are already channels made
+    // grab index where channel naming should stampt, in case there are already channels made
     // we remove one because we are counting from 0
     // remove voice channels
     for (var index = total - 1; index >= final; index--) {
@@ -196,3 +227,11 @@ async function removeVoiceChannelsToActivity(activityName, number, category){
     return final;
 }
 module.exports.removeVoiceChannelsToActivity = removeVoiceChannelsToActivity;
+
+// deletes a message if the message hasn't been deleted already
+function deleteMessage(message) {
+    if (message.deleted === false) {
+        message.delete();
+    }
+}
+module.exports.deleteMessage = deleteMessage;
