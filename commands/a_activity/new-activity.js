@@ -104,6 +104,10 @@ module.exports = class NewActivity extends Command {
         // emojis
         var emojis = ['🧑🏽‍💼', '☕', '⏫', '⏬', '⛔', '🌬️', '🔃', '👨‍👩‍👧‍👦', '🦜','🏕️','🏎️','✍️','🧑‍🏫'];
 
+        // guard variables
+        var isWorkshop = false;
+        var isCoffeeChats = false;
+
         // respond to message with emojis
         emojis.forEach(emoji => msgConsole.react(emoji));
 
@@ -125,17 +129,18 @@ module.exports = class NewActivity extends Command {
             reaction.users.remove(user.id);
 
             // init workshop
-            if (emojiName === emojis[0]) {
+            if (emojiName === emojis[0] && !isWorkshop && !isCoffeeChats) {
+                isWorkshop = true;
+
                 // init workshop command
                 commandRegistry.findCommands('initw', true)[0].run(message, {activityName: activityName});
 
                 // update embed
                 msgEmbed.addField('Update', 'The activity is now a Workshop!');
                 msgConsole.edit(msgEmbed);
-            } else if (emojiName === emojis[4]) {
-                commandRegistry.findCommands('removeactivity', true)[0].run(message, {activityName: activityName});
-                msgConsole.delete({timeout: 3000});
-            } else if (emojiName === emojis[1]) {
+            } else if (emojiName === emojis[1] && !isCoffeeChats && !isWorkshop) {
+                isCoffeeChats = true;
+
                 // grab number of groups
                 var numOfGroups = await message.channel.send('<@' + user.id + '> How many groups do you want?').then(async msg => {
                     return await msg.channel.awaitMessages(m => m.author.id === user.id, {max: 1}).then(msgs => {
@@ -160,6 +165,9 @@ module.exports = class NewActivity extends Command {
                 commandRegistry.findCommands('addvoiceto', true)[0].run(message, {activityName: activityName, number: 1});
             } else if (emojiName === emojis[3]) {
                 commandRegistry.findCommands('removevoiceto', true)[0].run(message, {activityName: activityName, number: 1});
+            } else if (emojiName === emojis[4]) {
+                commandRegistry.findCommands('removeactivity', true)[0].run(message, {activityName: activityName});
+                msgConsole.delete({timeout: 3000});
             } else if (emojiName === emojis[5]) {
                 commandRegistry.findCommands('shuffle', true)[0].run(message, {activityName: activityName});
             } else if (emojiName === emojis[6]) {
