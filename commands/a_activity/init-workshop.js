@@ -137,7 +137,7 @@ module.exports = class InitWorkshop extends Command {
 
         // send taConsole message and react with emoji
         var taConsole = await taChannel.send(taEmbed);
-        await taConsole.react('🤝');
+        taConsole.react('🤝');
 
         // create question and help channel for hackers
         var helpChannel = await message.guild.channels.create(activityName + '-assistance', { type: 'text', parent: category });
@@ -148,7 +148,7 @@ module.exports = class InitWorkshop extends Command {
             .setTitle(activityName + ' Help Desk')
             .setDescription('Welcome to the ' + activityName + ' help desk. There are two ways to get help explained below:')
             .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, use the !ask command here!')
-            .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for in-person TA assistance!');
+            .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the general voice channel if not already there!');
 
         // send message with embed and react with emoji
         var helpMessage = await helpChannel.send(helpEmbed);
@@ -179,13 +179,18 @@ module.exports = class InitWorkshop extends Command {
 
                 // If the user is alredy in the waitlist then tell him that
                 if (status === firebaseServices.status.HACKER_IN_USE) {
-                    discordServices.sendMessageToMember(user, 'Hey there! It seems you are already on the wait list, if you would like to ' +
-                        'know your spot please run the !requestposition command right here!', true);
+                    discordServices.sendMessageToMember(user, 'Hey there! It seems you are already on the wait list, hold tight while a mentor gets to you.', true);
                 } else if (status === firebaseServices.status.FAILURE) {
                     discordServices.sendMessageToMember(user, 'Hey there! This command can not be used because the TA functionality is not in use for this workshop', true);
                 } else {
-                    discordServices.sendMessageToMember(user, 'Hey there! We got you signed up to talk to a TA! Sit tight in the voice channel. If you ' +
-                        'are not in the voice channel when its your turn you will be skipped, and we do not want that to happen! You are number: ' + position + ' in the wait list.');
+
+                    const hackerEmbed = new Discord.MessageEmbed()
+                        .setColor(discordServices.embedColor)
+                        .setTitle('Hey there! We got you signed up to talk to a TA!')
+                        .setDescription('You are number: ' + position + ' in the wait list.')
+                        .addField('JOIN THE VOICE CHANNEL!', 'Sit tight in the voice channel. If you are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!');
+
+                    discordServices.sendMessageToMember(user, hackerEmbed);
 
                     // update message embed with new user in list
                     var embed = taConsole.embeds[0];
