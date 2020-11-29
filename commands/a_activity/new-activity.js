@@ -58,6 +58,9 @@ module.exports = class NewActivity extends Command {
                     }
                 ]});
 
+                // gaurd variables
+                var isAmongUs = false;
+
                 // create text channel
                 message.guild.channels.create(activityName + '-text', {type: 'text', parent: category,});
 
@@ -88,13 +91,14 @@ module.exports = class NewActivity extends Command {
                     '🏕️ Will activate a stamp distribution that will be open for 20 seconds.\n' +
                     '🏎️ [FOR WORKSHOPS] Will send an embedded message asking how the speed is.\n' +
                     '✍️ [FOR WORKSHOPS] Will send an embedded message asking how the difficulty is.\n' +
-                    '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.'); 
+                    '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.\n' + 
+                    '🕵🏽 Will make this activity a among us activity!'); 
 
                 // send message
                 var msgConsole = await message.channel.send(msgEmbed);
 
                 // emojis
-                var emojis = ['🧑🏽‍💼', '☕', '⏫', '⏬', '⛔', '🌬️', '🔃', '👨‍👩‍👧‍👦', '🦜','🏕️','🏎️','✍️','🧑‍🏫'];
+                var emojis = ['🧑🏽‍💼', '☕', '⏫', '⏬', '⛔', '🌬️', '🔃', '👨‍👩‍👧‍👦', '🦜','🏕️','🏎️','✍️','🧑‍🏫', '🕵🏽'];
 
                 // respond to message with emojis
                 emojis.forEach(emoji => msgConsole.react(emoji));
@@ -117,7 +121,7 @@ module.exports = class NewActivity extends Command {
                     reaction.users.remove(user.id);
 
                     // init workshop
-                    if (emojiName === emojis[0]) {
+                    if (emojiName === emojis[0] && !isAmongUs) {
                         // init workshop command
                         commandRegistry.findCommands('initw', true)[0].run(message, {activityName: activityName});
 
@@ -127,7 +131,7 @@ module.exports = class NewActivity extends Command {
                     } else if (emojiName === emojis[4]) {
                         commandRegistry.findCommands('removeactivity', true)[0].run(message, {activityName: activityName});
                         msgConsole.delete({timeout: 3000});
-                    } else if (emojiName === emojis[1]) {
+                    } else if (emojiName === emojis[1] && !isAmongUs) {
                         // grab number of groups
                         var numOfGroups = await message.channel.send('<@' + user.id + '> How many groups do you want?').then(async msg => {
                             return await msg.channel.awaitMessages(m => m.author.id === user.id, {max: 1}).then(msgs => {
@@ -168,6 +172,8 @@ module.exports = class NewActivity extends Command {
                         commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'difficulty'});
                     } else if (emojiName === emojis[12]) {
                         commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'explanations'});
+                    } else if (emojiName === emojis[13] && !isAmongUs) {
+                        commandRegistry.findCommands('initau', true)[0].run(message, {activityName: activityName, numOfChannels: 3});
                     }
                 });
 

@@ -71,7 +71,7 @@ module.exports = class InitAmongUs extends Command {
         });
 
         // add voice channels
-        discordServices.addVoiceChannelsToActivity(activityName, numOfChannels, category, message.guild.channels, 12);
+        await discordServices.addVoiceChannelsToActivity(activityName, numOfChannels, category, message.guild.channels, 12);
 
         // reaction to use
         var emoji = '🚗';
