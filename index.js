@@ -1,4 +1,5 @@
 const commando = require('discord.js-commando');
+const Discord = require('discord.js');
 
 require('dotenv-flow').config();
 
@@ -21,6 +22,7 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 const discordServices = require('./discord-services');
+const firebaseServices = require('./firebase-services/firebase-services');
 
 const config = {
     token: process.env.TOKEN,
@@ -52,11 +54,11 @@ bot.registry
 bot.once('ready', async () => {
     console.log(`Logged in as ${bot.user.tag}!`);
     bot.user.setActivity('Ready to hack!');
-    discordServices.embedColor = '#FDAB9F';
 
     // check roles
     // we asume the bot is only in one guild!
-    var roleManager = await bot.guilds.cache.first().roles.fetch();
+    var guild = bot.guilds.cache.first();
+    var roleManager = await guild.roles.fetch();
 
     // roles we are looking for
     // dict key: role name, value: list of color and then id (snowflake)
@@ -97,6 +99,28 @@ bot.once('ready', async () => {
     discordServices.mentorRole = foundRoles.get('Mentor')[1];
     discordServices.sponsorRole = foundRoles.get('Sponsor')[1];
     discordServices.staffRole = foundRoles.get('Staff')[1];
+
+    // var to mark if gotten documents once
+    var isInitState = true;
+
+    // start query listener for announcements
+    firebaseServices.db.collection('announcements').onSnapshot(querySnapshot => {
+        // exit if we are at the initial state
+        if (isInitState) {
+            isInitState = false;
+            return;
+        }
+
+        querySnapshot.docChanges().forEach(change => {
+            if (change.type === 'added') {
+                const embed = new Discord.MessageEmbed()
+                    .setColor(discordServices.announcementEmbedColor)
+                    .setTitle(change.doc.data()['text']);
+                
+                guild.channels.resolve(discordServices.announcementChannel).send('<@&' + discordServices.attendeeRole + '> ANNOUNCEMENT!\n', {embed: embed});
+            }
+        })
+    })
 });
 
 
