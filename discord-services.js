@@ -48,12 +48,18 @@ module.exports.stamp12Role = stamp12Role;
 // other project wide vars
 var embedColor = '#26fff4'
 module.exports.embedColor = embedColor;
-var tfTeamEmbedColor = '#1929ff'
+var announcementEmbedColor = '#8f26ff';
+module.exports.announcementEmbedColor = announcementEmbedColor;
+var tfTeamEmbedColor = '#1929ff';
 module.exports.tfTeamEmbedColor = tfTeamEmbedColor;
-var tfHackerEmbedColor = '#ff33f1'
+var tfHackerEmbedColor = '#ff33f1';
 module.exports.tfHackerEmbedColor = tfHackerEmbedColor;
 
 // Common channels
+
+// announcement channel
+var announcementChannel = '770353479905968138';
+module.exports.announcementChannel = announcementChannel;
 
 // where hackers join the wait list to talk to a sponsor
 // at the moment its only one, planned to extend to multiple
