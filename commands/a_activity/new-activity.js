@@ -43,31 +43,11 @@ module.exports = class NewActivity extends Command {
 
         // replace all spaces for - in activity name 
         activityName = activityName.split(' ').join('-').trim();
-
-        // Create category
-        var category = await message.guild.channels.create(activityName, {type: 'category',  permissionOverwrites: [
-            {
-                id: discordServices.hackerRole,
-                deny: ['VIEW_CHANNEL'],
-            },
-            {
-                id: discordServices.attendeeRole,
-                allow: ['VIEW_CHANNEL'],
-            },
-            {
-                id: discordServices.mentorRole,
-                allow: ['VIEW_CHANNEL'],
-            },
-            {
-                id: discordServices.sponsorRole,
-                allow: ['VIEW_CHANNEL'],
-            },
-            {
-                id: discordServices.staffRole,
-                allow: ['VIEW_CHANNEL'],
-            }
-        ]});
-
+      
+      
+        // guard variables
+        var isAmongUs = false;
+      
         // create text channel
         message.guild.channels.create(activityName + '-text', {type: 'text', parent: category,});
 
@@ -98,13 +78,14 @@ module.exports = class NewActivity extends Command {
             '🏕️ Will activate a stamp distribution that will be open for 20 seconds.\n' +
             '🏎️ [FOR WORKSHOPS] Will send an embedded message asking how the speed is.\n' +
             '✍️ [FOR WORKSHOPS] Will send an embedded message asking how the difficulty is.\n' +
-            '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.'); 
+            '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.\n' + 
+            '🕵🏽 Will make this activity a among us activity!'); 
 
         // send message
         var msgConsole = await message.channel.send(msgEmbed);
 
         // emojis
-        var emojis = ['🧑🏽‍💼', '☕', '⏫', '⏬', '⛔', '🌬️', '🔃', '👨‍👩‍👧‍👦', '🦜','🏕️','🏎️','✍️','🧑‍🏫'];
+        var emojis = ['🧑🏽‍💼', '☕', '⏫', '⏬', '⛔', '🌬️', '🔃', '👨‍👩‍👧‍👦', '🦜','🏕️','🏎️','✍️','🧑‍🏫', '🕵🏽'];
 
         // guard variables
         var isWorkshop = false;
@@ -131,7 +112,7 @@ module.exports = class NewActivity extends Command {
             reaction.users.remove(user.id);
 
             // init workshop
-            if (emojiName === emojis[0] && !isWorkshop && !isCoffeeChats) {
+            if (emojiName === emojis[0] && !isWorkshop && !isCoffeeChats && !isAmongUs) {
                 isWorkshop = true;
 
                 // init workshop command
@@ -140,7 +121,7 @@ module.exports = class NewActivity extends Command {
                 // update embed
                 msgEmbed.addField('Update', 'The activity is now a Workshop!');
                 msgConsole.edit(msgEmbed);
-            } else if (emojiName === emojis[1] && !isCoffeeChats && !isWorkshop) {
+            } else if (emojiName === emojis[1] && !isCoffeeChats && !isWorkshop && !isAmongUs) {
                 isCoffeeChats = true;
 
                 // grab number of groups
@@ -151,41 +132,42 @@ module.exports = class NewActivity extends Command {
                         return parseInt(msgs.first().content);
                     });
                 });
+                        // check that a number was given
+                 if (Number.isNaN(numOfGroups)) {
+                     message.channel.send('<@' + user.id + '> The number of groups is not a number, please try again!').then(msg => msg.delete({timeout: 5000}));
+                     return;
+                 }
 
-                // check that a number was given
-                if (Number.isNaN(numOfGroups)) {
-                    message.channel.send('<@' + user.id + '> The number of groups is not a number, please try again!').then(msg => msg.delete({timeout: 5000}));
-                    return;
-                }
+                 commandRegistry.findCommands('initcc', true)[0].run(message, {activityName: activityName, numOfGroups: numOfGroups});
 
-                commandRegistry.findCommands('initcc', true)[0].run(message, {activityName: activityName, numOfGroups: numOfGroups});
-
-                // update embed
-                msgEmbed.addField('Update', 'The activity is now a Coffee Chat!');
-                msgConsole.edit(msgEmbed);
-            } else if (emojiName === emojis[2]) {
-                commandRegistry.findCommands('addvoiceto', true)[0].run(message, {activityName: activityName, number: 1});
-            } else if (emojiName === emojis[3]) {
-                commandRegistry.findCommands('removevoiceto', true)[0].run(message, {activityName: activityName, number: 1});
+                        // update embed
+                  msgEmbed.addField('Update', 'The activity is now a Coffee Chat!');
+                  msgConsole.edit(msgEmbed);
             } else if (emojiName === emojis[4]) {
-                commandRegistry.findCommands('removeactivity', true)[0].run(message, {activityName: activityName});
-                msgConsole.delete({timeout: 3000});
+                  commandRegistry.findCommands('removeactivity', true)[0].run(message, {activityName: activityName});
+                  msgConsole.delete({timeout: 3000});
+            } else if (emojiName === emojis[2]) {
+                  commandRegistry.findCommands('addvoiceto', true)[0].run(message, {activityName: activityName, number: 1});
+            } else if (emojiName === emojis[3]) {
+                  commandRegistry.findCommands('removevoiceto', true)[0].run(message, {activityName: activityName, number: 1});
             } else if (emojiName === emojis[5]) {
-                commandRegistry.findCommands('shuffle', true)[0].run(message, {activityName: activityName});
+                  commandRegistry.findCommands('shuffle', true)[0].run(message, {activityName: activityName});
             } else if (emojiName === emojis[6]) {
-                commandRegistry.findCommands('callback', true)[0].run(message, {activityName: activityName});
+                  commandRegistry.findCommands('callback', true)[0].run(message, {activityName: activityName});
             } else if (emojiName === emojis[7]) {
-                commandRegistry.findCommands('gshuffle', true)[0].run(message, {activityName: activityName});
+                  commandRegistry.findCommands('gshuffle', true)[0].run(message, {activityName: activityName});
             } else if (emojiName === emojis[8]) {
-                commandRegistry.findCommands('mshuffle', true)[0].run(message, {activityName: activityName});
+                  commandRegistry.findCommands('mshuffle', true)[0].run(message, {activityName: activityName});
             } else if (emojiName === emojis[9]) {
-                commandRegistry.findCommands('distribute-stamp', true)[0].run(message, {activityName: activityName, timeLimit: 20});
+                  commandRegistry.findCommands('distribute-stamp', true)[0].run(message, {activityName: activityName, timeLimit: 20});
             } else if (emojiName === emojis[10]) {
-                commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'speed'});
+                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'speed'});
             } else if (emojiName === emojis[11]) {
-                commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'difficulty'});
+                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'difficulty'});
             } else if (emojiName === emojis[12]) {
-                commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'explanations'});
+                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'explanations'});
+            } else if (emojiName === emojis[13] && !isAmongUs && !isWorkshop && !isCoffeeChats) {
+                  commandRegistry.findCommands('initau', true)[0].run(message, {activityName: activityName, numOfChannels: 3});
             }
         });
     }
