@@ -20,12 +20,18 @@ module.exports = class DistributeStamp extends Command {
                     prompt: 'the password for hackers to use to get stamp',
                     type: 'string',
                     default: '',
+                },
+                {
+                    key: 'stopTime',
+                    prompt: 'time for stamp collector to be open for, in minutes.',
+                    type: 'integer',
+                    default: 120,
                 }
             ],
         });
     }
 
-    async run(message, {sponsorName,password}) {
+    async run(message, {sponsorName, password, stopTime}) {
         discordServices.deleteMessage(message);
 
         //check that it has been called by admin or staff
@@ -66,7 +72,7 @@ module.exports = class DistributeStamp extends Command {
             const emojiFilter = (reaction,user) => user.id != msg.author.id;
             let emoji = '👍';
             msg.react(emoji);
-            const collector = msg.createReactionCollector(emojiFilter, {time: (1000 * 5400)});
+            const collector = msg.createReactionCollector(emojiFilter, {time: (1000 * stopTime * 60)});  // stopTime is in minutes, mulitply to get seconds, then milliseconds 
             
             //seenUsers keeps track of which users have already reacted to the message so there are no duplicates
             var seenUsers = [];
