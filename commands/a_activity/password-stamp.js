@@ -12,12 +12,14 @@ module.exports = class DistributeStamp extends Command {
             args: [
                 {   key: 'sponsorName',
                     prompt: 'the workshop/activity name',
-                    type: 'string'
+                    type: 'string',
+                    default: '',
                 },
                 {
                     key: 'password',
                     prompt: 'the password for hackers to use to get stamp',
                     type: 'string',
+                    default: '',
                 }
             ],
         });
@@ -25,26 +27,51 @@ module.exports = class DistributeStamp extends Command {
 
     async run(message, {sponsorName,password}) {
         discordServices.deleteMessage(message);
+
         //check that it has been called by admin or staff
         if (!await(discordServices.checkForRole(message.member,discordServices.staffRole)) && !await(discordServices.checkForRole(message.member,discordServices.adminRole))) {
             discordServices.replyAndDelete(message, 'You do not have permission for this command, only admins and staff can use it!');
             return;
-        } 
+        }
+
+        // check if arguments have been given
+        if (sponsorName === '') {
+            var promt = await message.reply('Please respond with the workshop/activity name.');
+            await message.channel.awaitMessages(m => m.author.id === message.author.id, {max: 1}).then(msgs => {
+                sponsorName = msgs.first().content;
+                promt.delete();
+                msgs.each(msg => msg.delete());
+            });
+        }
+        if(password === '') {
+            var promt = await message.reply('Please respond with the password for hackers to use to get stamp.');
+            await message.channel.awaitMessages(m => m.author.id === message.author.id, {max: 1}).then(msgs => {
+                password = msgs.first().content;
+                promt.delete();
+                msgs.each(msg => msg.delete());
+            });
+        }
+
+        // target channel is where the collector will be sent, at this point is the message's channel
 
         var targetChannel = await message.guild.channels.cache.find(channel => channel.name === (sponsorName + "-banter"));
         const qEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle('React with anything to claim a stamp for attending ' + sponsorName + '\'s booth!')
             .setDescription('Once you react to this message, you will have 3 attempts in the next 30 seconds to enter the correct password.');
+        
         targetChannel.send(qEmbed).then((msg) => {
+
+            // fitler emoji reaction and collector
             const emojiFilter = (reaction,user) => user.id != msg.author.id;
             let emoji = '👍';
             msg.react(emoji);
             const collector = msg.createReactionCollector(emojiFilter, {time: (1000 * 5400)});
-            //seenUsers keeps track of which users have already reacted to the message
+            
+            //seenUsers keeps track of which users have already reacted to the message so there are no duplicates
             var seenUsers = [];
 
-        //send hacker a dm upon reaction
+            //send hacker a dm upon reaction
             collector.on('collect', async(reaction,user) => {
                 //check if user has reacted already
                 if (seenUsers.includes(user.id)) {
@@ -52,11 +79,16 @@ module.exports = class DistributeStamp extends Command {
                 } else {
                     seenUsers.push(user.id);
                 }
+
                 const member = message.guild.member(user);
+
+                // promt member for password
                 var dmMessage = await user.send("You have 30 seconds and 3 attempts to type the password correctly to get the " + sponsorName + " stamp.\n" +
                 "Please enter the password (leave no stray spaces or anything):");
+
                 var correctPassword = false;
                 var incorrectPasswords = 0;
+
                 const filter = m => user.id === m.author.id;
                 //message collector for the user's password attempts
                 const pwdCollector = await dmMessage.channel.createMessageCollector(filter,{time: 30000, max: 3});
@@ -91,14 +123,15 @@ module.exports = class DistributeStamp extends Command {
                 if (msg.guild.channels.cache.find(channel => channel.name === targetChannel.name)) {
                     msg.edit(qEmbed.setTitle('Time\'s up! No more responses are being collected. Thanks for participating in ' + sponsorName + '\'s booth!'));
                 }
-            })
-        })
+            });
+        });
     }
 
     //replaces user's current role with the next one
     async parseRole(member,user,curRole,message,sponsorName) {
         var stampNumber; //keep track of which role should be next based on number of stamps
         var newRole; //next role based on stampNumber
+        
         //case for if curRole ends in 2 digits
         if (!isNaN(curRole.name.substring(curRole.name.length - 2, curRole.name.length)) &&
             parseInt(curRole.name.substring(curRole.name.length - 2, curRole.name.length)) >= 10) {
