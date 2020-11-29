@@ -17,6 +17,7 @@ module.exports = class AskQuestion extends Command {
                     key: 'question',
                     prompt: 'Question to ask',
                     type: 'string',
+                    default: '',
                 }
             ],
         });
@@ -29,6 +30,13 @@ module.exports = class AskQuestion extends Command {
         // only memebers with the Hacker tag can run this command!
         if (!(await discordServices.checkForRole(message.member, discordServices.attendeeRole))) {
             discordServices.sendMessageToMember(message.member, 'This command is only available for attendees!', true);
+            return;
+        }
+
+        // if question is blank let user know via DM and exit
+        if (question === '') {
+            discordServices.sendMessageToMember(message.member, 'When using the !ask command, add your question on the same message!\n' + 
+                                                                'Like this: !ask This is a question');
             return;
         }
         
