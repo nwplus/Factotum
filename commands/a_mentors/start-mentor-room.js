@@ -176,6 +176,20 @@ module.exports = class StartMentors extends Command {
         });
 
 
+        ////// send message to request-ticket channel
+        var requestTicketEmoji = '🎫';
+
+        const requestTicketEmbed = new Discord.MessageEmbed()
+            .setColor(discordServices.embedColor)
+            .setTitle('Ticket Request System')
+            .setDescription('If you or your team want to talk with a mentor follow the isntrucitons below:' + 
+            '\n* React to this message with ' + requestTicketEmoji + ' and follow instructions' + 
+            '\n* Once done, wait for a mentor to accept your ticket!');
+        
+        var requestTicketMsg = await requestTicketChannel.send(requestTicketEmbed);
+        requestTicketMsg.react(requestTicketEmoji);
+
+
         ////// check for excisting mentor roles that start with M-
         var roleMan = await message.guild.roles.fetch();
 
@@ -288,6 +302,15 @@ module.exports = class StartMentors extends Command {
             discordServices.addRoleToMember(mbr, role);
 
             mentorConsole.send('<@' + user.id + '> You have been granted the ' + mentorEmojis.get(reaction.emoji.name)[0] + ' role!');
+        });
+
+        ////// hacker request ticket collector
+        const hackerFilter = (reaction, user) => !user.bot && reaction.emoji.name === requestTicketEmoji;
+
+        const requestTicketCollector = await requestTicketMsg.createReactionCollector(hackerFilter);
+
+        requestTicketCollector.on('collect', async (reaction, user) => {
+
         });
 
     }
