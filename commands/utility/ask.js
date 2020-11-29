@@ -109,8 +109,6 @@ module.exports = class AskQuestion extends Command {
                                 // add a field to the message embed with the response
                                 msg.edit(msg.embeds[0].addField(user.username + ' Responded:', response.content));
                             }
-                            // thanks user for their response
-                            curChannel.send('<@' + user.id + '> Thank you for your response!').then(msg => msg.delete({timeout: 2000}));
                         }
 
                         // delete messages
