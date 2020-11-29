@@ -52,8 +52,7 @@ bot.registry
 bot.once('ready', async () => {
     console.log(`Logged in as ${bot.user.tag}!`);
     bot.user.setActivity('Ready to hack!');
-    discordServices.embedColor = '#FDAB9F';
-
+    
     // check roles
     // we asume the bot is only in one guild!
     var roleManager = await bot.guilds.cache.first().roles.fetch();
