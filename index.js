@@ -1,4 +1,5 @@
 const commando = require('discord.js-commando');
+const Discord = require('discord.js');
 
 require('dotenv-flow').config();
 
@@ -103,7 +104,11 @@ bot.once('ready', async () => {
     firebaseServices.db.collection('announcements').onSnapshot(querySnapshot => {
         querySnapshot.docChanges().forEach(change => {
             if (change.type === 'added') {
-                guild.channels.resolve(discordServices.announcementChannel).send('<@&' + discordServices.attendeeRole + '> ANNOUNCEMENT!\n' + change.doc.data()['text']);
+                const embed = new Discord.MessageEmbed()
+                    .setColor(discordServices.announcementEmbedColor)
+                    .setTitle(change.doc.data()['text']);
+                
+                guild.channels.resolve(discordServices.announcementChannel).send('<@&' + discordServices.attendeeRole + '> ANNOUNCEMENT!\n', {embed: embed});
             }
         })
     })

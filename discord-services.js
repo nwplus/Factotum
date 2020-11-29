@@ -48,6 +48,8 @@ module.exports.stamp12Role = stamp12Role;
 // other project wide vars
 var embedColor = '#0099ff'
 module.exports.embedColor = embedColor;
+var announcementEmbedColor = '#8f26ff';
+module.exports.announcementEmbedColor = announcementEmbedColor;
 
 // Common channels
 
