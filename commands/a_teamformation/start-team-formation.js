@@ -70,16 +70,16 @@ module.exports = class StartTeamFormation extends Command {
         // branch between team and hacker
         if (isTeam) {
             dmMessage.setTitle('Team Formation - Team Format');
-            dmMessage.setDescription('We are very exited for you to find your perfect team members! Please copy and paste the following format in your next message. ' +
-                'Try to respond to all the sections! Once you are ready to submit, please react to this message with 🇩 and then send me your information!\n' +
-                'Once you find a hacker, please come back and click the ⛔ emoji.');
-            dmMessage.addField('Format:', 'This \n is a \n format!');
+            dmMessage.setDescription('We are very exited for you to find your perfect team members! \n* Please copy and paste the following format in your next message. ' +
+                '\n* Try to respond to all the sections! \n* Once you are ready to submit, react to this message with 🇩 and then send me your information!\n' +
+                '* Once you find a hacker, please come back and click the ⛔ emoji.');
+            dmMessage.addField('Format:', 'Team Member(s): \nTeam Background: \nObjective: \nFun Fact About Team: \nLooking For: ');
         } else {
             dmMessage.setTitle('Team Formation - Hacker Format');
-            dmMessage.setDescription('We are very exited for you to find your perfect team! Please copy and paste the following format in your next message. ' +
-                'Try to respond to all the sections! Once you are ready to submit, please react to this message with 🇩 and then send me your information!\n' +
-                'Once you find a team, please come back and click the ⛔ emoji.');
-            dmMessage.addField('Format:', 'This \n is a \n format!');
+            dmMessage.setDescription('We are very exited for you to find your perfect team! \n* Please copy and paste the following format in your next message. ' +
+                '\n* Try to respond to all the sections! \n* Once you are ready to submit, react to this message with 🇩 and then send me your information!\n' +
+                '* Once you find a team, please come back and click the ⛔ emoji.');
+            dmMessage.addField('Format:', 'Name: \nSchool: \nPlace of Origin: \nSkills: \nFun Fact: ');
         }
 
         // send message to hacker via DM
