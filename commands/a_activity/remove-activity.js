@@ -46,7 +46,11 @@ module.exports = class RemoveActivity extends Command {
             return;
         }
 
-        await category.children.forEach(channel => channel.delete());
+        var listOfChannels = category.children.array();
+        for(var i = 0; i < listOfChannels.length; i++) {
+            await listOfChannels[i].delete();
+        }
+
         category.delete().catch(console.error);
 
         // create workshop in db
