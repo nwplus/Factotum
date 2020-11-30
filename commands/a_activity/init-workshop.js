@@ -135,8 +135,8 @@ module.exports = class InitWorkshop extends Command {
         // embed message for TA console
         const taEmbed = new Discord.MessageEmbed()
             .setColor(mentorColor)
-            .setTitle('The Wait List')
-            .setDescription('This is the wait list, it will always stay up to date! To get the next hacker that needs help click 🤝');
+            .setTitle('Hackers in need of help waitlist')
+            .setDescription('* Make sure you are on a private voice channel not the general voice channel \m* To get the next hacker that needs help click 🤝');
 
         // send taConsole message and react with emoji
         var taConsole = await taChannel.send(taEmbed);
