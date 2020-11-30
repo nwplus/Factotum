@@ -41,6 +41,14 @@ module.exports = class StartMentors extends Command {
             // Create category
             var mentorCaveCategory = await message.guild.channels.create('Mentors Cave', {type: 'category',  permissionOverwrites: [
                 {
+                    id: discordServices.guestRole,
+                    deny: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: discordServices.everyoneRole,
+                    deny: ['VIEW_CHANNEL'],
+                },
+                {
                     id: discordServices.hackerRole,
                     deny: ['VIEW_CHANNEL'],
                 },
@@ -103,6 +111,14 @@ module.exports = class StartMentors extends Command {
         if (publicHelpCategory === undefined) {
             // create mentor help public channels category
             publicHelpCategory = await message.guild.channels.create('Mentor Help', {type: 'category', permissionOverwrites: [
+                {
+                    id: discordServices.everyoneRole,
+                    deny: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: discordServices.guestRole,
+                    deny: ['VIEW_CHANNEL'],
+                },
                 {
                     id: discordServices.hackerRole,
                     deny: ['VIEW_CHANNEL'],
@@ -287,12 +303,19 @@ module.exports = class StartMentors extends Command {
                             // add new role and emoji to list
                             mentorEmojis.set(reaction.emoji.name, [nameMsgContent, newRole.id]);
 
-                            // add public text channel
-                            message.guild.channels.create(nameMsgContent + '-help', {type: 'text', parent: publicHelpCategory});
-
                             // add to ticket system embed
                             requestTicketMsg.edit(requestTicketMsg.embeds[0].addField('If your question involves ' + nameMsgContent + ':', 'React to this message with ' + reaction.emoji.name));
                             requestTicketMsg.react(reaction.emoji.name);
+
+                            // ask admin if public channel should be created for this role
+                            var promt = await message.channel.send('<@' + user.id + '> Do you want me to create a public text channel for this mentor help role? yes or no?');
+                            await message.channel.awaitMessages(roleNameFilter, {max: 1}).then(msgs => {
+                                if (msgs.first().content.toLowerCase() === 'yes') {
+                                    // add public text channel
+                                    message.guild.channels.create(nameMsg.content + '-help', {type: 'text', parent: publicHelpCategory});
+                                }
+                                msgs.each(msg => msg.delete());
+                            });
 
                             // let user know the action was succesfull
                             message.channel.send('<@' + user.id + '> The role has been added!').then(msg => msg.delete({timeout: 5000}));
