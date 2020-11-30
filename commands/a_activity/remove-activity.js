@@ -76,7 +76,7 @@ module.exports = class RemoveActivity extends Command {
 
         category.delete().catch(console.error);
 
-        // create workop in db
+        // create workshop in db
         firebaseActivity.remove(activityName);
 
         // report success of activity removal
