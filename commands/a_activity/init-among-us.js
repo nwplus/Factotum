@@ -68,6 +68,9 @@ module.exports = class InitAmongUs extends Command {
             var category = message.guild.channels.resolve(categoryChannelKey);
         }
 
+        // change name
+        category.edit({name: '😈' + category.name})
+
 
         // if no activity category then report failure and return
         if (category === undefined) {
@@ -76,13 +79,13 @@ module.exports = class InitAmongUs extends Command {
         }
 
         // add group creation text channel
-        var joinActivityChannel = await message.guild.channels.create(activityName + '-join-activity', {
+        var joinActivityChannel = await message.guild.channels.create('🕵🏽' + 'join-activity', {
             topic: 'This channel is only intended for you to gain access to other channels! Please do not use it for anything else!',
             parent: category,
         });
 
         // add game code channel
-        var gameCodesChannel = await message.guild.channels.create(activityName + '-game-codes', {
+        var gameCodesChannel = await message.guild.channels.create('🎮' + 'game-codes', {
             topic: 'This channel is only intended to send game codes for others to join!',
             parent: category,
             permissionOverwrites: [
@@ -113,6 +116,7 @@ module.exports = class InitAmongUs extends Command {
             '2. Please do not leave games mid-way through.\n' +
             '3. Please do not spam the game code text channel, only send game codes!\n');
         var joinMsg = await joinActivityChannel.send(msgEmbed);
+        joinMsg.pin();
         await joinMsg.react(emoji);
 
         // reactor collector and its filter

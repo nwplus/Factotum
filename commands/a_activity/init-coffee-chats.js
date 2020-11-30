@@ -81,7 +81,7 @@ module.exports = class InitCoffeeChats extends Command {
         await discordServices.addVoiceChannelsToActivity(activityName, numOfGroups, category, message.guild.channels);
 
         // add group creation text channel
-        var joinActivityChannel = await message.guild.channels.create(activityName + '-join-activity', {
+        var joinActivityChannel = await message.guild.channels.create('☕' + 'join-activity', {
             topic: 'This channel is only intended to add your team to the activity list! Please do not use it for anything else!',
             parent: category,
         });

@@ -91,7 +91,7 @@ module.exports = class InitWorkshop extends Command {
         })
 
         // create TA console
-        var taChannel = await message.guild.channels.create(activityName + '-ta-console', {
+        var taChannel = await message.guild.channels.create('🧑🏽‍🏫' + activityName + '-ta-console', {
             type: 'text', parent: category, permissionOverwrites: [
                 {
                     id: discordServices.hackerRole,
@@ -113,7 +113,7 @@ module.exports = class InitWorkshop extends Command {
                     id: discordServices.staffRole,
                     allow: ['VIEW_CHANNEL'],
                 }
-            ]
+            ], topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
         });
 
 
@@ -132,6 +132,8 @@ module.exports = class InitWorkshop extends Command {
         
         // send message
         taChannel.send(consoleEmbed).then((msg) => {
+            msg.pin();
+
             var emojis = ['🏕️', '🏎️', '✍️', '🧑‍🏫'];
 
             emojis.forEach(emoji => msg.react(emoji));
@@ -148,7 +150,7 @@ module.exports = class InitWorkshop extends Command {
                 reaction.users.remove(user.id);
 
                 if (emojiName === emojis[0]) {
-                    commandRegistry.findCommands('distribute-stamp', true)[0].run(message, { activityName: activityName, timeLimit: 20, targetChannelKey: textChannelKey });
+                    commandRegistry.findCommands('distribute-stamp', true)[0].run(message, { activityName: activityName, timeLimit: 60, targetChannelKey: textChannelKey });
                 } else if (emojiName === emojis[1]) {
                     commandRegistry.findCommands('workshop-polls', true)[0].run(message, { activityName: activityName, question: 'speed', targetChannelKey: textChannelKey });
                 } else if (emojiName === emojis[2]) {
@@ -167,12 +169,13 @@ module.exports = class InitWorkshop extends Command {
 
         // send taConsole message and react with emoji
         var taConsole = await taChannel.send(taEmbed);
+        taConsole.pin();
         taConsole.react('🤝');
 
 
         ////// Hacker Side
         // create question and help channel for hackers
-        var helpChannel = await message.guild.channels.create(activityName + '-assistance', { type: 'text', parent: category });
+        var helpChannel = await message.guild.channels.create('🙋🏽' + activityName + '-assistance', { type: 'text', parent: category, topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!' });
 
         // message embed for helpChannel
         const helpEmbed = new Discord.MessageEmbed()
@@ -184,6 +187,7 @@ module.exports = class InitWorkshop extends Command {
 
         // send message with embed and react with emoji
         var helpMessage = await helpChannel.send(helpEmbed);
+        helpMessage.pin();
         await helpMessage.react('🧑🏽‍🏫');
 
         // filter collector and event handler for help emoji from hackers

@@ -44,6 +44,7 @@ module.exports = class StartChannelCreation extends Command {
             .addField('Ready for a channel of your own?', 'Just react this message with any emoji and the bot will ask you a few simple questions.');
         
         var cardMessage = await channel.send(msgEmbed);
+        cardMessage.pin();
 
         // main collector works with any emoji
         var mainCollector = await cardMessage.createReactionCollector(m => true);

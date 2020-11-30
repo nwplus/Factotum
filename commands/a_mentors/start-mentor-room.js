@@ -35,11 +35,11 @@ module.exports = class StartMentors extends Command {
         // ask if they have a mentor category already created! TODO
 
         // check if mentor cave category has not been already created!
-        var possibleMentorCaveCategorys = await message.guild.channels.cache.filter((channel => channel.type === 'category' && channel.name === 'Mentors Cave'));
+        var possibleMentorCaveCategorys = await message.guild.channels.cache.filter((channel => channel.type === 'category' && channel.name === '🧑🏽‍🎓Mentors Cave'));
 
         if (possibleMentorCaveCategorys.array().length === 0) {
             // Create category
-            var mentorCaveCategory = await message.guild.channels.create('Mentors Cave', {type: 'category',  permissionOverwrites: [
+            var mentorCaveCategory = await message.guild.channels.create('🧑🏽‍🎓Mentors Cave', {type: 'category',  permissionOverwrites: [
                 {
                     id: discordServices.guestRole,
                     deny: ['VIEW_CHANNEL'],
@@ -71,17 +71,17 @@ module.exports = class StartMentors extends Command {
             ]});
 
             // general text channel to talk
-            message.guild.channels.create('mentor-banter', {type: 'text', parent: mentorCaveCategory});
+            message.guild.channels.create('✍mentor-banter', {type: 'text', parent: mentorCaveCategory});
 
             // mentor console channel to ask for tags
-            var mentorConsole = await message.guild.channels.create('mentor-console', {type: 'text', parent: mentorCaveCategory});
+            var mentorConsole = await message.guild.channels.create('📝mentor-console', {type: 'text', parent: mentorCaveCategory});
 
             // mentor incoming tickets
-            var incomingTicketsChannel = await message.guild.channels.create('incoming-tickets', {type: 'text', parent: mentorCaveCategory});
+            var incomingTicketsChannel = await message.guild.channels.create('📨incoming-tickets', {type: 'text', parent: mentorCaveCategory});
 
             // create a couple of voice channels for mentors to use
             for (var i = 0; i < 3; i++) {
-                message.guild.channels.create('Room ' + i, {type: 'voice', parent: mentorCaveCategory});
+                message.guild.channels.create('🗣️ Room ' + i, {type: 'voice', parent: mentorCaveCategory});
             }
 
             // report success of activity creation
@@ -89,8 +89,8 @@ module.exports = class StartMentors extends Command {
         } else {
             discordServices.replyAndDelete(message, 'A mentor cave has been found, nothing created!');
             var mentorCaveCategory = possibleMentorCaveCategorys.first();
-            var mentorConsole = mentorCaveCategory.children.find(channel => channel.name === 'mentor-console');
-            var incomingTicketsChannel = mentorCaveCategory.children.find(channel => channel.name === 'incoming-tickets');
+            var mentorConsole = mentorCaveCategory.children.find(channel => channel.name === '📝mentor-console');
+            var incomingTicketsChannel = mentorCaveCategory.children.find(channel => channel.name === '📨incoming-tickets');
             // remove messages in mentor console and incoming tickets
             mentorConsole.bulkDelete(100, true);
             incomingTicketsChannel.bulkDelete(100, true);
@@ -106,11 +106,11 @@ module.exports = class StartMentors extends Command {
 
 
         // check for public mentor help category
-        var publicHelpCategory = await message.guild.channels.cache.find((channel => channel.type === 'category' && channel.name === 'Mentor Help'));
+        var publicHelpCategory = await message.guild.channels.cache.find((channel => channel.type === 'category' && channel.name === '👉🏽👈🏽Mentor Help'));
 
         if (publicHelpCategory === undefined) {
             // create mentor help public channels category
-            publicHelpCategory = await message.guild.channels.create('Mentor Help', {type: 'category', permissionOverwrites: [
+            publicHelpCategory = await message.guild.channels.create('👉🏽👈🏽 Mentor Help', {type: 'category', permissionOverwrites: [
                 {
                     id: discordServices.everyoneRole,
                     deny: ['VIEW_CHANNEL'],
@@ -142,13 +142,13 @@ module.exports = class StartMentors extends Command {
             ]});
 
             // create request ticket channel
-            var requestTicketChannel = await message.guild.channels.create('request-ticket', {type: 'text', parent: publicHelpCategory});
+            var requestTicketChannel = await message.guild.channels.create('🎫request-ticket', {type: 'text', parent: publicHelpCategory});
         } else {
             // look for request ticket channel
-            var requestTicketChannel = await publicHelpCategory.children.find(channel => channel.name === 'request-ticket');
+            var requestTicketChannel = await publicHelpCategory.children.find(channel => channel.name === '🎫request-ticket');
             if (requestTicketChannel === undefined) {
                 // create request ticket channel
-                var requestTicketChannel = await message.guild.channels.create('request-ticket', {type: 'text', parent: publicHelpCategory});
+                var requestTicketChannel = await message.guild.channels.create('🎫request-ticket', {type: 'text', parent: publicHelpCategory});
             }
 
             // delete everything from request ticket channel
@@ -194,6 +194,7 @@ module.exports = class StartMentors extends Command {
 
         // send message
         var mentorConsoleMsg = await mentorConsole.send(mentorEmbed);
+        mentorConsoleMsg.pin();
 
         // react to the message with all the emojis
         mentorEmojis.forEach((value, key) => {
@@ -213,6 +214,7 @@ module.exports = class StartMentors extends Command {
             .addField('For a general ticket:', 'React with ' + requestTicketEmoji);
         
         var requestTicketMsg = await requestTicketChannel.send(requestTicketEmbed);
+        requestTicketMsg.pin();
         requestTicketMsg.react(requestTicketEmoji);
 
 
@@ -312,7 +314,7 @@ module.exports = class StartMentors extends Command {
                             await message.channel.awaitMessages(roleNameFilter, {max: 1}).then(msgs => {
                                 if (msgs.first().content.toLowerCase() === 'yes') {
                                     // add public text channel
-                                    message.guild.channels.create(nameMsg.content + '-help', {type: 'text', parent: publicHelpCategory});
+                                    message.guild.channels.create(nameMsg.content + '-help', {type: 'text', parent: publicHelpCategory, topic: 'For hackers to ask question related to the channel title. Mentors will help you out when they can!'});
                                 }
                                 msgs.each(msg => msg.delete());
                             });

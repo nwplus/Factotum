@@ -16,7 +16,7 @@ module.exports = class NewActivity extends Command {
             args: [
                 {
                     key: 'activityName',
-                    prompt: 'the activity name',
+                    prompt: 'the activity name, can use emojis!',
                     type: 'string',
                 },
             ],
@@ -52,6 +52,14 @@ module.exports = class NewActivity extends Command {
 
         var category = await message.guild.channels.create(activityName, {type: 'category',  permissionOverwrites: [
             {
+                id: discordServices.everyoneRole,
+                deny: ['VIEW_CHANNEL'],
+            },
+            {
+                id: discordServices.guestRole,
+                deny: ['VIEW_CHANNEL'],
+            },
+            {
                 id: discordServices.hackerRole,
                 deny: ['VIEW_CHANNEL'],
             },
@@ -74,10 +82,10 @@ module.exports = class NewActivity extends Command {
         ]});
       
         // create text channel
-        var generalText = await message.guild.channels.create(activityName + '-text', {type: 'text', parent: category,});
+        var generalText = await message.guild.channels.create('🖌️' + 'activity-banter', {type: 'text', parent: category, topic: 'A general banter channel to be used to communicate with other members, mentors, or staff. The !ask command is available for questions.'});
 
         // create general voice
-        var generalVoice = await message.guild.channels.create(activityName + '-general-voice', {type: 'voice', parent: category});
+        var generalVoice = await message.guild.channels.create('🗣️' + 'activity-room', {type: 'voice', parent: category});
 
         // create workshop in db
         firebaseActivity.create(activityName);
@@ -104,14 +112,13 @@ module.exports = class NewActivity extends Command {
             '🏎️ [FOR WORKSHOPS] Will send an embedded message asking how the speed is.\n' +
             '✍️ [FOR WORKSHOPS] Will send an embedded message asking how the difficulty is.\n' +
             '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.\n' + 
-            '🕵🏽 Will make this activity a among us activity!' + 
-            '💼 Will archive the activity, removing all channels except the text channel which will be sent to archive category.'); 
+            '🕵🏽 Will make this activity a among us activity!'); 
 
         // send message
         var msgConsole = await message.channel.send(msgEmbed);
 
         // emojis
-        var emojis = ['🧑🏽‍💼', '☕', '⏫', '⏬', '⛔', '🌬️', '🔃', '👨‍👩‍👧‍👦', '🦜','🏕️','🏎️','✍️','🧑‍🏫', '🕵🏽', '💼'];
+        var emojis = ['🧑🏽‍💼', '☕', '⏫', '⏬', '⛔', '🌬️', '🔃', '👨‍👩‍👧‍👦', '🦜','🏕️','🏎️','✍️','🧑‍🏫', '🕵🏽'];
 
         // guard variables
         var isWorkshop = false;
@@ -185,7 +192,7 @@ module.exports = class NewActivity extends Command {
             } else if (emojiName === emojis[8]) {
                   commandRegistry.findCommands('mshuffle', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             } else if (emojiName === emojis[9]) {
-                  commandRegistry.findCommands('distribute-stamp', true)[0].run(message, {activityName: activityName, timeLimit: 20, targetChannelKey: textChannelKey });
+                  commandRegistry.findCommands('distribute-stamp', true)[0].run(message, {activityName: activityName, timeLimit: 60, targetChannelKey: textChannelKey });
             } else if (emojiName === emojis[10]) {
                   commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'speed', targetChannelKey: textChannelKey });
             } else if (emojiName === emojis[11]) {
@@ -194,10 +201,7 @@ module.exports = class NewActivity extends Command {
                   commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'explanations', targetChannelKey: textChannelKey });
             } else if (emojiName === emojis[13] && !isAmongUs && !isWorkshop && !isCoffeeChats) {
                   isAmongUs = true;
-                  commandRegistry.findCommands('initau', true)[0].run(message, {activityName: activityName, numOfChannels: 3, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id });
-            } else if (emojiName === emojis[14]) {
-                commandRegistry.findCommands('archive', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id });
-                msgConsole.delete({timeout: 3000});
+                  commandRegistry.findCommands('initau', true)[0].run(message, {activityName: activityName, numOfChannels: 3, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             }
         });
     }
