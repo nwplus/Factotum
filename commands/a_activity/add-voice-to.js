@@ -22,12 +22,30 @@ module.exports = class CreatePrivatesFor extends Command {
                     prompt: 'number of private channels',
                     type: 'integer',
                 },
+                {
+                    key: 'categoryChannelKey',
+                    prompt: 'snowflake of the activiti\'s category',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'textChannelKey',
+                    prompt: 'snowflake of the general text channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'voiceChannelKey',
+                    prompt: 'snowflake of the general voice channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
             ],
         });
     }
 
     // Run function -> command body
-    async run(message, {activityName, number}) {
+    async run(message, {activityName, number, categoryChannelKey, textChannelKey, voiceChannelKey}) {
         discordServices.deleteMessage(message);
 
         // make sure command is only used in the admin console
@@ -42,8 +60,13 @@ module.exports = class CreatePrivatesFor extends Command {
         }
 
         // get category
-        var category = await message.guild.channels.cache.find(channel => channel.name === activityName);
+        if (categoryChannelKey === '') {
+            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name === activityName);
+        } else {
+            var category = message.guild.channels.resolve(categoryChannelKey);
+        }
 
+        
         // if no category then report failure and return
         if (category === undefined) {
             // if the category does not excist

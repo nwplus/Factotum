@@ -18,12 +18,30 @@ module.exports = class RemoveActivity extends Command {
                     prompt: 'the activity name',
                     type: 'string',
                 },
+                {
+                    key: 'categoryChannelKey',
+                    prompt: 'snowflake of the activiti\'s category',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'textChannelKey',
+                    prompt: 'snowflake of the general text channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'voiceChannelKey',
+                    prompt: 'snowflake of the general voice channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
             ],
         });
     }
 
     // Run function -> command body
-    async run(message, {activityName}) {
+    async run(message, {activityName, categoryChannelKey, textChannelKey, voiceChannelKey}) {
         discordServices.deleteMessage(message);
 
         // make sure command is only used in the admin console
@@ -37,8 +55,13 @@ module.exports = class RemoveActivity extends Command {
             return;             
         }
  
-        // Create category
-        var category = await message.guild.channels.cache.find(channel => channel.name === activityName);
+        // get category
+        if (categoryChannelKey === '') {
+            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name === activityName);
+        } else {
+            var category = message.guild.channels.resolve(categoryChannelKey);
+        }
+
 
         // check if the category exist if not then report failure and return
         if (category === undefined) {
