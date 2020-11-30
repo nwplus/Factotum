@@ -74,10 +74,10 @@ module.exports = class NewActivity extends Command {
         ]});
       
         // create text channel
-        message.guild.channels.create(activityName + '-text', {type: 'text', parent: category,});
+        var generalText = await message.guild.channels.create(activityName + '-text', {type: 'text', parent: category,});
 
         // create general voice
-        message.guild.channels.create(activityName + '-general-voice', {type: 'voice', parent: category});
+        var generalVoice = await message.guild.channels.create(activityName + '-general-voice', {type: 'voice', parent: category});
 
         // create workshop in db
         firebaseActivity.create(activityName);
@@ -141,7 +141,7 @@ module.exports = class NewActivity extends Command {
                 isWorkshop = true;
 
                 // init workshop command
-                commandRegistry.findCommands('initw', true)[0].run(message, {activityName: activityName});
+                commandRegistry.findCommands('initw', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
 
                 // update embed
                 msgEmbed.addField('Update', 'The activity is now a Workshop!');
@@ -163,37 +163,37 @@ module.exports = class NewActivity extends Command {
                      return;
                  }
 
-                 commandRegistry.findCommands('initcc', true)[0].run(message, {activityName: activityName, numOfGroups: numOfGroups});
+                 commandRegistry.findCommands('initcc', true)[0].run(message, {activityName: activityName, numOfGroups: numOfGroups, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
 
                         // update embed
                   msgEmbed.addField('Update', 'The activity is now a Coffee Chat!');
                   msgConsole.edit(msgEmbed);
             } else if (emojiName === emojis[4]) {
-                  commandRegistry.findCommands('removeactivity', true)[0].run(message, {activityName: activityName});
+                  commandRegistry.findCommands('removeactivity', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
                   msgConsole.delete({timeout: 3000});
             } else if (emojiName === emojis[2]) {
-                  commandRegistry.findCommands('addvoiceto', true)[0].run(message, {activityName: activityName, number: 1});
+                  commandRegistry.findCommands('addvoiceto', true)[0].run(message, {activityName: activityName, number: 1, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             } else if (emojiName === emojis[3]) {
-                  commandRegistry.findCommands('removevoiceto', true)[0].run(message, {activityName: activityName, number: 1});
+                  commandRegistry.findCommands('removevoiceto', true)[0].run(message, {activityName: activityName, number: 1, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             } else if (emojiName === emojis[5]) {
-                  commandRegistry.findCommands('shuffle', true)[0].run(message, {activityName: activityName});
+                  commandRegistry.findCommands('shuffle', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             } else if (emojiName === emojis[6]) {
-                  commandRegistry.findCommands('callback', true)[0].run(message, {activityName: activityName});
+                  commandRegistry.findCommands('callback', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             } else if (emojiName === emojis[7]) {
-                  commandRegistry.findCommands('gshuffle', true)[0].run(message, {activityName: activityName});
+                  commandRegistry.findCommands('gshuffle', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             } else if (emojiName === emojis[8]) {
-                  commandRegistry.findCommands('mshuffle', true)[0].run(message, {activityName: activityName});
+                  commandRegistry.findCommands('mshuffle', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             } else if (emojiName === emojis[9]) {
-                  commandRegistry.findCommands('distribute-stamp', true)[0].run(message, {activityName: activityName, timeLimit: 20});
+                  commandRegistry.findCommands('distribute-stamp', true)[0].run(message, {activityName: activityName, timeLimit: 20, targetChannelKey: textChannelKey });
             } else if (emojiName === emojis[10]) {
-                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'speed'});
+                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'speed', targetChannelKey: textChannelKey });
             } else if (emojiName === emojis[11]) {
-                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'difficulty'});
+                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'difficulty', targetChannelKey: textChannelKey });
             } else if (emojiName === emojis[12]) {
-                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'explanations'});
+                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'explanations', targetChannelKey: textChannelKey });
             } else if (emojiName === emojis[13] && !isAmongUs && !isWorkshop && !isCoffeeChats) {
                   isAmongUs = true;
-                  commandRegistry.findCommands('initau', true)[0].run(message, {activityName: activityName, numOfChannels: 3});
+                  commandRegistry.findCommands('initau', true)[0].run(message, {activityName: activityName, numOfChannels: 3, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             }
         });
     }

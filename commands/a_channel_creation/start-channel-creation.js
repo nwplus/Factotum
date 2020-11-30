@@ -8,7 +8,7 @@ module.exports = class StartChannelCreation extends Command {
     constructor(client) {
         super(client, {
             name: 'startcc',
-            group: 'utility',
+            group: 'a_channel_creation',
             memberName: 'start channel creation',
             description: 'Send a message with emoji collector, for each emoji bot will ask type and other friends invited and create the private channel.',
             guildOnly: true,

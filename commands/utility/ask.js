@@ -28,7 +28,8 @@ module.exports = class AskQuestion extends Command {
         discordServices.deleteMessage(message);
 
         // only memebers with the Hacker tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.attendeeRole))) {
+        if (!discordServices.checkForRole(message.member, discordServices.attendeeRole)) {
+            console.log(discordServices.checkForRole(message.member, discordServices.attendeeRole));
             discordServices.sendMessageToMember(message.member, 'This command is only available for attendees!', true);
             return;
         }
@@ -54,7 +55,7 @@ module.exports = class AskQuestion extends Command {
         curChannel.send(qEmbed).then(async (msg) => {
 
             // list of users currently responding
-            var onResponse = [];
+            var onResponse = new Discord.Collection();
             
             msg.react('🇷');  // respond emoji
             msg.react('✅');  // answered emoji!
@@ -72,26 +73,24 @@ module.exports = class AskQuestion extends Command {
                 // add response to question
                 if (reaction.emoji.name === '🇷') {
                     // make sure user is not already responding
-                    if (onResponse.includes(user.id)) {
+                    if (onResponse.has(user.id)) {
                         return;
                     } else {
-                        onResponse.push(user.id);
+                        onResponse.set(user.id, user.username);
                     }
 
                     // promt the response
-                    var promt = await curChannel.send('<@' + user.id + '> Please send your response within 10 seconds! If you want to cancel write cancel.');
+                    var promt = await curChannel.send('<@' + user.id + '> Please send your response within 15 seconds! If you want to cancel write cancel.');
 
                     // filter and message await only one
                     // only user who emojied this message will be able to add a reply to it
-                    const responseFilter = m => m.author.id === user.id;
-
-                    curChannel.awaitMessages(responseFilter, {max: 1, time: 15000, errors: ['time']}).then( async (msgs) => {
+                    curChannel.awaitMessages(m => m.author.id === user.id, {max: 1, time: 15000, errors: ['time']}).then((msgs) => {
                         var response = msgs.first();
 
                         // if cancel then do nothing
                         if (response.content.toLowerCase() != 'cancel') {
                             // if user has a mentor role, they get a spcial title
-                            if ((await discordServices.checkForRole(response.member, discordServices.mentorRole))) {
+                            if (discordServices.checkForRole(response.member, discordServices.mentorRole)) {
                                 msg.edit(msg.embeds[0].addField('🤓 ' + user.username + ' Responded:', response.content));
                             } else {
                                 // add a field to the message embed with the response
@@ -104,13 +103,13 @@ module.exports = class AskQuestion extends Command {
                         response.delete();
 
                         // remove user from on response list
-                        onResponse.splice(onResponse.indexOf(user.id), 1);
+                        onResponse.delete(user.id);
                     }).catch((msgs) => {
                         promt.delete();
                         curChannel.send('<@' + user.id + '> Time is up! When you are ready to respond, emoji again!').then(msg => msg.delete({timeout: 2000}));
 
                         // remove user from on response list
-                        onResponse.splice(onResponse.indexOf(user.id), 1);
+                        onResponse.delete(user.id);
                     });
                 }
                 // check for checkmark emoji and only user who asked the question
@@ -118,13 +117,12 @@ module.exports = class AskQuestion extends Command {
                     // change color
                     msg.embeds[0].setColor('#80c904');
                     // change title and edit embed
-                    var title = '✅ ANSWERED ' + msg.embeds[0].title;
-                    msg.edit(msg.embeds[0].setTitle(title));
+                    msg.edit(msg.embeds[0].setTitle('✅ ANSWERED ' + msg.embeds[0].title));
                 } 
                 // remove emoji will remove the message
                 else if (reaction.emoji.name === '⛔') {
                     // check that user is staff
-                    if ((await discordServices.checkForRole((await msg.guild.members.fetch(user)), discordServices.staffRole))) {
+                    if (discordServices.checkForRole(msg.guild.member(user), discordServices.staffRole)) {
                         msg.delete();
                     } else {
                         discordServices.sendMessageToMember(user, 'Deleting a question is only available to staff!', true);

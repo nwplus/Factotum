@@ -18,12 +18,30 @@ module.exports = class ActivityCallback extends Command {
                     prompt: 'the workshop name',
                     type: 'string',
                 },
+                {
+                    key: 'categoryChannelKey',
+                    prompt: 'snowflake of the activiti\'s category',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'textChannelKey',
+                    prompt: 'snowflake of the general text channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'voiceChannelKey',
+                    prompt: 'snowflake of the general voice channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
             ],
         });
     }
 
     // Run function -> command body
-    async run(message, {activityName}) {
+    async run(message, {activityName, categoryChannelKey, textChannelKey, voiceChannelKey}) {
         discordServices.deleteMessage(message);
 
         // make sure command is only used in the admin console
@@ -37,8 +55,12 @@ module.exports = class ActivityCallback extends Command {
             return;             
         }
 
-        // get activity category
-        var category = await message.guild.channels.cache.find(channel => channel.name === activityName);
+        // get category
+        if (categoryChannelKey === '') {
+            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName));
+        } else {
+            var category = message.guild.channels.resolve(categoryChannelKey);
+        }
 
         // check if the category exist if not then report failure and return
         if (category === undefined) {
@@ -55,8 +77,13 @@ module.exports = class ActivityCallback extends Command {
             return;
         }
         
-        // get the general voice channel by name
-        var generalVoice = await category.children.find(channel => channel.name === activityName + '-general-voice');
+        // grab general voice and update permission to no speak for attendees
+        if (voiceChannelKey === '') {
+            var generalVoice = await category.children.find(channel => channel.type === 'voice'  && channel.name.endsWith(activityName + '-general-voice'));
+        } else {
+            var generalVoice = message.guild.channels.resolve(voiceChannelKey);
+        }
+
 
         // loop over channels and get all member to move back to main voice channel
         for (var index = 0; index < numberOfChannels; index++) {

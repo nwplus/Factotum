@@ -23,13 +23,31 @@ module.exports = class InitAmongUs extends Command {
                     prompt: 'number of groups to participate in coffee chat',
                     type: 'integer',
                     default: 3,
-                }
+                },
+                {
+                    key: 'categoryChannelKey',
+                    prompt: 'snowflake of the activiti\'s category',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'textChannelKey',
+                    prompt: 'snowflake of the general text channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'voiceChannelKey',
+                    prompt: 'snowflake of the general voice channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
             ],
         });
     }
 
     // Run function -> command body
-    async run(message, {activityName, numOfChannels}) {
+    async run(message, {activityName, numOfChannels, categoryChannelKey, textChannelKey, voiceChannelKey}) {
         discordServices.deleteMessage(message);
         
         // make sure command is only used in the admin console
@@ -43,8 +61,13 @@ module.exports = class InitAmongUs extends Command {
             return;             
         }
         
-        // get activity category
-        var category = await message.guild.channels.cache.find(channel => channel.name === activityName);
+        // get category
+        if (categoryChannelKey === '') {
+            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName));
+        } else {
+            var category = message.guild.channels.resolve(categoryChannelKey);
+        }
+
 
         // if no activity category then report failure and return
         if (category === undefined) {
