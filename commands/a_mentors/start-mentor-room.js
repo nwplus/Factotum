@@ -41,6 +41,14 @@ module.exports = class StartMentors extends Command {
             // Create category
             var mentorCaveCategory = await message.guild.channels.create('Mentors Cave', {type: 'category',  permissionOverwrites: [
                 {
+                    id: discordServices.guestRole,
+                    deny: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: discordServices.everyoneRole,
+                    deny: ['VIEW_CHANNEL'],
+                },
+                {
                     id: discordServices.hackerRole,
                     deny: ['VIEW_CHANNEL'],
                 },
@@ -101,6 +109,14 @@ module.exports = class StartMentors extends Command {
         if (publicHelpCategory === undefined) {
             // create mentor help public channels category
             publicHelpCategory = await message.guild.channels.create('Mentor Help', {type: 'category', permissionOverwrites: [
+                {
+                    id: discordServices.everyoneRole,
+                    deny: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: discordServices.guestRole,
+                    deny: ['VIEW_CHANNEL'],
+                },
                 {
                     id: discordServices.hackerRole,
                     deny: ['VIEW_CHANNEL'],
