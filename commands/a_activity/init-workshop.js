@@ -94,7 +94,7 @@ module.exports = class InitWorkshop extends Command {
         var mentorColor = (await message.guild.roles.fetch(discordServices.mentorRole)).color
 
         //makes ta console for workshop
-        var targetChannel = message.guild.channels.cache.find(channel => channel.name === (activityName + "-ta-console"));
+        var targetChannel = await message.guild.channels.cache.find(channel => channel.name === (activityName + "-ta-console"));
         const consoleEmbed = new Discord.MessageEmbed()
             .setColor(mentorColor)
             .setTitle('Main console for ' + activityName)
