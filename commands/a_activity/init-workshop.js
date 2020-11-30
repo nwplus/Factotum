@@ -224,7 +224,7 @@ module.exports = class InitWorkshop extends Command {
                 discordServices.sendMessageToMember(user, hackerEmbed);
 
                 // update message embed with new user in list
-                taConsole.edit(taConsole.embeds[0].addField('#' + taConsole.embeds[0].fields.length + ' ' + user.username, question));
+                taConsole.edit(taConsole.embeds[0].addField(user.username, question));
 
                 // delete promt and user msg
                 qPromt.delete();

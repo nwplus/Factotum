@@ -118,8 +118,7 @@ module.exports = class AskQuestion extends Command {
                     // change color
                     msg.embeds[0].setColor('#80c904');
                     // change title and edit embed
-                    var title = '✅ ANSWERED ' + msg.embeds[0].title;
-                    msg.edit(msg.embeds[0].setTitle(title));
+                    msg.edit(msg.embeds[0].setTitle('✅ ANSWERED ' + msg.embeds[0].title));
                 } 
                 // remove emoji will remove the message
                 else if (reaction.emoji.name === '⛔') {
