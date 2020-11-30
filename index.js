@@ -38,16 +38,15 @@ bot.registry
     .registerGroup('verification', 'Verification group')
     .registerGroup('utility', 'utility group')
     .registerGroup('a_boothing', 'boothing group for admins')
-    .registerGroup('h_boothing', 'boothing group for hackers')
-    .registerGroup('s_boothing', 'boothing group for sponsorship')
     .registerGroup('a_activity', 'activity group for admins')
-    .registerGroup('h_workshop', 'workshop group for hackers')
-    .registerGroup('m_workshop', 'workshop group for mentors and tas')
     .registerGroup('a_teamformation', 'team formation group for admins')
     .registerGroup('a_mentors', 'mentor group for admins')
+    .registerGroup('a_channel_creation', 'channel creation commands')
+    .registerGroup('a_utility', 'utility commands for admins')
     .registerDefaultGroups()
     .registerDefaultCommands({
         unknownCommand: false,
+        help: false,
     })
     .registerCommandsIn(__dirname + '/commands');
 
