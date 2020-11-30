@@ -40,7 +40,7 @@ module.exports = class InitWorkshop extends Command {
         }
 
         // get category
-        var category = await message.guild.channels.cache.find(channel => channel.name === activityName);
+        var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name === activityName);
 
         // make sure the workshop exists, else return
         if (category === undefined) {
@@ -94,7 +94,7 @@ module.exports = class InitWorkshop extends Command {
         var mentorColor = (await message.guild.roles.fetch(discordServices.mentorRole)).color
 
         //makes ta console for workshop
-        var targetChannel = await message.guild.channels.cache.find(channel => channel.name === (activityName + "-ta-console"));
+        var targetChannel = await category.children.find(channel => channel.name === activityName + "-ta-console");
         const consoleEmbed = new Discord.MessageEmbed()
             .setColor(mentorColor)
             .setTitle('Main console for ' + activityName)
