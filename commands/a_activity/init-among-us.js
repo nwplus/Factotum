@@ -63,7 +63,7 @@ module.exports = class InitAmongUs extends Command {
         
         // get category
         if (categoryChannelKey === '') {
-            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name === activityName);
+            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName));
         } else {
             var category = message.guild.channels.resolve(categoryChannelKey);
         }

@@ -59,7 +59,7 @@ module.exports = class InitWorkshop extends Command {
 
         // get category
         if (categoryChannelKey === '') {
-            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name === activityName);
+            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName));
         } else {
             var category = message.guild.channels.resolve(categoryChannelKey);
         }
@@ -73,7 +73,7 @@ module.exports = class InitWorkshop extends Command {
 
         // grab general voice and update permission to no speak for attendees
         if (voiceChannelKey === '') {
-            var generalVoice = await category.children.find(channel => channel.name === activityName + '-general-voice');
+            var generalVoice = await category.children.find(channel.type === 'voice'  && channel.name.endsWith(activityName + '-general-voice'));
         } else {
             var generalVoice = message.guild.channels.resolve(voiceChannelKey);
         }
