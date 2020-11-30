@@ -83,12 +83,14 @@ module.exports = class StartMentors extends Command {
             var mentorCaveCategory = possibleMentorCaveCategorys.first();
             var mentorConsole = mentorCaveCategory.children.find(channel => channel.name === 'mentor-console');
             var incomingTicketsChannel = mentorCaveCategory.children.find(channel => channel.name === 'incoming-tickets');
-            // remove messages in mentor console
+            // remove messages in mentor console and incoming tickets
             mentorConsole.bulkDelete(100, true);
+            incomingTicketsChannel.bulkDelete(100, true);
         }
 
         // if we couldnt find the mentor console channel ask for the name of the channel!   
-        if (mentorConsole === undefined) {
+        if (mentorConsole === undefined || incomingTicketsChannel === undefined) {
+            discordServices.replyAndDelete(message, 'The mentor cave is already created but is missing the mentor-console or incoming-tickets text channels. Please fix and try again.');
             return;
             // TODO ask for name of channel and fetch it
         }
@@ -132,6 +134,9 @@ module.exports = class StartMentors extends Command {
                 // create request ticket channel
                 var requestTicketChannel = await message.guild.channels.create('request-ticket', {type: 'text', parent: publicHelpCategory});
             }
+
+            // delete everything from request ticket channel
+            requestTicketChannel.bulkDelete(100, true);
         }
 
         
@@ -158,8 +163,8 @@ module.exports = class StartMentors extends Command {
         const mentorEmbed = new Discord.MessageEmbed()
             .setColor(( await message.guild.roles.resolve(discordServices.mentorRole)).color)
             .setTitle('Mentor Role Console')
-            .setDescription('Hi mentor! Thank you for being here, please read over all the available roles. And choose those you would feel ' + 
-            'confortable answering questions for. When someone sends in a help ticket, and has specificed one of your roles, you will get pinged!');
+            .setDescription('Hi mentor! Thank you for being here. \n* Please read over all the available roles. \n* Choose those you would feel ' + 
+            'comfortable answering questions for. \n* When someone sends a help ticket, and has specificed one of your roles, you will get pinged!');
 
         // mentor emojis with title, we will use a map, 
         // key :  emoji name, 
@@ -202,7 +207,7 @@ module.exports = class StartMentors extends Command {
         
         if (initialMentorRoles.array().length != 0) {
             // let user know we found roles
-            message.channel.send('<@' + message.author.id + '> I have found Mentor roles already clreated, please react to each role with the corresponding emoji!').then(msg => msg.delete({timeout: 8000}));
+            message.channel.send('<@' + message.author.id + '> I have found Mentor roles already created, please react to each role with the corresponding emoji!').then(msg => msg.delete({timeout: 8000}));
         }
 
         // for each found role, ask what emoji they want to use for it!
@@ -251,7 +256,10 @@ module.exports = class StartMentors extends Command {
             const roleNameFilter = m => m.author.id === user.id;
 
             message.channel.awaitMessages(roleNameFilter, {max: 1}).then(msgs => {
-                var nameMsg = msgs.first();
+                var nameMsgContent = msgs.first().content;
+
+                msgs.first().delete();
+                roleNameMsg.delete();
 
                 message.channel.send('<@' + user.id + '> Please react to this message with the associated emoji!').then(msg => {
                     const emojiFilter = (r, u) => u.id === user.id;
@@ -261,29 +269,29 @@ module.exports = class StartMentors extends Command {
 
                         // make sure the emoji is not in use already!
                         if (mentorEmojis.has(reaction.emoji.name)) {
-                            message.channel.send('<@' + user.id + '> This emoji is already in play! Please try again!').then(msg => msg.delete({timeout: 5000}));
+                            message.channel.send('<@' + user.id + '> This emoji is already in use! Please try again!').then(msg => msg.delete({timeout: 5000}));
                         } else {
                             // add role to mentor embed
                             // update embed
-                            mentorConsoleMsg.edit(mentorConsoleMsg.embeds[0].addField(nameMsg.content, 'Click the ' + reaction.emoji.name + ' emoji!'));
+                            mentorConsoleMsg.edit(mentorConsoleMsg.embeds[0].addField(nameMsgContent, 'Click the ' + reaction.emoji.name + ' emoji!'));
                             mentorConsoleMsg.react(reaction.emoji.name);
 
                             // add role to server
                             var newRole = await message.guild.roles.create({
                                 data: {
-                                    name: 'M-' + nameMsg.content,
+                                    name: 'M-' + nameMsgContent,
                                     color: 'ORANGE',
                                 }
                             });
 
                             // add new role and emoji to list
-                            mentorEmojis.set(reaction.emoji.name, [nameMsg.content, newRole.id]);
+                            mentorEmojis.set(reaction.emoji.name, [nameMsgContent, newRole.id]);
 
                             // add public text channel
-                            message.guild.channels.create(nameMsg.content + '-help', {type: 'text', parent: publicHelpCategory});
+                            message.guild.channels.create(nameMsgContent + '-help', {type: 'text', parent: publicHelpCategory});
 
                             // add to ticket system embed
-                            requestTicketMsg.edit(requestTicketMsg.embeds[0].addField('If your question involves ' + nameMsg.content + ':', 'React to this message with ' + reaction.emoji.name));
+                            requestTicketMsg.edit(requestTicketMsg.embeds[0].addField('If your question involves ' + nameMsgContent + ':', 'React to this message with ' + reaction.emoji.name));
                             requestTicketMsg.react(reaction.emoji.name);
 
                             // let user know the action was succesfull
@@ -291,8 +299,6 @@ module.exports = class StartMentors extends Command {
                         }
                         
                         // delete all messages involved with this process
-                        roleNameMsg.delete();
-                        nameMsg.delete();
                         msg.delete();
                     });
                 });
@@ -313,11 +319,11 @@ module.exports = class StartMentors extends Command {
 
             discordServices.addRoleToMember(mbr, role);
 
-            mentorConsole.send('<@' + user.id + '> You have been granted the ' + mentorEmojis.get(reaction.emoji.name)[0] + ' role!');
+            mentorConsole.send('<@' + user.id + '> You have been granted the ' + mentorEmojis.get(reaction.emoji.name)[0] + ' role!').then(msg => msg.delete({timeout: 3000}));
         });
 
-        ////// hacker request ticket collector
 
+        ////// hacker request ticket collector
         // count of tickets created
         var ticketCount = 0;
 
@@ -350,7 +356,7 @@ module.exports = class StartMentors extends Command {
                     // mentor side ticket embed
                     const mentorTicketEmbed = new Discord.MessageEmbed()
                         .setColor(discordServices.embedColor)
-                        .setTitle('A new question has been asked!')
+                        .setTitle('New Ticket! - ' + ticketCount)
                         .setDescription(hackerTicketContent)
                         .addField('They are requesting:', '<@&' + mentorRoleID + '>')
                         .addField('Can you help them?', 'If so, react to this message with 🤝.');
@@ -389,7 +395,7 @@ module.exports = class StartMentors extends Command {
                                 var reactionCount = 0;
                                 var maxReactions = hackerTicketMentions.members.array().length + 2;
 
-                                msg.react('👋🏽');
+                                await msg.react('👋🏽');
                                 const loseAccessCollector = await msg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '👋🏽', {max: maxReactions});
                                 
                                 loseAccessCollector.on('collect', async (reaction, user) => {
