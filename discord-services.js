@@ -116,13 +116,8 @@ module.exports.incomingReportChannel = incomingReportChannel;
 
 
 // Checks if the memeber has a role, returns true if it does
-async function checkForRole(member, role) {
-    var hasRole = await member.roles.cache.get(role);
-    if(hasRole != undefined) {
-        return true;
-    } else {
-        return false;
-    }
+function checkForRole(member, role) {
+    return member.roles.cache.has(role);
 }
 module.exports.checkForRole = checkForRole;
 

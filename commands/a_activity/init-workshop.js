@@ -236,12 +236,12 @@ module.exports = class InitWorkshop extends Command {
         // add reacton to get next in this message!
         const getNextCollector = taConsole.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🤝');
 
-        getNextCollector.on('collect', async (reaction, user) => {
+        getNextCollector.on('collect', (reaction, user) => {
             // remove the reaction
             reaction.users.remove(user.id);
 
             // grab the ta and their voice channel
-            var ta = await message.guild.members.fetch(user.id);
+            var ta = message.guild.member(user.id);
             var taVoice = ta.voice.channel;
 
             // check that the ta is in a voice channel
