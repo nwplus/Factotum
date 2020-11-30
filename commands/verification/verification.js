@@ -18,6 +18,7 @@ module.exports = class Verificaiton extends Command {
                     key: 'email',
                     prompt: 'Please provide your email address',
                     type: 'string',
+                    default: '',
                 },
                 
             ],
@@ -29,7 +30,7 @@ module.exports = class Verificaiton extends Command {
         discordServices.deleteMessage(message);
 
         // Make sure it is only used in the welcome channel
-        if (message.channel.name != 'welcome') {
+        if (message.channel.id != discordServices.welcomeChannel) {
             discordServices.sendMessageToMember(message.member, 'Hi, the !verify command is only available in the welcome channel!', true);
             return;
         }
@@ -37,6 +38,12 @@ module.exports = class Verificaiton extends Command {
         if (!(await discordServices.checkForRole(message.member, discordServices.guestRole))) {
             discordServices.sendMessageToMember(message.member, 'Hi there, it seems you have tried to verify your email when you are ' +
             'already more then a guest. No need to do it agian!', true);
+            return;
+        }
+
+        // let user know he has used the command incorrectly and exit
+        if (email === '') {
+            discordServices.sendMessageToMember(message.author, 'You have used the verify command incorrectly! \nPlease write your email after the command like this: !verify email@gmail.com');
             return;
         }
 
@@ -51,7 +58,7 @@ module.exports = class Verificaiton extends Command {
                 discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.hackerRole);
                 discordServices.addRoleToMember(message.member,discordServices.stamp0Role);
                 discordServices.discordLog(message.guild, "Verified email " + email +
-                    " successfully and he is now a hacker!");
+                    " successfully and they is now a hacker!");
                 break;
             case firebaseServices.status.HACKER_IN_USE:
                 discordServices.sendMessageToMember(message.member, 'Hi there, it seems the email you tried to verify with is already in use! Please make ' +

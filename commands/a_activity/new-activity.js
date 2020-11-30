@@ -43,7 +43,7 @@ module.exports = class NewActivity extends Command {
         activityName = activityName.split(' ').join('-').trim();
 
         // remove all characters except numbers, letters and -
-        activityName = activityName.replace(/[^0-9a-zA-Z-]/g, '');
+        activityName = activityName.replace(/[^0-9a-zA-Z-]/g, '').toLowerCase();
 
       
       

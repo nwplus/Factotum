@@ -18,6 +18,7 @@ module.exports = class Attendace extends Command {
                     key: 'email',
                     prompt: 'Please provide your email address',
                     type: 'string',
+                    default: '',
                 },
                 
             ],
@@ -29,13 +30,19 @@ module.exports = class Attendace extends Command {
         discordServices.deleteMessage(message);
 
         // make sure command is only used in the attend-channel channel
-        if (message.channel.name != 'attend-channel') {
+        if (message.channel.id != discordServices.attendChannel) {
             discordServices.sendMessageToMember(message.member, 'Hi there, the !attend command is only available in the attend-channel channel.', true);
             return;   
         }
         // only memebers with the Hacker tag can run this command!
         if (!(await discordServices.checkForRole(message.member, discordServices.hackerRole))) {
             discordServices.sendMessageToMember(message.member, 'Hi there, it seems you are already marked as attendee, or you do not need to be marked as attendee. Happy hacking!', true);
+            return;
+        }
+
+        // let user know he has used the command incorrectly and exit
+        if (email === '') {
+            discordServices.sendMessageToMember(message.author, 'You have used the attend command incorrectly! \nPlease write your email after the command like this: !attend email@gmail.com');
             return;
         }
         
