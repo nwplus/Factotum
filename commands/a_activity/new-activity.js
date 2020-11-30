@@ -192,7 +192,7 @@ module.exports = class NewActivity extends Command {
             } else if (emojiName === emojis[8]) {
                   commandRegistry.findCommands('mshuffle', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             } else if (emojiName === emojis[9]) {
-                  commandRegistry.findCommands('distribute-stamp', true)[0].run(message, {activityName: activityName, timeLimit: 20, targetChannelKey: textChannelKey });
+                  commandRegistry.findCommands('distribute-stamp', true)[0].run(message, {activityName: activityName, timeLimit: 60, targetChannelKey: textChannelKey });
             } else if (emojiName === emojis[10]) {
                   commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'speed', targetChannelKey: textChannelKey });
             } else if (emojiName === emojis[11]) {
