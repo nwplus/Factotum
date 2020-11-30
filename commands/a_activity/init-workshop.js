@@ -52,7 +52,7 @@ module.exports = class InitWorkshop extends Command {
             return;
         }
         // only memebers with the Hacker tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'You do not have permission for this command, only staff can use it!');
             return;
         }

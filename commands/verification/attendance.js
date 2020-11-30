@@ -35,7 +35,7 @@ module.exports = class Attendace extends Command {
             return;   
         }
         // only memebers with the Hacker tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.hackerRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.hackerRole))) {
             discordServices.sendMessageToMember(message.member, 'Hi there, it seems you are already marked as attendee, or you do not need to be marked as attendee. Happy hacking!', true);
             return;
         }

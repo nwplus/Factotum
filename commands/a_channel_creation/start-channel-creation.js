@@ -19,7 +19,7 @@ module.exports = class StartChannelCreation extends Command {
         discordServices.deleteMessage(message);
 
         // can only be called by staff
-        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'Hey there, the !startcc command is only for staff!');
             return;
         }

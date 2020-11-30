@@ -50,7 +50,7 @@ module.exports = class MentorShuffle extends Command {
             return;   
         }
         // only memebers with the staff tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
             return;             
         }
@@ -87,7 +87,7 @@ module.exports = class MentorShuffle extends Command {
 
         // get members in general voice channel
         var mentors = await generalVoice.members.filter(async member => {
-            return await discordServices.checkForRole(member, discordServices.mentorRole);
+            return discordServices.checkForRole(member, discordServices.mentorRole);
         });
 
         // get channels

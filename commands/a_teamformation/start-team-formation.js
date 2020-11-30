@@ -19,7 +19,7 @@ module.exports = class StartTeamFormation extends Command {
         discordServices.deleteMessage(message);
 
         // can only be called my staff
-        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'Hey there, the !starttf command is only for staff!');
             return;
         }

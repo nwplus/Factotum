@@ -35,7 +35,7 @@ module.exports = class Verificaiton extends Command {
             return;
         }
         // Make sure only guests can call this command
-        if (!(await discordServices.checkForRole(message.member, discordServices.guestRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.guestRole))) {
             discordServices.sendMessageToMember(message.member, 'Hi there, it seems you have tried to verify your email when you are ' +
             'already more then a guest. No need to do it agian!', true);
             return;

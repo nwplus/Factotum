@@ -31,7 +31,7 @@ module.exports = class CreatePrivates extends Command {
             return;
         }
         // only memebers with the Attendee tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'This command can only be ran by staff!');
             return;
         }
