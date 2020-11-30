@@ -1,5 +1,4 @@
 
-const { Command } = require('discord.js-commando');
 const firebaseActivity = require('./firebase-services/firebase-services-activities');
 
 // Available Roles
@@ -47,10 +46,22 @@ module.exports.stamp11Role = stamp11Role;
 module.exports.stamp12Role = stamp12Role;
 
 // other project wide vars
-var embedColor = '#0099ff'
+var embedColor = '#26fff4';
 module.exports.embedColor = embedColor;
+var questionEmbedColor = '#f4ff26';
+module.exports.questionEmbedColor = questionEmbedColor;
+var announcementEmbedColor = '#8f26ff';
+module.exports.announcementEmbedColor = announcementEmbedColor;
+var tfTeamEmbedColor = '#1929ff';
+module.exports.tfTeamEmbedColor = tfTeamEmbedColor;
+var tfHackerEmbedColor = '#ff33f1';
+module.exports.tfHackerEmbedColor = tfHackerEmbedColor;
 
 // Common channels
+
+// announcement channel
+var announcementChannel = '770353479905968138';
+module.exports.announcementChannel = announcementChannel;
 
 // where hackers join the wait list to talk to a sponsor
 // at the moment its only one, planned to extend to multiple
@@ -164,7 +175,7 @@ function isAdminConsole(channel) {
 module.exports.isAdminConsole = isAdminConsole;
 
 // will add given number of voice channels to the given activity, the category object of the activity is necessary
-async function addVoiceChannelsToActivity(activityName, number, category, channelManager) {
+async function addVoiceChannelsToActivity(activityName, number, category, channelManager, maxUsers = 0) {
     // udpate db and get total number of channels
     var total = await firebaseActivity.addVoiceChannels(activityName, number);
 
@@ -195,8 +206,8 @@ async function addVoiceChannelsToActivity(activityName, number, category, channe
                 id: staffRole,
                 allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
             }
-        ]
-        }).catch(console.error);
+        ],
+        userLimit: maxUsers === 0 ? undefined : maxUsers}).catch(console.error);
     }
 
     return total;
