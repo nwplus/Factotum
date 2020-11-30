@@ -132,6 +132,8 @@ module.exports = class InitWorkshop extends Command {
         
         // send message
         taChannel.send(consoleEmbed).then((msg) => {
+            msg.pin();
+
             var emojis = ['🏕️', '🏎️', '✍️', '🧑‍🏫'];
 
             emojis.forEach(emoji => msg.react(emoji));
@@ -167,6 +169,7 @@ module.exports = class InitWorkshop extends Command {
 
         // send taConsole message and react with emoji
         var taConsole = await taChannel.send(taEmbed);
+        taConsole.pin();
         taConsole.react('🤝');
 
 
@@ -184,6 +187,7 @@ module.exports = class InitWorkshop extends Command {
 
         // send message with embed and react with emoji
         var helpMessage = await helpChannel.send(helpEmbed);
+        helpMessage.pin();
         await helpMessage.react('🧑🏽‍🏫');
 
         // filter collector and event handler for help emoji from hackers

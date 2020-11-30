@@ -194,6 +194,7 @@ module.exports = class StartMentors extends Command {
 
         // send message
         var mentorConsoleMsg = await mentorConsole.send(mentorEmbed);
+        mentorConsoleMsg.pin();
 
         // react to the message with all the emojis
         mentorEmojis.forEach((value, key) => {
@@ -213,6 +214,7 @@ module.exports = class StartMentors extends Command {
             .addField('For a general ticket:', 'React with ' + requestTicketEmoji);
         
         var requestTicketMsg = await requestTicketChannel.send(requestTicketEmbed);
+        requestTicketMsg.pin();
         requestTicketMsg.react(requestTicketEmoji);
 
 

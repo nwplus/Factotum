@@ -116,6 +116,7 @@ module.exports = class InitAmongUs extends Command {
             '2. Please do not leave games mid-way through.\n' +
             '3. Please do not spam the game code text channel, only send game codes!\n');
         var joinMsg = await joinActivityChannel.send(msgEmbed);
+        joinMsg.pin();
         await joinMsg.react(emoji);
 
         // reactor collector and its filter
