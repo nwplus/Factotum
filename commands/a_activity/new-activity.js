@@ -74,10 +74,10 @@ module.exports = class NewActivity extends Command {
         ]});
       
         // create text channel
-        message.guild.channels.create(activityName + '-text', {type: 'text', parent: category,});
+        var generalText = await message.guild.channels.create(activityName + '-text', {type: 'text', parent: category,});
 
         // create general voice
-        message.guild.channels.create(activityName + '-general-voice', {type: 'voice', parent: category});
+        var generalVoice = await message.guild.channels.create(activityName + '-general-voice', {type: 'voice', parent: category});
 
         // create workshop in db
         firebaseActivity.create(activityName);
@@ -141,7 +141,7 @@ module.exports = class NewActivity extends Command {
                 isWorkshop = true;
 
                 // init workshop command
-                commandRegistry.findCommands('initw', true)[0].run(message, {activityName: activityName});
+                commandRegistry.findCommands('initw', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
 
                 // update embed
                 msgEmbed.addField('Update', 'The activity is now a Workshop!');

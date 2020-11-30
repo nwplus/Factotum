@@ -18,23 +18,38 @@ module.exports = class DistributeStamp extends Command {
                     key: 'question',
                     prompt: 'what are you polling for?',
                     type: 'string',
-                }
+                },
+                {
+                    key: 'targetChannelKey',
+                    prompt: 'what channel is the poll being sent to? in snowflake',
+                    type: 'string',
+                    default: '',
+                },
             ],
         });
     }
 
-    async run(message, {activityName,question}) {
+    async run(message, {activityName, question, targetChannelKey}) {
         //doesn't run if it is called by someone who is not staff nor admin or if it is not called in admin console
         if (!await(discordServices.checkForRole(message.member,discordServices.adminRole))) {
             discordServices.replyAndDelete(message, 'You do not have permission for this command, only admins can use it!');
             return;
-        } else if (!discordServices.isAdminConsole) {
+        }
+        if (!discordServices.isAdminConsole(message.channel)) {
             discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
             return;
         }
     
-        //sends embedded message to the activity's text channel
-        var targetChannel = message.guild.channels.cache.find(channel => channel.name === (activityName + "-text"));
+    //sends embedded message to the activity's text channel
+        // grab channel, depending on if targetChannelKey was given
+        if (targetChannelKey === '') {
+            var targetChannel = message.guild.channels.cache.find(channel => channel.type === 'text' && channel.name === (activityName + "-text"));
+        } else {
+            var targetChannel = message.guild.channels.resolve(targetChannelKey);
+        }
+        
+
+        // create embed depending on the type of poll needed
         var qEmbed;
         if (question === 'speed') { 
             qEmbed = new Discord.MessageEmbed()
@@ -49,19 +64,21 @@ module.exports = class DistributeStamp extends Command {
                 .setColor(discordServices.embedColor)
                 .setTitle('Please react ' + '🐢' + ' if the explanations need improving, ' + '🐇' + ' if the explanations are well done, or ' + '🐶' + ' if they are meh. Make sure to ask for help if you need it!');
         }
+
+        // send message
         targetChannel.send(qEmbed).then((msg) => {
-            const emojiFilter = (reaction,user) => user.id != msg.author.id;
             let emoji1 = '🐢';
             let emoji2 = '🐇';
             let emoji3 = '🐶';
             msg.react(emoji1);
             msg.react(emoji2);
             msg.react(emoji3);
-            const collector = msg.createReactionCollector(emojiFilter, {time: (1000 * 300)});
+
+            const collector = msg.createReactionCollector((reaction, user) => !user.bot, {time: (1000 * 300)});
 
             //edits the embedded message to notify people when it stops collecting reacts
             collector.on('end', collected => {
-                if (msg.guild.channels.cache.find(channel => channel.name === targetChannel.name)) {
+                if (!targetChannel.deleted) {
                     msg.edit(qEmbed.setTitle('Thanks for responding!'));
                 }
             })

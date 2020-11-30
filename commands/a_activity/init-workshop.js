@@ -19,13 +19,31 @@ module.exports = class InitWorkshop extends Command {
                     key: 'activityName',
                     prompt: 'the workshop name',
                     type: 'string',
-                }
+                },
+                {
+                    key: 'categoryChannelKey',
+                    prompt: 'snowflake of the activiti\'s category',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'textChannelKey',
+                    prompt: 'snowflake of the general text channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'voiceChannelKey',
+                    prompt: 'snowflake of the general voice channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
             ],
         });
     }
 
     // Run function -> command body
-    async run(message, { activityName }) {
+    async run(message, { activityName, categoryChannelKey, textChannelKey, voiceChannelKey}) {
         discordServices.deleteMessage(message);
 
         // make sure command is only used in the admin console
@@ -40,7 +58,12 @@ module.exports = class InitWorkshop extends Command {
         }
 
         // get category
-        var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name === activityName);
+        if (categoryChannelKey === '') {
+            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name === activityName);
+        } else {
+            var category = message.guild.channels.resolve(categoryChannelKey);
+        }
+        
 
         // make sure the workshop exists, else return
         if (category === undefined) {
@@ -49,7 +72,12 @@ module.exports = class InitWorkshop extends Command {
         }
 
         // grab general voice and update permission to no speak for attendees
-        var generalVoice = await category.children.find(channel => channel.name === activityName + '-general-voice');
+        if (voiceChannelKey === '') {
+            var generalVoice = await category.children.find(channel => channel.name === activityName + '-general-voice');
+        } else {
+            var generalVoice = message.guild.channels.resolve(voiceChannelKey);
+        }
+        
         generalVoice.updateOverwrite(discordServices.attendeeRole, {
             SPEAK: false
         });
@@ -61,8 +89,6 @@ module.exports = class InitWorkshop extends Command {
             SPEAK: true,
             MOVE_MEMBERS: true,
         })
-
-        firebaseWorkshops.initWorkshop(activityName);
 
         // create TA console
         var taChannel = await message.guild.channels.create(activityName + '-ta-console', {
@@ -122,13 +148,13 @@ module.exports = class InitWorkshop extends Command {
                 reaction.users.remove(user.id);
 
                 if (emojiName === emojis[0]) {
-                    commandRegistry.findCommands('distribute-stamp', true)[0].run(message, { activityName: activityName, timeLimit: 20 });
+                    commandRegistry.findCommands('distribute-stamp', true)[0].run(message, { activityName: activityName, timeLimit: 20, targetChannelKey: textChannelKey });
                 } else if (emojiName === emojis[1]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].run(message, { activityName: activityName, question: 'speed' });
+                    commandRegistry.findCommands('workshop-polls', true)[0].run(message, { activityName: activityName, question: 'speed', targetChannelKey: textChannelKey });
                 } else if (emojiName === emojis[2]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].run(message, { activityName: activityName, question: 'difficulty' });
+                    commandRegistry.findCommands('workshop-polls', true)[0].run(message, { activityName: activityName, question: 'difficulty', targetChannelKey: textChannelKey });
                 } else if (emojiName === emojis[3]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].run(message, { activityName: activityName, question: 'explanations' });
+                    commandRegistry.findCommands('workshop-polls', true)[0].run(message, { activityName: activityName, question: 'explanations', targetChannelKey: textChannelKey });
                 }
             });
         })
@@ -233,7 +259,7 @@ module.exports = class InitWorkshop extends Command {
             // get next user
             var hackerKey = waitlist.firstKey();
             waitlist.delete(hackerKey);
-            var hacker = await message.guild.members.fetch(hackerKey);
+            var hacker = message.guild.member(hackerKey);
 
             // if status mentor in use there are no hackers in list
             if (hacker === undefined) {
