@@ -65,7 +65,7 @@ module.exports = class InitWorkshop extends Command {
         firebaseWorkshops.initWorkshop(activityName);
 
         // create TA console
-        var taChannel = await message.guild.channels.create(activityName + '-TA-console', {
+        var taChannel = await message.guild.channels.create(activityName + '-ta-console', {
             type: 'text', parent: category, permissionOverwrites: [
                 {
                     id: discordServices.hackerRole,
@@ -90,11 +90,11 @@ module.exports = class InitWorkshop extends Command {
             ]
         });
 
+
+        ////// TA Side
         // embed color for mentors
         var mentorColor = (await message.guild.roles.fetch(discordServices.mentorRole)).color
-
-        //makes ta console for workshop
-        var targetChannel = await category.children.find(channel => channel.name === activityName + "-ta-console");
+        
         const consoleEmbed = new Discord.MessageEmbed()
             .setColor(mentorColor)
             .setTitle('Main console for ' + activityName)
@@ -103,12 +103,14 @@ module.exports = class InitWorkshop extends Command {
                 '🏎️ Will send an embedded message asking how the speed is.\n' +
                 '✍️ Will send an embedded message asking how the difficulty is.\n' +
                 '🧑‍🏫 Will send an embedded message asking how good the explanations are.');
+        
         // send message
-        targetChannel.send(consoleEmbed).then((msg) => {
+        taChannel.send(consoleEmbed).then((msg) => {
             var emojis = ['🏕️', '🏎️', '✍️', '🧑‍🏫'];
-            const emojiFilter = (reaction, user) => user.bot != true && emojis.includes(reaction.emoji.name);
+
             emojis.forEach(emoji => msg.react(emoji));
-            const collector = msg.createReactionCollector(emojiFilter);
+
+            const collector = msg.createReactionCollector((reaction, user) => !user.bot && emojis.includes(reaction.emoji.name));
 
             collector.on('collect', async (reaction, user) => {
                 var commandRegistry = this.client.registry;
@@ -131,17 +133,18 @@ module.exports = class InitWorkshop extends Command {
             });
         })
 
-
         // embed message for TA console
         const taEmbed = new Discord.MessageEmbed()
             .setColor(mentorColor)
             .setTitle('Hackers in need of help waitlist')
-            .setDescription('* Make sure you are on a private voice channel not the general voice channel \m* To get the next hacker that needs help click 🤝');
+            .setDescription('* Make sure you are on a private voice channel not the general voice channel \n* To get the next hacker that needs help click 🤝');
 
         // send taConsole message and react with emoji
         var taConsole = await taChannel.send(taEmbed);
         taConsole.react('🤝');
 
+
+        ////// Hacker Side
         // create question and help channel for hackers
         var helpChannel = await message.guild.channels.create(activityName + '-assistance', { type: 'text', parent: category });
 
@@ -158,61 +161,54 @@ module.exports = class InitWorkshop extends Command {
         await helpMessage.react('🧑🏽‍🏫');
 
         // filter collector and event handler for help emoji from hackers
-        const helpFilter = (reaction, user) => user.bot === false && reaction.emoji.name === '🧑🏽‍🏫';
+        const helpCollector = helpMessage.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🧑🏽‍🏫');
 
-        const helpCollector = helpMessage.createReactionCollector(helpFilter);
+        // wait list Collection
+        // key -> user id
+        // value -> username
+        const waitlist = new Discord.Collection();
 
         helpCollector.on('collect', async (reaction, user) => {
             // remove the emoji
             reaction.users.remove(user.id);
 
-            // collect the question the hacker has
-            const questionFilter = m => m.author.id === user.id;
+            // check that the user is not already on the wait list
+            if (waitlist.has(user.id)) {
+                discordServices.sendMessageToMember(user, 'You are already on the TA wait list! A TA will get to you soon!', true);
+                return;
+            } else {
+                var position = waitlist.array().length;
+                // add user to wait list
+                waitlist.set(user.id, user.username);
+            }
 
+            // collect the question the hacker has
             var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 10 seconds to respond');
 
-            helpChannel.awaitMessages(questionFilter, { max: 1, time: 10000,error:['time'] }).then(async msgs => {
+            helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 10000,error:['time'] }).then(async msgs => {
                 // get question
                 var question = msgs.first().content;
 
-                // add hacker to list via firebase
-                var response = await firebaseWorkshops.addHacker(activityName, user.username);
-                var status = response[0];
-                var position = response[1];
+                const hackerEmbed = new Discord.MessageEmbed()
+                    .setColor(discordServices.embedColor)
+                    .setTitle('Hey there! We got you signed up to talk to a TA!')
+                    .setDescription('You are number: ' + position + ' in the wait list.')
+                    .addField('JOIN THE VOICE CHANNEL!', 'Sit tight in the voice channel. If you are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!');
 
-                // If the user is alredy in the waitlist then tell him that
-                if (status === firebaseServices.status.HACKER_IN_USE) {
-                    discordServices.sendMessageToMember(user, 'Hey there! It seems you are already on the wait list, hold tight while a mentor gets to you.', true);
-                } else if (status === firebaseServices.status.FAILURE) {
-                    discordServices.sendMessageToMember(user, 'Hey there! This command can not be used because the TA functionality is not in use for this workshop', true);
-                } else {
+                discordServices.sendMessageToMember(user, hackerEmbed);
 
-                    const hackerEmbed = new Discord.MessageEmbed()
-                        .setColor(discordServices.embedColor)
-                        .setTitle('Hey there! We got you signed up to talk to a TA!')
-                        .setDescription('You are number: ' + position + ' in the wait list.')
-                        .addField('JOIN THE VOICE CHANNEL!', 'Sit tight in the voice channel. If you are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!');
-
-                    discordServices.sendMessageToMember(user, hackerEmbed);
-
-                    // update message embed with new user in list
-                    var embed = taConsole.embeds[0];
-                    taConsole.edit(embed.addField('#' + embed.fields.length + ' ' + user.username, question));
-                }
+                // update message embed with new user in list
+                taConsole.edit(taConsole.embeds[0].addField('#' + taConsole.embeds[0].fields.length + ' ' + user.username, question));
 
                 // delete promt and user msg
                 qPromt.delete();
-                msgs.first().delete();
+                msgs.each(msg => msg.delete());
             })
-            .catch (() => {
-                qPromt.delete();
-            })
+            .catch(console.error);
         });
 
         // add reacton to get next in this message!
-        const getNextFilter = ((reaction, user) => user.bot === false && reaction.emoji.name === '🤝');
-
-        const getNextCollector = taConsole.createReactionCollector(getNextFilter);
+        const getNextCollector = taConsole.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🤝');
 
         getNextCollector.on('collect', async (reaction, user) => {
             // remove the reaction
@@ -223,46 +219,41 @@ module.exports = class InitWorkshop extends Command {
             var taVoice = ta.voice.channel;
 
             // check that the ta is in a voice channel
-            if (taVoice === null) {
+            if (taVoice === null || taVoice === undefined) {
                 taChannel.send('<@' + user.id + '> Please join a voice channel to assist hackers.').then(msg => msg.delete({ timeout: 5000 }));
                 return;
             }
 
-            var userNameOrStatus = await firebaseWorkshops.getNext(activityName);
+            // check that there is someone to help
+            if (waitlist.array().length === 0) {
+                taChannel.send('<@' + user.id + '> No one to help right now!').then(msg => msg.delete({ timeout: 5000 }));
+                return;
+            }
+
+            // get next user
+            var hackerKey = waitlist.firstKey();
+            waitlist.delete(hackerKey);
+            var hacker = await message.guild.members.fetch(hackerKey);
 
             // if status mentor in use there are no hackers in list
-            if (userNameOrStatus === firebaseServices.status.MENTOR_IN_USE) {
+            if (hacker === undefined) {
                 taChannel.send('<@' + user.id + '> There are no hackers in need of help!').then(msg => msg.delete({ timeout: 5000 }));
                 return;
             }
 
-            // get hacker guild member, we know its username
-            var hacker = await message.guild.members.cache.find(member => member.user.username === userNameOrStatus);
-
-            // try to add user to voice channel
-            var isAdded = false;
-
             try {
                 hacker.voice.setChannel(taVoice);
-                isAdded = true;
-                discordServices.sendMessageToMember(hacker, 'TA is ready to help you! You are with them now!');
+                discordServices.sendMessageToMember(hacker, 'TA is ready to help you! You are with them now!', true);
+                taChannel.send('<@' + user.id + '> A hacker was moved to your voice channel! Thanks for your help!!!').then(msg => msg.delete({ timeout: 5000 }));
             } catch (err) {
                 discordServices.sendMessageToMember(hacker, 'A TA was ready to talk to you, but we were not able to pull you to their voice ' +
                     'voice channel. Try again and make sure you are in the general voice channel!');
-            }
-
-            // let TA know if hacker was moved or not
-            if (isAdded) {
-                taChannel.send('<@' + user.id + '> A hacker was moved to your voice channel! Thanks for your help!!!').then(msg => msg.delete({ timeout: 5000 }));
-            } else {
                 taChannel.send('<@' + user.id + '> We had someone that needed help, but we were unable to move them to your voice channel. ' +
                     'They have been notified and skipped. Please help someone else!').then(msg => msg.delete({ timeout: 8000 }));
             }
 
             // remove hacker from the embed list
-            var embed = taConsole.embeds[0];
-            embed.fields = embed.fields.filter(field => !field.name.includes('#0'));
-            taConsole.edit(embed);
+            taConsole.edit(taConsole.embeds[0].spliceFields(0, 1));
         });
 
         // report success of workshop creation
