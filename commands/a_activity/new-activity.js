@@ -16,7 +16,7 @@ module.exports = class NewActivity extends Command {
             args: [
                 {
                     key: 'activityName',
-                    prompt: 'the activity name',
+                    prompt: 'the activity name, can use emojis!',
                     type: 'string',
                 },
             ],
@@ -82,10 +82,10 @@ module.exports = class NewActivity extends Command {
         ]});
       
         // create text channel
-        var generalText = await message.guild.channels.create(activityName + '-text', {type: 'text', parent: category,});
+        var generalText = await message.guild.channels.create('🖌️' + 'activity-banter', {type: 'text', parent: category, topic: 'A general banter channel to be used to communicate with other members, mentors, or staff. The !ask command is available for questions.'});
 
         // create general voice
-        var generalVoice = await message.guild.channels.create(activityName + '-general-voice', {type: 'voice', parent: category});
+        var generalVoice = await message.guild.channels.create('🗣️' + 'activity-room', {type: 'voice', parent: category});
 
         // create workshop in db
         firebaseActivity.create(activityName);

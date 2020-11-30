@@ -179,7 +179,7 @@ async function addVoiceChannelsToActivity(activityName, number, category, channe
 
     // create voice channels
     for (; index < total; index++) {
-        channelManager.create(activityName + '-' + index, {type: 'voice', parent: category, permissionOverwrites : [
+        channelManager.create('🔊 ' + activityName + '-' + index, {type: 'voice', parent: category, permissionOverwrites : [
             {
                 id: hackerRole,
                 deny: ['VIEW_CHANNEL'],

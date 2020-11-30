@@ -91,7 +91,7 @@ module.exports = class InitWorkshop extends Command {
         })
 
         // create TA console
-        var taChannel = await message.guild.channels.create(activityName + '-ta-console', {
+        var taChannel = await message.guild.channels.create('🧑🏽‍🏫' + activityName + '-ta-console', {
             type: 'text', parent: category, permissionOverwrites: [
                 {
                     id: discordServices.hackerRole,
@@ -113,7 +113,7 @@ module.exports = class InitWorkshop extends Command {
                     id: discordServices.staffRole,
                     allow: ['VIEW_CHANNEL'],
                 }
-            ]
+            ], topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
         });
 
 
@@ -172,7 +172,7 @@ module.exports = class InitWorkshop extends Command {
 
         ////// Hacker Side
         // create question and help channel for hackers
-        var helpChannel = await message.guild.channels.create(activityName + '-assistance', { type: 'text', parent: category });
+        var helpChannel = await message.guild.channels.create('🙋🏽' + activityName + '-assistance', { type: 'text', parent: category, topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!' });
 
         // message embed for helpChannel
         const helpEmbed = new Discord.MessageEmbed()
