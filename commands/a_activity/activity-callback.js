@@ -79,7 +79,7 @@ module.exports = class ActivityCallback extends Command {
         
         // grab general voice and update permission to no speak for attendees
         if (voiceChannelKey === '') {
-            var generalVoice = await category.children.find(channel => channel.type === 'voice'  && channel.name.endsWith(activityName + '-general-voice'));
+            var generalVoice = await category.children.find(channel => channel.type === 'voice'  && channel.name.endsWith(discordServices.activityVoiceChannelName));
         } else {
             var generalVoice = message.guild.channels.resolve(voiceChannelKey);
         }
