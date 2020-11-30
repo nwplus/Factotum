@@ -112,13 +112,14 @@ module.exports = class NewActivity extends Command {
             '🏎️ [FOR WORKSHOPS] Will send an embedded message asking how the speed is.\n' +
             '✍️ [FOR WORKSHOPS] Will send an embedded message asking how the difficulty is.\n' +
             '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.\n' + 
-            '🕵🏽 Will make this activity a among us activity!'); 
+            '🕵🏽 Will make this activity a among us activity!' + 
+            '💼 Will archive the activity, removing all channels except the text channel which will be sent to archive category.');  
 
         // send message
         var msgConsole = await message.channel.send(msgEmbed);
 
         // emojis
-        var emojis = ['🧑🏽‍💼', '☕', '⏫', '⏬', '⛔', '🌬️', '🔃', '👨‍👩‍👧‍👦', '🦜','🏕️','🏎️','✍️','🧑‍🏫', '🕵🏽'];
+        var emojis = ['🧑🏽‍💼', '☕', '⏫', '⏬', '⛔', '🌬️', '🔃', '👨‍👩‍👧‍👦', '🦜','🏕️','🏎️','✍️','🧑‍🏫', '🕵🏽', '💼'];
 
         // guard variables
         var isWorkshop = false;
@@ -202,6 +203,9 @@ module.exports = class NewActivity extends Command {
             } else if (emojiName === emojis[13] && !isAmongUs && !isWorkshop && !isCoffeeChats) {
                   isAmongUs = true;
                   commandRegistry.findCommands('initau', true)[0].run(message, {activityName: activityName, numOfChannels: 3, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
+            } else if (emojiName === emojis[14]) {
+                commandRegistry.findCommands('archive', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id });
+                msgConsole.delete({timeout: 3000});
             }
         });
     }
