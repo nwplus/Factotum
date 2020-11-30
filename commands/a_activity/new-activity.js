@@ -52,6 +52,14 @@ module.exports = class NewActivity extends Command {
 
         var category = await message.guild.channels.create(activityName, {type: 'category',  permissionOverwrites: [
             {
+                id: discordServices.everyoneRole,
+                deny: ['VIEW_CHANNEL'],
+            },
+            {
+                id: discordServices.guestRole,
+                deny: ['VIEW_CHANNEL'],
+            },
+            {
                 id: discordServices.hackerRole,
                 deny: ['VIEW_CHANNEL'],
             },
