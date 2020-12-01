@@ -111,6 +111,10 @@ module.exports = class InitAmongUs extends Command {
             var generalText = message.guild.channels.resolve(textChannelKey);
         }
 
+        // move text channel
+        await generalText.edit({name: activityName + '-banter'});
+        await generalText.setParent(archiveCategory);
+
         // remove voice channels
         await discordServices.removeVoiceChannelsToActivity(activityName, category.children.array().length, category);
 
@@ -119,10 +123,6 @@ module.exports = class InitAmongUs extends Command {
 
         // remove all text channels except text
         category.children.filter(channel => channel.type === 'text' && channel.name != generalText.name).each(channel => channel.delete());
-
-        // move text channel
-        generalText.setName(activityName + '-banter');
-        generalText.setParent(archiveCategory);
 
         // remove category
         category.delete();

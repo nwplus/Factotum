@@ -229,8 +229,10 @@ async function removeVoiceChannelsToActivity(activityName, number, category){
     // remove voice channels
     for (var index = total - 1; index >= final; index--) {
         var channelName = activityName + '-' + index;
-        var channel = await category.children.find(channel => channel.name === channelName);
-        channel.delete();
+        var channel = await category.children.find(channel => channel.name.endsWith(channelName));
+        if (channel != undefined) {
+            channel.delete();
+        }
     }
 
     return final;
