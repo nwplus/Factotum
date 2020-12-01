@@ -112,7 +112,7 @@ module.exports = class NewActivity extends Command {
             '🏎️ [FOR WORKSHOPS] Will send an embedded message asking how the speed is.\n' +
             '✍️ [FOR WORKSHOPS] Will send an embedded message asking how the difficulty is.\n' +
             '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.\n' + 
-            '🕵🏽 Will make this activity a among us activity!' + 
+            '🕵🏽 Will make this activity a among us activity!\n' + 
             '💼 Will archive the activity, removing all channels except the text channel which will be sent to archive category.');  
 
         // send message

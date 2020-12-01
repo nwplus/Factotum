@@ -91,7 +91,7 @@ module.exports = class InitWorkshop extends Command {
         })
 
         // create TA console
-        var taChannel = await message.guild.channels.create('🧑🏽‍🏫' + activityName + '-ta-console', {
+        var taChannel = await message.guild.channels.create(':🧑🏽‍🏫:' + 'ta-console', {
             type: 'text', parent: category, permissionOverwrites: [
                 {
                     id: discordServices.hackerRole,
@@ -119,7 +119,15 @@ module.exports = class InitWorkshop extends Command {
 
         ////// TA Side
         // embed color for mentors
-        var mentorColor = (await message.guild.roles.fetch(discordServices.mentorRole)).color
+        var mentorColor = (await message.guild.roles.fetch(discordServices.mentorRole)).color;
+
+        const taInfoEmbed = new Discord.MessageEmbed()
+            .setTitle('TA Information')
+            .setDescription('Please read this before the workshop starts!')
+            .addField('Create Private Channels', 'If you can only see one voice channel called activity room, go to the staff console and add voice channels to this activity.')
+            .addField('Keep Track Of', '* The wait list will udpate but won\'t notify you about it. Keep an eye on it!\n *The activity-banter channel for any questions!')
+            .setColor(mentorColor);
+        taChannel.send(taInfoEmbed).then(msg => msg.pin());
         
         const consoleEmbed = new Discord.MessageEmbed()
             .setColor(mentorColor)
@@ -175,7 +183,7 @@ module.exports = class InitWorkshop extends Command {
 
         ////// Hacker Side
         // create question and help channel for hackers
-        var helpChannel = await message.guild.channels.create('🙋🏽' + activityName + '-assistance', { type: 'text', parent: category, topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!' });
+        var helpChannel = await message.guild.channels.create('🙋🏽' + 'assistance', { type: 'text', parent: category, topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!' });
 
         // add helpChannel to the black list
         discordServices.blackList.set(helpChannel.id, 5000);
@@ -185,7 +193,7 @@ module.exports = class InitWorkshop extends Command {
             .setColor(discordServices.embedColor)
             .setTitle(activityName + ' Help Desk')
             .setDescription('Welcome to the ' + activityName + ' help desk. There are two ways to get help explained below:')
-            .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, use the !ask command here!')
+            .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, use the !ask command on the text channel ' + '<#' + textChannelKey + '>' + '!')
             .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the general voice channel if not already there!');
 
         // send message with embed and react with emoji
@@ -231,7 +239,7 @@ module.exports = class InitWorkshop extends Command {
                 discordServices.sendMessageToMember(user, hackerEmbed);
 
                 // update message embed with new user in list
-                taConsole.edit(taConsole.embeds[0].addField(user.username, question));
+                taConsole.edit(taConsole.embeds[0].addField(user.username, '<@' + user.id + '> has the question:' +  question));
 
                 // delete promt and user msg
                 qPromt.delete();

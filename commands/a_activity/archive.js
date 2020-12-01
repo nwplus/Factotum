@@ -121,7 +121,7 @@ module.exports = class InitAmongUs extends Command {
         category.children.filter(channel => channel.type === 'text' && channel.name != generalText.name).each(channel => channel.delete());
 
         // move text channel
-        generalText.setName(activityName + '-' + generalText.name);
+        generalText.setName(activityName + '-banter');
         generalText.setParent(archiveCategory);
 
         // remove category
