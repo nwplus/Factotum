@@ -78,7 +78,7 @@ module.exports = class InitCoffeeChats extends Command {
         // initialize firebase fields
         firebaseCoffeeChats.initCoffeeChat(activityName);
 
-        await discordServices.addVoiceChannelsToActivity(activityName, numOfGroups, category, message.guild.channels);
+        await discordServices.addVoiceChannelsToActivity(activityName, numOfGroups, category, message.guild.channels, true);
 
         // add group creation text channel
         var joinActivityChannel = await message.guild.channels.create('☕' + 'join-activity', {

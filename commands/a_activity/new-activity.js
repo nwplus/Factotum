@@ -112,7 +112,7 @@ module.exports = class NewActivity extends Command {
             '🏎️ [FOR WORKSHOPS] Will send an embedded message asking how the speed is.\n' +
             '✍️ [FOR WORKSHOPS] Will send an embedded message asking how the difficulty is.\n' +
             '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.\n' + 
-            '🕵🏽 Will make this activity a among us activity!' + 
+            '🕵🏽 Will make this activity a among us activity!\n' + 
             '💼 Will archive the activity, removing all channels except the text channel which will be sent to archive category.');  
 
         // send message
@@ -151,7 +151,7 @@ module.exports = class NewActivity extends Command {
 
                 // init workshop command
                 commandRegistry.findCommands('initw', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
-
+                discordServices.makeVoiceChannelsPrivate(activityName, category);
                 // update embed
                 msgEmbed.addField('Update', 'The activity is now a Workshop!');
                 msgConsole.edit(msgEmbed);
@@ -166,22 +166,23 @@ module.exports = class NewActivity extends Command {
                         return parseInt(msgs.first().content);
                     });
                 });
-                        // check that a number was given
-                 if (Number.isNaN(numOfGroups)) {
-                     message.channel.send('<@' + user.id + '> The number of groups is not a number, please try again!').then(msg => msg.delete({timeout: 5000}));
-                     return;
-                 }
+                // check that a number was given
+                if (Number.isNaN(numOfGroups)) {
+                    message.channel.send('<@' + user.id + '> The number of groups is not a number, please try again!').then(msg => msg.delete({timeout: 5000}));
+                    return;
+                }
 
-                 commandRegistry.findCommands('initcc', true)[0].run(message, {activityName: activityName, numOfGroups: numOfGroups, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
+                commandRegistry.findCommands('initcc', true)[0].run(message, {activityName: activityName, numOfGroups: numOfGroups, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
+                discordServices.makeVoiceChannelsPrivate(activityName, category);
 
-                        // update embed
-                  msgEmbed.addField('Update', 'The activity is now a Coffee Chat!');
-                  msgConsole.edit(msgEmbed);
+                // update embed
+                msgEmbed.addField('Update', 'The activity is now a Coffee Chat!');
+                msgConsole.edit(msgEmbed);
             } else if (emojiName === emojis[4]) {
                   commandRegistry.findCommands('removeactivity', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
                   msgConsole.delete({timeout: 3000});
             } else if (emojiName === emojis[2]) {
-                  commandRegistry.findCommands('addvoiceto', true)[0].run(message, {activityName: activityName, number: 1, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
+                  commandRegistry.findCommands('addvoiceto', true)[0].run(message, {activityName: activityName, number: 1, categoryChannelKey: category.id, isPrivate: isWorkshop || isAmongUs || isCoffeeChats, maxUsers: isAmongUs ? 12 : 0});
             } else if (emojiName === emojis[3]) {
                   commandRegistry.findCommands('removevoiceto', true)[0].run(message, {activityName: activityName, number: 1, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             } else if (emojiName === emojis[5]) {
@@ -193,16 +194,18 @@ module.exports = class NewActivity extends Command {
             } else if (emojiName === emojis[8]) {
                   commandRegistry.findCommands('mshuffle', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             } else if (emojiName === emojis[9]) {
-                  commandRegistry.findCommands('distribute-stamp', true)[0].run(message, {activityName: activityName, timeLimit: 60, targetChannelKey: textChannelKey });
+                  commandRegistry.findCommands('distribute-stamp', true)[0].run(message, {activityName: activityName, timeLimit: 60, targetChannelKey: generalText.id });
             } else if (emojiName === emojis[10]) {
-                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'speed', targetChannelKey: textChannelKey });
+                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'speed', targetChannelKey: generalText.id });
             } else if (emojiName === emojis[11]) {
-                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'difficulty', targetChannelKey: textChannelKey });
+                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'difficulty', targetChannelKey: generalText.id });
             } else if (emojiName === emojis[12]) {
-                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'explanations', targetChannelKey: textChannelKey });
+                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'explanations', targetChannelKey: generalText.id });
             } else if (emojiName === emojis[13] && !isAmongUs && !isWorkshop && !isCoffeeChats) {
                   isAmongUs = true;
+                  await discordServices.addLimitToVoiceChannels(activityName, category, 12);
                   commandRegistry.findCommands('initau', true)[0].run(message, {activityName: activityName, numOfChannels: 3, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
+                  discordServices.makeVoiceChannelsPrivate(activityName, category);
             } else if (emojiName === emojis[14]) {
                 commandRegistry.findCommands('archive', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id });
                 msgConsole.delete({timeout: 3000});

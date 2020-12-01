@@ -54,6 +54,10 @@ bot.once('ready', async () => {
     console.log(`Logged in as ${bot.user.tag}!`);
     bot.user.setActivity('Ready to hack!');
 
+    // add verify and attend channels to the black list
+    discordServices.blackList.set(discordServices.welcomeChannel, 3000);
+    discordServices.blackList.set(discordServices.attendChannel, 3000);
+
     // check roles
     // we asume the bot is only in one guild!
     var guild = bot.guilds.cache.first();
@@ -122,23 +126,21 @@ bot.once('ready', async () => {
     })
 });
 
-
+// Listeners for the bot
 
 bot.on('error', console.error);
 
 bot.on('message', async message => {
-
-    // Deletes all messages to welcome that are not !verify or that are not from a staff or the bot
-    if (message.channel.id === discordServices.welcomeChannel) {
-        if (!message.content.startsWith('!verify') && message.author.bot === false && !discordServices.checkForRole(message.member, discordServices.staffRole)) {
-            discordServices.replyAndDelete(message, 'This channel is only to run the verify command.');
-            message.delete({timeout: 2000});
+    // Deletes all messages to any channel in the black list with a 5 second timout
+    // this is to make sure that if the message is for the bot, it is able to get it
+    // bot and staff messeges are not deleted
+    if (discordServices.blackList.has(message.channel.id)) {
+        if (!message.author.bot && !discordServices.checkForRole(message.member, discordServices.staffRole)) {
+            (new Promise(res => setTimeout(res, discordServices.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
         }
     }
 
 });
-
-// Listeners for the bot
 
 // If someone joins the server they get the guest role!
 bot.on('guildMemberAdd', member => {

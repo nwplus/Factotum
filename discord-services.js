@@ -57,6 +57,9 @@ module.exports.tfTeamEmbedColor = tfTeamEmbedColor;
 var tfHackerEmbedColor = '#ff33f1';
 module.exports.tfHackerEmbedColor = tfHackerEmbedColor;
 
+const blackList = new Map();
+module.exports.blackList = blackList;
+
 // Common channels
 
 // announcement channel
@@ -181,7 +184,7 @@ function isAdminConsole(channel) {
 module.exports.isAdminConsole = isAdminConsole;
 
 // will add given number of voice channels to the given activity, the category object of the activity is necessary
-async function addVoiceChannelsToActivity(activityName, number, category, channelManager, maxUsers = 0) {
+async function addVoiceChannelsToActivity(activityName, number, category, channelManager, isPrivate, maxUsers = 0) {
     // udpate db and get total number of channels
     var total = await firebaseActivity.addVoiceChannels(activityName, number);
 
@@ -190,19 +193,25 @@ async function addVoiceChannelsToActivity(activityName, number, category, channe
 
     // create voice channels
     for (; index < total; index++) {
-        channelManager.create('🔊 ' + activityName + '-' + index, {type: 'voice', parent: category, permissionOverwrites : [
+        channelManager.create('🔊Room' + '-' + index, {type: 'voice', parent: category, permissionOverwrites : [
             {
                 id: hackerRole,
                 deny: ['VIEW_CHANNEL'],
             },
-            {
+            isPrivate ? {
                 id: attendeeRole,
                 deny: ['VIEW_CHANNEL'],
                 allow: ['USE_VAD', 'SPEAK'],
+            } : {
+                id: attendeeRole,
+                allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK']
             },
-            {
+            isPrivate ? {
                 id: sponsorRole,
                 deny: ['VIEW_CHANNEL'],
+            } : {
+                id: sponsorRole,
+                allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK'],
             },
             {
                 id: mentorRole,
@@ -236,19 +245,80 @@ async function removeVoiceChannelsToActivity(activityName, number, category){
     // we remove one because we are counting from 0
     // remove voice channels
     for (var index = total - 1; index >= final; index--) {
-        var channelName = activityName + '-' + index;
-        var channel = await category.children.find(channel => channel.name === channelName);
-        channel.delete();
+        var channelName = '🔊Room' + '-' + index;
+        var channel = await category.children.find(channel => channel.name.endsWith(channelName));
+        if (channel != undefined) {
+            channel.delete();
+        }
     }
 
     return final;
 }
 module.exports.removeVoiceChannelsToActivity = removeVoiceChannelsToActivity;
 
+// will make all voice channels except the general one private to attendees and sponsors
+async function makeVoiceChannelsPrivate(activityName, category) {
+    // udpate db and get total number of channels
+    var total = await firebaseActivity.numOfVoiceChannels(activityName);
+
+    // grab index where channel naming should stampt, in case there are already channels made
+    // we remove one because we are counting from 0
+    // remove voice channels
+    for (var index = total - 1; index >= 0; index--) {
+        var channelName = '🔊Room' + '-' + index;
+        var channel = await category.children.find(channel => channel.name.endsWith(channelName));
+        if (channel != undefined) {
+            channel.overwritePermissions([
+                {
+                    id: hackerRole,
+                    deny: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: attendeeRole,
+                    deny: ['VIEW_CHANNEL'],
+                    allow: ['USE_VAD', 'SPEAK'],
+                },
+                {
+                    id: sponsorRole,
+                    deny: ['VIEW_CHANNEL'],
+                    allow: ['USE_VAD', 'SPEAK'],
+                },
+                {
+                    id: mentorRole,
+                    allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
+                },
+                {
+                    id: staffRole,
+                    allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
+                }
+            ]);
+        }
+    }
+}
+module.exports.makeVoiceChannelsPrivate = makeVoiceChannelsPrivate;
+
+// will add a max amount of users to the activity voice channels
+async function addLimitToVoiceChannels(activityName, category, limit) {
+    // udpate db and get total number of channels
+    var total = await firebaseActivity.numOfVoiceChannels(activityName);
+
+    // grab index where channel naming should stampt, in case there are already channels made
+    // we remove one because we are counting from 0
+    // remove voice channels
+    for (var index = total - 1; index >= 0; index--) {
+        var channelName = '🔊Room' + '-' + index;
+        var channel = await category.children.find(channel => channel.name.endsWith(channelName));
+        if (channel != undefined) {
+            await channel.edit({userLimit: limit});
+        }
+    }
+}
+module.exports.addLimitToVoiceChannels = addLimitToVoiceChannels;
+
 // deletes a message if the message hasn't been deleted already
-function deleteMessage(message) {
+function deleteMessage(message, timeout = 0) {
     if (message.deleted === false) {
-        message.delete();
+        message.delete({timeout: timeout});
     }
 }
 module.exports.deleteMessage = deleteMessage;
