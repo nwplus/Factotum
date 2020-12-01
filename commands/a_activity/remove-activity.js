@@ -74,7 +74,7 @@ module.exports = class RemoveActivity extends Command {
             await listOfChannels[i].delete();
         }
 
-        category.delete().catch(console.error);
+        await category.delete();
 
         firebaseActivity.remove(activityName);
 
