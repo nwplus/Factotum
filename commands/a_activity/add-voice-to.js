@@ -33,13 +33,19 @@ module.exports = class CreatePrivatesFor extends Command {
                     prompt: 'if the new voice channels should be privates',
                     type: 'boolean',
                     default: false,
+                },
+                {
+                    key: 'maxUsers',
+                    prompt: 'max number of users allowed on the voice channel',
+                    type: 'integer',
+                    default: 0,
                 }
             ],
         });
     }
 
     // Run function -> command body
-    async run(message, {activityName, number, categoryChannelKey, isPrivate}) {
+    async run(message, {activityName, number, categoryChannelKey, isPrivate, maxUsers}) {
         discordServices.deleteMessage(message);
 
         // make sure command is only used in the admin console
@@ -68,7 +74,7 @@ module.exports = class CreatePrivatesFor extends Command {
             return;
         }
         
-        var final = await discordServices.addVoiceChannelsToActivity(activityName, number, category, message.guild.channels, isPrivate);
+        var final = await discordServices.addVoiceChannelsToActivity(activityName, number, category, message.guild.channels, isPrivate, maxUsers);
 
         // report success of workshop creation
         discordServices.replyAndDelete(message,'Workshop session named: ' + activityName + ' now has ' + final + ' voice channels.');

@@ -182,7 +182,7 @@ module.exports = class NewActivity extends Command {
                   commandRegistry.findCommands('removeactivity', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
                   msgConsole.delete({timeout: 3000});
             } else if (emojiName === emojis[2]) {
-                  commandRegistry.findCommands('addvoiceto', true)[0].run(message, {activityName: activityName, number: 1, categoryChannelKey: category.id, isPrivate: isWorkshop || isAmongUs || isCoffeeChats});
+                  commandRegistry.findCommands('addvoiceto', true)[0].run(message, {activityName: activityName, number: 1, categoryChannelKey: category.id, isPrivate: isWorkshop || isAmongUs || isCoffeeChats, maxUsers: isAmongUs ? 12 : 0});
             } else if (emojiName === emojis[3]) {
                   commandRegistry.findCommands('removevoiceto', true)[0].run(message, {activityName: activityName, number: 1, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             } else if (emojiName === emojis[5]) {
@@ -203,6 +203,7 @@ module.exports = class NewActivity extends Command {
                   commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'explanations', targetChannelKey: generalText.id });
             } else if (emojiName === emojis[13] && !isAmongUs && !isWorkshop && !isCoffeeChats) {
                   isAmongUs = true;
+                  await discordServices.addLimitToVoiceChannels(activityName, category, 12);
                   commandRegistry.findCommands('initau', true)[0].run(message, {activityName: activityName, numOfChannels: 3, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
                   discordServices.makeVoiceChannelsPrivate(activityName, category);
             } else if (emojiName === emojis[14]) {
