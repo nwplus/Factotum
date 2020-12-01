@@ -177,6 +177,9 @@ module.exports = class InitWorkshop extends Command {
         // create question and help channel for hackers
         var helpChannel = await message.guild.channels.create('🙋🏽' + activityName + '-assistance', { type: 'text', parent: category, topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!' });
 
+        // add helpChannel to the black list
+        discordServices.blackList.set(helpChannel.id, 5000);
+
         // message embed for helpChannel
         const helpEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
