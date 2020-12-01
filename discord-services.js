@@ -193,7 +193,7 @@ async function addVoiceChannelsToActivity(activityName, number, category, channe
 
     // create voice channels
     for (; index < total; index++) {
-        channelManager.create('🔊 ' + activityName + '-' + index, {type: 'voice', parent: category, permissionOverwrites : [
+        channelManager.create('🔊Room' + '-' + index, {type: 'voice', parent: category, permissionOverwrites : [
             {
                 id: hackerRole,
                 deny: ['VIEW_CHANNEL'],
@@ -239,7 +239,7 @@ async function removeVoiceChannelsToActivity(activityName, number, category){
     // we remove one because we are counting from 0
     // remove voice channels
     for (var index = total - 1; index >= final; index--) {
-        var channelName = activityName + '-' + index;
+        var channelName = '🔊Room' + '-' + index;
         var channel = await category.children.find(channel => channel.name.endsWith(channelName));
         if (channel != undefined) {
             channel.delete();
