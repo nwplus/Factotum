@@ -29,23 +29,17 @@ module.exports = class CreatePrivatesFor extends Command {
                     default: '',
                 },
                 {
-                    key: 'textChannelKey',
-                    prompt: 'snowflake of the general text channel for the activity',
-                    type: 'string',
-                    default: '',
-                },
-                {
-                    key: 'voiceChannelKey',
-                    prompt: 'snowflake of the general voice channel for the activity',
-                    type: 'string',
-                    default: '',
-                },
+                    key: 'isPrivate',
+                    prompt: 'if the new voice channels should be privates',
+                    type: 'boolean',
+                    default: false,
+                }
             ],
         });
     }
 
     // Run function -> command body
-    async run(message, {activityName, number, categoryChannelKey, textChannelKey, voiceChannelKey}) {
+    async run(message, {activityName, number, categoryChannelKey, isPrivate}) {
         discordServices.deleteMessage(message);
 
         // make sure command is only used in the admin console
@@ -74,7 +68,7 @@ module.exports = class CreatePrivatesFor extends Command {
             return;
         }
         
-        var final = await discordServices.addVoiceChannelsToActivity(activityName, number, category, message.guild.channels);
+        var final = await discordServices.addVoiceChannelsToActivity(activityName, number, category, message.guild.channels, isPrivate);
 
         // report success of workshop creation
         discordServices.replyAndDelete(message,'Workshop session named: ' + activityName + ' now has ' + final + ' voice channels.');
