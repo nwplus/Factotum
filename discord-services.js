@@ -57,6 +57,9 @@ module.exports.tfTeamEmbedColor = tfTeamEmbedColor;
 var tfHackerEmbedColor = '#ff33f1';
 module.exports.tfHackerEmbedColor = tfHackerEmbedColor;
 
+const blackList = new Map();
+module.exports.blackList = blackList;
+
 // Common channels
 
 // announcement channel
@@ -237,8 +240,10 @@ async function removeVoiceChannelsToActivity(activityName, number, category){
     // remove voice channels
     for (var index = total - 1; index >= final; index--) {
         var channelName = activityName + '-' + index;
-        var channel = await category.children.find(channel => channel.name === channelName);
-        channel.delete();
+        var channel = await category.children.find(channel => channel.name.endsWith(channelName));
+        if (channel != undefined) {
+            channel.delete();
+        }
     }
 
     return final;
@@ -246,9 +251,9 @@ async function removeVoiceChannelsToActivity(activityName, number, category){
 module.exports.removeVoiceChannelsToActivity = removeVoiceChannelsToActivity;
 
 // deletes a message if the message hasn't been deleted already
-function deleteMessage(message) {
+function deleteMessage(message, timeout = 0) {
     if (message.deleted === false) {
-        message.delete();
+        message.delete({timeout: timeout});
     }
 }
 module.exports.deleteMessage = deleteMessage;

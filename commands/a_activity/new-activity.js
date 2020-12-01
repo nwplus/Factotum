@@ -112,7 +112,7 @@ module.exports = class NewActivity extends Command {
             '🏎️ [FOR WORKSHOPS] Will send an embedded message asking how the speed is.\n' +
             '✍️ [FOR WORKSHOPS] Will send an embedded message asking how the difficulty is.\n' +
             '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.\n' + 
-            '🕵🏽 Will make this activity a among us activity!' + 
+            '🕵🏽 Will make this activity a among us activity!\n' + 
             '💼 Will archive the activity, removing all channels except the text channel which will be sent to archive category.');  
 
         // send message
@@ -193,13 +193,13 @@ module.exports = class NewActivity extends Command {
             } else if (emojiName === emojis[8]) {
                   commandRegistry.findCommands('mshuffle', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             } else if (emojiName === emojis[9]) {
-                  commandRegistry.findCommands('distribute-stamp', true)[0].run(message, {activityName: activityName, timeLimit: 60, targetChannelKey: textChannelKey });
+                  commandRegistry.findCommands('distribute-stamp', true)[0].run(message, {activityName: activityName, timeLimit: 60, targetChannelKey: generalText.id });
             } else if (emojiName === emojis[10]) {
-                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'speed', targetChannelKey: textChannelKey });
+                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'speed', targetChannelKey: generalText.id });
             } else if (emojiName === emojis[11]) {
-                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'difficulty', targetChannelKey: textChannelKey });
+                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'difficulty', targetChannelKey: generalText.id });
             } else if (emojiName === emojis[12]) {
-                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'explanations', targetChannelKey: textChannelKey });
+                  commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'explanations', targetChannelKey: generalText.id });
             } else if (emojiName === emojis[13] && !isAmongUs && !isWorkshop && !isCoffeeChats) {
                   isAmongUs = true;
                   commandRegistry.findCommands('initau', true)[0].run(message, {activityName: activityName, numOfChannels: 3, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
