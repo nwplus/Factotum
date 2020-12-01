@@ -26,7 +26,7 @@ module.exports = class ClearChat extends Command {
     async run (message, {isCommands}) {
         discordServices.deleteMessage(message);
         // only admins can use this command inside the guild
-        if (! (await discordServices.checkForRole(message.member, discordServices.adminRole))) {
+        if (! (discordServices.checkForRole(message.member, discordServices.adminRole))) {
             discordServices.replyAndDelete(message.member, 'Hey there, the command !clearchat is only available to Admins!');
             return;
         }

@@ -43,7 +43,7 @@ module.exports = class DistributeStamp extends Command {
     //sends embedded message to the activity's text channel
         // grab channel, depending on if targetChannelKey was given
         if (targetChannelKey === '') {
-            var targetChannel = message.guild.channels.cache.find(channel => channel.type === 'text' && channel.name.endsWith(activityName + "-text"));
+            var targetChannel = message.guild.channels.cache.find(channel => channel.type === 'text' && channel.name.endsWith(discordServices.activityTextChannelName));
         } else {
             var targetChannel = message.guild.channels.resolve(targetChannelKey);
         }

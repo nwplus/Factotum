@@ -27,7 +27,7 @@ module.exports = class StartMentors extends Command {
             return;    
         }
         // only memebers with the Hacker tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.adminRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.adminRole))) {
             discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
             return;
         }

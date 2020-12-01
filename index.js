@@ -135,7 +135,7 @@ bot.on('message', async message => {
     // this is to make sure that if the message is for the bot, it is able to get it
     // bot and staff messeges are not deleted
     if (discordServices.blackList.has(message.channel.id)) {
-        if (!message.author.bot && !( await (await discordServices.checkForRole(message.member, discordServices.staffRole))) ) {
+        if (!message.author.bot && !discordServices.checkForRole(message.member, discordServices.staffRole)) ) {
             (new Promise(res => setTimeout(res, discordServices.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
         }
     }

@@ -118,6 +118,17 @@ var incomingReportChannel = '780305617267982366';
 module.exports.incomingReportChannel = incomingReportChannel;
 
 
+// naming conventions
+
+var activityTextChannelName = 'activity-banter';
+module.exports.activityTextChannelName = activityTextChannelName;
+
+var activityVoiceChannelName = 'activity-room';
+module.exports.activityVoiceChannelName = activityVoiceChannelName;
+
+
+// helper function
+
 // Checks if the memeber has a role, returns true if it does
 function checkForRole(member, role) {
     return member.roles.cache.has(role);

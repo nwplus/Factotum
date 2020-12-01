@@ -44,7 +44,7 @@ module.exports = class DistributeStamp extends Command {
 
         // grab channel, depending on if given targetChannelKey
         if (targetChannelKey === '') {
-            var targetChannel = message.guild.channels.cache.find(channel => channel.type === 'text' && channel.name.endsWith(activityName + "-text"));
+            var targetChannel = message.guild.channels.cache.find(channel => channel.type === 'text' && channel.name.endsWith("activity-banter"));
         } else {
             var targetChannel = message.guild.channels.resolve(targetChannelKey);
         }

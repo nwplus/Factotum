@@ -21,7 +21,7 @@ module.exports = class ClearChat extends Command {
         
         var commands = [];
 
-        if ((await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if ((discordServices.checkForRole(message.member, discordServices.staffRole))) {
             var commandGroups = this.client.registry.findGroups('a_');
         } else {
             var commandGroups = [this.client.registry.groups.get('utility')];
