@@ -155,6 +155,9 @@ module.exports = class StartMentors extends Command {
             requestTicketChannel.bulkDelete(100, true);
         }
 
+        // add request ticket channel to black list
+        discordServices.blackList.set(requestTicketChannel.id, 5000);
+
         
         ////// send message to admin console
         // message embed
