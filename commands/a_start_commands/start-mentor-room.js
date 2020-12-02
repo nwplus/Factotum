@@ -9,7 +9,7 @@ module.exports = class StartMentors extends Command {
     constructor(client) {
         super(client, {
             name: 'startm',
-            group: 'a_mentors',
+            group: 'a_start_commands',
             memberName: 'start the mentor\'s experience',
             description: 'Will create a private category for mentors with channels for them to use!',
             guildOnly: true,

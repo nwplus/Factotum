@@ -39,9 +39,7 @@ bot.registry
     .registerGroup('utility', 'utility group')
     .registerGroup('a_boothing', 'boothing group for admins')
     .registerGroup('a_activity', 'activity group for admins')
-    .registerGroup('a_teamformation', 'team formation group for admins')
-    .registerGroup('a_mentors', 'mentor group for admins')
-    .registerGroup('a_channel_creation', 'channel creation commands')
+    .registerGroup('a_start_commands', 'advanced admin commands')
     .registerGroup('a_utility', 'utility commands for admins')
     .registerDefaultGroups()
     .registerDefaultCommands({
