@@ -24,7 +24,7 @@ module.exports = class ClearChat extends Command {
         if ((discordServices.checkForRole(message.member, discordServices.staffRole))) {
             var commandGroups = this.client.registry.findGroups('a_');
         } else {
-            var commandGroups = [this.client.registry.groups.get('utility')];
+            var commandGroups = this.client.registry.findGroups('utility');
         }
 
         // add all the commands from the command groups
@@ -42,6 +42,7 @@ module.exports = class ClearChat extends Command {
             .setDescription('All other interactions with me will be via emoji reactions!')
             .setTimestamp();
 
+        // add each command as a field in the embed
         for (var i = 0; i < length; i++) {
             var command = commands[i];
             if (command.format != null) {
