@@ -64,7 +64,7 @@ module.exports = class DistributeStamp extends Command {
         const qEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle('React with anything to claim a stamp for attending ' + sponsorName + '\'s booth!')
-            .setDescription('Once you react to this message, you will have 3 attempts in the next 30 seconds to enter the correct password.');
+            .setDescription('Once you react to this message, you will have 3 attempts in the next 60 seconds to enter the correct password.');
         
         targetChannel.send(qEmbed).then((msg) => {
 
@@ -89,7 +89,7 @@ module.exports = class DistributeStamp extends Command {
                 const member = message.guild.member(user);
 
                 // promt member for password
-                var dmMessage = await user.send("You have 30 seconds and 3 attempts to type the password correctly to get the " + sponsorName + " stamp.\n" +
+                var dmMessage = await user.send("You have 60 seconds and 3 attempts to type the password correctly to get the " + sponsorName + " stamp.\n" +
                 "Please enter the password (leave no stray spaces or anything):");
 
                 var correctPassword = false;
@@ -97,7 +97,7 @@ module.exports = class DistributeStamp extends Command {
 
                 const filter = m => user.id === m.author.id;
                 //message collector for the user's password attempts
-                const pwdCollector = await dmMessage.channel.createMessageCollector(filter,{time: 30000, max: 3});
+                const pwdCollector = await dmMessage.channel.createMessageCollector(filter,{time: 60000, max: 3});
 
                 pwdCollector.on('collect', async m => {
                     //update role and stop collecting if password matches

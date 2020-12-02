@@ -54,22 +54,22 @@ module.exports = class DistributeStamp extends Command {
         if (question === 'speed') { 
             qEmbed = new Discord.MessageEmbed()
                 .setColor(discordServices.embedColor)
-                .setTitle('Please react ' + '🐢' + ' if the pace is too slow, ' + '🐇' + ' if the pace is too fast, or ' + '🐶' + ' if the pace is just right within the next 5 minutes');
+                .setTitle('Please react ' + '🐢' + ' if the pace is too slow, 🐶 if the pace is just right, or 🐇 if the pace is too fast, within the next 5 minutes');
         } else if (question === 'difficulty') {
             qEmbed = new Discord.MessageEmbed()
                 .setColor(discordServices.embedColor)
-                .setTitle('Please react ' + '🐢' + ' if you are having trouble with the material, ' + '🐇' + ' if you are way ahead, or ' + '🐶' + ' if the difficulty is just right. Make sure to ask for help if you need it!');
+                .setTitle('Please react 🐢 if you are having trouble with the material, 🐶 if the difficulty is just right, or 🐇 if you are way ahead. Make sure to ask for help if you need it!');
         } else if (question === 'explanations') {
             qEmbed = new Discord.MessageEmbed()
                 .setColor(discordServices.embedColor)
-                .setTitle('Please react ' + '🐢' + ' if the explanations need improving, ' + '🐇' + ' if the explanations are well done, or ' + '🐶' + ' if they are meh. Make sure to ask for help if you need it!');
+                .setTitle('Please react 🐢 if the explanations need improving, 🐶 if they are meh, or 🐇 if the explanations are well done. Make sure to ask for help if you need it!');
         }
 
         // send message
         targetChannel.send(qEmbed).then((msg) => {
             let emoji1 = '🐢';
-            let emoji2 = '🐇';
-            let emoji3 = '🐶';
+            let emoji2 = '🐶';
+            let emoji3 = '🐇';
             msg.react(emoji1);
             msg.react(emoji2);
             msg.react(emoji3);
