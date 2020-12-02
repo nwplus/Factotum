@@ -14,6 +14,12 @@ module.exports = class ClearChat extends Command {
             guildOnly: true,
             args: [
                 {
+                    key: 'keepPinned',
+                    prompt: 'if pinned messages should be kept',
+                    type: 'boolean',
+                    default: false,
+                },
+                {
                     key: 'isCommands',
                     prompt: 'should show commands in this channel?',
                     type: 'boolean',
@@ -23,7 +29,7 @@ module.exports = class ClearChat extends Command {
         });
     }
 
-    async run (message, {isCommands}) {
+    async run (message, {keepPinned, isCommands}) {
         discordServices.deleteMessage(message);
         // only admins can use this command inside the guild
         if (! (discordServices.checkForRole(message.member, discordServices.adminRole))) {
@@ -31,8 +37,15 @@ module.exports = class ClearChat extends Command {
             return;
         }
 
-        // delete messages and log to console
-        await message.channel.bulkDelete(100, true).catch(console.error);
+        if (keepPinned) {
+            // other option is to get all channel messages, filter of the pined channels and pass those to bulkDelete, might be to costy?
+            var messagesToDelete = await message.channel.messages.cache.filter(msg => !msg.pinned);
+            await message.channel.bulkDelete(messagesToDelete, true).catch(console.error);
+        } else {
+            // delete messages and log to console
+            await message.channel.bulkDelete(100, true).catch(console.error);
+        }
+
         discordServices.discordLog(message.guild, "Cleared the channel: " + message.channel.name + ". By user: " + message.author.username);
         
         var commands = [];
