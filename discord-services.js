@@ -60,6 +60,9 @@ module.exports.tfHackerEmbedColor = tfHackerEmbedColor;
 const blackList = new Map();
 module.exports.blackList = blackList;
 
+var stampCollectTime = 60;
+module.exports.stampCollectTime = stampCollectTime;
+
 // Common channels
 
 // announcement channel

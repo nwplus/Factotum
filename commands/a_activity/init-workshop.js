@@ -133,7 +133,7 @@ module.exports = class InitWorkshop extends Command {
             .setColor(mentorColor)
             .setTitle('Main console for ' + activityName)
             .setDescription('Here are some commands:\n' +
-                '🏕️ Will activate a stamp distribution that will be open for 20 seconds.\n' +
+                '🏕️ Will activate a stamp distribution that will be open for ' + discordServices.stampCollectTime + ' seconds.\n' +
                 '🏎️ Will send an embedded message asking how the speed is.\n' +
                 '✍️ Will send an embedded message asking how the difficulty is.\n' +
                 '🧑‍🏫 Will send an embedded message asking how good the explanations are.');
@@ -158,7 +158,7 @@ module.exports = class InitWorkshop extends Command {
                 reaction.users.remove(user.id);
 
                 if (emojiName === emojis[0]) {
-                    commandRegistry.findCommands('distribute-stamp', true)[0].run(message, { activityName: activityName, timeLimit: 60, targetChannelKey: textChannelKey });
+                    commandRegistry.findCommands('distribute-stamp', true)[0].run(message, { activityName: activityName, timeLimit: discordServices.stampCollectTime, targetChannelKey: textChannelKey });
                 } else if (emojiName === emojis[1]) {
                     commandRegistry.findCommands('workshop-polls', true)[0].run(message, { activityName: activityName, question: 'speed', targetChannelKey: textChannelKey });
                 } else if (emojiName === emojis[2]) {
