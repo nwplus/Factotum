@@ -260,7 +260,7 @@ async function removeVoiceChannelsToActivity(activityName, number, category){
 module.exports.removeVoiceChannelsToActivity = removeVoiceChannelsToActivity;
 
 // will make all voice channels except the general one private to attendees and sponsors
-async function makeVoiceChannelsPrivate(activityName, category) {
+async function changeVoiceChannelPermissions(activityName, category, toHide) {
     // udpate db and get total number of channels
     var total = await firebaseActivity.numOfVoiceChannels(activityName);
 
@@ -276,15 +276,21 @@ async function makeVoiceChannelsPrivate(activityName, category) {
                     id: hackerRole,
                     deny: ['VIEW_CHANNEL'],
                 },
-                {
+                toHide ? {
                     id: attendeeRole,
                     deny: ['VIEW_CHANNEL'],
                     allow: ['USE_VAD', 'SPEAK'],
+                } : {
+                    id: attendeeRole,
+                    allow: ['USE_VAD', 'SPEAK', 'VIEW_CHANNEL'],
                 },
-                {
+                toHide ? {
                     id: sponsorRole,
                     deny: ['VIEW_CHANNEL'],
                     allow: ['USE_VAD', 'SPEAK'],
+                } : {
+                    id: sponsorRole,
+                    allow: ['USE_VAD', 'SPEAK', 'VIEW_CHANNEL'],
                 },
                 {
                     id: mentorRole,
@@ -298,7 +304,7 @@ async function makeVoiceChannelsPrivate(activityName, category) {
         }
     }
 }
-module.exports.makeVoiceChannelsPrivate = makeVoiceChannelsPrivate;
+module.exports.changeVoiceChannelPermissions = changeVoiceChannelPermissions;
 
 // will add a max amount of users to the activity voice channels
 async function addLimitToVoiceChannels(activityName, category, limit) {

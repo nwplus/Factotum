@@ -19,12 +19,18 @@ module.exports = class NewActivity extends Command {
                     prompt: 'the activity name, can use emojis!',
                     type: 'string',
                 },
+                {
+                    key: 'startsHidden',
+                    prompt: 'do you want the activity to start hidden?',
+                    type: 'boolean',
+                    default: true,
+                }
             ],
         });
     }
 
     // Run function -> command body
-    async run(message, {activityName}) {
+    async run(message, {activityName, startsHidden}) {
         discordServices.deleteMessage(message);
 
         // make sure command is only used in the admin console
@@ -46,10 +52,6 @@ module.exports = class NewActivity extends Command {
         activityName = activityName.replace(/[^0-9a-zA-Z-]/g, '').toLowerCase();
 
       
-      
-        // guard variables
-        var isAmongUs = false;
-
         var category = await message.guild.channels.create(activityName, {type: 'category',  permissionOverwrites: [
             {
                 id: discordServices.everyoneRole,
@@ -82,13 +84,25 @@ module.exports = class NewActivity extends Command {
         ]});
       
         // create text channel
-        var generalText = await message.guild.channels.create('🖌️' + discordServices.activityTextChannelName, {type: 'text', parent: category, topic: 'A general banter channel to be used to communicate with other members, mentors, or staff. The !ask command is available for questions.'});
+        var generalText = await message.guild.channels.create('🖌️' + discordServices.activityTextChannelName, {
+            type: 'text', 
+            parent: category, 
+            topic: 'A general banter channel to be used to communicate with other members, mentors, or staff. The !ask command is available for questions.',
+        });
 
         // create general voice
-        var generalVoice = await message.guild.channels.create('🗣️' + discordServices.activityVoiceChannelName, {type: 'voice', parent: category});
+        var generalVoice = await message.guild.channels.create('🗣️' + discordServices.activityVoiceChannelName, {
+            type: 'voice', 
+            parent: category, 
+        });
 
         // create workshop in db
         firebaseActivity.create(activityName);
+
+        // hide the activity if asked to
+        if (startsHidden) {
+            this.client.registry.findCommands('hide_unhide', true)[0].run(message, {activityName: activityName, toHide: true, categoryChannelKey: category.id});
+        }
 
         // report success of activity creation
         discordServices.replyAndDelete(message,'Activity session named: ' + activityName + ' created succesfully. Any other commands will require this name as paramter.');
@@ -113,17 +127,22 @@ module.exports = class NewActivity extends Command {
             '✍️ [FOR WORKSHOPS] Will send an embedded message asking how the difficulty is.\n' +
             '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.\n' + 
             '🕵🏽 Will make this activity a among us activity!\n' + 
-            '💼 Will archive the activity, removing all channels except the text channel which will be sent to archive category.');  
+            '💼 Will archive the activity, removing all channels except the text channel which will be sent to archive category.\n' +
+            '🤫 Will change the visibility of the activity, can only change twice! Look at category name to know if hidden or not.');  
 
         // send message
         var msgConsole = await message.channel.send(msgEmbed);
 
         // emojis
-        var emojis = ['🧑🏽‍💼', '☕', '⏫', '⏬', '⛔', '🌬️', '🔃', '👨‍👩‍👧‍👦', '🦜','🏕️','🏎️','✍️','🧑‍🏫', '🕵🏽', '💼'];
+        var emojis = ['🧑🏽‍💼', '☕', '⏫', '⏬', '⛔', '🌬️', '🔃', '👨‍👩‍👧‍👦', '🦜','🏕️','🏎️','✍️','🧑‍🏫', '🕵🏽', '💼', '🤫'];
 
         // guard variables
         var isWorkshop = false;
         var isCoffeeChats = false;
+        var isAmongUs = false;
+        var isHidden = startsHidden;
+        var hiddenChanges = 0;
+        var maxHiddenChanges = startsHidden ? 1 : 2;
 
         // respond to message with emojis
         emojis.forEach(emoji => msgConsole.react(emoji));
@@ -151,7 +170,7 @@ module.exports = class NewActivity extends Command {
 
                 // init workshop command
                 commandRegistry.findCommands('initw', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
-                discordServices.makeVoiceChannelsPrivate(activityName, category);
+                discordServices.changeVoiceChannelPermissions(activityName, category, true);
                 // update embed
                 msgEmbed.addField('Update', 'The activity is now a Workshop!');
                 msgConsole.edit(msgEmbed);
@@ -173,7 +192,7 @@ module.exports = class NewActivity extends Command {
                 }
 
                 commandRegistry.findCommands('initcc', true)[0].run(message, {activityName: activityName, numOfGroups: numOfGroups, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
-                discordServices.makeVoiceChannelsPrivate(activityName, category);
+                discordServices.changeVoiceChannelPermissions(activityName, category, true);
 
                 // update embed
                 msgEmbed.addField('Update', 'The activity is now a Coffee Chat!');
@@ -182,7 +201,7 @@ module.exports = class NewActivity extends Command {
                   commandRegistry.findCommands('removeactivity', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
                   msgConsole.delete({timeout: 3000});
             } else if (emojiName === emojis[2]) {
-                  commandRegistry.findCommands('addvoiceto', true)[0].run(message, {activityName: activityName, number: 1, categoryChannelKey: category.id, isPrivate: isWorkshop || isAmongUs || isCoffeeChats, maxUsers: isAmongUs ? 12 : 0});
+                  commandRegistry.findCommands('addvoiceto', true)[0].run(message, {activityName: activityName, number: 1, categoryChannelKey: category.id, isPrivate: isWorkshop || isAmongUs || isCoffeeChats || isHidden, maxUsers: isAmongUs ? 12 : 0});
             } else if (emojiName === emojis[3]) {
                   commandRegistry.findCommands('removevoiceto', true)[0].run(message, {activityName: activityName, number: 1, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             } else if (emojiName === emojis[5]) {
@@ -205,10 +224,27 @@ module.exports = class NewActivity extends Command {
                   isAmongUs = true;
                   await discordServices.addLimitToVoiceChannels(activityName, category, 12);
                   commandRegistry.findCommands('initau', true)[0].run(message, {activityName: activityName, numOfChannels: 3, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
-                  discordServices.makeVoiceChannelsPrivate(activityName, category);
+                  discordServices.changeVoiceChannelPermissions(activityName, category, true);
             } else if (emojiName === emojis[14]) {
                 commandRegistry.findCommands('archive', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id });
                 msgConsole.delete({timeout: 3000});
+            } else if (emojiName === emojis[15]) {
+                isHidden = !isHidden;
+                
+                // guard to make sure the hide functinoality is not used more than possible due to discord API constraints
+                if (hiddenChanges >= maxHiddenChanges) {
+                    discordServices.replyAndDelete(message, 'This activity can\'t be hidden/unhidden anymore!');
+                    return;
+                }
+
+                commandRegistry.findCommands('hide_unhide', true)[0].run(message, {activityName: activityName, toHide: isHidden, categoryChannelKey: category.id });
+                if (!isHidden && !(isWorkshop || isAmongUs || isCoffeeChats)) {
+                    discordServices.changeVoiceChannelPermissions(activityName, category, false);
+                } else {
+                    discordServices.changeVoiceChannelPermissions(activityName, category, true);
+                }
+
+                hiddenChanges += 1;
             }
         });
     }
