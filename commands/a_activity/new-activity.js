@@ -108,7 +108,7 @@ module.exports = class NewActivity extends Command {
             '🔃 Will callback all users from all channels to the general channel.\n' + 
             '👨‍👩‍👧‍👦 Will shuffle all the groups around the available channels.\n' + 
             '🦜 Will shuffle all the mentors around the available channels.\n' +
-            '🏕️ Will activate a stamp distribution that will be open for 20 seconds.\n' +
+            '🏕️ Will activate a stamp distribution that will be open for ' + discordServices.stampCollectTime + ' seconds.\n' +
             '🏎️ [FOR WORKSHOPS] Will send an embedded message asking how the speed is.\n' +
             '✍️ [FOR WORKSHOPS] Will send an embedded message asking how the difficulty is.\n' +
             '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.\n' + 
@@ -194,7 +194,7 @@ module.exports = class NewActivity extends Command {
             } else if (emojiName === emojis[8]) {
                   commandRegistry.findCommands('mshuffle', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id});
             } else if (emojiName === emojis[9]) {
-                  commandRegistry.findCommands('distribute-stamp', true)[0].run(message, {activityName: activityName, timeLimit: 60, targetChannelKey: generalText.id });
+                  commandRegistry.findCommands('distribute-stamp', true)[0].run(message, {activityName: activityName, timeLimit: discordServices.stampCollectTime, targetChannelKey: generalText.id });
             } else if (emojiName === emojis[10]) {
                   commandRegistry.findCommands('workshop-polls',true)[0].run(message, {activityName: activityName, question: 'speed', targetChannelKey: generalText.id });
             } else if (emojiName === emojis[11]) {

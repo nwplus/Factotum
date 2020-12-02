@@ -8,7 +8,7 @@ module.exports = class StartTeamFormation extends Command {
     constructor(client) {
         super(client, {
             name: 'starttf',
-            group: 'a_teamformation',
+            group: 'a_start_commands',
             memberName: 'start team formation',
             description: 'Send a message with emoji collector, one meoji for recruiters, one emoji for team searchers. Instructions will be sent via DM.',
             guildOnly: true,
