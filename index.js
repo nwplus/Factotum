@@ -143,9 +143,16 @@ bot.on('message', async message => {
 // If someone joins the server they get the guest role!
 bot.on('guildMemberAdd', member => {
     discordServices.addRoleToMember(member, discordServices.guestRole);
-    member.send("Welcome to the nwHacks Server, please verify your status with us in the welcome channel" +
-        " by using the !verify <your email> command. If you have any questions feel free to contact our staff " +
-        "at the welcome-support channel. We are so excited to have you here!");
+
+    var embed = new Discord.MessageEmbed()
+        .setTitle('Welcome to the nwHacks Server!')
+        .setDescription('We are very excited to have you here!')
+        .addField('Gain more access by verifying yourself!', 'Go back to the welcome channel and use the !verify command. More info there!')
+        .addField('Have a question?', 'Go to the welcome-assistance channel to talk with out staff!')
+        .addField('Want to learn more about what I can do?', 'Use the !help command anywhere and I will send you a message!')
+        .setColor(discordServices.embedColor);
+
+    member.send(embed);
 });
 
 bot.login(config.token).catch(console.error);
