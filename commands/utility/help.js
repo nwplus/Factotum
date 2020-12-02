@@ -11,20 +11,25 @@ module.exports = class ClearChat extends Command {
             group: 'utility',
             memberName: 'help user',
             description: 'Will send available commands depending on role!',
-            guildOnly: true,
             hidden: true,
         });
     }
 
     async run(message) {
-        discordServices.deleteMessage(message);
         
         var commands = [];
 
-        if ((discordServices.checkForRole(message.member, discordServices.staffRole))) {
-            var commandGroups = this.client.registry.findGroups('a_');
-        } else {
+        // if message on DM then send hacker commands
+        if (message.channel.type === 'dm') {
             var commandGroups = this.client.registry.findGroups('utility');
+        } else {
+            discordServices.deleteMessage(message);
+
+            if ((discordServices.checkForRole(message.member, discordServices.staffRole))) {
+                var commandGroups = this.client.registry.findGroups('a_');
+            } else {
+                var commandGroups = this.client.registry.findGroups('utility');
+            }
         }
 
         // add all the commands from the command groups
