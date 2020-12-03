@@ -67,19 +67,20 @@ module.exports = class HideUnhide extends Command {
         // * It appears that the discord api takes a LONG time to change the name once the category has been changed a few times
         // * For our purposes, we are okay with hiding it only initialy and then unhiding, after that no more hidding alowed
         // * Will make sure this rule is followed in !newactivity console
+        // * UPDATE: it appears the problem was using category.name inside the setName method, using a simple variable solved the issue
 
 
         // update overwrites
         if (toHide) {
-            // console.log('will hide category named: ' + category.name);
-            category = await category.setName('HIDDEN-' + category.name);
-            // console.log('Name has been changed to: ' + category.name);
-            category = await category.createOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
+            // category = await category.setName('HIDDEN-' + category.name);
+            category.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
+            category.updateOverwrite(discordServices.mentorRole, {VIEW_CHANNEL: false});
+            category.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false});
         } else {
-            // console.log('will un hide category named: ' + category.name);
-            category = await category.setName(category.name.replace('HIDDEN-', ''));
-            // console.log('Name has been changed to: ' + category.name);
-            category = await category.createOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: true});
+            // category = await category.setName(category.name.replace('HIDDEN-', ''));
+            category.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: true});
+            category.updateOverwrite(discordServices.mentorRole, {VIEW_CHANNEL: true});
+            category.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: true});
         }
 
         // report success of channel deletions

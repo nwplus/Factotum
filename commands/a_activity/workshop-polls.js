@@ -54,15 +54,27 @@ module.exports = class DistributeStamp extends Command {
         if (question === 'speed') { 
             qEmbed = new Discord.MessageEmbed()
                 .setColor(discordServices.embedColor)
-                .setTitle('Please react ' + '🐢' + ' if the pace is too slow, 🐶 if the pace is just right, or 🐇 if the pace is too fast, within the next 5 minutes');
+                .setTitle('Speed Poll!')
+                .setDescription('Please react to this poll!\n\n' + 
+                    '**Too Slow? ->**  🐢\n\n' + 
+                    '**Just Right? ->**  🐶\n\n' + 
+                    '**Too Fast? ->**  🐇');
         } else if (question === 'difficulty') {
             qEmbed = new Discord.MessageEmbed()
                 .setColor(discordServices.embedColor)
-                .setTitle('Please react 🐢 if you are having trouble with the material, 🐶 if the difficulty is just right, or 🐇 if you are way ahead. Make sure to ask for help if you need it!');
+                .setTitle('Difficulty Poll!')
+                .setDescription('Please react to this poll! If you need help, go to the assistance channel!\n\n' + 
+                    '**Too Hard? ->**  🐢\n\n' + 
+                    '**Just Right? ->**  🐶\n\n' + 
+                    '**Too Easy? ->**  🐇');
         } else if (question === 'explanations') {
             qEmbed = new Discord.MessageEmbed()
                 .setColor(discordServices.embedColor)
-                .setTitle('Please react 🐢 if the explanations need improving, 🐶 if they are meh, or 🐇 if the explanations are well done. Make sure to ask for help if you need it!');
+                .setTitle('Explanation Poll!')
+                .setDescription('Please react to this poll!\n\n' + 
+                    '**Hard to understand? ->**  🐢\n\n' + 
+                    '**Meh exaplanations? ->**  🐶\n\n' + 
+                    '**Easy to understand? ->**  🐇');
         }
 
         // send message

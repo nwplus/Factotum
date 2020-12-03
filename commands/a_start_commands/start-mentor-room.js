@@ -40,14 +40,6 @@ module.exports = class StartMentors extends Command {
             // Create category
             var mentorCaveCategory = await message.guild.channels.create('🧑🏽‍🎓Mentors Cave', {type: 'category',  permissionOverwrites: [
                 {
-                    id: discordServices.guestRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.everyoneRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
                     id: discordServices.hackerRole,
                     deny: ['VIEW_CHANNEL'],
                 },
@@ -58,6 +50,7 @@ module.exports = class StartMentors extends Command {
                 {
                     id: discordServices.mentorRole,
                     allow: ['VIEW_CHANNEL'],
+                    deny: ['SEND_MESSAGES'],
                 },
                 {
                     id: discordServices.sponsorRole,
@@ -74,13 +67,8 @@ module.exports = class StartMentors extends Command {
                 type: 'text', 
                 parent: mentorCaveCategory,
                 topic: 'For any and all social interactions between mentors. This entire category is only for mentors and staff!',
-                permissionOverwrites: [
-                    {
-                        id: discordServices.mentorRole,
-                        allow: ['SEND_MESSAGES'],
-                    },
-                ]
-            });
+            }).then(channel => channel.updateOverwrite(discordServices.mentorRole, {SEND_MESSAGES: true}));
+
 
             // mentor console channel to ask for tags
             var mentorConsole = await message.guild.channels.create('📝mentor-console', {
@@ -129,14 +117,6 @@ module.exports = class StartMentors extends Command {
         if (publicHelpCategory === undefined) {
             // create mentor help public channels category
             publicHelpCategory = await message.guild.channels.create('👉🏽👈🏽Mentor Help', {type: 'category', permissionOverwrites: [
-                {
-                    id: discordServices.everyoneRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.guestRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
                 {
                     id: discordServices.hackerRole,
                     deny: ['VIEW_CHANNEL'],
@@ -218,7 +198,7 @@ module.exports = class StartMentors extends Command {
         const requestTicketEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle('Ticket Request System')
-            .setDescription('If you or your team want to talk with a mentor follow the isntrucitons below:' + 
+            .setDescription('If you or your team want to talk with a mentor follow the instructions below:' + 
             '\n* React to this message with the correct emoji and follow instructions' + 
             '\n* Once done, wait for a mentor to accept your ticket!')
             .addField('For a general ticket:', 'React with ' + requestTicketEmoji);
@@ -270,26 +250,26 @@ module.exports = class StartMentors extends Command {
         const adminCollector = await msgConsole.createReactionCollector((reaction, user) => !user.bot && adminEmojis.includes(reaction.emoji.name));
 
         // on emoji reaction
-        adminCollector.on('collect', async (reaction, user) => {
+        adminCollector.on('collect', async (reaction, admin) => {
             // remove reaction
-            reaction.users.remove(user.id);
+            reaction.users.remove(admin.id);
 
             // ask for role name, we will add TA- at the beginning
-            var roleNameMsg = await message.channel.send('<@' + user.id + '> What is the name of this new role? Do not add M-, I will add that already!');
+            var roleNameMsg = await message.channel.send('<@' + admin.id + '> What is the name of this new role? Do not add M-, I will add that already!');
 
-            message.channel.awaitMessages(m => m.author.id === user.id, {max: 1}).then(msgs => {
+            message.channel.awaitMessages(m => m.author.id === admin.id, {max: 1}).then(msgs => {
                 var nameMsgContent = msgs.first().content;
 
                 msgs.first().delete();
                 roleNameMsg.delete();
 
-                message.channel.send('<@' + user.id + '> Please react to this message with the associated emoji!').then(msg => {
-                    msg.awaitReactions((r, u) => u.id === user.id, {max: 1}).then(async rcs => {
+                message.channel.send('<@' + admin.id + '> Please react to this message with the associated emoji!').then(msg => {
+                    msg.awaitReactions((r, u) => u.id === admin.id, {max: 1}).then(async rcs => {
                         var reaction = rcs.first();
 
                         // make sure the emoji is not in use already!
                         if (mentorEmojis.has(reaction.emoji.name)) {
-                            message.channel.send('<@' + user.id + '> This emoji is already in use! Please try again!').then(msg => msg.delete({timeout: 5000}));
+                            message.channel.send('<@' + admin.id + '> This emoji is already in use! Please try again!').then(msg => msg.delete({timeout: 5000}));
                         } else {
                             // add role to server
                             var newRole = await message.guild.roles.create({
@@ -311,8 +291,8 @@ module.exports = class StartMentors extends Command {
                             requestTicketMsg.react(reaction.emoji.name);
 
                             // ask admin if public channel should be created for this role
-                            var promt = await message.channel.send('<@' + user.id + '> Do you want me to create a public text channel for this mentor help role? yes or no?');
-                            await message.channel.awaitMessages(roleNameFilter, {max: 1}).then(msgs => {
+                            var promt = await message.channel.send('<@' + admin.id + '> Do you want me to create a public text channel for this mentor help role? yes or no?');
+                            await message.channel.awaitMessages(m => m.author.id === admin.id, {max: 1}).then(msgs => {
                                 if (msgs.first().content.toLowerCase() === 'yes') {
                                     // add public text channel
                                     message.guild.channels.create(nameMsg.content + '-help', {
@@ -326,8 +306,8 @@ module.exports = class StartMentors extends Command {
                                 promt.delete();
                             });
 
-                            // let user know the action was succesfull
-                            message.channel.send('<@' + user.id + '> The role has been added!').then(msg => msg.delete({timeout: 5000}));
+                            // let admin know the action was succesfull
+                            message.channel.send('<@' + admin.id + '> The role has been added!').then(msg => msg.delete({timeout: 5000}));
                         }
                         
                         msg.delete();
@@ -357,12 +337,12 @@ module.exports = class StartMentors extends Command {
         
         const requestTicketCollector = await requestTicketMsg.createReactionCollector((reaction, user) => !user.bot && (mentorEmojis.has(reaction.emoji.name) || reaction.emoji.name === requestTicketEmoji));
 
-        requestTicketCollector.on('collect', async (reaction, user) => {
+        requestTicketCollector.on('collect', async (reaction, hacker) => {
             // prmot for team members and the one liner
-            requestTicketChannel.send('<@' + user.id + '> Please send ONE message with: \n* A one liner of your problem \n* Mention your team members.').then(promtMsg => {
-                requestTicketChannel.awaitMessages(m => m.author.id === user.id, {max: 1}).then(msgs => {
+            requestTicketChannel.send('<@' + hacker.id + '> Please send ONE message with: \n* A one liner of your problem \n* Mention your team members.').then(promtMsg => {
+                requestTicketChannel.awaitMessages(m => m.author.id === hacker.id, {max: 1}).then(msgs => {
                     // remove reaction from ticket system
-                    reaction.users.remove(user.id);
+                    reaction.users.remove(hacker.id);
 
                     // get mentor role associated to reaction, if no mentor info means its a general mentor
                     var mentorInfo = mentorEmojis.get(reaction.emoji.name);
@@ -405,17 +385,15 @@ module.exports = class StartMentors extends Command {
 
                         var ticketReactionCollector = ticketMsg.createReactionCollector((reaction, user) => !user.bot && ticketEmojis.has(reaction.emoji.name));
 
-                        ticketReactionCollector.on('collect', async (reaction, user) => {
-                            // get the mentor member
-                            var mentorUser = message.guild.member(user.id);
+                        ticketReactionCollector.on('collect', async (reaction, mentor) => {
 
                             if (reaction.emoji.name === joinTicketEmoji) {
                             // More mentors can join functionality
                                 // add mentor to category
-                                ticketCategory.updateOverwrite(mentorUser, {'VIEW_CHANNEL': true, 'USE_VAD': true});
+                                ticketCategory.updateOverwrite(mentor, {'VIEW_CHANNEL': true, 'USE_VAD': true});
 
                                 // let the team know someone has joined the conversation
-                                ticketTextChannel.send('@here <@' + mentorUser.id + '> Has joined the ticket!').then(msg => msg.delete({timeout: 5000}));
+                                ticketTextChannel.send('@here <@' + mentor.id + '> Has joined the ticket!').then(msg => msg.delete({timeout: 5000}));
                             } else {
                             // Ticket has been accepted -> creating ticket category
                                 // remove give help emoji and add join ticket emoji to collection
@@ -424,15 +402,15 @@ module.exports = class StartMentors extends Command {
                             
                                 // update embed to reflect someone is help
                                 ticketMsg.edit(ticketMsg.embeds[0].setColor('#80c904')
-                                                                    .addField('This ticket is being handled!', '<@' + mentorUser.id + '> Is helping this team!')
+                                                                    .addField('This ticket is being handled!', '<@' + mentor.id + '> Is helping this team!')
                                                                     .addField('Still want to help?', 'Click the ' + joinTicketEmoji + ' emoji to join the ticket!'));
                                 ticketMsg.react(joinTicketEmoji);
 
                                 // create category with channels
                                 ticketCategory = await message.guild.channels.create('Ticket-' + ticketCount, {type: 'category',});
                                 ticketCategory.updateOverwrite(discordServices.everyoneRole, {'VIEW_CHANNEL': false});
-                                ticketCategory.updateOverwrite(mentorUser, {'VIEW_CHANNEL': true, 'USE_VAD': true});
-                                ticketCategory.updateOverwrite(user, {'VIEW_CHANNEL': true, 'USE_VAD': true});
+                                ticketCategory.updateOverwrite(mentor, {'VIEW_CHANNEL': true, 'USE_VAD': true});
+                                ticketCategory.updateOverwrite(hacker, {'VIEW_CHANNEL': true, 'USE_VAD': true});
                                 hackerTicketMentions.members.each(member => ticketCategory.updateOverwrite(member, {'VIEW_CHANNEL': true, 'USE_VAD': true}));
 
                                 // text channel
@@ -446,7 +424,7 @@ module.exports = class StartMentors extends Command {
                                     .setColor(discordServices.embedColor)
                                     .setTitle('Original Question')
                                     .setDescription(hackerTicketContent)
-                                    .addField('Thank you for helping this team.', '<@' + mentorUser + '> Best of luck!')
+                                    .addField('Thank you for helping this team.', '<@' + mentor + '> Best of luck!')
                                     .addField('When done:', '* React to this message with 👋🏽 to lose access to these channels!');
 
                                 ticketTextChannel.send(newChannelEmbed).then(async infoMsg => {
@@ -464,14 +442,14 @@ module.exports = class StartMentors extends Command {
                                             await ticketVoiceChannel.delete();
                                             await ticketCategory.delete();
                                         } else {
-                                            ticketCategory.updateOverwrite(user, {'VIEW_CHANNEL': false});
+                                            ticketCategory.updateOverwrite(user, {VIEW_CHANNEL: false, SEND_MESSAGES: false, READ_MESSAGE_HISTORY: false});
                                         }
                                     });
                                 });
 
                                 // send message with parties involved and delete immediately, just so they get notified
-                                ticketTextChannel.send('<@' + mentorUser + '>').then(msg => msg.delete());
-                                ticketTextChannel.send('<@' + user.id + '>').then(msg => msg.delete());
+                                ticketTextChannel.send('<@' + mentor + '>').then(msg => msg.delete());
+                                ticketTextChannel.send('<@' + hacker.id + '>').then(msg => msg.delete());
                                 hackerTicketMentions.members.each(member => ticketTextChannel.send('<@' + member.id + '>').then(msg => msg.delete()));
                             }
                         });

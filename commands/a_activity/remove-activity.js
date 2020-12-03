@@ -71,10 +71,10 @@ module.exports = class RemoveActivity extends Command {
 
         var listOfChannels = category.children.array();
         for(var i = 0; i < listOfChannels.length; i++) {
-            await listOfChannels[i].delete();
+            await listOfChannels[i].delete().catch(console.error);
         }
 
-        await category.delete();
+        await category.delete().catch(console.error);
 
         firebaseActivity.remove(activityName);
 

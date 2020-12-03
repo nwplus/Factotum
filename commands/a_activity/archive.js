@@ -60,7 +60,13 @@ module.exports = class InitAmongUs extends Command {
         var archiveCategory = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name === '💼archive');
 
         if (archiveCategory === undefined) {
-            archiveCategory = await message.guild.channels.create('💼archive', {type: 'category', permissionOverwrites: [
+            
+            // position is used to create archive at the very bottom!
+            var position = (await message.guild.channels.cache.filter(channel => channel.type === 'category')).array().length;
+            archiveCategory = await message.guild.channels.create('💼archive', {
+                type: 'category', 
+                position: position + 1,
+                permissionOverwrites: [
                 {
                     id: discordServices.hackerRole,
                     deny: ['VIEW_CHANNEL'],
@@ -81,7 +87,7 @@ module.exports = class InitAmongUs extends Command {
                     id: discordServices.staffRole,
                     allow: ['VIEW_CHANNEL'],
                 }
-            ]})
+            ]});
         }
 
         // get category
@@ -115,17 +121,17 @@ module.exports = class InitAmongUs extends Command {
         await discordServices.removeVoiceChannelsToActivity(activityName, category.children.array().length, category);
 
         // remove general voice
-        generalVoice.delete();
+        generalVoice.delete().catch(console.error);
 
         // remove all text channels except text
-        category.children.filter(channel => channel.type === 'text' && channel.name != generalText.name).each(channel => channel.delete());
+        category.children.filter(channel => channel.type === 'text' && channel.name != generalText.name).each(channel => channel.delete().catch(console.error));
 
         // move text channel
         await generalText.setParent(archiveCategory);
-        await generalText.edit({name: activityName + '-banter'});
+        await generalText.setName(activityName + '-banter');
 
         // remove category
-        category.delete();
+        category.delete().catch(console.error);
 
         firebaseActivity.remove(activityName);
 

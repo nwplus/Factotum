@@ -109,10 +109,10 @@ module.exports = class DistributeStamp extends Command {
                         pwdCollector.stop();
                     } else if (incorrectPasswords < 2) {
                         //add 1 to number of incorrect guesses and prompts user to try again
-                        incorrectPasswords++;
                         await user.send("Incorrect. Please try again.");
-                    } 
-                })
+                    }
+                    incorrectPasswords++;
+                });
                 pwdCollector.on('end', collected => {
                     //show different messages after password collection expires depending on circumstance
                     if (!correctPassword) {
@@ -122,8 +122,8 @@ module.exports = class DistributeStamp extends Command {
                             user.send("Incorrect. You have no attempts left. If you have extenuating circumstances please contact an organizer.");
                         }
                     }
-                })
-            })
+                });
+            });
             //edits the embedded message to notify people when it stops collecting reacts
             collector.on('end', collected => {
                 if (msg.guild.channels.cache.find(channel => channel.name === targetChannel.name)) {
