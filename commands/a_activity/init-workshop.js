@@ -232,9 +232,9 @@ module.exports = class InitWorkshop extends Command {
             }
 
             // collect the question the hacker has
-            var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 10 seconds to respond');
+            var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond');
 
-            helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 10000,error:['time'] }).then(async msgs => {
+            helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000,error:['time'] }).then(async msgs => {
                 // get question
                 var question = msgs.first().content;
 
