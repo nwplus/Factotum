@@ -56,6 +56,8 @@ var tfTeamEmbedColor = '#1929ff';
 module.exports.tfTeamEmbedColor = tfTeamEmbedColor;
 var tfHackerEmbedColor = '#ff33f1';
 module.exports.tfHackerEmbedColor = tfHackerEmbedColor;
+var specialDMEmbedColor = '#fc6b03';
+module.exports.specialDMEmbedColor = specialDMEmbedColor;
 
 const blackList = new Map();
 module.exports.blackList = blackList;
