@@ -40,14 +40,6 @@ module.exports = class StartMentors extends Command {
             // Create category
             var mentorCaveCategory = await message.guild.channels.create('🧑🏽‍🎓Mentors Cave', {type: 'category',  permissionOverwrites: [
                 {
-                    id: discordServices.guestRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.everyoneRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
                     id: discordServices.hackerRole,
                     deny: ['VIEW_CHANNEL'],
                 },
@@ -58,6 +50,7 @@ module.exports = class StartMentors extends Command {
                 {
                     id: discordServices.mentorRole,
                     allow: ['VIEW_CHANNEL'],
+                    deny: ['SEND_MESSAGES'],
                 },
                 {
                     id: discordServices.sponsorRole,
@@ -74,13 +67,8 @@ module.exports = class StartMentors extends Command {
                 type: 'text', 
                 parent: mentorCaveCategory,
                 topic: 'For any and all social interactions between mentors. This entire category is only for mentors and staff!',
-                permissionOverwrites: [
-                    {
-                        id: discordServices.mentorRole,
-                        allow: ['SEND_MESSAGES'],
-                    },
-                ]
-            });
+            }).then(channel => channel.updateOverwrite(discordServices.mentorRole, {SEND_MESSAGES: true}));
+
 
             // mentor console channel to ask for tags
             var mentorConsole = await message.guild.channels.create('📝mentor-console', {
@@ -129,14 +117,6 @@ module.exports = class StartMentors extends Command {
         if (publicHelpCategory === undefined) {
             // create mentor help public channels category
             publicHelpCategory = await message.guild.channels.create('👉🏽👈🏽Mentor Help', {type: 'category', permissionOverwrites: [
-                {
-                    id: discordServices.everyoneRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.guestRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
                 {
                     id: discordServices.hackerRole,
                     deny: ['VIEW_CHANNEL'],

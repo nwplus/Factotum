@@ -92,28 +92,12 @@ module.exports = class InitWorkshop extends Command {
 
         // create TA console
         var taChannel = await message.guild.channels.create(':🧑🏽‍🏫:' + 'ta-console', {
-            type: 'text', parent: category, permissionOverwrites: [
-                {
-                    id: discordServices.hackerRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.attendeeRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.sponsorRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.mentorRole,
-                    allow: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.staffRole,
-                    allow: ['VIEW_CHANNEL'],
-                }
-            ], topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
+            type: 'text', 
+            parent: category, 
+            topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
+        }).then(channel => {
+            channel.updateOverwrite(discordServices.attendChannel, {VIEW_CHANNEL: false});
+            channel.updateOverwrite(discordServices.sponsorCategory, {VIEW_CHANNEL: false});
         });
 
 

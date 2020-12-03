@@ -85,15 +85,11 @@ module.exports = class InitAmongUs extends Command {
         });
 
         // add game code channel
-        var gameCodesChannel = await message.guild.channels.create('🎮' + 'game-codes', {
+        message.guild.channels.create('🎮' + 'game-codes', {
+            type: 'text',
             topic: 'This channel is only intended to send game codes for others to join!',
-            parent: category,
-            permissionOverwrites: [
-                {
-                    id: discordServices.attendeeRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-            ]
+        }).then(channel => {
+            channel.setParent(category, {lockPermissions: false}).then(channel => channel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false}));
         });
 
         // add voice channels

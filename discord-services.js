@@ -198,36 +198,15 @@ async function addVoiceChannelsToActivity(activityName, number, category, channe
 
     // create voice channels
     for (; index < total; index++) {
-        channelManager.create('🔊Room' + '-' + index, {type: 'voice', parent: category, permissionOverwrites : [
-            {
-                id: hackerRole,
-                deny: ['VIEW_CHANNEL'],
-            },
-            isPrivate ? {
-                id: attendeeRole,
-                deny: ['VIEW_CHANNEL'],
-                allow: ['USE_VAD', 'SPEAK'],
-            } : {
-                id: attendeeRole,
-                allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK']
-            },
-            isPrivate ? {
-                id: sponsorRole,
-                deny: ['VIEW_CHANNEL'],
-            } : {
-                id: sponsorRole,
-                allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK'],
-            },
-            {
-                id: mentorRole,
-                allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
-            },
-            {
-                id: staffRole,
-                allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
-            }
-        ],
-        userLimit: maxUsers === 0 ? undefined : maxUsers}).catch(console.error);
+        channelManager.create('🔊Room' + '-' + index, {
+            type: 'voice', 
+            parent: category, 
+            userLimit: maxUsers === 0 ? undefined : maxUsers
+        }).then(channel => {
+            channel.updateOverwrite(attendeeRole, {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true});
+            channel.updateOverwrite(sponsorRole, {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true});
+            channel.updateOverwrite(mentorRole, {MOVE_MEMBERS: true, USE_VAD: true});
+        }).catch(console.error);
     }
 
     return total;

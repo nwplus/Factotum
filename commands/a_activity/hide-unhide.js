@@ -71,15 +71,15 @@ module.exports = class HideUnhide extends Command {
 
         // update overwrites
         if (toHide) {
-            // console.log('will hide category named: ' + category.name);
-            category = await category.setName('HIDDEN-' + category.name);
-            // console.log('Name has been changed to: ' + category.name);
-            category = await category.createOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
+            // category = await category.setName('HIDDEN-' + category.name);
+            category.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
+            category.updateOverwrite(discordServices.mentorRole, {VIEW_CHANNEL: false});
+            category.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false});
         } else {
-            // console.log('will un hide category named: ' + category.name);
-            category = await category.setName(category.name.replace('HIDDEN-', ''));
-            // console.log('Name has been changed to: ' + category.name);
-            category = await category.createOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: true});
+            // category = await category.setName(category.name.replace('HIDDEN-', ''));
+            category.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: true});
+            category.updateOverwrite(discordServices.mentorRole, {VIEW_CHANNEL: true});
+            category.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: true});
         }
 
         // report success of channel deletions

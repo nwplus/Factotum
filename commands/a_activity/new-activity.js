@@ -54,14 +54,6 @@ module.exports = class NewActivity extends Command {
       
         var category = await message.guild.channels.create(activityName, {type: 'category',  permissionOverwrites: [
             {
-                id: discordServices.everyoneRole,
-                deny: ['VIEW_CHANNEL'],
-            },
-            {
-                id: discordServices.guestRole,
-                deny: ['VIEW_CHANNEL'],
-            },
-            {
                 id: discordServices.hackerRole,
                 deny: ['VIEW_CHANNEL'],
             },
@@ -98,11 +90,6 @@ module.exports = class NewActivity extends Command {
 
         // create workshop in db
         firebaseActivity.create(activityName);
-
-        // hide the activity if asked to
-        if (startsHidden) {
-            this.client.registry.findCommands('hide_unhide', true)[0].run(message, {activityName: activityName, toHide: true, categoryChannelKey: category.id});
-        }
 
         // report success of activity creation
         discordServices.replyAndDelete(message,'Activity session named: ' + activityName + ' created succesfully. Any other commands will require this name as paramter.');
@@ -147,11 +134,14 @@ module.exports = class NewActivity extends Command {
         // respond to message with emojis
         emojis.forEach(emoji => msgConsole.react(emoji));
 
-        // filter
-        const emojiFilter = (reaction, user) => user.bot != true && emojis.includes(reaction.emoji.name);
+        // hide the activity if asked to
+        if (startsHidden) {
+            this.client.registry.findCommands('hide_unhide', true)[0].run(message, {activityName: activityName, toHide: true, categoryChannelKey: category.id});
+            msgConsole.edit(msgConsole.embeds[0].addField('Activity is now HIDDEN', 'The activity is marked as HIDDEN, no one can see it!'));
+        }
 
         // create collector
-        const emojiCollector = await msgConsole.createReactionCollector(emojiFilter);
+        const emojiCollector = await msgConsole.createReactionCollector((reaction, user) => user.bot != true && emojis.includes(reaction.emoji.name));
 
         // on emoji reaction
         emojiCollector.on('collect', async (reaction, user) => {
@@ -237,11 +227,16 @@ module.exports = class NewActivity extends Command {
                     return;
                 }
 
+                // update HIDDEN/UNHIDDEN in the console
+                msgEmbed.addField('Activity is now HIDDEN', 'The activity is marked as HIDDEN, no one can see it!')
+
                 commandRegistry.findCommands('hide_unhide', true)[0].run(message, {activityName: activityName, toHide: isHidden, categoryChannelKey: category.id });
                 if (!isHidden && !(isWorkshop || isAmongUs || isCoffeeChats)) {
                     discordServices.changeVoiceChannelPermissions(activityName, category, false);
+                    msgConsole.edit(msgConsole.embeds[0].addField('Activity is now HIDDEN', 'The activity is marked as HIDDEN, no one can see it!'));
                 } else {
                     discordServices.changeVoiceChannelPermissions(activityName, category, true);
+                    msgConsole.edit(msgConsole.embeds[0].addField('Activity is now not HIDDEN', 'The activity is viewable by everyone!'));
                 }
 
                 hiddenChanges += 1;
