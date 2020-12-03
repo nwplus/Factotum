@@ -54,7 +54,11 @@ module.exports = class DistributeStamp extends Command {
         if (question === 'speed') { 
             qEmbed = new Discord.MessageEmbed()
                 .setColor(discordServices.embedColor)
-                .setTitle('Please react ' + '🐢' + ' if the pace is too slow, 🐶 if the pace is just right, or 🐇 if the pace is too fast, within the next 5 minutes');
+                .setTitle('Speed Poll!')
+                .setDescription('Please react to this poll!\n\n' + 
+                    '**Too Slow? ->**  🐢\n\n' + 
+                    '**Just Right? ->**  🐶\n\n' + 
+                    '**Too Fast? ->**  🐇');
         } else if (question === 'difficulty') {
             qEmbed = new Discord.MessageEmbed()
                 .setColor(discordServices.embedColor)

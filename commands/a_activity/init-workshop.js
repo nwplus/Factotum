@@ -88,17 +88,16 @@ module.exports = class InitWorkshop extends Command {
         generalVoice.updateOverwrite(discordServices.staffRole, {
             SPEAK: true,
             MOVE_MEMBERS: true,
-        })
+        });
 
         // create TA console
         var taChannel = await message.guild.channels.create(':🧑🏽‍🏫:' + 'ta-console', {
             type: 'text', 
             parent: category, 
             topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
-        }).then(channel => {
-            channel.updateOverwrite(discordServices.attendChannel, {VIEW_CHANNEL: false});
-            channel.updateOverwrite(discordServices.sponsorCategory, {VIEW_CHANNEL: false});
         });
+        taChannel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
+        taChannel.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false});
 
 
         ////// important variables
@@ -124,22 +123,28 @@ module.exports = class InitWorkshop extends Command {
 
             msg.awaitReactions((reaction, user) => !user.bot && reaction.emoji.name === '🤡', {max: 1}).then(collected => {
                 // hide general voice channel
-                generalVoice.setName('HIDDEN-' + generalVoice.name);
-                generalVoice.createOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
+                var name = generalVoice.name;
+                generalVoice.setName('HIDDEN-' + name).catch(console.error);
+                generalVoice.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
+                generalVoice.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false});
 
                 // disable pull in functionality
                 pullInFunctonality = false;
+
+                // let TAs know about the change!
+                taChannel.send('Low tech solution has been turned on!').then(msg => msg.delete({timeout: 5000}));
+                msg.edit(msg.embeds[0].addField('Low Tech Solution Is On', 'To give assistance: \n* Send a DM to the highers member on the wait list \n* Then click on the emoji to remove them from the list!'));
             });
         });
         
         const consoleEmbed = new Discord.MessageEmbed()
             .setColor(mentorColor)
-            .setTitle('Main console for ' + activityName)
-            .setDescription('Here are some commands:\n' +
-                '🏕️ Will activate a stamp distribution that will be open for ' + discordServices.stampCollectTime + ' seconds.\n' +
-                '🏎️ Will send an embedded message asking how the speed is.\n' +
-                '✍️ Will send an embedded message asking how the difficulty is.\n' +
-                '🧑‍🏫 Will send an embedded message asking how good the explanations are.');
+            .setTitle('Polling and Stamp Console')
+            .setDescription('Here are some common polls you might want to use!')
+            .addField('Stamp Distribution', '🏕️ Will activate a stamp distribution that will be open for ' + discordServices.stampCollectTime + ' seconds.')
+            .addField('Speed Poll', '🏎️ Will send an embedded message asking how the speed is.')
+            .addField('Difficulty Poll', '✍️ Will send an embedded message asking how the difficulty is.')
+            .addField('Explanation Poll', '🧑‍🏫 Will send an embedded message asking how good the explanations are.');
         
         // send message
         taChannel.send(consoleEmbed).then((msg) => {

@@ -249,39 +249,11 @@ async function changeVoiceChannelPermissions(activityName, category, toHide) {
     // we remove one because we are counting from 0
     // remove voice channels
     for (var index = total - 1; index >= 0; index--) {
-        var channelName = '🔊Room' + '-' + index;
+        var channelName = 'Room' + '-' + index;
         var channel = await category.children.find(channel => channel.name.endsWith(channelName));
         if (channel != undefined) {
-            channel.overwritePermissions([
-                {
-                    id: hackerRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                toHide ? {
-                    id: attendeeRole,
-                    deny: ['VIEW_CHANNEL'],
-                    allow: ['USE_VAD', 'SPEAK'],
-                } : {
-                    id: attendeeRole,
-                    allow: ['USE_VAD', 'SPEAK', 'VIEW_CHANNEL'],
-                },
-                toHide ? {
-                    id: sponsorRole,
-                    deny: ['VIEW_CHANNEL'],
-                    allow: ['USE_VAD', 'SPEAK'],
-                } : {
-                    id: sponsorRole,
-                    allow: ['USE_VAD', 'SPEAK', 'VIEW_CHANNEL'],
-                },
-                {
-                    id: mentorRole,
-                    allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
-                },
-                {
-                    id: staffRole,
-                    allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
-                }
-            ]);
+            channel.updateOverwrite(attendeeRole, {VIEW_CHANNEL: toHide ? false : true});
+            channel.updateOverwrite(sponsorRole, {VIEW_CHANNEL: toHide ? false : true});
         }
     }
 }

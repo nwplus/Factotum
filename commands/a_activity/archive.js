@@ -121,17 +121,17 @@ module.exports = class InitAmongUs extends Command {
         await discordServices.removeVoiceChannelsToActivity(activityName, category.children.array().length, category);
 
         // remove general voice
-        generalVoice.delete();
+        generalVoice.delete().catch(console.error);
 
         // remove all text channels except text
-        category.children.filter(channel => channel.type === 'text' && channel.name != generalText.name).each(channel => channel.delete());
+        category.children.filter(channel => channel.type === 'text' && channel.name != generalText.name).each(channel => channel.delete().catch(console.error));
 
         // move text channel
         await generalText.setParent(archiveCategory);
-        await generalText.edit({name: activityName + '-banter'});
+        await generalText.setName(activityName + '-banter');
 
         // remove category
-        category.delete();
+        category.delete().catch(console.error);
 
         firebaseActivity.remove(activityName);
 
