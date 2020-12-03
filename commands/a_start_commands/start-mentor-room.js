@@ -218,7 +218,7 @@ module.exports = class StartMentors extends Command {
         const requestTicketEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle('Ticket Request System')
-            .setDescription('If you or your team want to talk with a mentor follow the isntrucitons below:' + 
+            .setDescription('If you or your team want to talk with a mentor follow the instructions below:' + 
             '\n* React to this message with the correct emoji and follow instructions' + 
             '\n* Once done, wait for a mentor to accept your ticket!')
             .addField('For a general ticket:', 'React with ' + requestTicketEmoji);
