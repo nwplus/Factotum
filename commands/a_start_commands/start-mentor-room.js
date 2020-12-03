@@ -250,26 +250,26 @@ module.exports = class StartMentors extends Command {
         const adminCollector = await msgConsole.createReactionCollector((reaction, user) => !user.bot && adminEmojis.includes(reaction.emoji.name));
 
         // on emoji reaction
-        adminCollector.on('collect', async (reaction, user) => {
+        adminCollector.on('collect', async (reaction, admin) => {
             // remove reaction
-            reaction.users.remove(user.id);
+            reaction.users.remove(admin.id);
 
             // ask for role name, we will add TA- at the beginning
-            var roleNameMsg = await message.channel.send('<@' + user.id + '> What is the name of this new role? Do not add M-, I will add that already!');
+            var roleNameMsg = await message.channel.send('<@' + admin.id + '> What is the name of this new role? Do not add M-, I will add that already!');
 
-            message.channel.awaitMessages(m => m.author.id === user.id, {max: 1}).then(msgs => {
+            message.channel.awaitMessages(m => m.author.id === admin.id, {max: 1}).then(msgs => {
                 var nameMsgContent = msgs.first().content;
 
                 msgs.first().delete();
                 roleNameMsg.delete();
 
-                message.channel.send('<@' + user.id + '> Please react to this message with the associated emoji!').then(msg => {
-                    msg.awaitReactions((r, u) => u.id === user.id, {max: 1}).then(async rcs => {
+                message.channel.send('<@' + admin.id + '> Please react to this message with the associated emoji!').then(msg => {
+                    msg.awaitReactions((r, u) => u.id === admin.id, {max: 1}).then(async rcs => {
                         var reaction = rcs.first();
 
                         // make sure the emoji is not in use already!
                         if (mentorEmojis.has(reaction.emoji.name)) {
-                            message.channel.send('<@' + user.id + '> This emoji is already in use! Please try again!').then(msg => msg.delete({timeout: 5000}));
+                            message.channel.send('<@' + admin.id + '> This emoji is already in use! Please try again!').then(msg => msg.delete({timeout: 5000}));
                         } else {
                             // add role to server
                             var newRole = await message.guild.roles.create({
@@ -291,8 +291,8 @@ module.exports = class StartMentors extends Command {
                             requestTicketMsg.react(reaction.emoji.name);
 
                             // ask admin if public channel should be created for this role
-                            var promt = await message.channel.send('<@' + user.id + '> Do you want me to create a public text channel for this mentor help role? yes or no?');
-                            await message.channel.awaitMessages(roleNameFilter, {max: 1}).then(msgs => {
+                            var promt = await message.channel.send('<@' + admin.id + '> Do you want me to create a public text channel for this mentor help role? yes or no?');
+                            await message.channel.awaitMessages(m => m.author.id === admin.id, {max: 1}).then(msgs => {
                                 if (msgs.first().content.toLowerCase() === 'yes') {
                                     // add public text channel
                                     message.guild.channels.create(nameMsg.content + '-help', {
@@ -306,8 +306,8 @@ module.exports = class StartMentors extends Command {
                                 promt.delete();
                             });
 
-                            // let user know the action was succesfull
-                            message.channel.send('<@' + user.id + '> The role has been added!').then(msg => msg.delete({timeout: 5000}));
+                            // let admin know the action was succesfull
+                            message.channel.send('<@' + admin.id + '> The role has been added!').then(msg => msg.delete({timeout: 5000}));
                         }
                         
                         msg.delete();
