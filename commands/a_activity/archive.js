@@ -60,7 +60,13 @@ module.exports = class InitAmongUs extends Command {
         var archiveCategory = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name === '💼archive');
 
         if (archiveCategory === undefined) {
-            archiveCategory = await message.guild.channels.create('💼archive', {type: 'category', permissionOverwrites: [
+            
+            // position is used to create archive at the very bottom!
+            var position = (await message.guild.channels.cache.filter(channel => channel.type === 'category')).array().length;
+            archiveCategory = await message.guild.channels.create('💼archive', {
+                type: 'category', 
+                position: position + 1,
+                permissionOverwrites: [
                 {
                     id: discordServices.hackerRole,
                     deny: ['VIEW_CHANNEL'],
@@ -81,7 +87,7 @@ module.exports = class InitAmongUs extends Command {
                     id: discordServices.staffRole,
                     allow: ['VIEW_CHANNEL'],
                 }
-            ]})
+            ]});
         }
 
         // get category

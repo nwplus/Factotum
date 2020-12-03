@@ -51,8 +51,12 @@ module.exports = class NewActivity extends Command {
         // remove all characters except numbers, letters and -
         activityName = activityName.replace(/[^0-9a-zA-Z-]/g, '').toLowerCase();
 
-      
-        var category = await message.guild.channels.create(activityName, {type: 'category',  permissionOverwrites: [
+        // position is used to keep activities on top of the archive channel!
+        var position = (await message.guild.channels.cache.filter(channel => channel.type === 'category')).array().length;
+        var category = await message.guild.channels.create(activityName, {
+            type: 'category',
+            position: position - 1,
+            permissionOverwrites: [
             {
                 id: discordServices.hackerRole,
                 deny: ['VIEW_CHANNEL'],
