@@ -337,12 +337,12 @@ module.exports = class StartMentors extends Command {
         
         const requestTicketCollector = await requestTicketMsg.createReactionCollector((reaction, user) => !user.bot && (mentorEmojis.has(reaction.emoji.name) || reaction.emoji.name === requestTicketEmoji));
 
-        requestTicketCollector.on('collect', async (reaction, user) => {
+        requestTicketCollector.on('collect', async (reaction, hacker) => {
             // prmot for team members and the one liner
-            requestTicketChannel.send('<@' + user.id + '> Please send ONE message with: \n* A one liner of your problem \n* Mention your team members.').then(promtMsg => {
-                requestTicketChannel.awaitMessages(m => m.author.id === user.id, {max: 1}).then(msgs => {
+            requestTicketChannel.send('<@' + hacker.id + '> Please send ONE message with: \n* A one liner of your problem \n* Mention your team members.').then(promtMsg => {
+                requestTicketChannel.awaitMessages(m => m.author.id === hacker.id, {max: 1}).then(msgs => {
                     // remove reaction from ticket system
-                    reaction.users.remove(user.id);
+                    reaction.users.remove(hacker.id);
 
                     // get mentor role associated to reaction, if no mentor info means its a general mentor
                     var mentorInfo = mentorEmojis.get(reaction.emoji.name);
@@ -385,17 +385,15 @@ module.exports = class StartMentors extends Command {
 
                         var ticketReactionCollector = ticketMsg.createReactionCollector((reaction, user) => !user.bot && ticketEmojis.has(reaction.emoji.name));
 
-                        ticketReactionCollector.on('collect', async (reaction, user) => {
-                            // get the mentor member
-                            var mentorUser = message.guild.member(user.id);
+                        ticketReactionCollector.on('collect', async (reaction, mentor) => {
 
                             if (reaction.emoji.name === joinTicketEmoji) {
                             // More mentors can join functionality
                                 // add mentor to category
-                                ticketCategory.updateOverwrite(mentorUser, {'VIEW_CHANNEL': true, 'USE_VAD': true});
+                                ticketCategory.updateOverwrite(mentor, {'VIEW_CHANNEL': true, 'USE_VAD': true});
 
                                 // let the team know someone has joined the conversation
-                                ticketTextChannel.send('@here <@' + mentorUser.id + '> Has joined the ticket!').then(msg => msg.delete({timeout: 5000}));
+                                ticketTextChannel.send('@here <@' + mentor.id + '> Has joined the ticket!').then(msg => msg.delete({timeout: 5000}));
                             } else {
                             // Ticket has been accepted -> creating ticket category
                                 // remove give help emoji and add join ticket emoji to collection
@@ -404,15 +402,15 @@ module.exports = class StartMentors extends Command {
                             
                                 // update embed to reflect someone is help
                                 ticketMsg.edit(ticketMsg.embeds[0].setColor('#80c904')
-                                                                    .addField('This ticket is being handled!', '<@' + mentorUser.id + '> Is helping this team!')
+                                                                    .addField('This ticket is being handled!', '<@' + mentor.id + '> Is helping this team!')
                                                                     .addField('Still want to help?', 'Click the ' + joinTicketEmoji + ' emoji to join the ticket!'));
                                 ticketMsg.react(joinTicketEmoji);
 
                                 // create category with channels
                                 ticketCategory = await message.guild.channels.create('Ticket-' + ticketCount, {type: 'category',});
                                 ticketCategory.updateOverwrite(discordServices.everyoneRole, {'VIEW_CHANNEL': false});
-                                ticketCategory.updateOverwrite(mentorUser, {'VIEW_CHANNEL': true, 'USE_VAD': true});
-                                ticketCategory.updateOverwrite(user, {'VIEW_CHANNEL': true, 'USE_VAD': true});
+                                ticketCategory.updateOverwrite(mentor, {'VIEW_CHANNEL': true, 'USE_VAD': true});
+                                ticketCategory.updateOverwrite(hacker, {'VIEW_CHANNEL': true, 'USE_VAD': true});
                                 hackerTicketMentions.members.each(member => ticketCategory.updateOverwrite(member, {'VIEW_CHANNEL': true, 'USE_VAD': true}));
 
                                 // text channel
@@ -426,7 +424,7 @@ module.exports = class StartMentors extends Command {
                                     .setColor(discordServices.embedColor)
                                     .setTitle('Original Question')
                                     .setDescription(hackerTicketContent)
-                                    .addField('Thank you for helping this team.', '<@' + mentorUser + '> Best of luck!')
+                                    .addField('Thank you for helping this team.', '<@' + mentor + '> Best of luck!')
                                     .addField('When done:', '* React to this message with 👋🏽 to lose access to these channels!');
 
                                 ticketTextChannel.send(newChannelEmbed).then(async infoMsg => {
@@ -444,14 +442,14 @@ module.exports = class StartMentors extends Command {
                                             await ticketVoiceChannel.delete();
                                             await ticketCategory.delete();
                                         } else {
-                                            ticketCategory.updateOverwrite(user, {'VIEW_CHANNEL': false});
+                                            ticketCategory.updateOverwrite(user, {VIEW_CHANNEL: false, SEND_MESSAGES: false, READ_MESSAGE_HISTORY: false});
                                         }
                                     });
                                 });
 
                                 // send message with parties involved and delete immediately, just so they get notified
-                                ticketTextChannel.send('<@' + mentorUser + '>').then(msg => msg.delete());
-                                ticketTextChannel.send('<@' + user.id + '>').then(msg => msg.delete());
+                                ticketTextChannel.send('<@' + mentor + '>').then(msg => msg.delete());
+                                ticketTextChannel.send('<@' + hacker.id + '>').then(msg => msg.delete());
                                 hackerTicketMentions.members.each(member => ticketTextChannel.send('<@' + member.id + '>').then(msg => msg.delete()));
                             }
                         });
