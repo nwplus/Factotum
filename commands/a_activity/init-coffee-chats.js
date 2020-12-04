@@ -24,13 +24,31 @@ module.exports = class InitCoffeeChats extends Command {
                     key: 'numOfGroups',
                     prompt: 'number of groups to participate in coffee chat',
                     type: 'integer'
-                }
+                },
+                {
+                    key: 'categoryChannelKey',
+                    prompt: 'snowflake of the activiti\'s category',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'textChannelKey',
+                    prompt: 'snowflake of the general text channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'voiceChannelKey',
+                    prompt: 'snowflake of the general voice channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
             ],
         });
     }
 
     // Run function -> command body
-    async run(message, {activityName, numOfGroups}) {
+    async run(message, {activityName, numOfGroups, categoryChannelKey, textChannelKey, voiceChannelKey}) {
         discordServices.deleteMessage(message);
         
         // make sure command is only used in the admin console
@@ -39,14 +57,18 @@ module.exports = class InitCoffeeChats extends Command {
             return;   
         }
         // only memebers with the staff tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
             return;             
         }
         
-        // get activity category
-        var category = await message.guild.channels.cache.find(channel => channel.name === activityName);
-
+        // get category
+        if (categoryChannelKey === '') {
+            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName));
+        } else {
+            var category = message.guild.channels.resolve(categoryChannelKey);
+        }
+        
         // if no activity category then report failure and return
         if (category === undefined) {
             discordServices.replyAndDelete(message,'The activity named: ' + activityName +', does not exist! No action taken.');
@@ -56,10 +78,10 @@ module.exports = class InitCoffeeChats extends Command {
         // initialize firebase fields
         firebaseCoffeeChats.initCoffeeChat(activityName);
 
-        await discordServices.addVoiceChannelsToActivity(activityName, numOfGroups, category, message.guild.channels);
+        await discordServices.addVoiceChannelsToActivity(activityName, numOfGroups, category, message.guild.channels, true);
 
         // add group creation text channel
-        var joinActivityChannel = await message.guild.channels.create(activityName + '-join-activity', {
+        var joinActivityChannel = await message.guild.channels.create('☕' + 'join-activity', {
             topic: 'This channel is only intended to add your team to the activity list! Please do not use it for anything else!',
             parent: category,
         });

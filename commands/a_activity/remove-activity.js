@@ -18,12 +18,30 @@ module.exports = class RemoveActivity extends Command {
                     prompt: 'the activity name',
                     type: 'string',
                 },
+                {
+                    key: 'categoryChannelKey',
+                    prompt: 'snowflake of the activiti\'s category',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'textChannelKey',
+                    prompt: 'snowflake of the general text channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'voiceChannelKey',
+                    prompt: 'snowflake of the general voice channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
             ],
         });
     }
 
     // Run function -> command body
-    async run(message, {activityName}) {
+    async run(message, {activityName, categoryChannelKey, textChannelKey, voiceChannelKey}) {
         discordServices.deleteMessage(message);
 
         // make sure command is only used in the admin console
@@ -32,13 +50,18 @@ module.exports = class RemoveActivity extends Command {
             return;   
         }
         // only memebers with the staff tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
             return;             
         }
  
-        // Create category
-        var category = await message.guild.channels.cache.find(channel => channel.name === activityName);
+        // get category
+        if (categoryChannelKey === '') {
+            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName));
+        } else {
+            var category = message.guild.channels.resolve(categoryChannelKey);
+        }
+
 
         // check if the category exist if not then report failure and return
         if (category === undefined) {
@@ -48,12 +71,11 @@ module.exports = class RemoveActivity extends Command {
 
         var listOfChannels = category.children.array();
         for(var i = 0; i < listOfChannels.length; i++) {
-            await listOfChannels[i].delete();
+            await listOfChannels[i].delete().catch(console.error);
         }
 
-        category.delete().catch(console.error);
+        await category.delete().catch(console.error);
 
-        // create workshop in db
         firebaseActivity.remove(activityName);
 
         // report success of activity removal

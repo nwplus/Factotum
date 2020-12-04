@@ -23,13 +23,31 @@ module.exports = class InitAmongUs extends Command {
                     prompt: 'number of groups to participate in coffee chat',
                     type: 'integer',
                     default: 3,
-                }
+                },
+                {
+                    key: 'categoryChannelKey',
+                    prompt: 'snowflake of the activiti\'s category',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'textChannelKey',
+                    prompt: 'snowflake of the general text channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'voiceChannelKey',
+                    prompt: 'snowflake of the general voice channel for the activity',
+                    type: 'string',
+                    default: '',
+                },
             ],
         });
     }
 
     // Run function -> command body
-    async run(message, {activityName, numOfChannels}) {
+    async run(message, {activityName, numOfChannels, categoryChannelKey, textChannelKey, voiceChannelKey}) {
         discordServices.deleteMessage(message);
         
         // make sure command is only used in the admin console
@@ -38,13 +56,21 @@ module.exports = class InitAmongUs extends Command {
             return;   
         }
         // only memebers with the staff tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
             return;             
         }
         
-        // get activity category
-        var category = await message.guild.channels.cache.find(channel => channel.name === activityName);
+        // get category
+        if (categoryChannelKey === '') {
+            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName));
+        } else {
+            var category = message.guild.channels.resolve(categoryChannelKey);
+        }
+
+        // change name
+        category.edit({name: '😈' + category.name})
+
 
         // if no activity category then report failure and return
         if (category === undefined) {
@@ -53,25 +79,21 @@ module.exports = class InitAmongUs extends Command {
         }
 
         // add group creation text channel
-        var joinActivityChannel = await message.guild.channels.create(activityName + '-join-activity', {
+        var joinActivityChannel = await message.guild.channels.create('🕵🏽' + 'join-activity', {
             topic: 'This channel is only intended for you to gain access to other channels! Please do not use it for anything else!',
             parent: category,
         });
 
         // add game code channel
-        var gameCodesChannel = await message.guild.channels.create(activityName + '-game-codes', {
+        message.guild.channels.create('🎮' + 'game-codes', {
+            type: 'text',
             topic: 'This channel is only intended to send game codes for others to join!',
-            parent: category,
-            permissionOverwrites: [
-                {
-                    id: discordServices.attendeeRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-            ]
+        }).then(channel => {
+            channel.setParent(category, {lockPermissions: false}).then(channel => channel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false}));
         });
 
         // add voice channels
-        await discordServices.addVoiceChannelsToActivity(activityName, numOfChannels, category, message.guild.channels, 12);
+        await discordServices.addVoiceChannelsToActivity(activityName, numOfChannels, category, message.guild.channels, true, 12);
 
         // reaction to use
         var emoji = '🚗';
@@ -90,6 +112,7 @@ module.exports = class InitAmongUs extends Command {
             '2. Please do not leave games mid-way through.\n' +
             '3. Please do not spam the game code text channel, only send game codes!\n');
         var joinMsg = await joinActivityChannel.send(msgEmbed);
+        joinMsg.pin();
         await joinMsg.react(emoji);
 
         // reactor collector and its filter

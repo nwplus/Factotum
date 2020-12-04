@@ -64,7 +64,7 @@ module.exports = class DistributeStamp extends Command {
         const qEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle('React with anything to claim a stamp for attending ' + sponsorName + '\'s booth!')
-            .setDescription('Once you react to this message, you will have 3 attempts in the next 30 seconds to enter the correct password.');
+            .setDescription('Once you react to this message, check for a DM from this bot. There you will have 3 attempts in the next 60 seconds to enter the correct password. **You can only emoji this message once!**');
         
         targetChannel.send(qEmbed).then((msg) => {
 
@@ -89,7 +89,7 @@ module.exports = class DistributeStamp extends Command {
                 const member = message.guild.member(user);
 
                 // promt member for password
-                var dmMessage = await user.send("You have 30 seconds and 3 attempts to type the password correctly to get the " + sponsorName + " stamp.\n" +
+                var dmMessage = await user.send("You have 60 seconds and 3 attempts to type the password correctly to get the " + sponsorName + " stamp.\n" +
                 "Please enter the password (leave no stray spaces or anything):");
 
                 var correctPassword = false;
@@ -97,7 +97,7 @@ module.exports = class DistributeStamp extends Command {
 
                 const filter = m => user.id === m.author.id;
                 //message collector for the user's password attempts
-                const pwdCollector = await dmMessage.channel.createMessageCollector(filter,{time: 30000, max: 3});
+                const pwdCollector = await dmMessage.channel.createMessageCollector(filter,{time: 60000, max: 3});
 
                 pwdCollector.on('collect', async m => {
                     //update role and stop collecting if password matches
@@ -109,10 +109,10 @@ module.exports = class DistributeStamp extends Command {
                         pwdCollector.stop();
                     } else if (incorrectPasswords < 2) {
                         //add 1 to number of incorrect guesses and prompts user to try again
-                        incorrectPasswords++;
                         await user.send("Incorrect. Please try again.");
-                    } 
-                })
+                    }
+                    incorrectPasswords++;
+                });
                 pwdCollector.on('end', collected => {
                     //show different messages after password collection expires depending on circumstance
                     if (!correctPassword) {
@@ -122,8 +122,8 @@ module.exports = class DistributeStamp extends Command {
                             user.send("Incorrect. You have no attempts left. If you have extenuating circumstances please contact an organizer.");
                         }
                     }
-                })
-            })
+                });
+            });
             //edits the embedded message to notify people when it stops collecting reacts
             collector.on('end', collected => {
                 if (msg.guild.channels.cache.find(channel => channel.name === targetChannel.name)) {
