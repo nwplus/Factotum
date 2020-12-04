@@ -141,16 +141,16 @@ module.exports = class InitWorkshop extends Command {
             .setColor(mentorColor)
             .setTitle('Polling and Stamp Console')
             .setDescription('Here are some common polls you might want to use!')
-            .addField('Stamp Distribution', '🏕️ Will activate a stamp distribution that will be open for ' + discordServices.stampCollectTime + ' seconds.')
+            .addField('Stamp Distribution', '📇 Will activate a stamp distribution that will be open for ' + discordServices.stampCollectTime + ' seconds.')
             .addField('Speed Poll', '🏎️ Will send an embedded message asking how the speed is.')
-            .addField('Difficulty Poll', '✍️ Will send an embedded message asking how the difficulty is.')
+            .addField('Difficulty Poll', '🎓 Will send an embedded message asking how the difficulty is.')
             .addField('Explanation Poll', '🧑‍🏫 Will send an embedded message asking how good the explanations are.');
         
         // send message
         taChannel.send(consoleEmbed).then((msg) => {
             msg.pin();
 
-            var emojis = ['🏕️', '🏎️', '✍️', '🧑‍🏫'];
+            var emojis = ['📇', '🏎️', '🎓', '🧑‍🏫'];
 
             emojis.forEach(emoji => msg.react(emoji));
 
@@ -242,7 +242,9 @@ module.exports = class InitWorkshop extends Command {
                     .setColor(discordServices.embedColor)
                     .setTitle('Hey there! We got you signed up to talk to a TA!')
                     .setDescription('You are number: ' + position + ' in the wait list.')
-                    .addField('JOIN THE VOICE CHANNEL!', 'Sit tight in the voice channel. If you are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!');
+                    .addField(pullInFunctonality ? 'JOIN THE VOICE CHANNEL!' : 'KEEP AN EYE ON YOUR DMs', 
+                    pullInFunctonality ? 'Sit tight in the voice channel. If you are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!' :
+                    'A TA will reach out to you soon via DM! Have your question ready and try to keep up with the workshop until then!');
 
                 discordServices.sendMessageToMember(user, hackerEmbed);
 

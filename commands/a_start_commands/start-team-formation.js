@@ -36,13 +36,11 @@ module.exports = class StartTeamFormation extends Command {
         const msgEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle('Team Formation Information')
-            .setDescription('Welcome to the team formation section! If you are looking for a team or need a few more memebers to complete your ultimate group, you are in the right place!')
-            .addField('How does this work?', 'Teams and hackers will react to this message, the bot will send them a template they need to fill out and send back to the bot via DM.' +
-            'Then the bot will post the team\'s or hacker\'s information in the respective channels. Other hackers or teams can then browse the channels and reach out to those intersted ' +
-            'by reacting to the post.')
-            .addField('Disclaimer!!', 'By participating in this activity you consent to letting the bot iniciate a conversation between you and other teams or hackers.')
-            .addField('Teams looking for a new members', 'React with 🚎 and the bot will send you instructions.')
-            .addField('Hacker looking for a team', 'React with 🏍️ and the bot will send you isntructions.')
+            .setDescription('Welcome to the team formation section! If you are looking for a team or need a few more members to complete your ultimate group, you are in the right place!')
+            .addField('How does this work?', '* Once you react to this message, I will send you a template you need to fill out and send back to me via DM. \n* Then I will post your information in recruiting or looking-for-team channel. \n* Then, other hackers, teams, or yourself can browse these channels and reach out via DM!')
+            .addField('Disclaimer!!', 'By participating in this activity, you consent to let the nwPlus bot initiate a conversation between you and other teams or hackers.')
+            .addField('Teams looking for new members', 'React with 🚎 and the bot will send you instructions.')
+            .addField('Hacker looking for a team', 'React with 🏍️ and the bot will send you instructions.')
         
         var cardMessage = await channel.send(msgEmbed);
 
@@ -70,13 +68,13 @@ module.exports = class StartTeamFormation extends Command {
         // branch between team and hacker
         if (isTeam) {
             dmMessage.setTitle('Team Formation - Team Format');
-            dmMessage.setDescription('We are very exited for you to find your perfect team members! \n* Please copy and paste the following format in your next message. ' +
+            dmMessage.setDescription('We are very excited for you to find your perfect team members! \n* Please **copy and paste** the following format in your next message. ' +
                 '\n* Try to respond to all the sections! \n* Once you are ready to submit, react to this message with 🇩 and then send me your information!\n' +
                 '* Once you find a hacker, please come back and click the ⛔ emoji.');
             dmMessage.addField('Format:', 'Team Member(s): \nTeam Background: \nObjective: \nFun Fact About Team: \nLooking For: ');
         } else {
             dmMessage.setTitle('Team Formation - Hacker Format');
-            dmMessage.setDescription('We are very exited for you to find your perfect team! \n* Please copy and paste the following format in your next message. ' +
+            dmMessage.setDescription('We are very excited for you to find your perfect team! \n* Please copy and paste the following format in your next message. ' +
                 '\n* Try to respond to all the sections! \n* Once you are ready to submit, react to this message with 🇩 and then send me your information!\n' +
                 '* Once you find a team, please come back and click the ⛔ emoji.');
             dmMessage.addField('Format:', 'Name: \nSchool: \nPlace of Origin: \nSkills: \nFun Fact: ');
@@ -151,10 +149,10 @@ module.exports = class StartTeamFormation extends Command {
             // confirm the post has been received
             if (isTeam) {
                 user.send('Thanks for sending me your information, you should see it pop up in the respective channel under the team formation category.' +
-                    'Once you find your members please react to my original message with ⛔ so I can remove your post. Happy hacking!!!').then(msg => msg.delete({ timeout: 5000 }));
+                    'Once you find your members please react to my original message with ⛔ so I can remove your post. Happy hacking!!!').then(msg => msg.delete({ timeout: 8000 }));
             } else {
                 user.send('Thanks for sending me your information, you should see it pop up in the respective channel under the team formation category.' +
-                    'Once you find your ideal team please react to my original message with ⛔ so I can remove your post. Happy hacking!!!').then(msg => msg.delete({ timeout: 5000 }));
+                    'Once you find your ideal team please react to my original message with ⛔ so I can remove your post. Happy hacking!!!').then(msg => msg.delete({ timeout: 8000 }));
             }
 
             // remove the promt message from the bot in the DM channel

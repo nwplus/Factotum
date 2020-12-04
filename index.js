@@ -148,7 +148,7 @@ bot.on('guildMemberAdd', member => {
         .setTitle('Welcome to the nwHacks Server!')
         .setDescription('We are very excited to have you here!')
         .addField('Gain more access by verifying yourself!', 'Go back to the welcome channel and use the !verify command. More info there!')
-        .addField('Have a question?', 'Go to the welcome-assistance channel to talk with out staff!')
+        .addField('Have a question?', 'Go to the welcome-assistance channel to talk with our staff!')
         .addField('Want to learn more about what I can do?', 'Use the !help command anywhere and I will send you a message!')
         .setColor(discordServices.embedColor);
 

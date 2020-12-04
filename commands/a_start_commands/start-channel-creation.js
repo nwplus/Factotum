@@ -96,37 +96,36 @@ module.exports = class StartChannelCreation extends Command {
                                     }
 
                                     // create channel
-                                    var newChannel = await message.guild.channels.create(channelName, {type: channelType, parent: category});
+                                    message.guild.channels.create(channelName, {
+                                        type: channelType, 
+                                        parent: category
+                                    }).then(channel => {
+                                        channel.updateOverwrite(user, {
+                                            VIEW_CHANNEL : true,
+                                        });
 
-                                    // update permission for users to be able to view
-                                    newChannel.updateOverwrite(discordServices.everyoneRole, {
-                                        VIEW_CHANNEL : false,
-                                    })
-                                    newChannel.updateOverwrite(user, {
-                                        VIEW_CHANNEL : true,
+                                        // add guests
+                                        guests.each(mem => channel.updateOverwrite(mem.user, {
+                                            VIEW_CHANNEL : true,
+                                        }));
+
+                                        // remove promt and user message with channel name
+                                        msg.delete();
+                                        channelNameMSG.delete();
+
+                                        // DM to creator with emoji collector
+                                        user.send('Your private channel' + channelName +
+                                                    ' has been created, when you are done with it, please react to this meesage with 🚫 to delete the channel.').then(dmMsg => {
+                                            dmMsg.react('🚫');
+
+                                            const deleteFilter = (react, user) => !user.bot && react.emoji.name === '🚫';
+                                            dmMsg.awaitReactions(deleteFilter, {max: 1}).then(reacts => {
+                                                newChannel.delete();
+                                                dmMsg.delete();
+                                                user.send('Private channel has been delete succesfully').then(msg => msg.delete({timeout: 5000}));
+                                            });
+                                        });
                                     });
-
-                                    // add guests
-                                    guests.each(mem => newChannel.updateOverwrite(mem.user, {
-                                        VIEW_CHANNEL : true,
-                                    }));
-                                    
-                                    // remove promt and user message with channel name
-                                    msg.delete();
-                                    channelNameMSG.delete();
-
-                                    // DM to creator with emoji collector
-                                    var dmMsg = await user.send('Your private channel' + channelName +' has been created, when you are done with it, please react to this meesage with 🚫 to delete the channel.')
-
-                                    dmMsg.react('🚫');
-
-                                    const deleteFilter = (react, user) => !user.bot && react.emoji.name === '🚫';
-                                    dmMsg.awaitReactions(deleteFilter, {max: 1}).then(reacts => {
-                                        newChannel.delete();
-                                        dmMsg.delete();
-                                        user.send('Private channel has been delete succesfully').then(msg => msg.delete({timeout: 5000}));
-                                    });
-
                                 }).catch((errors) => console.log(errors));
                             });
                         });
