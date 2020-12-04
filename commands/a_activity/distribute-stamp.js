@@ -88,7 +88,6 @@ module.exports = class DistributeStamp extends Command {
         var stampNumber; //keep track of which role should be next based on number of stamps
         var newRole; //next role based on stampNumber
         
-        
         //case for if curRole ends in 2 digits
         if (!isNaN(curRole.name.substring(curRole.name.length - 2, curRole.name.length))) {
             stampNumber = parseInt(curRole.name.substring(curRole.name.length - 2));

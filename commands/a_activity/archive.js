@@ -103,7 +103,6 @@ module.exports = class InitAmongUs extends Command {
             return;
         }
 
-        // grab general voice and update permission to no speak for attendees
         if (textChannelKey === '') {
             var generalText = await category.children.find(channel => channel.type === 'text'  && channel.name.endsWith(discordServices.activityTextChannelName));
         } else {
