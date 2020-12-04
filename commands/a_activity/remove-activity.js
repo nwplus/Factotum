@@ -50,7 +50,7 @@ module.exports = class RemoveActivity extends Command {
             return;   
         }
         // only memebers with the staff tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
             return;             
         }
@@ -71,12 +71,11 @@ module.exports = class RemoveActivity extends Command {
 
         var listOfChannels = category.children.array();
         for(var i = 0; i < listOfChannels.length; i++) {
-            await listOfChannels[i].delete();
+            await listOfChannels[i].delete().catch(console.error);
         }
 
-        category.delete().catch(console.error);
+        await category.delete().catch(console.error);
 
-        // create workshop in db
         firebaseActivity.remove(activityName);
 
         // report success of activity removal

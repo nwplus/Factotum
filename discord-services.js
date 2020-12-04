@@ -23,6 +23,15 @@ var stamp9Role = '777163468053938186';
 var stamp10Role = '777163488019480586';
 var stamp11Role = '777163506902237196';
 var stamp12Role = '777163524568776704';
+var stamp12Role = '777163524568776704';
+var stamp13Role = '784224112909221948';
+var stamp14Role = '784224898230779945';
+var stamp15Role = '784224924633923635';
+var stamp16Role = '784224924633923635';
+var stamp17Role = '784224964001005589';
+var stamp18Role = '784224981386133525';
+var stamp19Role = '784224999698726942';
+var stamp20Role = '784225017172590622';
 module.exports.everyoneRole = everyoneRole;
 module.exports.hackerRole = hackerRole;
 module.exports.guestRole = guestRole;
@@ -44,6 +53,15 @@ module.exports.stamp9Role = stamp9Role;
 module.exports.stamp10Role = stamp10Role;
 module.exports.stamp11Role = stamp11Role;
 module.exports.stamp12Role = stamp12Role;
+module.exports.stamp13Role = stamp13Role;
+module.exports.stamp14Role = stamp14Role;
+module.exports.stamp15Role = stamp15Role;
+module.exports.stamp16Role = stamp16Role;
+module.exports.stamp17Role = stamp17Role;
+module.exports.stamp18Role = stamp18Role;
+module.exports.stamp19Role = stamp19Role;
+module.exports.stamp20Role = stamp20Role;
+
 
 // other project wide vars
 var embedColor = '#26fff4';
@@ -56,6 +74,14 @@ var tfTeamEmbedColor = '#1929ff';
 module.exports.tfTeamEmbedColor = tfTeamEmbedColor;
 var tfHackerEmbedColor = '#ff33f1';
 module.exports.tfHackerEmbedColor = tfHackerEmbedColor;
+var specialDMEmbedColor = '#fc6b03';
+module.exports.specialDMEmbedColor = specialDMEmbedColor;
+
+const blackList = new Map();
+module.exports.blackList = blackList;
+
+var stampCollectTime = 60;
+module.exports.stampCollectTime = stampCollectTime;
 
 // Common channels
 
@@ -115,6 +141,17 @@ var incomingReportChannel = '780305617267982366';
 module.exports.incomingReportChannel = incomingReportChannel;
 
 
+// naming conventions
+
+var activityTextChannelName = 'activity-banter';
+module.exports.activityTextChannelName = activityTextChannelName;
+
+var activityVoiceChannelName = 'activity-room';
+module.exports.activityVoiceChannelName = activityVoiceChannelName;
+
+
+// helper function
+
 // Checks if the memeber has a role, returns true if it does
 function checkForRole(member, role) {
     return member.roles.cache.has(role);
@@ -170,7 +207,7 @@ function isAdminConsole(channel) {
 module.exports.isAdminConsole = isAdminConsole;
 
 // will add given number of voice channels to the given activity, the category object of the activity is necessary
-async function addVoiceChannelsToActivity(activityName, number, category, channelManager, maxUsers = 0) {
+async function addVoiceChannelsToActivity(activityName, number, category, channelManager, isPrivate, maxUsers = 0) {
     // udpate db and get total number of channels
     var total = await firebaseActivity.addVoiceChannels(activityName, number);
 
@@ -179,30 +216,15 @@ async function addVoiceChannelsToActivity(activityName, number, category, channe
 
     // create voice channels
     for (; index < total; index++) {
-        channelManager.create(activityName + '-' + index, {type: 'voice', parent: category, permissionOverwrites : [
-            {
-                id: hackerRole,
-                deny: ['VIEW_CHANNEL'],
-            },
-            {
-                id: attendeeRole,
-                deny: ['VIEW_CHANNEL'],
-                allow: ['USE_VAD', 'SPEAK'],
-            },
-            {
-                id: sponsorRole,
-                deny: ['VIEW_CHANNEL'],
-            },
-            {
-                id: mentorRole,
-                allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
-            },
-            {
-                id: staffRole,
-                allow: ['VIEW_CHANNEL', 'USE_VAD', 'SPEAK', 'MOVE_MEMBERS'],
-            }
-        ],
-        userLimit: maxUsers === 0 ? undefined : maxUsers}).catch(console.error);
+        channelManager.create('🔊Room' + '-' + index, {
+            type: 'voice', 
+            parent: category, 
+            userLimit: maxUsers === 0 ? undefined : maxUsers
+        }).then(channel => {
+            channel.updateOverwrite(attendeeRole, {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true});
+            channel.updateOverwrite(sponsorRole, {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true});
+            channel.updateOverwrite(mentorRole, {MOVE_MEMBERS: true, USE_VAD: true});
+        }).catch(console.error);
     }
 
     return total;
@@ -225,19 +247,58 @@ async function removeVoiceChannelsToActivity(activityName, number, category){
     // we remove one because we are counting from 0
     // remove voice channels
     for (var index = total - 1; index >= final; index--) {
-        var channelName = activityName + '-' + index;
-        var channel = await category.children.find(channel => channel.name === channelName);
-        channel.delete();
+        var channelName = '🔊Room' + '-' + index;
+        var channel = await category.children.find(channel => channel.name.endsWith(channelName));
+        if (channel != undefined) {
+            channel.delete();
+        }
     }
 
     return final;
 }
 module.exports.removeVoiceChannelsToActivity = removeVoiceChannelsToActivity;
 
+// will make all voice channels except the general one private to attendees and sponsors
+async function changeVoiceChannelPermissions(activityName, category, toHide) {
+    // udpate db and get total number of channels
+    var total = await firebaseActivity.numOfVoiceChannels(activityName);
+
+    // grab index where channel naming should stampt, in case there are already channels made
+    // we remove one because we are counting from 0
+    // remove voice channels
+    for (var index = total - 1; index >= 0; index--) {
+        var channelName = 'Room' + '-' + index;
+        var channel = await category.children.find(channel => channel.name.endsWith(channelName));
+        if (channel != undefined) {
+            channel.updateOverwrite(attendeeRole, {VIEW_CHANNEL: toHide ? false : true});
+            channel.updateOverwrite(sponsorRole, {VIEW_CHANNEL: toHide ? false : true});
+        }
+    }
+}
+module.exports.changeVoiceChannelPermissions = changeVoiceChannelPermissions;
+
+// will add a max amount of users to the activity voice channels
+async function addLimitToVoiceChannels(activityName, category, limit) {
+    // udpate db and get total number of channels
+    var total = await firebaseActivity.numOfVoiceChannels(activityName);
+
+    // grab index where channel naming should stampt, in case there are already channels made
+    // we remove one because we are counting from 0
+    // remove voice channels
+    for (var index = total - 1; index >= 0; index--) {
+        var channelName = '🔊Room' + '-' + index;
+        var channel = await category.children.find(channel => channel.name.endsWith(channelName));
+        if (channel != undefined) {
+            await channel.edit({userLimit: limit});
+        }
+    }
+}
+module.exports.addLimitToVoiceChannels = addLimitToVoiceChannels;
+
 // deletes a message if the message hasn't been deleted already
-function deleteMessage(message) {
+function deleteMessage(message, timeout = 0) {
     if (message.deleted === false) {
-        message.delete();
+        message.delete({timeout: timeout});
     }
 }
 module.exports.deleteMessage = deleteMessage;

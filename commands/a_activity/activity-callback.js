@@ -50,7 +50,7 @@ module.exports = class ActivityCallback extends Command {
             return;   
         }
         // only memebers with the staff tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
             return;             
         }
@@ -79,7 +79,7 @@ module.exports = class ActivityCallback extends Command {
         
         // grab general voice and update permission to no speak for attendees
         if (voiceChannelKey === '') {
-            var generalVoice = await category.children.find(channel => channel.type === 'voice'  && channel.name.endsWith(activityName + '-general-voice'));
+            var generalVoice = await category.children.find(channel => channel.type === 'voice'  && channel.name.endsWith(discordServices.activityVoiceChannelName));
         } else {
             var generalVoice = message.guild.channels.resolve(voiceChannelKey);
         }

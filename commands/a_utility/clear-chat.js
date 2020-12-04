@@ -14,6 +14,12 @@ module.exports = class ClearChat extends Command {
             guildOnly: true,
             args: [
                 {
+                    key: 'keepPinned',
+                    prompt: 'if pinned messages should be kept',
+                    type: 'boolean',
+                    default: false,
+                },
+                {
                     key: 'isCommands',
                     prompt: 'should show commands in this channel?',
                     type: 'boolean',
@@ -23,25 +29,34 @@ module.exports = class ClearChat extends Command {
         });
     }
 
-    async run (message, {isCommands}) {
+    async run (message, {keepPinned, isCommands}) {
         discordServices.deleteMessage(message);
         // only admins can use this command inside the guild
-        if (! (await discordServices.checkForRole(message.member, discordServices.adminRole))) {
+        if (! (discordServices.checkForRole(message.member, discordServices.adminRole))) {
             discordServices.replyAndDelete(message.member, 'Hey there, the command !clearchat is only available to Admins!');
             return;
         }
 
-        await message.channel.bulkDelete(100, true).catch(console.error);
+        if (keepPinned) {
+            // other option is to get all channel messages, filter of the pined channels and pass those to bulkDelete, might be to costy?
+            var messagesToDelete = await message.channel.messages.cache.filter(msg => !msg.pinned);
+            await message.channel.bulkDelete(messagesToDelete, true).catch(console.error);
+        } else {
+            // delete messages and log to console
+            await message.channel.bulkDelete(100, true).catch(console.error);
+        }
+
         discordServices.discordLog(message.guild, "Cleared the channel: " + message.channel.name + ". By user: " + message.author.username);
         
         var commands = [];
+
         // only proceed if we want the commands
         if (isCommands) {
             // if in the verify channel <welcome>
             if (message.channel.id === discordServices.welcomeChannel) {
                 commands = this.client.registry.findCommands('verify');
             } 
-            // if in the attend channel <attend-channel>
+            // if in the attend channel
             else if (message.channel.id === discordServices.attendChannel) {
                 commands = this.client.registry.findCommands('attend');
             } 
@@ -60,9 +75,9 @@ module.exports = class ClearChat extends Command {
             else if (message.channel.id === discordServices.channelcreationChannel) {
                 commands = this.client.registry.findCommands('createchannel');
             }
-            // if there are no commands to send then return
+            // any other channels will send the hacker commands
             else {
-                return;
+                commands = this.client.registry.findGroups('utility')[0].commands.array();
             }
             
             var length = commands.length;
@@ -73,6 +88,7 @@ module.exports = class ClearChat extends Command {
                 .setDescription('The following are all the available commands in this channel, for more information about a specific command please call !help <command_name>.')
                 .setTimestamp();
 
+            // add each command as a field to the embed
             for (var i = 0; i < length; i++) {
                 var command = commands[i];
                 if (command.format != null) {

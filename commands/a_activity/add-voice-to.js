@@ -29,23 +29,23 @@ module.exports = class CreatePrivatesFor extends Command {
                     default: '',
                 },
                 {
-                    key: 'textChannelKey',
-                    prompt: 'snowflake of the general text channel for the activity',
-                    type: 'string',
-                    default: '',
+                    key: 'isPrivate',
+                    prompt: 'if the new voice channels should be privates',
+                    type: 'boolean',
+                    default: false,
                 },
                 {
-                    key: 'voiceChannelKey',
-                    prompt: 'snowflake of the general voice channel for the activity',
-                    type: 'string',
-                    default: '',
-                },
+                    key: 'maxUsers',
+                    prompt: 'max number of users allowed on the voice channel',
+                    type: 'integer',
+                    default: 0,
+                }
             ],
         });
     }
 
     // Run function -> command body
-    async run(message, {activityName, number, categoryChannelKey, textChannelKey, voiceChannelKey}) {
+    async run(message, {activityName, number, categoryChannelKey, isPrivate, maxUsers}) {
         discordServices.deleteMessage(message);
 
         // make sure command is only used in the admin console
@@ -54,7 +54,7 @@ module.exports = class CreatePrivatesFor extends Command {
             return;   
         }
         // only memebers with the staff tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
             return;             
         }
@@ -74,7 +74,7 @@ module.exports = class CreatePrivatesFor extends Command {
             return;
         }
         
-        var final = await discordServices.addVoiceChannelsToActivity(activityName, number, category, message.guild.channels);
+        var final = await discordServices.addVoiceChannelsToActivity(activityName, number, category, message.guild.channels, isPrivate, maxUsers);
 
         // report success of workshop creation
         discordServices.replyAndDelete(message,'Workshop session named: ' + activityName + ' now has ' + final + ' voice channels.');

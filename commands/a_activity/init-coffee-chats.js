@@ -57,7 +57,7 @@ module.exports = class InitCoffeeChats extends Command {
             return;   
         }
         // only memebers with the staff tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
             return;             
         }
@@ -78,10 +78,10 @@ module.exports = class InitCoffeeChats extends Command {
         // initialize firebase fields
         firebaseCoffeeChats.initCoffeeChat(activityName);
 
-        await discordServices.addVoiceChannelsToActivity(activityName, numOfGroups, category, message.guild.channels);
+        await discordServices.addVoiceChannelsToActivity(activityName, numOfGroups, category, message.guild.channels, true);
 
         // add group creation text channel
-        var joinActivityChannel = await message.guild.channels.create(activityName + '-join-activity', {
+        var joinActivityChannel = await message.guild.channels.create('☕' + 'join-activity', {
             topic: 'This channel is only intended to add your team to the activity list! Please do not use it for anything else!',
             parent: category,
         });

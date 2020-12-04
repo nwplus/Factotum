@@ -52,7 +52,7 @@ module.exports = class InitWorkshop extends Command {
             return;
         }
         // only memebers with the Hacker tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'You do not have permission for this command, only staff can use it!');
             return;
         }
@@ -88,51 +88,69 @@ module.exports = class InitWorkshop extends Command {
         generalVoice.updateOverwrite(discordServices.staffRole, {
             SPEAK: true,
             MOVE_MEMBERS: true,
-        })
-
-        // create TA console
-        var taChannel = await message.guild.channels.create(activityName + '-ta-console', {
-            type: 'text', parent: category, permissionOverwrites: [
-                {
-                    id: discordServices.hackerRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.attendeeRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.sponsorRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.mentorRole,
-                    allow: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.staffRole,
-                    allow: ['VIEW_CHANNEL'],
-                }
-            ]
         });
 
+        // create TA console
+        var taChannel = await message.guild.channels.create(':🧑🏽‍🏫:' + 'ta-console', {
+            type: 'text', 
+            parent: category, 
+            topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
+        });
+        taChannel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
+        taChannel.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false});
+
+
+        ////// important variables
+        // pullInFunctionality is default to true
+        var pullInFunctonality = true;
 
         ////// TA Side
         // embed color for mentors
-        var mentorColor = (await message.guild.roles.fetch(discordServices.mentorRole)).color
+        var mentorColor = (await message.guild.roles.fetch(discordServices.mentorRole)).color;
+
+        const taInfoEmbed = new Discord.MessageEmbed()
+            .setTitle('TA Information')
+            .setDescription('Please read this before the workshop starts!')
+            .addField('Create Private Channels', 'If you can only see one voice channel called activity room, go to the staff console and add voice channels to this activity.')
+            .addField('Keep Track Of', '* The wait list will udpate but won\'t notify you about it. Keep an eye on it!\n *The activity-banter channel for any questions!')
+            .addField('Low Tech Solution', '* React to this message with 🤡 to enable the low tech solution! \n* This solution will disable the public voice channel ' +
+            ' and disable the pull in functionality. \n* TAs will have to DM hackers that need help and then react to the wait list.')
+            .setColor(mentorColor);
+        taChannel.send(taInfoEmbed).then(msg => {
+            msg.pin();
+
+            msg.react('🤡');
+
+            msg.awaitReactions((reaction, user) => !user.bot && reaction.emoji.name === '🤡', {max: 1}).then(collected => {
+                // hide general voice channel
+                var name = generalVoice.name;
+                generalVoice.setName('HIDDEN-' + name).catch(console.error);
+                generalVoice.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
+                generalVoice.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false});
+
+                // disable pull in functionality
+                pullInFunctonality = false;
+
+                // let TAs know about the change!
+                taChannel.send('Low tech solution has been turned on!').then(msg => msg.delete({timeout: 5000}));
+                msg.edit(msg.embeds[0].addField('Low Tech Solution Is On', 'To give assistance: \n* Send a DM to the highers member on the wait list \n* Then click on the emoji to remove them from the list!'));
+            });
+        });
         
         const consoleEmbed = new Discord.MessageEmbed()
             .setColor(mentorColor)
-            .setTitle('Main console for ' + activityName)
-            .setDescription('Here are some commands:\n' +
-                '🏕️ Will activate a stamp distribution that will be open for 20 seconds.\n' +
-                '🏎️ Will send an embedded message asking how the speed is.\n' +
-                '✍️ Will send an embedded message asking how the difficulty is.\n' +
-                '🧑‍🏫 Will send an embedded message asking how good the explanations are.');
+            .setTitle('Polling and Stamp Console')
+            .setDescription('Here are some common polls you might want to use!')
+            .addField('Stamp Distribution', '📇 Will activate a stamp distribution that will be open for ' + discordServices.stampCollectTime + ' seconds.')
+            .addField('Speed Poll', '🏎️ Will send an embedded message asking how the speed is.')
+            .addField('Difficulty Poll', '🎓 Will send an embedded message asking how the difficulty is.')
+            .addField('Explanation Poll', '🧑‍🏫 Will send an embedded message asking how good the explanations are.');
         
         // send message
         taChannel.send(consoleEmbed).then((msg) => {
-            var emojis = ['🏕️', '🏎️', '✍️', '🧑‍🏫'];
+            msg.pin();
+
+            var emojis = ['📇', '🏎️', '🎓', '🧑‍🏫'];
 
             emojis.forEach(emoji => msg.react(emoji));
 
@@ -148,7 +166,7 @@ module.exports = class InitWorkshop extends Command {
                 reaction.users.remove(user.id);
 
                 if (emojiName === emojis[0]) {
-                    commandRegistry.findCommands('distribute-stamp', true)[0].run(message, { activityName: activityName, timeLimit: 20, targetChannelKey: textChannelKey });
+                    commandRegistry.findCommands('distribute-stamp', true)[0].run(message, { activityName: activityName, timeLimit: discordServices.stampCollectTime, targetChannelKey: textChannelKey });
                 } else if (emojiName === emojis[1]) {
                     commandRegistry.findCommands('workshop-polls', true)[0].run(message, { activityName: activityName, question: 'speed', targetChannelKey: textChannelKey });
                 } else if (emojiName === emojis[2]) {
@@ -167,23 +185,28 @@ module.exports = class InitWorkshop extends Command {
 
         // send taConsole message and react with emoji
         var taConsole = await taChannel.send(taEmbed);
+        taConsole.pin();
         taConsole.react('🤝');
 
 
         ////// Hacker Side
         // create question and help channel for hackers
-        var helpChannel = await message.guild.channels.create(activityName + '-assistance', { type: 'text', parent: category });
+        var helpChannel = await message.guild.channels.create('🙋🏽' + 'assistance', { type: 'text', parent: category, topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!' });
+
+        // add helpChannel to the black list
+        discordServices.blackList.set(helpChannel.id, 5000);
 
         // message embed for helpChannel
         const helpEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle(activityName + ' Help Desk')
             .setDescription('Welcome to the ' + activityName + ' help desk. There are two ways to get help explained below:')
-            .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, use the !ask command here!')
+            .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, use the !ask command on the text channel ' + '<#' + textChannelKey + '>' + '!')
             .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the general voice channel if not already there!');
 
         // send message with embed and react with emoji
         var helpMessage = await helpChannel.send(helpEmbed);
+        helpMessage.pin();
         await helpMessage.react('🧑🏽‍🏫');
 
         // filter collector and event handler for help emoji from hackers
@@ -209,9 +232,9 @@ module.exports = class InitWorkshop extends Command {
             }
 
             // collect the question the hacker has
-            var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 10 seconds to respond');
+            var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond');
 
-            helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 10000,error:['time'] }).then(async msgs => {
+            helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000,error:['time'] }).then(async msgs => {
                 // get question
                 var question = msgs.first().content;
 
@@ -219,12 +242,14 @@ module.exports = class InitWorkshop extends Command {
                     .setColor(discordServices.embedColor)
                     .setTitle('Hey there! We got you signed up to talk to a TA!')
                     .setDescription('You are number: ' + position + ' in the wait list.')
-                    .addField('JOIN THE VOICE CHANNEL!', 'Sit tight in the voice channel. If you are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!');
+                    .addField(pullInFunctonality ? 'JOIN THE VOICE CHANNEL!' : 'KEEP AN EYE ON YOUR DMs', 
+                    pullInFunctonality ? 'Sit tight in the voice channel. If you are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!' :
+                    'A TA will reach out to you soon via DM! Have your question ready and try to keep up with the workshop until then!');
 
                 discordServices.sendMessageToMember(user, hackerEmbed);
 
                 // update message embed with new user in list
-                taConsole.edit(taConsole.embeds[0].addField(user.username, question));
+                taConsole.edit(taConsole.embeds[0].addField(user.username, '<@' + user.id + '> has the question:' +  question));
 
                 // delete promt and user msg
                 qPromt.delete();
@@ -240,42 +265,50 @@ module.exports = class InitWorkshop extends Command {
             // remove the reaction
             reaction.users.remove(user.id);
 
-            // grab the ta and their voice channel
-            var ta = message.guild.member(user.id);
-            var taVoice = ta.voice.channel;
-
-            // check that the ta is in a voice channel
-            if (taVoice === null || taVoice === undefined) {
-                taChannel.send('<@' + user.id + '> Please join a voice channel to assist hackers.').then(msg => msg.delete({ timeout: 5000 }));
-                return;
-            }
-
             // check that there is someone to help
             if (waitlist.array().length === 0) {
                 taChannel.send('<@' + user.id + '> No one to help right now!').then(msg => msg.delete({ timeout: 5000 }));
                 return;
             }
 
-            // get next user
-            var hackerKey = waitlist.firstKey();
-            waitlist.delete(hackerKey);
-            var hacker = message.guild.member(hackerKey);
+            // if pullInFunctionality is turned off then then just remove from list
+            if (!pullInFunctonality) {
+                // remove hacker from wait list
+                var hackerKey = waitlist.firstKey();
+                waitlist.delete(hackerKey);
 
-            // if status mentor in use there are no hackers in list
-            if (hacker === undefined) {
-                taChannel.send('<@' + user.id + '> There are no hackers in need of help!').then(msg => msg.delete({ timeout: 5000 }));
-                return;
-            }
+            } else {
+                // grab the ta and their voice channel
+                var ta = message.guild.member(user.id);
+                var taVoice = ta.voice.channel;
 
-            try {
-                hacker.voice.setChannel(taVoice);
-                discordServices.sendMessageToMember(hacker, 'TA is ready to help you! You are with them now!', true);
-                taChannel.send('<@' + user.id + '> A hacker was moved to your voice channel! Thanks for your help!!!').then(msg => msg.delete({ timeout: 5000 }));
-            } catch (err) {
-                discordServices.sendMessageToMember(hacker, 'A TA was ready to talk to you, but we were not able to pull you to their voice ' +
-                    'voice channel. Try again and make sure you are in the general voice channel!');
-                taChannel.send('<@' + user.id + '> We had someone that needed help, but we were unable to move them to your voice channel. ' +
-                    'They have been notified and skipped. Please help someone else!').then(msg => msg.delete({ timeout: 8000 }));
+                // check that the ta is in a voice channel
+                if (taVoice === null || taVoice === undefined) {
+                    taChannel.send('<@' + user.id + '> Please join a voice channel to assist hackers.').then(msg => msg.delete({ timeout: 5000 }));
+                    return;
+                }
+
+                // get next user
+                var hackerKey = waitlist.firstKey();
+                waitlist.delete(hackerKey);
+                var hacker = message.guild.member(hackerKey);
+
+                // if status mentor in use there are no hackers in list
+                if (hacker === undefined) {
+                    taChannel.send('<@' + user.id + '> There are no hackers in need of help!').then(msg => msg.delete({ timeout: 5000 }));
+                    return;
+                }
+
+                try {
+                    hacker.voice.setChannel(taVoice);
+                    discordServices.sendMessageToMember(hacker, 'TA is ready to help you! You are with them now!', true);
+                    taChannel.send('<@' + user.id + '> A hacker was moved to your voice channel! Thanks for your help!!!').then(msg => msg.delete({ timeout: 5000 }));
+                } catch (err) {
+                    discordServices.sendMessageToMember(hacker, 'A TA was ready to talk to you, but we were not able to pull you to their voice ' +
+                        'voice channel. Try again and make sure you are in the general voice channel!');
+                    taChannel.send('<@' + user.id + '> We had someone that needed help, but we were unable to move them to your voice channel. ' +
+                        'They have been notified and skipped. Please help someone else!').then(msg => msg.delete({ timeout: 8000 }));
+                }
             }
 
             // remove hacker from the embed list

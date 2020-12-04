@@ -1,7 +1,7 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
 const firebaseServices = require('../../firebase-services/firebase-services');
-
+const Discord = require('discord.js');
 const discordServices = require('../../discord-services');
 
 // Command export
@@ -35,7 +35,7 @@ module.exports = class Attendace extends Command {
             return;   
         }
         // only memebers with the Hacker tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.hackerRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.hackerRole))) {
             discordServices.sendMessageToMember(message.member, 'Hi there, it seems you are already marked as attendee, or you do not need to be marked as attendee. Happy hacking!', true);
             return;
         }
@@ -49,23 +49,29 @@ module.exports = class Attendace extends Command {
         // call the firebase services attendhacker function
         var status = await firebaseServices.attendHacker(email);
 
+        // embed to use
+        const embed = new Discord.MessageEmbed()
+            .setColor(discordServices.specialDMEmbedColor)
+            .setTitle('Attendance Process');
+
         // Check the returned status and act accordingly!
         switch(status) {
             case firebaseServices.status.HACKER_SUCCESS:
-                discordServices.sendMessageToMember(message.member, 'Thank you for attending nwHacks 2020. Happy hacking!!!');
+                embed.addField('Thank you for attending nwHacks 2020', 'Happy hacking!!!');
                 discordServices.addRoleToMember(message.member, discordServices.attendeeRole);
-                discordServices.discordLog(message.guild, "Hacker with email " + email +
-                    " is attending nwHacks 2020!");
+                discordServices.discordLog(message.guild, "Hacker with email " + email + " is attending nwHacks 2020!");
                 break;
             case firebaseServices.status.HACKER_IN_USE:
-                discordServices.sendMessageToMember(message.member, 'Hi there, this email is already marked as attending, have a great day!');
+                embed.addField('Hi there, this email is already marked as attending', 'Have a great day!')
                 break;
             case firebaseServices.status.FAILURE:
-                discordServices.sendMessageToMember(message.member, 'Hi there, the email you tried to attend with is not' +
-                ' in our system, please make sure your email is well typed. If you think this is an error' +
-                ' please contact us in the welcome-support channel.');
+                embed.addField('ERROR 401', 'Hi there, the email you tried to attend with is not' +
+                    ' in our system, please make sure your email is well typed. If you think this is an error' +
+                    ' please contact us in the support channel.')
+                    .setColor('#fc1403');
                 break;
         }
+        discordServices.sendMessageToMember(message.member, embed);
     }
 
 };
