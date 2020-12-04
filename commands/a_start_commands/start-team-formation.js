@@ -36,13 +36,11 @@ module.exports = class StartTeamFormation extends Command {
         const msgEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle('Team Formation Information')
-            .setDescription('Welcome to the team formation section! If you are looking for a team or need a few more memebers to complete your ultimate group, you are in the right place!')
-            .addField('How does this work?', 'Teams and hackers will react to this message, the bot will send them a template they need to fill out and send back to the bot via DM.' +
-            'Then the bot will post the team\'s or hacker\'s information in the respective channels. Other hackers or teams can then browse the channels and reach out to those intersted ' +
-            'by reacting to the post.')
-            .addField('Disclaimer!!', 'By participating in this activity you consent to letting the bot iniciate a conversation between you and other teams or hackers.')
-            .addField('Teams looking for a new members', 'React with 🚎 and the bot will send you instructions.')
-            .addField('Hacker looking for a team', 'React with 🏍️ and the bot will send you isntructions.')
+            .setDescription('Welcome to the team formation section! If you are looking for a team or need a few more members to complete your ultimate group, you are in the right place!')
+            .addField('How does this work?', '* Once you react to this message, I will send you a template you need to fill out and send back to me via DM. \n* Then I will post your information in recruiting or looking-for-team channel. \n* Then, other hackers, teams, or yourself can browse these channels and reach out via DM!')
+            .addField('Disclaimer!!', 'By participating in this activity, you consent to let the nwPlus bot initiate a conversation between you and other teams or hackers.')
+            .addField('Teams looking for new members', 'React with 🚎 and the bot will send you instructions.')
+            .addField('Hacker looking for a team', 'React with 🏍️ and the bot will send you instructions.')
         
         var cardMessage = await channel.send(msgEmbed);
 

@@ -80,36 +80,36 @@ module.exports = class AskQuestion extends Command {
                     }
 
                     // promt the response
-                    var promt = await curChannel.send('<@' + user.id + '> Please send your response within 15 seconds! If you want to cancel write cancel.');
+                    curChannel.send('<@' + user.id + '> Please send your response within 15 seconds! If you want to cancel write cancel.').then(promt => {
+                        // filter and message await only one
+                        // only user who emojied this message will be able to add a reply to it
+                        curChannel.awaitMessages(m => m.author.id === user.id, {max: 1, time: 15000, errors: ['time']}).then((msgs) => {
+                            var response = msgs.first();
 
-                    // filter and message await only one
-                    // only user who emojied this message will be able to add a reply to it
-                    curChannel.awaitMessages(m => m.author.id === user.id, {max: 1, time: 15000, errors: ['time']}).then((msgs) => {
-                        var response = msgs.first();
-
-                        // if cancel then do nothing
-                        if (response.content.toLowerCase() != 'cancel') {
-                            // if user has a mentor role, they get a spcial title
-                            if (discordServices.checkForRole(response.member, discordServices.mentorRole)) {
-                                msg.edit(msg.embeds[0].addField('🤓 ' + user.username + ' Responded:', response.content));
-                            } else {
-                                // add a field to the message embed with the response
-                                msg.edit(msg.embeds[0].addField(user.username + ' Responded:', response.content));
+                            // if cancel then do nothing
+                            if (response.content.toLowerCase() != 'cancel') {
+                                // if user has a mentor role, they get a spcial title
+                                if (discordServices.checkForRole(response.member, discordServices.mentorRole)) {
+                                    msg.edit(msg.embeds[0].addField('🤓 ' + user.username + ' Responded:', response.content));
+                                } else {
+                                    // add a field to the message embed with the response
+                                    msg.edit(msg.embeds[0].addField(user.username + ' Responded:', response.content));
+                                }
                             }
-                        }
 
-                        // delete messages
-                        promt.delete();
-                        response.delete();
+                            // delete messages
+                            promt.delete();
+                            response.delete();
 
-                        // remove user from on response list
-                        onResponse.delete(user.id);
-                    }).catch((msgs) => {
-                        promt.delete();
-                        curChannel.send('<@' + user.id + '> Time is up! When you are ready to respond, emoji again!').then(msg => msg.delete({timeout: 2000}));
+                            // remove user from on response list
+                            onResponse.delete(user.id);
+                        }).catch((msgs) => {
+                            promt.delete();
+                            curChannel.send('<@' + user.id + '> Time is up! When you are ready to respond, emoji again!').then(msg => msg.delete({timeout: 2000}));
 
-                        // remove user from on response list
-                        onResponse.delete(user.id);
+                            // remove user from on response list
+                            onResponse.delete(user.id);
+                        });
                     });
                 }
                 // check for checkmark emoji and only user who asked the question
