@@ -82,36 +82,26 @@ module.exports = class DistributeStamp extends Command {
         })
     }
 
+    
     //replaces user's current role with the next one
     async parseRole(member,user,curRole,message,activityName) {
         var stampNumber; //keep track of which role should be next based on number of stamps
         var newRole; //next role based on stampNumber
         
         //case for if curRole ends in 2 digits
-        if (!isNaN(curRole.name.substring(curRole.name.length - 2, curRole.name.length)) &&
-            parseInt(curRole.name.substring(curRole.name.length - 2, curRole.name.length)) >= 10) {
-            stampNumber = parseInt(curRole.name.substring(curRole.name.length - 2, curRole.name.length));
+        if (!isNaN(curRole.name.substring(curRole.name.length - 2, curRole.name.length))) {
+            stampNumber = parseInt(curRole.name.substring(curRole.name.length - 2));
             stampNumber++;
-            newRole = message.guild.roles.cache.find(role => 
-                !isNaN(role.name.substring(curRole.name.length - 2, curRole.name.length)) &&
-                parseInt(role.name.substring(curRole.name.length - 2, curRole.name.length)) === stampNumber);
-        } else if (!isNaN(curRole.name.substring(curRole.name.length - 1))) {
-            //case for if curRole ends in 1 digit
-            stampNumber = parseInt(curRole.name.substring(curRole.name.length - 1)); 
-            if (stampNumber === 5) {
-                //manually set newRole to Life - 6 if stampNumber = 6 because otherwise it will end up being MEE6
+            
+            if (stampNumber === 6) {
+                //manually set newRole to Stamp - 6 if stampNumber = 6 because otherwise it will end up being MEE6
                 newRole = message.guild.roles.cache.find(role => role.id === discordServices.stamp6Role);
-            } else if (stampNumber === 9) {
-                //manually set newRole to Eagle - 10 since it transitions between single and double digits
-                newRole = message.guild.roles.cache.find(role => role.id === discordServices.stamp10Role);
-            } else {
-                //look in all the server's roles to find one that matches the stampNumber
-                stampNumber++;
-                newRole = message.guild.roles.cache.find(role => 
-                    !isNaN(role.name.substring(role.name.length - 1)) &&
-                    parseInt(role.name.substring(role.name.length - 1)) === stampNumber);
             }
+            newRole = message.guild.roles.cache.find(role => 
+                !isNaN(role.name.substring(role.name.length - 2)) &&
+                parseInt(role.name.substring(role.name.length - 2)) === stampNumber);
         } else {
+            //if role doesn't end in a digit then return
             return;
         }
 

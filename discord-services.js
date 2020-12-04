@@ -86,7 +86,7 @@ module.exports.stampCollectTime = stampCollectTime;
 // Common channels
 
 // announcement channel
-var announcementChannel = '770353479905968138';
+var announcementChannel = '773402116173332490';
 module.exports.announcementChannel = announcementChannel;
 
 // where hackers join the wait list to talk to a sponsor
@@ -104,30 +104,30 @@ module.exports.sponsorCategory = sponsorCategory;
 
 // console where most commands are accessible, only staff
 // should have access to this
-var adminConsolChannel = '748955441484005488';
+var adminConsolChannel = '774754336215269386';
 // channel where the bot can log important things like verifications, 
 // clear chat calls, etc
-var adminLogChannel = '743197503884755045';
+var adminLogChannel = '774754260570079252';
 
 // channel where guests will use the !verify command,
 // usualy the welcome channel
-var welcomeChannel = '743192401434378271';
+var welcomeChannel = '773401606120800257';
 module.exports.welcomeChannel = welcomeChannel;
 
 // where hackers can call the !attend command, usually a 
 // hidden channel in a hidden category, open only day of the event
-var attendChannel = '747581999363129474';
+var attendChannel = '774754493081714699';
 module.exports.attendChannel = attendChannel;
 
 // where hackers can emoji to let the bot know if they are looking
 // for a team or a hacker(s)
-var teamformationChannel = '770354140961570857';
+var teamformationChannel = '782500884545273886';
 module.exports.teamformationChannel = teamformationChannel;
 // channel where team bios are posted, hackers shouldn't be able to post
-var recruitingChannel = '770354487595499592';
+var recruitingChannel = '782506417079713802';
 module.exports.recruitingChannel = recruitingChannel;
 // channel where hacker bios are posted, hackers shouldn't be able to post
-var lookingforteamChannel = '770354521733857320';
+var lookingforteamChannel = '782506451746816000';
 module.exports.lookingforteamChannel = lookingforteamChannel;
 
 // where hackers and other users can call the !createchannel command
@@ -137,7 +137,7 @@ module.exports.channelcreationChannel = channelcreationChannel;
 
 // where the bot will send reports to
 // should be a admin or mod only channel
-var incomingReportChannel = '780305617267982366';
+var incomingReportChannel = '782683901998137355';
 module.exports.incomingReportChannel = incomingReportChannel;
 
 
@@ -250,7 +250,7 @@ async function removeVoiceChannelsToActivity(activityName, number, category){
         var channelName = '🔊Room' + '-' + index;
         var channel = await category.children.find(channel => channel.name.endsWith(channelName));
         if (channel != undefined) {
-            channel.delete();
+            deleteChannel(channel);
         }
     }
 
@@ -302,3 +302,10 @@ function deleteMessage(message, timeout = 0) {
     }
 }
 module.exports.deleteMessage = deleteMessage;
+
+async function deleteChannel(channel) {
+    if (!channel.deleted) {
+        await channel.delete().catch(console.error);
+    }
+}
+module.exports.deleteChannel = deleteChannel;
