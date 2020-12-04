@@ -22,12 +22,30 @@ module.exports = class CreatePrivatesFor extends Command {
                     prompt: 'number of private channels',
                     type: 'integer',
                 },
+                {
+                    key: 'categoryChannelKey',
+                    prompt: 'snowflake of the activiti\'s category',
+                    type: 'string',
+                    default: '',
+                },
+                {
+                    key: 'isPrivate',
+                    prompt: 'if the new voice channels should be privates',
+                    type: 'boolean',
+                    default: false,
+                },
+                {
+                    key: 'maxUsers',
+                    prompt: 'max number of users allowed on the voice channel',
+                    type: 'integer',
+                    default: 0,
+                }
             ],
         });
     }
 
     // Run function -> command body
-    async run(message, {activityName, number}) {
+    async run(message, {activityName, number, categoryChannelKey, isPrivate, maxUsers}) {
         discordServices.deleteMessage(message);
 
         // make sure command is only used in the admin console
@@ -36,14 +54,19 @@ module.exports = class CreatePrivatesFor extends Command {
             return;   
         }
         // only memebers with the staff tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
             return;             
         }
 
         // get category
-        var category = await message.guild.channels.cache.find(channel => channel.name === activityName);
+        if (categoryChannelKey === '') {
+            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName));
+        } else {
+            var category = message.guild.channels.resolve(categoryChannelKey);
+        }
 
+        
         // if no category then report failure and return
         if (category === undefined) {
             // if the category does not excist
@@ -51,7 +74,7 @@ module.exports = class CreatePrivatesFor extends Command {
             return;
         }
         
-        var final = await discordServices.addVoiceChannelsToActivity(activityName, number, category, message.guild.channels);
+        var final = await discordServices.addVoiceChannelsToActivity(activityName, number, category, message.guild.channels, isPrivate, maxUsers);
 
         // report success of workshop creation
         discordServices.replyAndDelete(message,'Workshop session named: ' + activityName + ' now has ' + final + ' voice channels.');

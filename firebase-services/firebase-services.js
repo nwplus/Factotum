@@ -45,7 +45,7 @@ module.exports.status = status;
 
 // checks if the email is registerd
 // Params: the collection you want to check on, options: check collection constants
-async function verifyUser(email, group) {
+async function verifyUser(email, group, id) {
     var userRef = db.collection(group).doc(email);
     var user = await userRef.get();
     if(user.exists) {
@@ -53,6 +53,7 @@ async function verifyUser(email, group) {
         if(data['isVerified'] == false) {
             userRef.update({
                 'isVerified' : true,
+                'discord id' : id,
             });
             return internalStatus.SUCCESS;
         } else if (data['isVerified'] == true) {
@@ -65,30 +66,30 @@ async function verifyUser(email, group) {
 // checks all possible groups for the given email, will return 
 // a different status for each different success or in use case, failure will
 // be the very end case.
-async function verify(email) {
+async function verify(email, id) {
     // Check if hacker
-    var sts = await verifyUser(email, groups.hackerGroup);
+    var sts = await verifyUser(email, groups.hackerGroup, id);
     if(sts == internalStatus.SUCCESS) {
         return status.HACKER_SUCCESS;
     } else if(sts == internalStatus.FAILTURE_IN_USE) {
         return status.HACKER_IN_USE;
     } else {
         // Check if sponsor
-        sts = await verifyUser(email, groups.sponsorGroup);
+        sts = await verifyUser(email, groups.sponsorGroup, id);
         if(sts == internalStatus.SUCCESS) {
             return status.SPONSOR_SUCCESS;
         } else if(sts == internalStatus.FAILTURE_IN_USE) {
             return status.SPONSOR_IN_USE;
         } else {
             // Check if mentor
-            sts = await verifyUser(email, groups.mentorGroup);
+            sts = await verifyUser(email, groups.mentorGroup, id);
             if(sts == internalStatus.SUCCESS) {
                 return status.MENTOR_SUCCESS;
             } else if(sts == internalStatus.FAILTURE_IN_USE) {
                 return status.MENTOR_IN_USE;
             } else {
                 // Check if staff
-                sts = await verifyUser(email, groups.staffGroup);
+                sts = await verifyUser(email, groups.staffGroup, id);
                 if(sts == internalStatus.SUCCESS) {
                     return status.STAFF_SUCCESS;
                 } else if(sts == internalStatus.FAILTURE_IN_USE) {

@@ -27,7 +27,7 @@ module.exports = class StartBoothing extends Command {
             return;
         }
         // only memebers with the Attendee tag can run this command!
-        if (!(await discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
             discordServices.replyAndDelete(message, 'This command can only be ran by staff!');
             return;
         }
@@ -155,18 +155,12 @@ module.exports = class StartBoothing extends Command {
                 discordServices.sendMessageToMember(user, 'Hey there! You have ben removed from the waitlist, thanks for letting us know!', true);
 
                 // remove group from wait list
-                var embed = sponsorMsg.embeds[0];
-                var fields = embed.fields;
-                fields = fields.filter(field => !field.name.includes(user.username));
-                embed.fields = fields;
-                sponsorMsg.edit(embed);
+                sponsorMsg.edit(sponsorMsg.embeds[0].spliceFields(0, 1));
 
             });
 
         // add new group to the wait list
-        var embed = sponsorMsg.embeds[0];
-        embed.addField('#' + embed.fields.length + ' ' + user.username, 'Is waiting to talk with someone!');
-        sponsorMsg.edit(embed);
+        sponsorMsg.edit(sponsorMsg.embeds[0].addField(user.username, 'Is waiting to talk with someone!'));
     }
 
 

@@ -16,44 +16,61 @@ module.exports = class DistributeStamp extends Command {
                 },
                 {
                     key: 'timeLimit',
-                    prompt: 'How many seconds will the reactions be open for?',
+                    prompt: 'How many seconds will the reactions be open for',
                     type: 'integer',
-                }
+                },
+                {
+                    key: 'targetChannelKey',
+                    prompt: 'what channel is the poll being sent to in snowflake',
+                    type: 'string',
+                    default: '',
+                },
             ],
         });
     }
 
-    async run(message, {activityName,timeLimit}) {
+    async run(message, {activityName, timeLimit, targetChannelKey}) {
     //doesn't run if it is called by someone who is not staff nor admin or if it is not called in admin console
         if (!await(discordServices.checkForRole(message.member,discordServices.adminRole))) {
             discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
             return;
-        } else if (!discordServices.isAdminConsole) {
+        }
+        if (!discordServices.isAdminConsole(message.channel)) {
             discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
             return;
         }
 
     //sends embedded message to the activity's text channel
-        var targetChannel = message.guild.channels.cache.find(channel => channel.name === (activityName + "-text"));
+
+        // grab channel, depending on if given targetChannelKey
+        if (targetChannelKey === '') {
+            var targetChannel = message.guild.channels.cache.find(channel => channel.type === 'text' && channel.name.endsWith("activity-banter"));
+        } else {
+            var targetChannel = message.guild.channels.resolve(targetChannelKey);
+        }
+
+
         const qEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle('React within ' + timeLimit + ' seconds of the posting of this message to get a stamp for ' + activityName + '!');
+        
         targetChannel.send(qEmbed).then(async (msg) => {
-            const emojiFilter = (reaction,user) => user.id != msg.author.id;
             let emoji = '👍';
             msg.react(emoji);
-            const collector = await msg.createReactionCollector(emojiFilter, {time: (1000 * timeLimit)});
+
+            const collector = await msg.createReactionCollector((reaction, user) => !user.bot, {time: (1000 * timeLimit)});
+            
             //seenUsers keeps track of which users have already reacted to the message
-            var seenUsers = [];
+            var seenUsers = new Discord.Collection();
 
         //switch hacker role upon collection of their react
-            collector.on('collect', async(reaction,user) => {
+            collector.on('collect', async(reaction, user) => {
                 //for each role the user has, check if it ends with a number and if it does, change to
                 //next stamp number
                 const member = message.guild.member(user);
-                if (!seenUsers.includes(user.id)) {
-                    member.roles.cache.forEach(async role => (await this.parseRole(member,user,role,message,activityName)));
-                    seenUsers.push(user.id);
+                if (!seenUsers.has(user.id)) {
+                    member.roles.cache.filter(role => !isNaN(role.name.substring(role.name.length - 2))).forEach(async role => (await this.parseRole(member,user,role,message,activityName)));
+                    seenUsers.set(user.id, user.username);
                 }
             });
             //edits the embedded message to notify people when it stops collecting reacts
@@ -69,6 +86,7 @@ module.exports = class DistributeStamp extends Command {
     async parseRole(member,user,curRole,message,activityName) {
         var stampNumber; //keep track of which role should be next based on number of stamps
         var newRole; //next role based on stampNumber
+        
         //case for if curRole ends in 2 digits
         if (!isNaN(curRole.name.substring(curRole.name.length - 2, curRole.name.length)) &&
             parseInt(curRole.name.substring(curRole.name.length - 2, curRole.name.length)) >= 10) {

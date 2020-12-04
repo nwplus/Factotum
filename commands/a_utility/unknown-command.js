@@ -8,7 +8,7 @@ module.exports = class UnknownCommand extends Command {
     constructor(client) {
         super(client, {
             name: 'unknown-command',
-            group: 'utility',
+            group: 'a_utility',
             memberName: 'unknown-command',
             description: 'Displays help information when an unknown command is used.',
             unknown: true,
