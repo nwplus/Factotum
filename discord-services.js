@@ -2,7 +2,7 @@
 const firebaseActivity = require('./firebase-services/firebase-services-activities');
 
 var guestRole = '774734424045649950';
-var hackerRole = '774734391627874304';
+var hackerRole = '784252620083953664'; 
 var attendeeRole = '774735971375120404';
 var mentorRole = '774734376222195755';
 var sponsorRole = '774734345968812043';
@@ -250,7 +250,7 @@ async function removeVoiceChannelsToActivity(activityName, number, category){
         var channelName = '🔊Room' + '-' + index;
         var channel = await category.children.find(channel => channel.name.endsWith(channelName));
         if (channel != undefined) {
-            channel.delete();
+            deleteChannel(channel);
         }
     }
 
@@ -302,3 +302,10 @@ function deleteMessage(message, timeout = 0) {
     }
 }
 module.exports.deleteMessage = deleteMessage;
+
+async function deleteChannel(channel) {
+    if (!channel.deleted) {
+        await channel.delete();
+    }
+}
+module.exports.deleteChannel = deleteChannel;

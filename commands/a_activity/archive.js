@@ -104,34 +104,26 @@ module.exports = class InitAmongUs extends Command {
         }
 
         // grab general voice and update permission to no speak for attendees
-        if (voiceChannelKey === '') {
-            var generalVoice = await category.children.find(channel => channel.type === 'voice'  && channel.name.endsWith(discordServices.activityVoiceChannelName));
-        } else {
-            var generalVoice = message.guild.channels.resolve(voiceChannelKey);
-        }
-
-        // grab general voice and update permission to no speak for attendees
         if (textChannelKey === '') {
             var generalText = await category.children.find(channel => channel.type === 'text'  && channel.name.endsWith(discordServices.activityTextChannelName));
         } else {
             var generalText = message.guild.channels.resolve(textChannelKey);
         }
 
-        // remove voice channels
-        await discordServices.removeVoiceChannelsToActivity(activityName, category.children.array().length, category);
-
-        // remove general voice
-        generalVoice.delete().catch(console.error);
-
-        // remove all text channels except text
-        category.children.filter(channel => channel.type === 'text' && channel.name != generalText.name).each(channel => channel.delete().catch(console.error));
-
         // move text channel
         await generalText.setParent(archiveCategory);
         await generalText.setName(activityName + '-banter');
 
+        // remove all text channels except text
+        var channels = category.children.array();
+
+        for (var i = 0; i < channels.length; i++) {
+            discordServices.blackList.delete(channels[i].id);
+            await discordServices.deleteChannel(channels[i]);
+        }
+
         // remove category
-        category.delete().catch(console.error);
+        discordServices.deleteChannel(category);
 
         firebaseActivity.remove(activityName);
 

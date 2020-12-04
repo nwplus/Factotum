@@ -57,16 +57,10 @@ module.exports = class Attendace extends Command {
         // Check the returned status and act accordingly!
         switch(status) {
             case firebaseServices.status.HACKER_SUCCESS:
-<<<<<<< HEAD
                 discordServices.sendMessageToMember(message.member, 'Thank you for attending HackCamp 2020. Happy hacking!!!');
                 discordServices.addRoleToMember(message.member, discordServices.attendeeRole);
                 discordServices.discordLog(message.guild, "Hacker with email " + email +
                     " is attending HackCamp 2020!");
-=======
-                embed.addField('Thank you for attending nwHacks 2020', 'Happy hacking!!!');
-                discordServices.addRoleToMember(message.member, discordServices.attendeeRole);
-                discordServices.discordLog(message.guild, "Hacker with email " + email + " is attending nwHacks 2020!");
->>>>>>> 92bfcebfc3cec4b66bfbaf4e6430bfdb879a5686
                 break;
             case firebaseServices.status.HACKER_IN_USE:
                 embed.addField('Hi there, this email is already marked as attending', 'Have a great day!')

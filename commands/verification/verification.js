@@ -64,7 +64,6 @@ module.exports = class Verificaiton extends Command {
                 discordServices.discordLog(message.guild, "Verified email " + email + " successfully and they are now a hacker!");
                 break;
             case firebaseServices.status.SPONSOR_SUCCESS:
-<<<<<<< HEAD
                 discordServices.sendMessageToMember(message.member, 'Hi there sponsor, thank you very much for being part of HackCamp 2020 and for joining our discord!');
                 discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.sponsorRole);
                 discordServices.discordLog(message.guild, "Verified email " + email +
@@ -85,16 +84,6 @@ module.exports = class Verificaiton extends Command {
                 discordServices.sendMessageToMember(message.member, 'Hi there mentor, thank you very much for being part of HackCamp 2020, we would love to give you access ' +
                 'to our discord but the email you used to verify is already in use! If you think this is a mistake in our part please ' + 
                 'let us know in the welcome-support channel.');
-=======
-                embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of nwHacks and for joining our discord!');
-                discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.sponsorRole);
-                discordServices.discordLog(message.guild, "Verified email " + email + " successfully and they are now a sponsor!");
-                break;
-            case firebaseServices.status.MENTOR_SUCCESS:
-                embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of nwHacks and for joining our discord!');
-                discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.mentorRole);
-                discordServices.discordLog(message.guild, "Verified email " + email + " successfully and he is now a mentor!");
->>>>>>> 92bfcebfc3cec4b66bfbaf4e6430bfdb879a5686
                 break;
             case firebaseServices.status.STAFF_SUCCESS:
                 embed.addField('Welcome To Your Server!', 'Welcome to your discord server! If you need to know more about what I can do please call !help.');
