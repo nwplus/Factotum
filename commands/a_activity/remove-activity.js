@@ -71,7 +71,7 @@ module.exports = class RemoveActivity extends Command {
 
         var listOfChannels = category.children.array();
         for(var i = 0; i < listOfChannels.length; i++) {
-            listOfChannels[i].delete().catch(console.error);
+            await discordServices.deleteChannel(listOfChannels[i]);
         }
 
         category.delete().catch(console.error);

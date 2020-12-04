@@ -118,16 +118,21 @@ module.exports = class InitAmongUs extends Command {
         var channels = category.children.array();
 
         for (var i = 0; i < channels.length; i++) {
+            // console.log('trying to remove ' + channels[i].name);
             discordServices.blackList.delete(channels[i].id);
             await discordServices.deleteChannel(channels[i]);
+            // console.log('removed ' + channels[i].name);
         }
 
         // remove category
-        discordServices.deleteChannel(category);
+        await discordServices.deleteChannel(category);
+        // console.log('deleted the category');
 
         firebaseActivity.remove(activityName);
+        // console.log('deleted firebase category');
 
         // report success of coffee chat creation
         discordServices.replyAndDelete(message,'Activity named: ' + activityName + ' is now archived.');
+        // console.log('end of archive command.');
     }
 }; 

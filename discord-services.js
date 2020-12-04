@@ -305,7 +305,7 @@ module.exports.deleteMessage = deleteMessage;
 
 async function deleteChannel(channel) {
     if (!channel.deleted) {
-        await channel.delete();
+        await channel.delete().catch(console.error);
     }
 }
 module.exports.deleteChannel = deleteChannel;

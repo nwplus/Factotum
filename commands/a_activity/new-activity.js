@@ -228,6 +228,7 @@ module.exports = class NewActivity extends Command {
             } else if (emojiName === emojis[14]) {
                 commandRegistry.findCommands('archive', true)[0].run(message, {activityName: activityName, categoryChannelKey: category.id, textChannelKey: generalText.id, voiceChannelKey: generalVoice.id });
                 msgConsole.delete({timeout: 3000});
+                emojiCollector.stop();
             } 
             // NOT USING HIDDEN FUNCTIONALITY -> BREAKS TOO MANY PERMISION STUFF!
             // else if (emojiName === emojis[15]) {
