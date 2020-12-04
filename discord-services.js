@@ -23,6 +23,15 @@ var stamp9Role = '777163468053938186';
 var stamp10Role = '777163488019480586';
 var stamp11Role = '777163506902237196';
 var stamp12Role = '777163524568776704';
+var stamp12Role = '777163524568776704';
+var stamp13Role = '784224112909221948';
+var stamp14Role = '784224898230779945';
+var stamp15Role = '784224924633923635';
+var stamp16Role = '784224924633923635';
+var stamp17Role = '784224964001005589';
+var stamp18Role = '784224981386133525';
+var stamp19Role = '784224999698726942';
+var stamp20Role = '784225017172590622';
 module.exports.everyoneRole = everyoneRole;
 module.exports.hackerRole = hackerRole;
 module.exports.guestRole = guestRole;
@@ -44,6 +53,15 @@ module.exports.stamp9Role = stamp9Role;
 module.exports.stamp10Role = stamp10Role;
 module.exports.stamp11Role = stamp11Role;
 module.exports.stamp12Role = stamp12Role;
+module.exports.stamp13Role = stamp13Role;
+module.exports.stamp14Role = stamp14Role;
+module.exports.stamp15Role = stamp15Role;
+module.exports.stamp16Role = stamp16Role;
+module.exports.stamp17Role = stamp17Role;
+module.exports.stamp18Role = stamp18Role;
+module.exports.stamp19Role = stamp19Role;
+module.exports.stamp20Role = stamp20Role;
+
 
 // other project wide vars
 var embedColor = '#26fff4';
