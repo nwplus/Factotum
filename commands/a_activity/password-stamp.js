@@ -135,7 +135,6 @@ module.exports = class DistributeStamp extends Command {
 
     //replaces user's current role with the next one
     async parseRole(member,user,curRole,message,sponsorName) {
-        console.log(curRole.name);
         var stampNumber; //keep track of which role should be next based on number of stamps
         var newRole; //next role based on stampNumber
         
@@ -143,7 +142,6 @@ module.exports = class DistributeStamp extends Command {
         //case for if curRole ends in 2 digits
         if (!isNaN(curRole.name.substring(curRole.name.length - 2, curRole.name.length))) {
             stampNumber = parseInt(curRole.name.substring(curRole.name.length - 2));
-            console.log(stampNumber);
             stampNumber++;
             
             if (stampNumber === 6) {

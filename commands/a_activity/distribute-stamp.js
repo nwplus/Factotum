@@ -84,22 +84,23 @@ module.exports = class DistributeStamp extends Command {
 
     
     //replaces user's current role with the next one
-    async parseRole(member,user,curRole,message,sponsorName) {
+    async parseRole(member,user,curRole,message,activityName) {
         var stampNumber; //keep track of which role should be next based on number of stamps
         var newRole; //next role based on stampNumber
         
         
         //case for if curRole ends in 2 digits
         if (!isNaN(curRole.name.substring(curRole.name.length - 2, curRole.name.length))) {
-            stampNumber = parseInt(curRole.name.substring(curRole.name.length - 2, curRole.name.length));
+            stampNumber = parseInt(curRole.name.substring(curRole.name.length - 2));
             stampNumber++;
-            if (stampNumber === 5) {
-                //manually set newRole to Stamp - 6 if stampNumber = 5 because otherwise it will end up being MEE6
+            
+            if (stampNumber === 6) {
+                //manually set newRole to Stamp - 6 if stampNumber = 6 because otherwise it will end up being MEE6
                 newRole = message.guild.roles.cache.find(role => role.id === discordServices.stamp6Role);
             }
             newRole = message.guild.roles.cache.find(role => 
-                !isNaN(role.name.substring(curRole.name.length - 2, curRole.name.length)) &&
-                parseInt(role.name.substring(curRole.name.length - 2, curRole.name.length)) === stampNumber);
+                !isNaN(role.name.substring(role.name.length - 2)) &&
+                parseInt(role.name.substring(role.name.length - 2)) === stampNumber);
         } else {
             //if role doesn't end in a digit then return
             return;
