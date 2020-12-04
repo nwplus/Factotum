@@ -135,6 +135,7 @@ module.exports = class DistributeStamp extends Command {
 
     //replaces user's current role with the next one
     async parseRole(member,user,curRole,message,sponsorName) {
+        console.log(curRole.name);
         var stampNumber; //keep track of which role should be next based on number of stamps
         var newRole; //next role based on stampNumber
         
@@ -142,7 +143,10 @@ module.exports = class DistributeStamp extends Command {
         //case for if curRole ends in 2 digits
         if (!isNaN(curRole.name.substring(curRole.name.length - 2, curRole.name.length))) {
             stampNumber = parseInt(curRole.name.substring(curRole.name.length - 2, curRole.name.length));
+            console.log(stampNumber);
             stampNumber++;
+            
+    console.log(stampNumber);
             if (stampNumber === 5) {
                 //manually set newRole to Stamp - 6 if stampNumber = 5 because otherwise it will end up being MEE6
                 newRole = message.guild.roles.cache.find(role => role.id === discordServices.stamp6Role);
