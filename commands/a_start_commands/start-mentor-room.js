@@ -382,18 +382,20 @@ module.exports = class StartMentors extends Command {
                         var ticketCategory;
                         var ticketTextChannel;
                         var ticketVoiceChannel;
+                        var maxReactions = 0;
 
-                        var ticketReactionCollector = ticketMsg.createReactionCollector((reaction, user) => !user.bot && ticketEmojis.has(reaction.emoji.name));
+                        const ticketReactionCollector = ticketMsg.createReactionCollector((reaction, user) => !user.bot && ticketEmojis.has(reaction.emoji.name));
 
                         ticketReactionCollector.on('collect', async (reaction, mentor) => {
 
                             if (reaction.emoji.name === joinTicketEmoji) {
                             // More mentors can join functionality
                                 // add mentor to category
-                                ticketCategory.updateOverwrite(mentor, {'VIEW_CHANNEL': true, 'USE_VAD': true}).then(
+                                ticketCategory.updateOverwrite(mentor, {'VIEW_CHANNEL': true, 'USE_VAD': true}).then( category => 
                                     // let the team know someone has joined the conversation
-                                    category => ticketTextChannel.send('@here <@' + mentor.id + '> Has joined the ticket!').then(msg => msg.delete({timeout: 5000}))
+                                    ticketTextChannel.send('<@' + mentor.id + '> Has joined the ticket!').then(msg => msg.delete({timeout: 5000}))
                                     );
+                                maxReactions += 1;
                             } else {
                             // Ticket has been accepted -> creating ticket category
                                 // remove give help emoji and add join ticket emoji to collection
@@ -407,16 +409,30 @@ module.exports = class StartMentors extends Command {
                                 ticketMsg.react(joinTicketEmoji);
 
                                 // create category with channels
-                                ticketCategory = await message.guild.channels.create('Ticket-' + ticketCount, {type: 'category',});
-                                ticketCategory.updateOverwrite(discordServices.everyoneRole, {'VIEW_CHANNEL': false});
-                                ticketCategory.updateOverwrite(mentor, {'VIEW_CHANNEL': true, 'USE_VAD': true});
-                                ticketCategory.updateOverwrite(hacker, {'VIEW_CHANNEL': true, 'USE_VAD': true});
-                                hackerTicketMentions.members.each(member => ticketCategory.updateOverwrite(member, {'VIEW_CHANNEL': true, 'USE_VAD': true}));
+                                ticketCategory = await message.guild.channels.create('Ticket-' + ticketCount, {
+                                    type: 'category',
+                                    permissionOverwrites: [
+                                        {
+                                            id: discordServices.everyoneRole,
+                                            deny: ['VIEW_CHANNEL']
+                                        }
+                                    ]
+                                });
 
                                 // text channel
-                                ticketTextChannel = await message.guild.channels.create('banter', {type: 'text', parent: ticketCategory});
+                                ticketTextChannel = await message.guild.channels.create('banter', {
+                                    type: 'text', 
+                                    parent: ticketCategory
+                                });
                                 // voice channel
-                                ticketVoiceChannel = await message.guild.channels.create('discussion', {type: 'voice', parent: ticketCategory});
+                                ticketVoiceChannel = await message.guild.channels.create('discussion', {
+                                    type: 'voice', 
+                                    parent: ticketCategory
+                                });
+
+                                await ticketCategory.updateOverwrite(mentor, {'VIEW_CHANNEL': true, 'USE_VAD': true});
+                                await ticketCategory.updateOverwrite(hacker, {'VIEW_CHANNEL': true, 'USE_VAD': true});
+                                await hackerTicketMentions.members.each(member => ticketCategory.updateOverwrite(member, {'VIEW_CHANNEL': true, 'USE_VAD': true}));
                             
                             // Info msg and close ticket collector
                                 // send message to text channel taging the team and mentor
@@ -429,10 +445,10 @@ module.exports = class StartMentors extends Command {
 
                                 ticketTextChannel.send(newChannelEmbed).then(async infoMsg => {
                                     var reactionCount = 0;
-                                    var maxReactions = hackerTicketMentions.members.array().length + 2;
+                                    maxReactions += hackerTicketMentions.members.array().length + 2;
 
                                     await infoMsg.react('👋🏽');
-                                    const loseAccessCollector = await infoMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '👋🏽', {max: maxReactions});
+                                    const loseAccessCollector = await infoMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '👋🏽');
                                     
                                     loseAccessCollector.on('collect', async (reaction, user) => {
                                         reactionCount += 1;
@@ -441,6 +457,8 @@ module.exports = class StartMentors extends Command {
                                             await ticketTextChannel.delete();
                                             await ticketVoiceChannel.delete();
                                             await ticketCategory.delete();
+                                            ticketReactionCollector.stop();
+                                            loseAccessCollector.stop();
                                         } else {
                                             ticketCategory.updateOverwrite(user, {VIEW_CHANNEL: false, SEND_MESSAGES: false, READ_MESSAGE_HISTORY: false});
                                         }

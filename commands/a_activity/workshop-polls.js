@@ -73,7 +73,7 @@ module.exports = class DistributeStamp extends Command {
                 .setTitle('Explanation Poll!')
                 .setDescription('Please react to this poll!\n\n' + 
                     '**Hard to understand? ->**  🐢\n\n' + 
-                    '**Meh exaplanations? ->**  🐶\n\n' + 
+                    '**Meh explanations? ->**  🐶\n\n' + 
                     '**Easy to understand? ->**  🐇');
         }
 
