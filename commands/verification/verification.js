@@ -65,24 +65,24 @@ module.exports = class Verificaiton extends Command {
                 'sure that you have the correct email. If you think this is an error please contact us in the welome-support channel.');
                 break;
             case firebaseServices.status.SPONSOR_SUCCESS:
-                discordServices.sendMessageToMember(message.member, 'Hi there sponsor, thank you very much for being part of nwHacks and for joining our discord!');
+                discordServices.sendMessageToMember(message.member, 'Hi there sponsor, thank you very much for being part of HackCamp 2020 and for joining our discord!');
                 discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.sponsorRole);
                 discordServices.discordLog(message.guild, "Verified email " + email +
                     " successfully and he is now a sponsor!");
                 break;
             case firebaseServices.status.SPONSOR_IN_USE:
-                discordServices.sendMessageToMember(message.member, 'Hi there sponsor, thank you very much for being part of nwHacks, we would love to give you access ' +
+                discordServices.sendMessageToMember(message.member, 'Hi there sponsor, thank you very much for being part of HackCamp 2020, we would love to give you access ' +
                 'to our discord but the email you used to verify is already in use! If you think this is a mistake in our part please ' + 
                 'let us know in the welcome-support channel.');
                 break;
             case firebaseServices.status.MENTOR_SUCCESS:
-                discordServices.sendMessageToMember(message.member, 'Hi there mentor, thank you very much for being part of nwHacks and for joining our discord!');
+                discordServices.sendMessageToMember(message.member, 'Hi there mentor, thank you very much for being part of HackCamp 2020 and for joining our discord!');
                 discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.mentorRole);
                 discordServices.discordLog(message.guild, "Verified email " + email +
                 " successfully and he is now a mentor!");
                 break;
             case firebaseServices.status.MENTOR_IN_USE:
-                discordServices.sendMessageToMember(message.member, 'Hi there mentor, thank you very much for being part of nwHacks, we would love to give you access ' +
+                discordServices.sendMessageToMember(message.member, 'Hi there mentor, thank you very much for being part of HackCamp 2020, we would love to give you access ' +
                 'to our discord but the email you used to verify is already in use! If you think this is a mistake in our part please ' + 
                 'let us know in the welcome-support channel.');
                 break;
