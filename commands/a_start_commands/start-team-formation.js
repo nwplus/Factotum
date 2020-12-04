@@ -68,13 +68,13 @@ module.exports = class StartTeamFormation extends Command {
         // branch between team and hacker
         if (isTeam) {
             dmMessage.setTitle('Team Formation - Team Format');
-            dmMessage.setDescription('We are very exited for you to find your perfect team members! \n* Please copy and paste the following format in your next message. ' +
+            dmMessage.setDescription('We are very excited for you to find your perfect team members! \n* Please **copy and paste** the following format in your next message. ' +
                 '\n* Try to respond to all the sections! \n* Once you are ready to submit, react to this message with 🇩 and then send me your information!\n' +
                 '* Once you find a hacker, please come back and click the ⛔ emoji.');
             dmMessage.addField('Format:', 'Team Member(s): \nTeam Background: \nObjective: \nFun Fact About Team: \nLooking For: ');
         } else {
             dmMessage.setTitle('Team Formation - Hacker Format');
-            dmMessage.setDescription('We are very exited for you to find your perfect team! \n* Please copy and paste the following format in your next message. ' +
+            dmMessage.setDescription('We are very excited for you to find your perfect team! \n* Please copy and paste the following format in your next message. ' +
                 '\n* Try to respond to all the sections! \n* Once you are ready to submit, react to this message with 🇩 and then send me your information!\n' +
                 '* Once you find a team, please come back and click the ⛔ emoji.');
             dmMessage.addField('Format:', 'Name: \nSchool: \nPlace of Origin: \nSkills: \nFun Fact: ');
@@ -149,10 +149,10 @@ module.exports = class StartTeamFormation extends Command {
             // confirm the post has been received
             if (isTeam) {
                 user.send('Thanks for sending me your information, you should see it pop up in the respective channel under the team formation category.' +
-                    'Once you find your members please react to my original message with ⛔ so I can remove your post. Happy hacking!!!').then(msg => msg.delete({ timeout: 5000 }));
+                    'Once you find your members please react to my original message with ⛔ so I can remove your post. Happy hacking!!!').then(msg => msg.delete({ timeout: 8000 }));
             } else {
                 user.send('Thanks for sending me your information, you should see it pop up in the respective channel under the team formation category.' +
-                    'Once you find your ideal team please react to my original message with ⛔ so I can remove your post. Happy hacking!!!').then(msg => msg.delete({ timeout: 5000 }));
+                    'Once you find your ideal team please react to my original message with ⛔ so I can remove your post. Happy hacking!!!').then(msg => msg.delete({ timeout: 8000 }));
             }
 
             // remove the promt message from the bot in the DM channel

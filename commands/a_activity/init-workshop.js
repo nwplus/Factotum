@@ -242,7 +242,9 @@ module.exports = class InitWorkshop extends Command {
                     .setColor(discordServices.embedColor)
                     .setTitle('Hey there! We got you signed up to talk to a TA!')
                     .setDescription('You are number: ' + position + ' in the wait list.')
-                    .addField('JOIN THE VOICE CHANNEL!', 'Sit tight in the voice channel. If you are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!');
+                    .addField(pullInFunctonality ? 'JOIN THE VOICE CHANNEL!' : 'KEEP AN EYE ON YOUR DMs', 
+                    pullInFunctonality ? 'Sit tight in the voice channel. If you are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!' :
+                    'A TA will reach out to you soon via DM! Have your question ready and try to keep up with the workshop until then!');
 
                 discordServices.sendMessageToMember(user, hackerEmbed);
 

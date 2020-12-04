@@ -390,10 +390,10 @@ module.exports = class StartMentors extends Command {
                             if (reaction.emoji.name === joinTicketEmoji) {
                             // More mentors can join functionality
                                 // add mentor to category
-                                ticketCategory.updateOverwrite(mentor, {'VIEW_CHANNEL': true, 'USE_VAD': true});
-
-                                // let the team know someone has joined the conversation
-                                ticketTextChannel.send('@here <@' + mentor.id + '> Has joined the ticket!').then(msg => msg.delete({timeout: 5000}));
+                                ticketCategory.updateOverwrite(mentor, {'VIEW_CHANNEL': true, 'USE_VAD': true}).then(
+                                    // let the team know someone has joined the conversation
+                                    category => ticketTextChannel.send('@here <@' + mentor.id + '> Has joined the ticket!').then(msg => msg.delete({timeout: 5000}))
+                                    );
                             } else {
                             // Ticket has been accepted -> creating ticket category
                                 // remove give help emoji and add join ticket emoji to collection
