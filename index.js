@@ -126,7 +126,72 @@ bot.once('ready', async () => {
 
 // Listeners for the bot
 
-bot.on('error', console.error);
+// error event
+bot.on('error', (error) => {
+    console.log(error)
+    discordServices.discordLog(bot.guilds.cache.first(), )
+});
+
+bot.on('commandError', (command, error) => {
+    console.log(
+        'Error on command: ' + command.name + 
+        'Uncaught Rejection, reason: ' + error.name + 
+        '\nmessage: ' + error.message +
+        '\nfile: ' + error.fileName + 
+        '\nline number: ' + error.lineNumber +
+        '\nstack: ' + error.stack + 
+        `Exception origin: ${origin}`
+    );
+    discordServices.discordLog(bot.guilds.cache.first(),
+        'Error on command: ' + command.name +  
+        'Uncaught Rejection, reason: ' + error.name + 
+        '\nmessage: ' + error.message +
+        '\nfile: ' + error.fileName + 
+        '\nline number: ' + error.lineNumber +
+        '\nstack: ' + error.stack + 
+        `\nException origin: ${origin}`
+    );
+});
+
+process.on('uncaughtException', (error, origin) => {
+    console.log(
+        'Uncaught Rejection, reason: ' + error.name + 
+        '\nmessage: ' + error.message +
+        '\nfile: ' + error.fileName + 
+        '\nline number: ' + error.lineNumber +
+        '\nstack: ' + error.stack + 
+        `Exception origin: ${origin}`
+    );
+    discordServices.discordLog(bot.guilds.cache.first(),  
+        'Uncaught Rejection, reason: ' + error.name + 
+        '\nmessage: ' + error.message +
+        '\nfile: ' + error.fileName + 
+        '\nline number: ' + error.lineNumber +
+        '\nstack: ' + error.stack + 
+        `\nException origin: ${origin}`
+    );
+});
+
+process.on('unhandledRejection', (error, promise) => {
+    console.log('Unhandled Rejection at:', promise, 
+        'Unhandled Rejection, reason: ' + error.name + 
+        '\nmessage: ' + error.message +
+        '\nfile: ' + error.fileName + 
+        '\nline number: ' + error.lineNumber +
+        '\nstack: ' + error.stack
+    );
+    discordServices.discordLog(bot.guilds.cache.first(), 
+        'Unhandled Rejection, reason: ' + error.name + 
+        '\nmessage: ' + error.message +
+        '\nfile: ' + error.fileName + 
+        '\nline number: ' + error.lineNumber
+    );
+});
+
+process.on('exit', () => {
+    console.log('Node is exiting!');
+    discordServices.discordLog(bot.guilds.cache.first(), 'The program is shutting down!');
+});
 
 bot.on('message', async message => {
     // Deletes all messages to any channel in the black list with a 5 second timout

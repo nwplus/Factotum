@@ -88,18 +88,24 @@ module.exports = class InitWorkshop extends Command {
         generalVoice.updateOverwrite(discordServices.staffRole, {
             SPEAK: true,
             MOVE_MEMBERS: true,
-        }).catch(console.error);
+        });
 
         // create TA console
         var taChannel = await message.guild.channels.create(':🧑🏽‍🏫:' + 'ta-console', {
             type: 'text', 
             parent: category, 
             topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
-        }).catch(console.error);
-        taChannel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false}).catch(console.error);
-        taChannel.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false}).catch(console.error);
         });
+        taChannel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
+        taChannel.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false});
 
+        ////// important variables
+        // pullInFunctionality is default to true
+        var pullInFunctonality = true;
+
+        ////// important variables
+        // pullInFunctionality is default to true
+        var pullInFunctonality = true;
 
         ////// important variables
         // pullInFunctionality is default to true
@@ -135,8 +141,8 @@ module.exports = class InitWorkshop extends Command {
                 // let TAs know about the change!
                 taChannel.send('Low tech solution has been turned on!').then(msg => msg.delete({timeout: 5000}));
                 msg.edit(msg.embeds[0].addField('Low Tech Solution Is On', 'To give assistance: \n* Send a DM to the highers member on the wait list \n* Then click on the emoji to remove them from the list!'));
-            }).catch(console.error);
-        }).catch(console.error);
+            });
+        });
         
         const consoleEmbed = new Discord.MessageEmbed()
             .setColor(mentorColor)
@@ -185,7 +191,7 @@ module.exports = class InitWorkshop extends Command {
             .setDescription('* Make sure you are on a private voice channel not the general voice channel \n* To get the next hacker that needs help click 🤝');
 
         // send taConsole message and react with emoji
-        var taConsole = await taChannel.send(taEmbed).catch(console.error);
+        var taConsole = await taChannel.send(taEmbed);
         taConsole.pin();
         taConsole.react('🤝');
 
@@ -196,7 +202,7 @@ module.exports = class InitWorkshop extends Command {
             type: 'text', 
             parent: category, 
             topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
-        }).catch(console.error);
+        });
 
         // add helpChannel to the black list
         discordServices.blackList.set(helpChannel.id, 5000);
@@ -237,9 +243,9 @@ module.exports = class InitWorkshop extends Command {
             }
 
             // collect the question the hacker has
-            var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond').catch(console.error);
+            var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond');
 
-            helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000,error:['time'] }).then(async msgs => {
+            helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000, error:['time'] }).then(async msgs => {
                 // get question
                 var question = msgs.first().content;
 
@@ -259,7 +265,10 @@ module.exports = class InitWorkshop extends Command {
                 // delete promt and user msg
                 qPromt.delete();
                 msgs.each(msg => msg.delete());
-            }).catch(console.error);
+            }).catch(() => {
+                qPromt.delete();
+                helpChannel.send('<@' + user.id + '> Time is up! Write up your message and react again!').then(msg => msg.delete({timeout: 3000}));
+            });
         });
 
         // add reacton to get next in this message!

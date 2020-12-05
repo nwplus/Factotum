@@ -1,35 +1,33 @@
 
 const firebaseActivity = require('./firebase-services/firebase-services-activities');
 
-// Available Roles
-var guestRole = '742896900419747961';
-var hackerRole = '738519785028976741';
-var attendeeRole = '742896999556448357';
-var mentorRole = '747527454200955051';
-var sponsorRole = '738519983981723748';
-var staffRole = '738519363904077916';
-var adminRole = '738491577596641311';
-var everyoneRole = '738475671977722058';
-var stamp0Role = '776690929557831680';
-var stamp1Role = '776694051482107944';
-var stamp2Role = '777163284679229461';
-var stamp3Role = '777163346456870913';
-var stamp4Role = '777163367814922250';
-var stamp5Role = '777163388631253002';
-var stamp6Role = '777163410269011990';
-var stamp7Role = '777163427328163850';
-var stamp8Role = '777163452560048168';
-var stamp9Role = '777163468053938186';
-var stamp10Role = '777163488019480586';
-var stamp11Role = '777163506902237196';
-var stamp12Role = '777163524568776704';
-var stamp12Role = '777163524568776704';
-var stamp13Role = '784224112909221948';
-var stamp14Role = '784224898230779945';
+var guestRole = '774734424045649950';
+var hackerRole = '784252997327650816';
+var attendeeRole = '774735971375120404';
+var mentorRole = '774734376222195755';
+var sponsorRole = '774734345968812043';
+var staffRole = '774734326554296320';
+var adminRole = '773400712234663965';
+var everyoneRole = '772898802604310538';
+var stamp0Role = '781404710779224115';
+var stamp1Role = '781404761273794601';
+var stamp2Role = '781404770476097536';
+var stamp3Role = '781404766974640128';
+var stamp4Role = '781404765133078549';
+var stamp5Role = '784224898230779945';
+var stamp6Role = '781404768336609290';
+var stamp7Role = '784224981386133525';
+var stamp8Role = '784224964001005589';
+var stamp9Role = '781404767809044491';
+var stamp10Role = '781404771612622868';
+var stamp11Role = '781404769691631627';
+var stamp12Role = '782684483072950272';
+var stamp13Role = '782684457357410314';
+var stamp14Role = '784224112909221948';
 var stamp15Role = '784224924633923635';
-var stamp16Role = '784224924633923635';
-var stamp17Role = '784224964001005589';
-var stamp18Role = '784224981386133525';
+var stamp16Role = '784224943730327592';
+var stamp17Role = '781404770803908609';
+var stamp18Role = '781404769133527040';
 var stamp19Role = '784224999698726942';
 var stamp20Role = '784225017172590622';
 module.exports.everyoneRole = everyoneRole;
@@ -86,7 +84,7 @@ module.exports.stampCollectTime = stampCollectTime;
 // Common channels
 
 // announcement channel
-var announcementChannel = '773402116173332490';
+var announcementChannel = '784254136040161310';
 module.exports.announcementChannel = announcementChannel;
 
 // where hackers join the wait list to talk to a sponsor
@@ -170,20 +168,32 @@ module.exports.sendMessageToMember = sendMessageToMember;
 
 // Add a role to a member
 function addRoleToMember(member, addRole) {
-    member.roles.add(addRole);
+    member.roles.add(addRole).catch(error => {
+        // try one more time
+        member.roles.add(addRole).catch(error => {
+            // now send error to admins
+            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role' + member.guild.roles.cache.get(addRole) +' please help me!');
+        });
+    });
 }
 module.exports.addRoleToMember = addRoleToMember;
 
 // Remove a role to a member
 function removeRolToMember(member, removeRole) {
-    member.roles.remove(removeRole);
+    member.roles.remove(removeRole).catch(error => {
+        // try one more time
+        member.roles.remove(removeRole).catch(error => {
+            // now send error to admins
+            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role ' + member.guild.roles.cache.get(removeRole) + ', please help me!');
+        });
+    });
 }
 module.exports.removeRolToMember = removeRolToMember;
 
 // Replaces one role for the other
 function replaceRoleToMember(member, removeRole, addRole) {
-    removeRolToMember(member, removeRole);
     addRoleToMember(member, addRole);
+    removeRolToMember(member, removeRole);
 }
 module.exports.replaceRoleToMember = replaceRoleToMember;
 
