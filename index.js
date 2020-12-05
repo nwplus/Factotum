@@ -207,7 +207,6 @@ bot.on('message', async message => {
 
 // If someone joins the server they get the guest role!
 bot.on('guildMemberAdd', member => {
-    discordServices.addRoleToMember(member, discordServices.guestRole);
 
     var embed = new Discord.MessageEmbed()
         .setTitle('Welcome to the HackCamp 2020 Server!')
@@ -219,9 +218,21 @@ bot.on('guildMemberAdd', member => {
 
     // found a bug where if poeple have DMs turned off, this send embed will fail and can make the role setup fail as well
     // we will add a .then where the user will get pinged on welcome-support to let him know to turn on DM from server
-    member.send(embed).catch((error) => {
+    member.send(embed).then(() => {
+        discordServices.addRoleToMember(member, discordServices.guestRole);
+    }).catch((error) => {
         if (error.code === 50007) {
-            member.guild.channels.resolve(discordServices.welcomeSupport).send('<@' + member.id + '> I couldn\'t reach you :(. Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-');
+            member.guild.channels.resolve(discordServices.welcomeSupport).send('<@' + member.id + '> I couldn\'t reach you :(.' + 
+                '\n* Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-' + 
+                '\n* Once this is done, please react to this message with 🤖 to let me know!').then(msg => {
+                    msg.awaitReactions((reaction, user) => user.id === member.id && reaction.emoji.name === '🤖').then(reactions => {
+                        member.send(embed).then(msg => {
+                            discordServices.addRoleToMember(member, discordServices.guestRole);
+                        }).catch(error => {
+                            member.guild.channels.resolve(discordServices.welcomeSupport).send('<@' + member.id + '> Are you sure you made the changes? I couldnt reach you again :( !').then(msg => msg.delete({timeout: 8000}));
+                        });
+                    });
+                });
         } else {
             throw error;
         }
