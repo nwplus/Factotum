@@ -126,7 +126,72 @@ bot.once('ready', async () => {
 
 // Listeners for the bot
 
-bot.on('error', console.error);
+// error event
+bot.on('error', (error) => {
+    console.log(error)
+    discordServices.discordLog(bot.guilds.cache.first(), )
+});
+
+bot.on('commandError', (command, error) => {
+    console.log(
+        'Error on command: ' + command.name + 
+        'Uncaught Rejection, reason: ' + error.name + 
+        '\nmessage: ' + error.message +
+        '\nfile: ' + error.fileName + 
+        '\nline number: ' + error.lineNumber +
+        '\nstack: ' + error.stack + 
+        `Exception origin: ${origin}`
+    );
+    discordServices.discordLog(bot.guilds.cache.first(),
+        'Error on command: ' + command.name +  
+        'Uncaught Rejection, reason: ' + error.name + 
+        '\nmessage: ' + error.message +
+        '\nfile: ' + error.fileName + 
+        '\nline number: ' + error.lineNumber +
+        '\nstack: ' + error.stack + 
+        `\nException origin: ${origin}`
+    );
+});
+
+process.on('uncaughtException', (error, origin) => {
+    console.log(
+        'Uncaught Rejection, reason: ' + error.name + 
+        '\nmessage: ' + error.message +
+        '\nfile: ' + error.fileName + 
+        '\nline number: ' + error.lineNumber +
+        '\nstack: ' + error.stack + 
+        `Exception origin: ${origin}`
+    );
+    discordServices.discordLog(bot.guilds.cache.first(),  
+        'Uncaught Rejection, reason: ' + error.name + 
+        '\nmessage: ' + error.message +
+        '\nfile: ' + error.fileName + 
+        '\nline number: ' + error.lineNumber +
+        '\nstack: ' + error.stack + 
+        `\nException origin: ${origin}`
+    );
+});
+
+process.on('unhandledRejection', (error, promise) => {
+    console.log('Unhandled Rejection at:', promise, 
+        'Unhandled Rejection, reason: ' + error.name + 
+        '\nmessage: ' + error.message +
+        '\nfile: ' + error.fileName + 
+        '\nline number: ' + error.lineNumber +
+        '\nstack: ' + error.stack
+    );
+    discordServices.discordLog(bot.guilds.cache.first(), 
+        'Unhandled Rejection, reason: ' + error.name + 
+        '\nmessage: ' + error.message +
+        '\nfile: ' + error.fileName + 
+        '\nline number: ' + error.lineNumber
+    );
+});
+
+process.on('exit', () => {
+    console.log('Node is exiting!');
+    discordServices.discordLog(bot.guilds.cache.first(), 'The program is shutting down!');
+});
 
 bot.on('message', async message => {
     // Deletes all messages to any channel in the black list with a 5 second timout
@@ -145,7 +210,7 @@ bot.on('guildMemberAdd', member => {
     discordServices.addRoleToMember(member, discordServices.guestRole);
 
     var embed = new Discord.MessageEmbed()
-        .setTitle('Welcome to the nwHacks Server!')
+        .setTitle('Welcome to the HackCamp 2020 Server!')
         .setDescription('We are very excited to have you here!')
         .addField('Gain more access by verifying yourself!', 'Go back to the welcome channel and use the !verify command. More info there!')
         .addField('Have a question?', 'Go to the welcome-assistance channel to talk with our staff!')

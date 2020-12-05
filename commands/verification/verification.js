@@ -61,22 +61,22 @@ module.exports = class Verificaiton extends Command {
                     .addField('Don\'t Forget!', 'Remember you need to !attend <your email> in the attend channel that will open a few hours before the hackathon begins.');
                 discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.hackerRole);
                 discordServices.addRoleToMember(message.member,discordServices.stamp0Role);
-                discordServices.discordLog(message.guild, "Verified email " + email + " successfully and they are now a hacker!");
+                discordServices.discordLog(message.guild, "<@" + message.author.id + "> Verified email " + email + " successfully and they are now a hacker!");
                 break;
             case firebaseServices.status.SPONSOR_SUCCESS:
-                embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of nwHacks and for joining our discord!');
+                embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of HackCamp and for joining our discord!');
                 discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.sponsorRole);
-                discordServices.discordLog(message.guild, "Verified email " + email + " successfully and they are now a sponsor!");
+                discordServices.discordLog(message.guild, "<@" + message.author.id + "> Verified email " + email + " successfully and they are now a sponsor!");
                 break;
             case firebaseServices.status.MENTOR_SUCCESS:
-                embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of nwHacks and for joining our discord!');
+                embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of HackCamp and for joining our discord!');
                 discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.mentorRole);
-                discordServices.discordLog(message.guild, "Verified email " + email + " successfully and he is now a mentor!");
+                discordServices.discordLog(message.guild, "<@" + message.author.id + "> Verified email " + email + " successfully and he is now a mentor!");
                 break;
             case firebaseServices.status.STAFF_SUCCESS:
                 embed.addField('Welcome To Your Server!', 'Welcome to your discord server! If you need to know more about what I can do please call !help.');
                 discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.staffRole);
-                discordServices.discordLog(message.guild, "Verified email " + email + " successfully and he is now a staff!");
+                discordServices.discordLog(message.guild, "<@" + message.author.id + "> Verified email " + email + " successfully and he is now a staff!");
                 break;
             case firebaseServices.status.FAILURE:
                 embed.addField('ERROR 404', 'Hi there, the email you tried to verify yourself with is not' +

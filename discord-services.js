@@ -2,14 +2,13 @@
 const firebaseActivity = require('./firebase-services/firebase-services-activities');
 
 var guestRole = '774734424045649950';
-var hackerRole = '774734391627874304';
+var hackerRole = '784252997327650816';
 var attendeeRole = '774735971375120404';
 var mentorRole = '774734376222195755';
 var sponsorRole = '774734345968812043';
 var staffRole = '774734326554296320';
 var adminRole = '773400712234663965';
 var everyoneRole = '772898802604310538';
-
 var stamp0Role = '781404710779224115';
 var stamp1Role = '781404761273794601';
 var stamp2Role = '781404765133078549';
@@ -31,7 +30,6 @@ var stamp17Role = '784224964001005589';
 var stamp18Role = '784224981386133525';
 var stamp19Role = '784224999698726942';
 var stamp20Role = '784225017172590622';
-
 module.exports.everyoneRole = everyoneRole;
 module.exports.hackerRole = hackerRole;
 module.exports.guestRole = guestRole;
@@ -170,20 +168,32 @@ module.exports.sendMessageToMember = sendMessageToMember;
 
 // Add a role to a member
 function addRoleToMember(member, addRole) {
-    member.roles.add(addRole);
+    member.roles.add(addRole).catch(error => {
+        // try one more time
+        member.roles.add(addRole).catch(error => {
+            // now send error to admins
+            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role' + member.guild.roles.cache.get(addRole) +' please help me!');
+        });
+    });
 }
 module.exports.addRoleToMember = addRoleToMember;
 
 // Remove a role to a member
 function removeRolToMember(member, removeRole) {
-    member.roles.remove(removeRole);
+    member.roles.remove(removeRole).catch(error => {
+        // try one more time
+        member.roles.remove(removeRole).catch(error => {
+            // now send error to admins
+            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role ' + member.guild.roles.cache.get(removeRole) + ', please help me!');
+        });
+    });
 }
 module.exports.removeRolToMember = removeRolToMember;
 
 // Replaces one role for the other
 function replaceRoleToMember(member, removeRole, addRole) {
-    removeRolToMember(member, removeRole);
     addRoleToMember(member, addRole);
+    removeRolToMember(member, removeRole);
 }
 module.exports.replaceRoleToMember = replaceRoleToMember;
 
@@ -250,7 +260,7 @@ async function removeVoiceChannelsToActivity(activityName, number, category){
         var channelName = '🔊Room' + '-' + index;
         var channel = await category.children.find(channel => channel.name.endsWith(channelName));
         if (channel != undefined) {
-            channel.delete();
+            deleteChannel(channel);
         }
     }
 
@@ -302,3 +312,10 @@ function deleteMessage(message, timeout = 0) {
     }
 }
 module.exports.deleteMessage = deleteMessage;
+
+async function deleteChannel(channel) {
+    if (!channel.deleted) {
+        await channel.delete().catch(console.error);
+    }
+}
+module.exports.deleteChannel = deleteChannel;

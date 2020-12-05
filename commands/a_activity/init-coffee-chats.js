@@ -116,7 +116,7 @@ module.exports = class InitCoffeeChats extends Command {
         const msgFilter = m => m.author.id === user.id;
 
         // send promt and expect a response within 20 seconds!
-        var promt = await joinActivityChannel.send('<@' + user.id + '> Please mention (tag) all your group members in one message and send it here!');
+        var promt = await joinActivityChannel.send('<@' + user.id + '> Please mention (tag) all your group members in one message and send it here! You have 20 seconds.');
 
         joinActivityChannel.awaitMessages(msgFilter, { max: 1, time: 20000, errors: ['time'] }).then(msgs => {
             var groupMsg = msgs.first();
@@ -140,6 +140,9 @@ module.exports = class InitCoffeeChats extends Command {
                 groupMsg.delete({ timeout: 5000 });
             });
 
+        }).catch(error => {
+            promt.delete();
+            joinActivityChannel.send('<@' + user.id + '> Time has run out! Please try again!').then(msg => msg.delete({timeout: 3000}));
         });
     }
 };

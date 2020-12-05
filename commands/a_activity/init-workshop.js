@@ -59,7 +59,7 @@ module.exports = class InitWorkshop extends Command {
 
         // get category
         if (categoryChannelKey === '') {
-            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName));
+            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName)).catch(console.error);
         } else {
             var category = message.guild.channels.resolve(categoryChannelKey);
         }
@@ -73,7 +73,7 @@ module.exports = class InitWorkshop extends Command {
 
         // grab general voice and update permission to no speak for attendees
         if (voiceChannelKey === '') {
-            var generalVoice = await category.children.find(channel.type === 'voice'  && channel.name.endsWith(activityName + '-general-voice'));
+            var generalVoice = await category.children.find(channel.type === 'voice'  && channel.name.endsWith(activityName + '-general-voice')).catch(console.error);
         } else {
             var generalVoice = message.guild.channels.resolve(voiceChannelKey);
         }
@@ -99,6 +99,9 @@ module.exports = class InitWorkshop extends Command {
         taChannel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
         taChannel.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false});
 
+        ////// important variables
+        // pullInFunctionality is default to true
+        var pullInFunctonality = true;
 
         ////// important variables
         // pullInFunctionality is default to true
@@ -175,7 +178,7 @@ module.exports = class InitWorkshop extends Command {
                     commandRegistry.findCommands('workshop-polls', true)[0].run(message, { activityName: activityName, question: 'explanations', targetChannelKey: textChannelKey });
                 }
             });
-        })
+        }).catch(console.error);
 
         // embed message for TA console
         const taEmbed = new Discord.MessageEmbed()
@@ -191,7 +194,11 @@ module.exports = class InitWorkshop extends Command {
 
         ////// Hacker Side
         // create question and help channel for hackers
-        var helpChannel = await message.guild.channels.create('🙋🏽' + 'assistance', { type: 'text', parent: category, topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!' });
+        var helpChannel = await message.guild.channels.create('🙋🏽' + 'assistance', { 
+            type: 'text', 
+            parent: category, 
+            topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
+        });
 
         // add helpChannel to the black list
         discordServices.blackList.set(helpChannel.id, 5000);
@@ -205,9 +212,9 @@ module.exports = class InitWorkshop extends Command {
             .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the general voice channel if not already there!');
 
         // send message with embed and react with emoji
-        var helpMessage = await helpChannel.send(helpEmbed);
+        var helpMessage = await helpChannel.send(helpEmbed).catch(console.error);
         helpMessage.pin();
-        await helpMessage.react('🧑🏽‍🏫');
+        helpMessage.react('🧑🏽‍🏫');
 
         // filter collector and event handler for help emoji from hackers
         const helpCollector = helpMessage.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🧑🏽‍🏫');
@@ -234,7 +241,7 @@ module.exports = class InitWorkshop extends Command {
             // collect the question the hacker has
             var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond');
 
-            helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000,error:['time'] }).then(async msgs => {
+            helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000, error:['time'] }).then(async msgs => {
                 // get question
                 var question = msgs.first().content;
 
@@ -254,8 +261,10 @@ module.exports = class InitWorkshop extends Command {
                 // delete promt and user msg
                 qPromt.delete();
                 msgs.each(msg => msg.delete());
-            })
-            .catch(console.error);
+            }).catch(() => {
+                qPromt.delete();
+                helpChannel.send('<@' + user.id + '> Time is up! Write up your message and react again!').then(msg => msg.delete({timeout: 3000}));
+            });
         });
 
         // add reacton to get next in this message!
