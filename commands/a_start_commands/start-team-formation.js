@@ -158,7 +158,8 @@ module.exports = class StartTeamFormation extends Command {
             // remove the promt message from the bot in the DM channel
             await confDm.delete();
         }).catch((reason) => {
-            console.log(reason);
+            confDm.delete();
+            user.send('Time is up! Write up your response and react to the emoji again!').then(msg => msg.delete({timeout: 3000}));
         });
     }
 }

@@ -126,8 +126,14 @@ module.exports = class StartChannelCreation extends Command {
                                             });
                                         });
                                     });
-                                }).catch((errors) => console.log(errors));
+                                }).catch(error => {
+                                    msg.delete();
+                                    channel.send('<@' + user.id + '> Time is up! Please try again!').then(msg => msg.delete({timeout: 3000}));
+                                });
                             });
+                        }).catch(error => {
+                            msg.delete();
+                            channel.send('<@' + user.id + '> Time is up! Please try again!').then(msg => msg.delete({timeout: 3000}));
                         });
                     });
                 });
