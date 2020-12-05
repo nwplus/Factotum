@@ -354,6 +354,7 @@ module.exports = class StartMentors extends Command {
 
                     var hackerTicketMentions = msgs.first().mentions;
                     var hackerTicketContent = msgs.first().content;
+                    var hackerTicketuser = msgs.first().author;
 
                     // delete message and promt
                     promtMsg.delete();
@@ -364,7 +365,7 @@ module.exports = class StartMentors extends Command {
                     const mentorTicketEmbed = new Discord.MessageEmbed()
                         .setColor(discordServices.embedColor)
                         .setTitle('New Ticket! - ' + ticketCount)
-                        .setDescription(hackerTicketContent)
+                        .setDescription('<@' + hackerTicketuser.id + '> has the question: ' + hackerTicketContent)
                         .addField('They are requesting:', '<@&' + mentorRoleID + '>')
                         .addField('Can you help them?', 'If so, react to this message with 🤝.');
                     
@@ -439,7 +440,7 @@ module.exports = class StartMentors extends Command {
                                 const newChannelEmbed = new Discord.MessageEmbed()
                                     .setColor(discordServices.embedColor)
                                     .setTitle('Original Question')
-                                    .setDescription(hackerTicketContent)
+                                    .setDescription('<@' + hackerTicketuser.id + '> has the question: ' + hackerTicketContent)
                                     .addField('Thank you for helping this team.', '<@' + mentor + '> Best of luck!')
                                     .addField('When done:', '* React to this message with 👋🏽 to lose access to these channels!');
 
