@@ -86,7 +86,7 @@ module.exports.stampCollectTime = stampCollectTime;
 // Common channels
 
 // announcement channel
-var announcementChannel = '773402116173332490';
+var announcementChannel = '770353479905968138';
 module.exports.announcementChannel = announcementChannel;
 
 // where hackers join the wait list to talk to a sponsor
@@ -104,30 +104,30 @@ module.exports.sponsorCategory = sponsorCategory;
 
 // console where most commands are accessible, only staff
 // should have access to this
-var adminConsolChannel = '774754336215269386';
+var adminConsolChannel = '748955441484005488';
 // channel where the bot can log important things like verifications, 
 // clear chat calls, etc
-var adminLogChannel = '774754260570079252';
+var adminLogChannel = '743197503884755045';
 
 // channel where guests will use the !verify command,
 // usualy the welcome channel
-var welcomeChannel = '773401606120800257';
+var welcomeChannel = '743192401434378271';
 module.exports.welcomeChannel = welcomeChannel;
 
 // where hackers can call the !attend command, usually a 
 // hidden channel in a hidden category, open only day of the event
-var attendChannel = '774754493081714699';
+var attendChannel = '747581999363129474';
 module.exports.attendChannel = attendChannel;
 
 // where hackers can emoji to let the bot know if they are looking
 // for a team or a hacker(s)
-var teamformationChannel = '782500884545273886';
+var teamformationChannel = '770354140961570857';
 module.exports.teamformationChannel = teamformationChannel;
 // channel where team bios are posted, hackers shouldn't be able to post
-var recruitingChannel = '782506417079713802';
+var recruitingChannel = '770354487595499592';
 module.exports.recruitingChannel = recruitingChannel;
 // channel where hacker bios are posted, hackers shouldn't be able to post
-var lookingforteamChannel = '782506451746816000';
+var lookingforteamChannel = '770354521733857320';
 module.exports.lookingforteamChannel = lookingforteamChannel;
 
 // where hackers and other users can call the !createchannel command
@@ -137,7 +137,7 @@ module.exports.channelcreationChannel = channelcreationChannel;
 
 // where the bot will send reports to
 // should be a admin or mod only channel
-var incomingReportChannel = '782683901998137355';
+var incomingReportChannel = '780305617267982366';
 module.exports.incomingReportChannel = incomingReportChannel;
 
 
@@ -170,20 +170,32 @@ module.exports.sendMessageToMember = sendMessageToMember;
 
 // Add a role to a member
 function addRoleToMember(member, addRole) {
-    member.roles.add(addRole);
+    member.roles.add(addRole).catch(error => {
+        // try one more time
+        member.roles.add(addRole).catch(error => {
+            // now send error to admins
+            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role' + member.guild.roles.cache.get(addRole) +' please help me!');
+        });
+    });
 }
 module.exports.addRoleToMember = addRoleToMember;
 
 // Remove a role to a member
 function removeRolToMember(member, removeRole) {
-    member.roles.remove(removeRole);
+    member.roles.remove(removeRole).catch(error => {
+        // try one more time
+        member.roles.remove(removeRole).catch(error => {
+            // now send error to admins
+            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role ' + member.guild.roles.cache.get(removeRole) + ', please help me!');
+        });
+    });
 }
 module.exports.removeRolToMember = removeRolToMember;
 
 // Replaces one role for the other
 function replaceRoleToMember(member, removeRole, addRole) {
-    removeRolToMember(member, removeRole);
     addRoleToMember(member, addRole);
+    removeRolToMember(member, removeRole);
 }
 module.exports.replaceRoleToMember = replaceRoleToMember;
 

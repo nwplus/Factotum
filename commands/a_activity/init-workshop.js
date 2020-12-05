@@ -98,7 +98,6 @@ module.exports = class InitWorkshop extends Command {
         }).catch(console.error);
         taChannel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false}).catch(console.error);
         taChannel.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false}).catch(console.error);
-        });
 
 
         ////// important variables
@@ -239,7 +238,7 @@ module.exports = class InitWorkshop extends Command {
             // collect the question the hacker has
             var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond').catch(console.error);
 
-            helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000,error:['time'] }).then(async msgs => {
+            helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000, error:['time'] }).then(async msgs => {
                 // get question
                 var question = msgs.first().content;
 
@@ -259,7 +258,10 @@ module.exports = class InitWorkshop extends Command {
                 // delete promt and user msg
                 qPromt.delete();
                 msgs.each(msg => msg.delete());
-            }).catch(console.error);
+            }).catch(() => {
+                qPromt.delete();
+                helpChannel.send('<@' + user.id + '> Time is up! Write up your message and react again!').then(msg => msg.delete({timeout: 3000}));
+            });
         });
 
         // add reacton to get next in this message!

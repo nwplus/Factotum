@@ -165,7 +165,7 @@ module.exports = class StartMentors extends Command {
         // message embed
         const msgEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
-            .setTitle('Mentor Cateogry Console')
+            .setTitle('Mentor Category Console')
             .setDescription('Mentor category options are found below.')
             .addField('Add a mentor role', 'To add a mentor role please click the 🧠 emoji.');
         
@@ -339,8 +339,8 @@ module.exports = class StartMentors extends Command {
 
         requestTicketCollector.on('collect', async (reaction, hacker) => {
             // prmot for team members and the one liner
-            requestTicketChannel.send('<@' + hacker.id + '> Please send ONE message with: \n* A one liner of your problem \n* Mention your team members.').then(promtMsg => {
-                requestTicketChannel.awaitMessages(m => m.author.id === hacker.id, {max: 1}).then(msgs => {
+            requestTicketChannel.send('<@' + hacker.id + '> Please send ONE message with: \n* A one liner of your problem \n* Mention your team members.\n* Do it within 30 seconds!').then(promtMsg => {
+                requestTicketChannel.awaitMessages(m => m.author.id === hacker.id, {max: 1, time: 30000, errors: ['time'] }).then(msgs => {
                     // remove reaction from ticket system
                     reaction.users.remove(hacker.id);
 
@@ -472,6 +472,9 @@ module.exports = class StartMentors extends Command {
                             }
                         });
                     });
+                }).catch(error => {
+                    promtMsg.delete();
+                    requestTicketChannel.send('<@' + hacker.id + '> Time is up! Please try again!').then(msg => msg.delete({timeout: 3000}));
                 });
             });
 
