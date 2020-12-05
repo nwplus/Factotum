@@ -174,7 +174,7 @@ function addRoleToMember(member, addRole) {
         // try one more time
         member.roles.add(addRole).catch(error => {
             // now send error to admins
-            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get a guest role, please help me!');
+            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role' + member.guild.roles.cache.get(addRole) +' please help me!');
         });
     });
 }
@@ -182,14 +182,20 @@ module.exports.addRoleToMember = addRoleToMember;
 
 // Remove a role to a member
 function removeRolToMember(member, removeRole) {
-    member.roles.remove(removeRole);
+    member.roles.remove(removeRole).catch(error => {
+        // try one more time
+        member.roles.remove(removeRole).catch(error => {
+            // now send error to admins
+            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role ' + member.guild.roles.cache.get(removeRole) + ', please help me!');
+        });
+    });
 }
 module.exports.removeRolToMember = removeRolToMember;
 
 // Replaces one role for the other
 function replaceRoleToMember(member, removeRole, addRole) {
-    removeRolToMember(member, removeRole);
     addRoleToMember(member, addRole);
+    removeRolToMember(member, removeRole);
 }
 module.exports.replaceRoleToMember = replaceRoleToMember;
 

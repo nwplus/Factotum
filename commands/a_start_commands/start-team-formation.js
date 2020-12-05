@@ -82,26 +82,29 @@ module.exports = class StartTeamFormation extends Command {
 
         // send message to hacker via DM
         var dmMsg = await user.send(dmMessage);
-        await dmMsg.react('🇩');  // emoji for user to send form to bot
+        dmMsg.react('🇩');  // emoji for user to send form to bot
 
-
+        // guard
+        var isResponding = false;
+        
         // user sends form to bot collector and filter
-        const filter = (reaction, user) => (reaction.emoji.name === '🇩') && user.bot === false;
-        const dmCollector = await dmMsg.createReactionCollector(filter, { max: 1 });
+        const dmCollector = dmMsg.createReactionCollector((reaction, user) => !user.bot && !isResponding && (reaction.emoji.name === '🇩'));
 
-        dmCollector.on('collect', async (r) => {
-            await this.gatherForm(user, isTeam, message, dmMsg);
+        dmCollector.on('collect', async (reaction, user) => {
+            isResponding = !isResponding;
+            await this.gatherForm(user, isTeam, message, dmMsg, dmCollector, isResponding);
+            // can not remove reaciton on DMs -> sad!
         });
     }
 
 
     // will get the form from the user in the DM and publish it in the correct channel
-    async gatherForm(user, isTeam, message, dmMsg) {
+    async gatherForm(user, isTeam, message, dmMsg, collector, isResponging) {
         // promt user
         var confDm = await user.send('Please send me your completed form, if you do not follow the form your post will be deleted! You have 10 seconds to send your information.');
 
         // await form from user for 10 seconds max
-        confDm.channel.awaitMessages(m => true, { max: 1, time: 10000, errors: ['time'] }).then(async (msgs) => {
+        confDm.channel.awaitMessages(m => !m.author.bot, { max: 1, time: 10000, errors: ['time'] }).then(async (msgs) => {
             // user msg and its content (form)
             var msg = msgs.first();
             var content = msg.content;
@@ -156,9 +159,12 @@ module.exports = class StartTeamFormation extends Command {
             }
 
             // remove the promt message from the bot in the DM channel
-            await confDm.delete();
+            confDm.delete();
+            collector.stop();
+            isResponging = !isResponging;
         }).catch((reason) => {
             confDm.delete();
+            isResponging = !isResponging;
             user.send('Time is up! Write up your response and react to the emoji again!').then(msg => msg.delete({timeout: 3000}));
         });
     }
