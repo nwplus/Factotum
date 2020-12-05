@@ -113,6 +113,8 @@ var adminLogChannel = '743197503884755045';
 // usualy the welcome channel
 var welcomeChannel = '743192401434378271';
 module.exports.welcomeChannel = welcomeChannel;
+var welcomeSupport = '742896827082211419';
+module.exports.welcomeSupport = welcomeSupport;
 
 // where hackers can call the !attend command, usually a 
 // hidden channel in a hidden category, open only day of the event

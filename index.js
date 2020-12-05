@@ -217,7 +217,15 @@ bot.on('guildMemberAdd', member => {
         .addField('Want to learn more about what I can do?', 'Use the !help command anywhere and I will send you a message!')
         .setColor(discordServices.embedColor);
 
-    member.send(embed);
+    // found a bug where if poeple have DMs turned off, this send embed will fail and can make the role setup fail as well
+    // we will add a .then where the user will get pinged on welcome-support to let him know to turn on DM from server
+    member.send(embed).catch((error) => {
+        if (error.code === 50007) {
+            member.guild.channels.resolve(discordServices.welcomeSupport).send('<@' + member.id + '> I couldn\'t reach you :(. Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-');
+        } else {
+            throw error;
+        }
+    });
 });
 
 bot.login(config.token).catch(console.error);
