@@ -98,7 +98,6 @@ module.exports = class InitWorkshop extends Command {
         }).catch(console.error);
         taChannel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false}).catch(console.error);
         taChannel.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false}).catch(console.error);
-        });
 
 
         ////// important variables

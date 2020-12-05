@@ -25,7 +25,7 @@ module.exports = class StartTeamFormation extends Command {
         }
         // can only be called in the team formation information channel
         if (message.channel.id != discordServices.teamformationChannel) {
-            discordServices.replyAndDelete(message, 'Hey there, the !starttf command is only available in the create-channel channel.');
+            discordServices.replyAndDelete(message, 'Hey there, the !starttf command is only available in the team formation channel.');
             return;
         }
 

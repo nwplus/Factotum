@@ -165,7 +165,7 @@ module.exports = class StartMentors extends Command {
         // message embed
         const msgEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
-            .setTitle('Mentor Cateogry Console')
+            .setTitle('Mentor Category Console')
             .setDescription('Mentor category options are found below.')
             .addField('Add a mentor role', 'To add a mentor role please click the 🧠 emoji.');
         
