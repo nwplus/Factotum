@@ -102,7 +102,7 @@ module.exports = class InitAmongUs extends Command {
             discordServices.replyAndDelete(message,'The activity named: ' + activityName +', does not exist! No action taken.');
             return;
         }
-
+      
         if (textChannelKey === '') {
             var generalText = await category.children.find(channel => channel.type === 'text'  && channel.name.endsWith(discordServices.activityTextChannelName));
         } else {
