@@ -11,23 +11,23 @@ var adminRole = '773400712234663965';
 var everyoneRole = '772898802604310538';
 var stamp0Role = '781404710779224115';
 var stamp1Role = '781404761273794601';
-var stamp2Role = '781404765133078549';
+var stamp2Role = '781404770476097536';
 var stamp3Role = '781404766974640128';
-var stamp4Role = '781404767809044491';
-var stamp5Role = '781404768336609290';
-var stamp6Role = '781404769133527040';
-var stamp7Role = '781404769691631627';
-var stamp8Role = '781404770476097536';
-var stamp9Role = '781404770803908609';
+var stamp4Role = '781404765133078549';
+var stamp5Role = '784224898230779945';
+var stamp6Role = '781404768336609290';
+var stamp7Role = '784224981386133525';
+var stamp8Role = '784224964001005589';
+var stamp9Role = '781404767809044491';
 var stamp10Role = '781404771612622868';
-var stamp11Role = '782684457357410314';
+var stamp11Role = '781404769691631627';
 var stamp12Role = '782684483072950272';
-var stamp13Role = '784224112909221948';
-var stamp14Role = '784224898230779945';
+var stamp13Role = '782684457357410314';
+var stamp14Role = '784224112909221948';
 var stamp15Role = '784224924633923635';
-var stamp16Role = '784224924633923635';
-var stamp17Role = '784224964001005589';
-var stamp18Role = '784224981386133525';
+var stamp16Role = '784224943730327592';
+var stamp17Role = '781404770803908609';
+var stamp18Role = '781404769133527040';
 var stamp19Role = '784224999698726942';
 var stamp20Role = '784225017172590622';
 module.exports.everyoneRole = everyoneRole;
@@ -84,7 +84,7 @@ module.exports.stampCollectTime = stampCollectTime;
 // Common channels
 
 // announcement channel
-var announcementChannel = '773402116173332490';
+var announcementChannel = '784254136040161310';
 module.exports.announcementChannel = announcementChannel;
 
 // where hackers join the wait list to talk to a sponsor

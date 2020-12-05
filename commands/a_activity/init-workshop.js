@@ -80,11 +80,11 @@ module.exports = class InitWorkshop extends Command {
         
         generalVoice.updateOverwrite(discordServices.attendeeRole, {
             SPEAK: false
-        });
+        }).catch(console.error);
         generalVoice.updateOverwrite(discordServices.mentorRole, {
             SPEAK: true,
             MOVE_MEMBERS: true,
-        });
+        }).catch(console.error);
         generalVoice.updateOverwrite(discordServices.staffRole, {
             SPEAK: true,
             MOVE_MEMBERS: true,
@@ -98,6 +98,10 @@ module.exports = class InitWorkshop extends Command {
         });
         taChannel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
         taChannel.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false});
+
+        ////// important variables
+        // pullInFunctionality is default to true
+        var pullInFunctonality = true;
 
         ////// important variables
         // pullInFunctionality is default to true
