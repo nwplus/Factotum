@@ -108,11 +108,15 @@ var adminConsolChannel = '748955441484005488';
 // channel where the bot can log important things like verifications, 
 // clear chat calls, etc
 var adminLogChannel = '743197503884755045';
+// channel where the bot can ping members with DM off
+var botSupportChannel = '784910416224583751';
 
 // channel where guests will use the !verify command,
 // usualy the welcome channel
 var welcomeChannel = '743192401434378271';
 module.exports.welcomeChannel = welcomeChannel;
+var welcomeSupport = '742896827082211419';
+module.exports.welcomeSupport = welcomeSupport;
 
 // where hackers can call the !attend command, usually a 
 // hidden channel in a hidden category, open only day of the event
@@ -160,11 +164,19 @@ module.exports.checkForRole = checkForRole;
 
 // Send a Direct meesage to a member, option to delete after 5 seconds
 async function sendMessageToMember(member, message, isDelete = false) {
-    var msg = await member.send(message);
-    if (isDelete === true) {
-        msg.delete({timeout: 5000})
-    }
-    return msg;
+    member.send(message).then(msg => {
+        if (isDelete === true) {
+            msg.delete({timeout: 5000})
+        }
+        return msg;
+    }).catch(error => {
+        if (error.code === 50007) {
+            member.guild.channels.resolve(botSupportChannel).send('<@' + member.id + '> I couldn\'t reach you :(. Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-');
+        } else {
+            throw error;
+        }
+    });
+    
 }
 module.exports.sendMessageToMember = sendMessageToMember;
 
