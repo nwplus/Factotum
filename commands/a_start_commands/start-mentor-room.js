@@ -477,7 +477,6 @@ module.exports = class StartMentors extends Command {
                             }
                         });
                     });
-
                     // update number of tickets
                     ticketCount += 1;
                 }).catch(error => {

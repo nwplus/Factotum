@@ -1,35 +1,33 @@
 
 const firebaseActivity = require('./firebase-services/firebase-services-activities');
 
-// Available Roles
-var guestRole = '742896900419747961';
-var hackerRole = '738519785028976741';
-var attendeeRole = '742896999556448357';
-var mentorRole = '747527454200955051';
-var sponsorRole = '738519983981723748';
-var staffRole = '738519363904077916';
-var adminRole = '738491577596641311';
-var everyoneRole = '738475671977722058';
-var stamp0Role = '776690929557831680';
-var stamp1Role = '776694051482107944';
-var stamp2Role = '777163284679229461';
-var stamp3Role = '777163346456870913';
-var stamp4Role = '777163367814922250';
-var stamp5Role = '777163388631253002';
-var stamp6Role = '777163410269011990';
-var stamp7Role = '777163427328163850';
-var stamp8Role = '777163452560048168';
-var stamp9Role = '777163468053938186';
-var stamp10Role = '777163488019480586';
-var stamp11Role = '777163506902237196';
-var stamp12Role = '777163524568776704';
-var stamp12Role = '777163524568776704';
-var stamp13Role = '784224112909221948';
-var stamp14Role = '784224898230779945';
+var guestRole = '774734424045649950';
+var hackerRole = '784252997327650816';
+var attendeeRole = '774735971375120404';
+var mentorRole = '774734376222195755';
+var sponsorRole = '774734345968812043';
+var staffRole = '774734326554296320';
+var adminRole = '773400712234663965';
+var everyoneRole = '772898802604310538';
+var stamp0Role = '781404710779224115';
+var stamp1Role = '781404761273794601';
+var stamp2Role = '781404770476097536';
+var stamp3Role = '781404766974640128';
+var stamp4Role = '781404765133078549';
+var stamp5Role = '784224898230779945';
+var stamp6Role = '781404768336609290';
+var stamp7Role = '784224981386133525';
+var stamp8Role = '784224964001005589';
+var stamp9Role = '781404767809044491';
+var stamp10Role = '781404771612622868';
+var stamp11Role = '781404769691631627';
+var stamp12Role = '782684483072950272';
+var stamp13Role = '782684457357410314';
+var stamp14Role = '784224112909221948';
 var stamp15Role = '784224924633923635';
-var stamp16Role = '784224924633923635';
-var stamp17Role = '784224964001005589';
-var stamp18Role = '784224981386133525';
+var stamp16Role = '784224943730327592';
+var stamp17Role = '781404770803908609';
+var stamp18Role = '781404769133527040';
 var stamp19Role = '784224999698726942';
 var stamp20Role = '784225017172590622';
 module.exports.everyoneRole = everyoneRole;
@@ -86,7 +84,7 @@ module.exports.stampCollectTime = stampCollectTime;
 // Common channels
 
 // announcement channel
-var announcementChannel = '770353479905968138';
+var announcementChannel = '784254136040161310';
 module.exports.announcementChannel = announcementChannel;
 
 // where hackers join the wait list to talk to a sponsor
@@ -104,34 +102,35 @@ module.exports.sponsorCategory = sponsorCategory;
 
 // console where most commands are accessible, only staff
 // should have access to this
-var adminConsolChannel = '748955441484005488';
+var adminConsolChannel = '774754336215269386';
 // channel where the bot can log important things like verifications, 
 // clear chat calls, etc
-var adminLogChannel = '743197503884755045';
+var adminLogChannel = '774754260570079252';
 // channel where the bot can ping members with DM off
-var botSupportChannel = '784910416224583751';
+var botSupportChannel = '785083314553094164';
+
 
 // channel where guests will use the !verify command,
 // usualy the welcome channel
-var welcomeChannel = '743192401434378271';
+var welcomeChannel = '773401606120800257';
 module.exports.welcomeChannel = welcomeChannel;
 var welcomeSupport = '742896827082211419';
 module.exports.welcomeSupport = welcomeSupport;
 
 // where hackers can call the !attend command, usually a 
 // hidden channel in a hidden category, open only day of the event
-var attendChannel = '747581999363129474';
+var attendChannel = '774754493081714699';
 module.exports.attendChannel = attendChannel;
 
 // where hackers can emoji to let the bot know if they are looking
 // for a team or a hacker(s)
-var teamformationChannel = '770354140961570857';
+var teamformationChannel = '782500884545273886';
 module.exports.teamformationChannel = teamformationChannel;
 // channel where team bios are posted, hackers shouldn't be able to post
-var recruitingChannel = '770354487595499592';
+var recruitingChannel = '782506417079713802';
 module.exports.recruitingChannel = recruitingChannel;
 // channel where hacker bios are posted, hackers shouldn't be able to post
-var lookingforteamChannel = '770354521733857320';
+var lookingforteamChannel = '782506451746816000';
 module.exports.lookingforteamChannel = lookingforteamChannel;
 
 // where hackers and other users can call the !createchannel command
@@ -141,7 +140,7 @@ module.exports.channelcreationChannel = channelcreationChannel;
 
 // where the bot will send reports to
 // should be a admin or mod only channel
-var incomingReportChannel = '780305617267982366';
+var incomingReportChannel = '782683901998137355';
 module.exports.incomingReportChannel = incomingReportChannel;
 
 

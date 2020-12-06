@@ -198,6 +198,7 @@ module.exports = class InitWorkshop extends Command {
         taConsole.react('🤝');
 
 
+
     // Hacker Side
         // message embed for helpChannel
         const helpEmbed = new Discord.MessageEmbed()
@@ -208,7 +209,7 @@ module.exports = class InitWorkshop extends Command {
             .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the ' +  discordServices.activityVoiceChannelName + ' voice channel if not already there!');
 
         // send message with embed and react with emoji
-        var helpMessage = await helpChannel.send(helpEmbed);
+        var helpMessage = await helpChannel.send(helpEmbed).catch(console.error);
         helpMessage.pin();
         helpMessage.react('🧑🏽‍🏫');
 
