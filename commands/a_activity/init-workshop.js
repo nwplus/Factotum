@@ -88,26 +88,27 @@ module.exports = class InitWorkshop extends Command {
         generalVoice.updateOverwrite(discordServices.staffRole, {
             SPEAK: true,
             MOVE_MEMBERS: true,
-        });
+        }).catch(console.error);
 
         // create TA console
         var taChannel = await message.guild.channels.create(':🧑🏽‍🏫:' + 'ta-console', {
             type: 'text', 
             parent: category, 
             topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
+        }).catch(console.error);
+        taChannel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false}).catch(console.error);
+        taChannel.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false}).catch(console.error);
+
+        // create question and help channel for hackers
+        var helpChannel = await message.guild.channels.create('🙋🏽' + 'assistance', { 
+            type: 'text', 
+            parent: category, 
+            topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
         });
-        taChannel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
-        taChannel.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false});
+        // add helpChannel to the black list
+        discordServices.blackList.set(helpChannel.id, 5000);
 
-        ////// important variables
-        // pullInFunctionality is default to true
-        var pullInFunctonality = true;
-
-        ////// important variables
-        // pullInFunctionality is default to true
-        var pullInFunctonality = true;
-
-        ////// important variables
+    // important variables and embeds
         // pullInFunctionality is default to true
         var pullInFunctonality = true;
 
@@ -141,8 +142,9 @@ module.exports = class InitWorkshop extends Command {
                 // let TAs know about the change!
                 taChannel.send('Low tech solution has been turned on!').then(msg => msg.delete({timeout: 5000}));
                 msg.edit(msg.embeds[0].addField('Low Tech Solution Is On', 'To give assistance: \n* Send a DM to the highers member on the wait list \n* Then click on the emoji to remove them from the list!'));
-            });
-        });
+                helpChannel.send(new Discord.MessageEmbed().setColor(discordServices.embedColor).setTitle('Quick Update!').setDescription('You do not need to join the ' +  discordServices.activityVoiceChannelName + ' voice channel. TAs will send you a DM when they are ready to assist you!'));
+            }).catch(console.error);
+        }).catch(console.error);
         
         const consoleEmbed = new Discord.MessageEmbed()
             .setColor(mentorColor)
@@ -191,29 +193,20 @@ module.exports = class InitWorkshop extends Command {
             .setDescription('* Make sure you are on a private voice channel not the general voice channel \n* To get the next hacker that needs help click 🤝');
 
         // send taConsole message and react with emoji
-        var taConsole = await taChannel.send(taEmbed);
+        var taConsole = await taChannel.send(taEmbed).catch(console.error);
         taConsole.pin();
         taConsole.react('🤝');
 
 
-        ////// Hacker Side
-        // create question and help channel for hackers
-        var helpChannel = await message.guild.channels.create('🙋🏽' + 'assistance', { 
-            type: 'text', 
-            parent: category, 
-            topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
-        });
 
-        // add helpChannel to the black list
-        discordServices.blackList.set(helpChannel.id, 5000);
-
+    // Hacker Side
         // message embed for helpChannel
         const helpEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle(activityName + ' Help Desk')
             .setDescription('Welcome to the ' + activityName + ' help desk. There are two ways to get help explained below:')
             .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, use the !ask command on the text channel ' + '<#' + textChannelKey + '>' + '!')
-            .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the general voice channel if not already there!');
+            .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the ' +  discordServices.activityVoiceChannelName + ' voice channel if not already there!');
 
         // send message with embed and react with emoji
         var helpMessage = await helpChannel.send(helpEmbed).catch(console.error);
@@ -243,7 +236,7 @@ module.exports = class InitWorkshop extends Command {
             }
 
             // collect the question the hacker has
-            var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond');
+            var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond').catch(console.error);
 
             helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000, error:['time'] }).then(async msgs => {
                 // get question
@@ -261,6 +254,8 @@ module.exports = class InitWorkshop extends Command {
 
                 // update message embed with new user in list
                 taConsole.edit(taConsole.embeds[0].addField(user.username, '<@' + user.id + '> has the question:' +  question));
+                // send a quick message to let ta know a new user is on the wait list
+                taChannel.send('A new hacker needs help!').then(msg => msg.delete({timeout: 3000}));
 
                 // delete promt and user msg
                 qPromt.delete();
