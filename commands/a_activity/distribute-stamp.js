@@ -31,12 +31,8 @@ module.exports = class DistributeStamp extends Command {
 
     async run(message, {activityName, timeLimit, targetChannelKey}) {
     //doesn't run if it is called by someone who is not staff nor admin or if it is not called in admin console
-        if (!await(discordServices.checkForRole(message.member,discordServices.adminRole))) {
-            discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
-            return;
-        }
-        if (!discordServices.isAdminConsole(message.channel)) {
-            discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
+        if (!await(discordServices.checkForRole(message.member,discordServices.staff))) {
+            discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
             return;
         }
 
