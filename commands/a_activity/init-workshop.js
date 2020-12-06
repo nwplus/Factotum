@@ -142,7 +142,7 @@ module.exports = class InitWorkshop extends Command {
                 // let TAs know about the change!
                 taChannel.send('Low tech solution has been turned on!').then(msg => msg.delete({timeout: 5000}));
                 msg.edit(msg.embeds[0].addField('Low Tech Solution Is On', 'To give assistance: \n* Send a DM to the highers member on the wait list \n* Then click on the emoji to remove them from the list!'));
-                helpChannel.send(new Discord.MessageEmbed().setColor(discordServices.embedColor).setTitle('Quick Update!').setDescription('You do not need to join the' +  discordServices.activityVoiceChannelName + 'voice channel. TAs will send you a DM when they are ready to assist you!'));
+                helpChannel.send(new Discord.MessageEmbed().setColor(discordServices.embedColor).setTitle('Quick Update!').setDescription('You do not need to join the ' +  discordServices.activityVoiceChannelName + ' voice channel. TAs will send you a DM when they are ready to assist you!'));
             }).catch(console.error);
         }).catch(console.error);
         
