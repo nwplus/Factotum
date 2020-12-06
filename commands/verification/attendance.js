@@ -59,7 +59,7 @@ module.exports = class Attendace extends Command {
             case firebaseServices.status.HACKER_SUCCESS:
                 embed.addField('Thank you for attending HackCamp 2020.', 'Happy hacking!!!');
                 discordServices.addRoleToMember(message.member, discordServices.attendeeRole);
-                discordServices.discordLog(message.guild, "<@" + message.author.id + "Hacker with email " + email +
+                discordServices.discordLog(message.guild, "<@" + message.author.id + "> Hacker with email " + email +
                     " is attending HackCamp 2020!");
                 break;
             case firebaseServices.status.HACKER_IN_USE:

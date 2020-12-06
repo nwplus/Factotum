@@ -339,10 +339,14 @@ module.exports = class StartMentors extends Command {
 
         requestTicketCollector.on('collect', async (reaction, hacker) => {
             // prmot for team members and the one liner
-            requestTicketChannel.send('<@' + hacker.id + '> Please send ONE message with: \n* A one liner of your problem \n* Mention your team members.\n* Do it within 30 seconds!').then(promtMsg => {
+            requestTicketChannel.send('<@' + hacker.id + '> Please send ONE message with: \n* A one liner of your problem ' + 
+                '\n* Mention your team members.\n* Do it within 30 seconds! \n* Write cancel if you want to cancel!').then(promtMsg => {
                 requestTicketChannel.awaitMessages(m => m.author.id === hacker.id, {max: 1, time: 30000, errors: ['time'] }).then(msgs => {
-                    // remove reaction from ticket system
-                    reaction.users.remove(hacker.id);
+
+                    // if message content is cancel then do nothing!
+                    if (msgs.first().content.toLowerCase() === 'cancel') {
+                        return;
+                    }
 
                     // get mentor role associated to reaction, if no mentor info means its a general mentor
                     var mentorInfo = mentorEmojis.get(reaction.emoji.name);
@@ -354,6 +358,7 @@ module.exports = class StartMentors extends Command {
 
                     var hackerTicketMentions = msgs.first().mentions;
                     var hackerTicketContent = msgs.first().content;
+                    var hackerTicketuser = msgs.first().author;
 
                     // delete message and promt
                     promtMsg.delete();
@@ -364,7 +369,7 @@ module.exports = class StartMentors extends Command {
                     const mentorTicketEmbed = new Discord.MessageEmbed()
                         .setColor(discordServices.embedColor)
                         .setTitle('New Ticket! - ' + ticketCount)
-                        .setDescription(hackerTicketContent)
+                        .setDescription('<@' + hackerTicketuser.id + '> has the question: ' + hackerTicketContent)
                         .addField('They are requesting:', '<@&' + mentorRoleID + '>')
                         .addField('Can you help them?', 'If so, react to this message with 🤝.');
                     
@@ -439,7 +444,7 @@ module.exports = class StartMentors extends Command {
                                 const newChannelEmbed = new Discord.MessageEmbed()
                                     .setColor(discordServices.embedColor)
                                     .setTitle('Original Question')
-                                    .setDescription(hackerTicketContent)
+                                    .setDescription('<@' + hackerTicketuser.id + '> has the question: ' + hackerTicketContent)
                                     .addField('Thank you for helping this team.', '<@' + mentor + '> Best of luck!')
                                     .addField('When done:', '* React to this message with 👋🏽 to lose access to these channels!');
 
@@ -472,14 +477,16 @@ module.exports = class StartMentors extends Command {
                             }
                         });
                     });
+                    // update number of tickets
+                    ticketCount += 1;
                 }).catch(error => {
                     promtMsg.delete();
                     requestTicketChannel.send('<@' + hacker.id + '> Time is up! Please try again!').then(msg => msg.delete({timeout: 3000}));
                 });
             });
 
-            // update number of tickets
-            ticketCount += 1;
+            // remove reaction from ticket system
+            reaction.users.remove(hacker.id);
         });
 
     }

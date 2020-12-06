@@ -7,7 +7,7 @@ require('dotenv-flow').config();
 var firebase = require('firebase/app');
 
 // firebase config
-var firebaseConfig = {
+const firebaseConfig = {
     apiKey: process.env.FIREBASEAPIKEY,
     authDomain: process.env.FIREBASEAUTHDOMAIN,
     databaseURL: process.env.FIREBASEURL,
@@ -18,8 +18,22 @@ var firebaseConfig = {
     measurementId: process.env.FIREBASEMEASUREMENTID
 };
 
+const nwFirebaseConfig = {
+    apiKey: process.env.NWFIREBASEAPIKEY,
+    authDomain: process.env.NWFIREBASEAUTHDOMAIN,
+    databaseURL: process.env.NWFIREBASEURL,
+    projectId: process.env.NWFIREBASEPROJECTID,
+    storageBucket: process.env.NWFIREBASEBUCKET,
+    messagingSenderId: process.env.NWFIREBASESENDERID,
+    appId: process.env.NWFIREBASEAPPID,
+    measurementId: process.env.NWFIREBASEMEASUREMENTID
+}
+
 // initialize firebase
 firebase.initializeApp(firebaseConfig);
+
+// initialize nw firebase
+const nwFirebase = firebase.initializeApp(nwFirebaseConfig, 'nwFirebase');
 
 const discordServices = require('./discord-services');
 const firebaseServices = require('./firebase-services/firebase-services');
@@ -105,7 +119,7 @@ bot.once('ready', async () => {
     var isInitState = true;
 
     // start query listener for announcements
-    firebaseServices.db.collection('announcements').onSnapshot(querySnapshot => {
+    nwFirebase.firestore().collection('Hackathons').doc('LHD2021').collection('Announcements').onSnapshot(querySnapshot => {
         // exit if we are at the initial state
         if (isInitState) {
             isInitState = false;
@@ -116,9 +130,10 @@ bot.once('ready', async () => {
             if (change.type === 'added') {
                 const embed = new Discord.MessageEmbed()
                     .setColor(discordServices.announcementEmbedColor)
-                    .setTitle(change.doc.data()['text']);
+                    .setTitle('Announcement')
+                    .setDescription(change.doc.data()['content']);
                 
-                guild.channels.resolve(discordServices.announcementChannel).send('<@&' + discordServices.attendeeRole + '> ANNOUNCEMENT!\n', {embed: embed});
+                guild.channels.resolve(discordServices.announcementChannel).send('<@&' + discordServices.attendeeRole + '>', {embed: embed});
             }
         })
     })
@@ -207,7 +222,6 @@ bot.on('message', async message => {
 
 // If someone joins the server they get the guest role!
 bot.on('guildMemberAdd', member => {
-    discordServices.addRoleToMember(member, discordServices.guestRole);
 
     var embed = new Discord.MessageEmbed()
         .setTitle('Welcome to the HackCamp 2020 Server!')
@@ -217,7 +231,32 @@ bot.on('guildMemberAdd', member => {
         .addField('Want to learn more about what I can do?', 'Use the !help command anywhere and I will send you a message!')
         .setColor(discordServices.embedColor);
 
-    member.send(embed);
+    // found a bug where if poeple have DMs turned off, this send embed will fail and can make the role setup fail as well
+    // we will add a .then where the user will get pinged on welcome-support to let him know to turn on DM from server
+    member.send(embed).then(() => {
+        discordServices.addRoleToMember(member, discordServices.guestRole);
+    }).catch((error) => {
+        if (error.code === 50007) {
+            member.guild.channels.resolve(discordServices.welcomeSupport).send('<@' + member.id + '> I couldn\'t reach you :(.' + 
+                '\n* Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-' + 
+                '\n* Once this is done, please react to this message with 🤖 to let me know!').then(msg => {
+                    msg.react('🤖');
+                    const collector = msg.createReactionCollector((reaction, user) => user.id === member.id && reaction.emoji.name === '🤖');
+                    
+                    collector.on('collect', (reaction, user) => {
+                        reaction.users.remove(user.id);
+                        member.send(embed).then(msg => {
+                            discordServices.addRoleToMember(member, discordServices.guestRole);
+                            collector.stop();
+                        }).catch(error => {
+                            member.guild.channels.resolve(discordServices.welcomeSupport).send('<@' + member.id + '> Are you sure you made the changes? I couldnt reach you again :( !').then(msg => msg.delete({timeout: 8000}));
+                        });
+                    });
+                });
+        } else {
+            throw error;
+        }
+    });
 });
 
 bot.login(config.token).catch(console.error);
