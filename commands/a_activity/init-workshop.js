@@ -99,8 +99,16 @@ module.exports = class InitWorkshop extends Command {
         taChannel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false}).catch(console.error);
         taChannel.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false}).catch(console.error);
 
+        // create question and help channel for hackers
+        var helpChannel = await message.guild.channels.create('🙋🏽' + 'assistance', { 
+            type: 'text', 
+            parent: category, 
+            topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
+        });
+        // add helpChannel to the black list
+        discordServices.blackList.set(helpChannel.id, 5000);
 
-        ////// important variables
+    // important variables and embeds
         // pullInFunctionality is default to true
         var pullInFunctonality = true;
 
@@ -134,6 +142,7 @@ module.exports = class InitWorkshop extends Command {
                 // let TAs know about the change!
                 taChannel.send('Low tech solution has been turned on!').then(msg => msg.delete({timeout: 5000}));
                 msg.edit(msg.embeds[0].addField('Low Tech Solution Is On', 'To give assistance: \n* Send a DM to the highers member on the wait list \n* Then click on the emoji to remove them from the list!'));
+                helpChannel.send(new Discord.MessageEmbed().setColor(discordServices.embedColor).setTitle('Quick Update!').setDescription('You do not need to join the ' +  discordServices.activityVoiceChannelName + ' voice channel. TAs will send you a DM when they are ready to assist you!'));
             }).catch(console.error);
         }).catch(console.error);
         
@@ -189,27 +198,17 @@ module.exports = class InitWorkshop extends Command {
         taConsole.react('🤝');
 
 
-        ////// Hacker Side
-        // create question and help channel for hackers
-        var helpChannel = await message.guild.channels.create('🙋🏽' + 'assistance', { 
-            type: 'text', 
-            parent: category, 
-            topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
-        }).catch(console.error);
-
-        // add helpChannel to the black list
-        discordServices.blackList.set(helpChannel.id, 5000);
-
+    // Hacker Side
         // message embed for helpChannel
         const helpEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle(activityName + ' Help Desk')
             .setDescription('Welcome to the ' + activityName + ' help desk. There are two ways to get help explained below:')
             .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, use the !ask command on the text channel ' + '<#' + textChannelKey + '>' + '!')
-            .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the general voice channel if not already there!');
+            .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the ' +  discordServices.activityVoiceChannelName + ' voice channel if not already there!');
 
         // send message with embed and react with emoji
-        var helpMessage = await helpChannel.send(helpEmbed).catch(console.error);
+        var helpMessage = await helpChannel.send(helpEmbed);
         helpMessage.pin();
         helpMessage.react('🧑🏽‍🏫');
 
@@ -254,6 +253,8 @@ module.exports = class InitWorkshop extends Command {
 
                 // update message embed with new user in list
                 taConsole.edit(taConsole.embeds[0].addField(user.username, '<@' + user.id + '> has the question:' +  question));
+                // send a quick message to let ta know a new user is on the wait list
+                taChannel.send('A new hacker needs help!').then(msg => msg.delete({timeout: 3000}));
 
                 // delete promt and user msg
                 qPromt.delete();

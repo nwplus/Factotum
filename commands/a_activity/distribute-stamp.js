@@ -8,7 +8,7 @@ module.exports = class DistributeStamp extends Command {
             name: 'distribute-stamp',
             group: 'a_activity',
             memberName: 'gives stamps',
-            description: 'gives a stamp to everyone who reacted within the timeframe',
+            description: 'gives a stamp to everyone who reacted within the timeframe, if targetChannelKey not give, it will send it to the message channel.',
             args: [
                 {   key: 'activityName',
                     prompt: 'the workshop/activity name',
@@ -18,6 +18,7 @@ module.exports = class DistributeStamp extends Command {
                     key: 'timeLimit',
                     prompt: 'How many seconds will the reactions be open for',
                     type: 'integer',
+                    default: discordServices.stampCollectTime,
                 },
                 {
                     key: 'targetChannelKey',
@@ -31,8 +32,8 @@ module.exports = class DistributeStamp extends Command {
 
     async run(message, {activityName, timeLimit, targetChannelKey}) {
     //doesn't run if it is called by someone who is not staff nor admin or if it is not called in admin console
-        if (!await(discordServices.checkForRole(message.member,discordServices.staff))) {
-            discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
+        if (!await(discordServices.checkForRole(message.member,discordServices.staffRole))) {
+            discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
             return;
         }
 
@@ -40,7 +41,7 @@ module.exports = class DistributeStamp extends Command {
 
         // grab channel, depending on if given targetChannelKey
         if (targetChannelKey === '') {
-            var targetChannel = message.guild.channels.cache.find(channel => channel.type === 'text' && channel.name.endsWith("activity-banter"));
+            var targetChannel = message.channel;
         } else {
             var targetChannel = message.guild.channels.resolve(targetChannelKey);
         }
