@@ -113,7 +113,7 @@ module.exports = class StartTeamFormation extends Command {
 
             const publicEmbed = new Discord.MessageEmbed()
                 .setTitle('Information about them can be found below:')
-                .setDescription(content + '\nDM me to talk -><@' + msg.author.id + '>');
+                .setDescription(content + '\nDM me to talk -> <@' + msg.author.id + '>');
 
             if (isTeam) {
                 // set color
