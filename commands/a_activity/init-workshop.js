@@ -88,16 +88,16 @@ module.exports = class InitWorkshop extends Command {
         generalVoice.updateOverwrite(discordServices.staffRole, {
             SPEAK: true,
             MOVE_MEMBERS: true,
-        }).catch(console.error);
+        });
 
         // create TA console
         var taChannel = await message.guild.channels.create(':🧑🏽‍🏫:' + 'ta-console', {
             type: 'text', 
             parent: category, 
             topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
-        }).catch(console.error);
-        taChannel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false}).catch(console.error);
-        taChannel.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false}).catch(console.error);
+        });
+        taChannel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
+        taChannel.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false});
 
         // create question and help channel for hackers
         var helpChannel = await message.guild.channels.create('🙋🏽' + 'assistance', { 
@@ -143,8 +143,8 @@ module.exports = class InitWorkshop extends Command {
                 taChannel.send('Low tech solution has been turned on!').then(msg => msg.delete({timeout: 5000}));
                 msg.edit(msg.embeds[0].addField('Low Tech Solution Is On', 'To give assistance: \n* Send a DM to the highers member on the wait list \n* Then click on the emoji to remove them from the list!'));
                 helpChannel.send(new Discord.MessageEmbed().setColor(discordServices.embedColor).setTitle('Quick Update!').setDescription('You do not need to join the ' +  discordServices.activityVoiceChannelName + ' voice channel. TAs will send you a DM when they are ready to assist you!'));
-            }).catch(console.error);
-        }).catch(console.error);
+            });
+        });
         
         const consoleEmbed = new Discord.MessageEmbed()
             .setColor(mentorColor)
@@ -193,11 +193,9 @@ module.exports = class InitWorkshop extends Command {
             .setDescription('* Make sure you are on a private voice channel not the general voice channel \n* To get the next hacker that needs help click 🤝');
 
         // send taConsole message and react with emoji
-        var taConsole = await taChannel.send(taEmbed).catch(console.error);
+        var taConsole = await taChannel.send(taEmbed);
         taConsole.pin();
         taConsole.react('🤝');
-
-
 
     // Hacker Side
         // message embed for helpChannel
@@ -236,7 +234,7 @@ module.exports = class InitWorkshop extends Command {
             }
 
             // collect the question the hacker has
-            var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond').catch(console.error);
+            var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond');
 
             helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000, error:['time'] }).then(async msgs => {
                 // get question
