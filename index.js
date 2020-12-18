@@ -154,8 +154,7 @@ bot.on('commandError', (command, error) => {
         '\nmessage: ' + error.message +
         '\nfile: ' + error.fileName + 
         '\nline number: ' + error.lineNumber +
-        '\nstack: ' + error.stack + 
-        `Exception origin: ${origin}`
+        '\nstack: ' + error.stack
     );
     discordServices.discordLog(bot.guilds.cache.first(),
         'Error on command: ' + command.name +  
