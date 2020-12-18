@@ -15,7 +15,7 @@ module.exports = class Raffle extends Command {
 
     async run(message) {
         //doesn't run if it is called by someone who is not staff nor admin or if it is not called in admin console
-        if (!await(discordServices.checkForRole(message.member,discordServices.staff))) {
+        if (!discordServices.checkForRole(message.member,discordServices.staffRole)) {
             discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
             return;
         }
