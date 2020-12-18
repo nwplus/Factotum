@@ -1,7 +1,15 @@
 const { Command } = require('discord.js-commando');
 const discordServices = require('../discord-services');
 
-class CustomCommand extends Command {
+
+/**
+ * The PermissionCommand is a custom command that extends the discord js commando Command class.
+ * This Command subclass adds role and channel permission checks before the command is run. It also
+ * removes the message used to call the command.
+ * 
+ * 
+ */
+class PermissionCommand extends Command {
     
     /**
      * Our custom command information for validation
@@ -46,6 +54,13 @@ class CustomCommand extends Command {
         this.roleMessage = 'roleMessage' in permissionInfo ? permissionInfo.roleMessage : 'Hi, the command you just used is not available to your current role!';
     }
 
+    /**
+     * Run command used by Command class. Has the permission checks and runs the child runCommand method.
+     * @param {CommandoMessage} message 
+     * @param {Object|string|string[]} args 
+     * @param {boolean} fromPattern 
+     * @param {Promise<?Message|?Array<Message>>} result 
+     */
     async run(message, args, fromPattern, result){
         // delete the message
         discordServices.deleteMessage(message);
@@ -64,6 +79,13 @@ class CustomCommand extends Command {
 
         this.runCommand(message, args, fromPattern, result);
     }
+
+    /**
+     * Required class by children, will throw error if not implemented!
+     */
+    runCommand() {
+        throw new Error('You need to implement the runCommand method!');
+    }
 }
 
-module.exports = CustomCommand;
+module.exports = PermissionCommand;
