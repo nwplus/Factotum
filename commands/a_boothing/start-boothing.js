@@ -1,12 +1,12 @@
 // Discord.js commando requirements
-const { Command } = require('discord.js-commando');
+const PermissionCommand = require('../../classes/custom-command');
 const firebaseServices = require('../../firebase-services/firebase-services');
 const firebaseBoothing = require('../../firebase-services/firebase-services-boothing')
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
 // Command export
-module.exports = class StartBoothing extends Command {
+module.exports = class StartBoothing extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'startb',
@@ -15,20 +15,19 @@ module.exports = class StartBoothing extends Command {
             description: 'Will start the boothing functionality with emoji collectors.',
             guildOnly: true,
             args: [],
+        },
+        {
+            roleID: discordServices.adminRole,
+            roleMessage: 'This command can only be ran by admins!'
         });
     }
 
-    // Run function -> command body
-    async run(message) {
-        discordServices.deleteMessage(message);
+
+    async runCommand(message) {
+
         // make sure command is only used in the boothing-wait-list channel
         if (message.channel.name != 'boothing-wait-list') {
             discordServices.replyAndDelete(message, 'This command can only be ran in the boothing-wait-list channel!');
-            return;
-        }
-        // only memebers with the Attendee tag can run this command!
-        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
-            discordServices.replyAndDelete(message, 'This command can only be ran by staff!');
             return;
         }
         

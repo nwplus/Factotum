@@ -1,9 +1,9 @@
 // Discord.js commando requirements
-const { Command } = require('discord.js-commando');
+const PermissionCommand = require('../../classes/custom-command');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class RemovePrivates extends Command {
+module.exports = class RemovePrivates extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'removeprivates',
@@ -18,21 +18,19 @@ module.exports = class RemovePrivates extends Command {
                     type: 'integer',
                 },
             ],
+        },
+        {
+            roleID: discordServices.staffRole,
+            roleMessage: 'This command can only be ran by staff!',
         });
     }
 
-    // Run function -> command body
-    async run(message, {number}) {
-        discordServices.deleteMessage(message);
+
+    async runCommand(message, {number}) {
 
         // make sure command is only used in the boothing-wait-list channel
         if (message.channel.name != 'boothing-wait-list') {
             discordServices.replyAndDelete(message, 'This command can only be ran in the boothing-wait-list channel!');
-            return;
-        }
-        // only memebers with the Attendee tag can run this command!
-        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
-            discordServices.replyAndDelete(message, 'This command can only be ran by staff!');
             return;
         }
 
