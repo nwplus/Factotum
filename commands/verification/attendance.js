@@ -1,5 +1,5 @@
 // Discord.js commando requirements
-const PermissionCommand = require('../../classes/custom-command');
+const PermissionCommand = require('../../classes/permission-command');
 const firebaseServices = require('../../firebase-services/firebase-services');
 const Discord = require('discord.js');
 const discordServices = require('../../discord-services');

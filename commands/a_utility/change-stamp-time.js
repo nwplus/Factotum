@@ -1,4 +1,4 @@
-const PermissionCommand = require('../../classes/custom-command');
+const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 
 // Command export

@@ -22,8 +22,8 @@ class PermissionCommand extends Command {
 
     /**
      * Constructor for our custom command, calls the parent constructor.
-     * @param {CommandoClient} client - the client the command is for 
-     * @param {CommandInfo} info - the information for this commando command 
+     * @param {import('discord.js-commando').CommandoClientOptions} client - the client the command is for 
+     * @param {import('discord.js-commando').CommandInfo} info - the information for this commando command 
      * @param {CommandPermissionInfo} permissionInfo - the custom information for this command 
      */
     constructor(client, info, permissionInfo) {
@@ -57,6 +57,7 @@ class PermissionCommand extends Command {
         this.roleMessage = 'roleMessage' in permissionInfo ? permissionInfo.roleMessage : 'Hi, the command you just used is not available to your current role!';
     }
 
+
     /**
      * Run command used by Command class. Has the permission checks and runs the child runCommand method.
      * @param {CommandoMessage} message 
@@ -83,11 +84,12 @@ class PermissionCommand extends Command {
         this.runCommand(message, args, fromPattern, result);
     }
 
+
     /**
      * Required class by children, will throw error if not implemented!
      * @abstract
      */
-    runCommand() {
+    runCommand(message, args, fromPattern, result) {
         throw new Error('You need to implement the runCommand method!');
     }
 }
