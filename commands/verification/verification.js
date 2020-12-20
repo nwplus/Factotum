@@ -1,11 +1,11 @@
 // Discord.js commando requirements
-const { Command } = require('discord.js-commando');
+const PermissionCommand = require('../../classes/custom-command');
 const firebaseServices = require('../../firebase-services/firebase-services');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
 // Command export
-module.exports = class Verificaiton extends Command {
+module.exports = class Verificaiton extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'verify',
@@ -22,24 +22,18 @@ module.exports = class Verificaiton extends Command {
                 },
                 
             ],
+        },
+        {
+            channelID: discordServices.welcomeChannel,
+            channelMessage: 'Hi, the !verify command is only available in the welcome channel!',
+            roleID: discordServices.guestRole,
+            roleMessage: 'Hi there, it seems you have tried to verify your email when you ' +
+                            'don\'t need it or you dont have the guest role.'
         });
     }
 
     // Run function -> command body
-    async run(message, { email }) {
-        discordServices.deleteMessage(message);
-
-        // Make sure it is only used in the welcome channel
-        if (message.channel.id != discordServices.welcomeChannel) {
-            discordServices.sendMessageToMember(message.member, 'Hi, the !verify command is only available in the welcome channel!', true);
-            return;
-        }
-        // Make sure only guests can call this command
-        if (!(discordServices.checkForRole(message.member, discordServices.guestRole))) {
-            discordServices.sendMessageToMember(message.member, 'Hi there, it seems you have tried to verify your email when you ' +
-            'don\'t need it or you dont have the guest role.', true);
-            return;
-        }
+    async runCommand(message, { email }) {
 
         // let user know he has used the command incorrectly and exit
         if (email === '') {

@@ -1,11 +1,11 @@
 // Discord.js commando requirements
-const { Command } = require('discord.js-commando');
+const PermissionCommand = require('../../classes/custom-command');
 const firebaseServices = require('../../firebase-services/firebase-services');
 const Discord = require('discord.js');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class Attendace extends Command {
+module.exports = class Attendace extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'attend',
@@ -22,23 +22,17 @@ module.exports = class Attendace extends Command {
                 },
                 
             ],
+        },
+        {
+            channelID: discordServices.attendChannel,
+            channelMessage: 'Hi there, the !attend command is only available in the attend-channel channel.',
+            roleID: discordServices.hackerRole,
+            roleMessage: 'Hi there, it seems you are already marked as attendee, or you do not need to be marked as attendee. Happy hacking!',
         });
     }
 
     // Run function -> command body
-    async run(message, { email }) {
-        discordServices.deleteMessage(message);
-
-        // make sure command is only used in the attend-channel channel
-        if (message.channel.id != discordServices.attendChannel) {
-            discordServices.sendMessageToMember(message.member, 'Hi there, the !attend command is only available in the attend-channel channel.', true);
-            return;   
-        }
-        // only memebers with the Hacker tag can run this command!
-        if (!(discordServices.checkForRole(message.member, discordServices.hackerRole))) {
-            discordServices.sendMessageToMember(message.member, 'Hi there, it seems you are already marked as attendee, or you do not need to be marked as attendee. Happy hacking!', true);
-            return;
-        }
+    async runCommand(message, { email }) {
 
         // let user know he has used the command incorrectly and exit
         if (email === '') {
