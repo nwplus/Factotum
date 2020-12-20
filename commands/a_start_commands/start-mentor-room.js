@@ -15,7 +15,7 @@ module.exports = class StartMentors extends PermissionCommand {
             args: [],
         },
         {
-            channelID: discordServices.adminRole,
+            channelID: discordServices.adminConsoleChannel,
             channelMessage: 'This command can only be used in the admin console!',
             roleID: discordServices.adminRole,
             roleMessage: 'You do not have permision for this command, only admins can use it!',

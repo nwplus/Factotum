@@ -105,6 +105,7 @@ module.exports.sponsorCategory = sponsorCategory;
 // console where most commands are accessible, only staff
 // should have access to this
 var adminConsolChannel = '748955441484005488';
+module.exports.adminConsoleChannel = adminConsolChannel;
 // channel where the bot can log important things like verifications, 
 // clear chat calls, etc
 var adminLogChannel = '743197503884755045';
