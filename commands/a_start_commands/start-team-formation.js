@@ -1,10 +1,10 @@
 // Discord.js commando requirements
-const { Command } = require('discord.js-commando');
+const PermissionCommand = require('../../classes/custom-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
 // Command export
-module.exports = class StartTeamFormation extends Command {
+module.exports = class StartTeamFormation extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'starttf',
@@ -12,22 +12,16 @@ module.exports = class StartTeamFormation extends Command {
             memberName: 'start team formation',
             description: 'Send a message with emoji collector, one meoji for recruiters, one emoji for team searchers. Instructions will be sent via DM.',
             guildOnly: true,
+        },
+        {
+            roleID: discordServices.staffRole,
+            roleMessage: 'Hey there, the !starttf command is only for staff!',
+            channelID: discordServices.teamformationChannel,
+            channelMessage: 'Hey there, the !starttf command is only available in the team formation channel.',
         });
     }
 
-    async run (message) {
-        discordServices.deleteMessage(message);
-
-        // can only be called my staff
-        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
-            discordServices.replyAndDelete(message, 'Hey there, the !starttf command is only for staff!');
-            return;
-        }
-        // can only be called in the team formation information channel
-        if (message.channel.id != discordServices.teamformationChannel) {
-            discordServices.replyAndDelete(message, 'Hey there, the !starttf command is only available in the team formation channel.');
-            return;
-        }
+    async runCommand(message) {
 
         // grab current channel
         var channel = message.channel;

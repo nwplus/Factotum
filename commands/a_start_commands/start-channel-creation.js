@@ -1,10 +1,10 @@
 // Discord.js commando requirements
-const { Command } = require('discord.js-commando');
+const PermissionCommand = require('../../classes/custom-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
 // Command export
-module.exports = class StartChannelCreation extends Command {
+module.exports = class StartChannelCreation extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'startcc',
@@ -12,22 +12,16 @@ module.exports = class StartChannelCreation extends Command {
             memberName: 'start channel creation',
             description: 'Send a message with emoji collector, for each emoji bot will ask type and other friends invited and create the private channel.',
             guildOnly: true,
+        },
+        {
+            roleID: discordServices.staffRole,
+            roleMessage: 'Hey there, the !startcc command is only for staff!',
+            channelID: discordServices.channelcreationChannel,
+            channelMessage: 'Hey there, the !startcc command is only available in the create-channel channel.',
         });
     }
 
-    async run (message) {
-        discordServices.deleteMessage(message);
-
-        // can only be called by staff
-        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
-            discordServices.replyAndDelete(message, 'Hey there, the !startcc command is only for staff!');
-            return;
-        }
-        // can only be called in the channel-creation channel
-        if (message.channel.id != discordServices.channelcreationChannel) {
-            discordServices.replyAndDelete(message, 'Hey there, the !startcc command is only available in the create-channel channel.');
-            return;
-        }
+    async runCommand(message) {
 
         // grab current channel
         var channel = message.channel;
