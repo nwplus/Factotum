@@ -1,7 +1,6 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
 const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
 
 // Command export
 module.exports = class UnknownCommand extends Command {
@@ -16,7 +15,7 @@ module.exports = class UnknownCommand extends Command {
         });
     }
 
-    async run (message) {
+    async run(message) {
         if (message.channel.type === 'dm') {
             return;
         } else {

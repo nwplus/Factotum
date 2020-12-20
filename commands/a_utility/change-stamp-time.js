@@ -1,10 +1,8 @@
-// Discord.js commando requirements
-const { Command } = require('discord.js-commando');
+const PermissionCommand = require('../../classes/custom-command');
 const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
 
 // Command export
-module.exports = class ChangeStampTime extends Command {
+module.exports = class ChangeStampTime extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'stamptime',
@@ -19,16 +17,14 @@ module.exports = class ChangeStampTime extends Command {
                     type: 'integer',
                 },
             ],
+        },
+        {
+            roleID: discordServices.adminRole,
+            roleMessage: 'Hey there, the command !stamptime is only available to Admins!',
         });
     }
 
-    async run (message, {newTime}) {
-        discordServices.deleteMessage(message);
-        // only admins can use this command inside the guild
-        if (! (discordServices.checkForRole(message.member, discordServices.adminRole))) {
-            discordServices.replyAndDelete(message, 'Hey there, the command !stamptime is only available to Admins!');
-            return;
-        }
+    async runCommand(message, {newTime}) {
 
         discordServices.stampCollectTime = newTime;
 

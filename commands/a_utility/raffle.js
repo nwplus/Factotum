@@ -1,8 +1,7 @@
-const { Command } = require('discord.js-commando');
+const PermissionCommand = require('../../classes/custom-command');
 const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
 
-module.exports = class Raffle extends Command {
+module.exports = class Raffle extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'raffle',
@@ -10,17 +9,14 @@ module.exports = class Raffle extends Command {
             memberName: 'draw raffle winners',
             description: 'parses each hacker for their stamps and draws winners from them, one entry per stamp',
             args: [],
+        },
+        {
+            roleID: discordServices.staffRole,
+            roleMessage: 'You do not have permision for this command, only staff can use it!',
         });
     }
 
-    async run(message) {
-        //doesn't run if it is called by someone who is not staff nor admin or if it is not called in admin console
-        if (!discordServices.checkForRole(message.member,discordServices.staffRole)) {
-            discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
-            return;
-        }
-
-        discordServices.deleteMessage(message);
+    async runCommand(message) {
         var entries = new Array(3000);  //array size subject to change
         var position = {value:0};
         

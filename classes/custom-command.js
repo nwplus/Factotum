@@ -29,6 +29,9 @@ class PermissionCommand extends Command {
     constructor(client, info, permissionInfo) {
         super(client, info);
 
+        // Make sure permissionInfo is an object, if not given then create empty object
+        if (typeof permissionInfo != 'object') permissionInfo = {};
+
         /**
          * Channel where this command can be run.
          * @type {string} snowflake/id
@@ -82,6 +85,7 @@ class PermissionCommand extends Command {
 
     /**
      * Required class by children, will throw error if not implemented!
+     * @abstract
      */
     runCommand() {
         throw new Error('You need to implement the runCommand method!');

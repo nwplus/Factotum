@@ -1,10 +1,10 @@
 // Discord.js commando requirements
-const CustomCommand = require('../../classes/custom-command');
+const PermissionCommand = require('../../classes/custom-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
 // Command export
-module.exports = class ClearChat extends CustomCommand {
+module.exports = class ClearChat extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'clearchat',
