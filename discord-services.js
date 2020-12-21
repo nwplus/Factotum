@@ -1,5 +1,6 @@
 
 const firebaseActivity = require('./firebase-services/firebase-services-activities');
+const Discord = require('discord.js');
 
 // Available Roles
 var guestRole = '742896900419747961';
@@ -62,6 +63,15 @@ module.exports.stamp18Role = stamp18Role;
 module.exports.stamp19Role = stamp19Role;
 module.exports.stamp20Role = stamp20Role;
 
+/**
+ * A collection of all the stamp roles.
+ * @type {Discord.Collection<Number, String>} - <StampNumber, roleID>
+ */
+var stampRoles = new Discord.Collection();
+let listOfStampRoles = [stamp0Role, stamp1Role, stamp2Role, stamp3Role, stamp4Role, stamp5Role, stamp6Role, stamp7Role, stamp8Role, stamp9Role, stamp10Role, stamp11Role,
+    stamp12Role, stamp13Role, stamp14Role, stamp15Role, stamp16Role, stamp17Role, stamp18Role, stamp19Role, stamp20Role];
+listOfStampRoles.forEach((value, index) => stampRoles.set(index, value));
+module.exports.stampRoles = stampRoles;
 
 // other project wide vars
 var embedColor = '#26fff4';
