@@ -15,7 +15,7 @@ class ActivityManager {
      * Will get all users in the voice channels back to the main voice channel.
      * @param {Activity} activity - the activity to use
      */
-    static async voiceCallBack(activity) {
+    static voiceCallBack(activity) {
         activity.category.children.filter(channel => channel.type === 'voice' && channel.id != activity.generalVoice.id).forEach(channel => {
             channel.members.forEach(member => member.voice.setChannel(activity.generalVoice));
         });
@@ -34,7 +34,7 @@ class ActivityManager {
         // loop over the groups and channels at the same time using an index, add users for each group in a single voice channel
         for(var index = 0; index < channels.array().length; index++) {
             groups[index]['members'].forEach(username => {
-                activity.generalVoice.members.find(member => member.user.username === username)?.voice.setChannel(channels[index]);
+                activity.generalVoice.members.find(member => member.user.username === username).voice.setChannel(channels[index]);
             });
         }
     }

@@ -16,13 +16,13 @@ class Prompt {
      */
     static async messagePrompt(prompt, responseType, channel, userID) {
         // send prompt
-        let prompt = await channel.send('<@' + userID + '> ' + prompt);
+        let promptMsg = await channel.send('<@' + userID + '> ' + prompt);
 
         let msgs = await channel.awaitMessages(message => message.author.id === userID, {max: 1});
 
         let msg = msgs.first();
 
-        prompt.delete();
+        promptMsg.delete();
         msg.delete();
 
         return msg;
