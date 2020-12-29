@@ -3,6 +3,7 @@ const discordServices = require('../discord-services');
 const { CommandoClient } = require('discord.js-commando');
 const Activity = require('./activity');
 const Prompt = require('./prompt');
+const { Message } = require('discord.js');
 
 /**
  * The ActivityCommand class is a special class used for activity commands. It extends
@@ -38,20 +39,26 @@ class ActivityCommand extends PermissionCommand {
     /**
      * Asked by our parent PermissionCommand, will contain the code specific to acticity commands.
      */
-    runCommand(message) {
+    runCommand(message, args, fromPattern, result) {
         if (this.activity === null) {
-            let activityName = await Prompt.messagePrompt('What is the activity name?', 'string', message.channel, message.author.id);
-
-            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName));
+            // let activityName = await Prompt.messagePrompt('What is the activity name?', 'string', message.channel, message.author.id);
+            // var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName));
+            
+            // for now we will not let users use these commands raw
+            discordServices.replyAndDelete(message, 'You can only use this command from an activity console!');
         }
+
+        this.runActivityCommand(message, args, fromPattern, result);
     }
 
 
     /**
      * Required class by children, should contain the command code.
+     * @param {Message} message - the message that has the command
+     * @param {Activity} activity - the activity for this activity command
      * @abstract
      */
-    runActivityCommand(message, args, fromPattern, result) {
+    runActivityCommand(message, activity, args, fromPattern, result) {
         throw new Error('You need to implement the runActivityCommand method!');
     }
 }

@@ -35,10 +35,10 @@ class Activity {
         this.name = activityName.split(' ').join('-').trim().replace(/[^0-9a-zA-Z-]/g, '').toLowerCase();
 
         /**
-         * Position where the activity will live in the guild.
-         * @type {Number}
+         * The guild this activity is in.
+         * @type {Guild}
          */
-        this.categoryPosition = guild.channels.cache.filter(channel => channel.tupe === 'category').array().length;
+        this.guild = guild;
 
         /**
          * The category where this activity lives.
@@ -90,17 +90,11 @@ class Activity {
         this.textChannels = new Collection();
 
         /**
-         * The guild this activity is in.
-         * @type {Guild}
-         */
-        this.guild = guild;
-
-        /**
          * The activity information
          * @type {ActivityInfo}
          */
-        this.activityInfo;
-        this.validateActivityInfo(activityInfo);
+        this.activityInfo = {};
+        this.validateActivityInfo(activityInfo || {});
     }
 
 
@@ -128,7 +122,8 @@ class Activity {
      * @returns {Promise<Activity>}
      */
     async init() {
-        this.category = await this.createCategory();
+        let position = await this.guild.channels.cache.filter(channel => channel.type === 'category').array().length;
+        this.category = await this.createCategory(position);
         this.generalText =  await this.addChannel(this.activityInfo.generalTextChannelName, {
             type: 'text',
             topic: 'A general banter channel to be used to communicate with other members, mentors, or staff. The !ask command is available for questions.',
@@ -143,15 +138,16 @@ class Activity {
 
     /**
      * Helper funciton to create the category 
+     * @param {Number} position - the position of this category on the server
      * @async
      * @private
      * @requires this.activityName - to be set
      * @returns {Promise<CategoryChannel>} - a category with the activity name
      */
-    async createCategory() {
-        return guild.channels.create(this.name, {
+    async createCategory(position) {
+        return this.guild.channels.create(this.name, {
             type: 'category',
-            position: this.categoryPosition - 1,
+            position: position >= 0 ? position : 0,
             permissionOverwrites: [
             {
                 id: discordServices.hackerRole,
@@ -190,7 +186,7 @@ class Activity {
      * @param {import("discord.js").GuildCreateChannelOptions} info - one of voice or text
      * @param {Array<RolePermission>} permissions - the permissions per role to be added to this channel after creation.
      */
-    async addChannel(name, info, permissions) {
+    async addChannel(name, info, permissions = []) {
         info.parent = info.parent || this.category;
         info.type = info.type || 'text';
 
