@@ -19,7 +19,7 @@ class ActivityCommand extends PermissionCommand {
      * No need for a PermissionInformation because the ActivityCommand always has the same permission!
      * @param {Activity} activity - the activity this command is for
      */
-    constructor(client, info, activity){
+    constructor(client, info){
         super(client, info, 
             {
                 roleID: discordServices.staffRole,
@@ -28,27 +28,25 @@ class ActivityCommand extends PermissionCommand {
                 channelMessage: 'This command can only be used in the admin console!',
             }
         );
-
-        /**
-         * The activity being used in this command
-         * @type {Activity}  
-         */
-        this.activity = activity || null;
     }
 
     /**
      * Asked by our parent PermissionCommand, will contain the code specific to acticity commands.
      */
     runCommand(message, args, fromPattern, result) {
-        if (this.activity === null) {
-            // let activityName = await Prompt.messagePrompt('What is the activity name?', 'string', message.channel, message.author.id);
-            // var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName));
-            
-            // for now we will not let users use these commands raw
-            discordServices.replyAndDelete(message, 'You can only use this command from an activity console!');
-        }
+        // we dont want this command to be available outside the activity console
+        this.runActivityCommand(message, null, args);
+    }
 
-        this.runActivityCommand(message, args, fromPattern, result);
+
+    /**
+     * The public method to be used to call the command, it will check that an activity is passed!
+     * @param {Message} message - the message that has the command
+     * @param {Activity} activity - the activity for this command
+     */
+    runActivityCommand(message, activity, args) {
+        if (activity === null) discordServices.replyAndDelete('This command can not be called outside an activity console!');
+        else this.activityCommand(message, activity, args);
     }
 
 
@@ -57,9 +55,11 @@ class ActivityCommand extends PermissionCommand {
      * @param {Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
      * @abstract
+     * @private
+     * @async
      */
-    runActivityCommand(message, activity, args, fromPattern, result) {
-        throw new Error('You need to implement the runActivityCommand method!');
+    async activityCommand(message, activity, args, fromPattern, result) {
+        throw new Error('You need to implement the activityCommand method!');
     }
 }
 

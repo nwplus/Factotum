@@ -6,7 +6,7 @@ const ActivityManager = require('../../classes/activity-manager');
 
 // Command export
 module.exports = class ActivityCallback extends ActivityCommand {
-    constructor(client, activity) {
+    constructor(client) {
         super(client, 
             {
                 name: 'callback',
@@ -22,7 +22,7 @@ module.exports = class ActivityCallback extends ActivityCommand {
      * @param {Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
      */
-    async runActivityCommand(message, activity, args, fromPattern, result) {
+    async activityCommand(message, activity, args, fromPattern, result) {
 
         ActivityManager.voiceCallBack(activity);
 
