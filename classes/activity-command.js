@@ -1,8 +1,6 @@
 const PermissionCommand = require('./permission-command');
 const discordServices = require('../discord-services');
-const { CommandoClient } = require('discord.js-commando');
 const Activity = require('./activity');
-const Prompt = require('./prompt');
 const { Message } = require('discord.js');
 
 /**
@@ -55,7 +53,6 @@ class ActivityCommand extends PermissionCommand {
      * @param {Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
      * @abstract
-     * @private
      * @async
      */
     async activityCommand(message, activity, args, fromPattern, result) {

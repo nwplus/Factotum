@@ -141,7 +141,7 @@ class Activity {
      * @param {Number} position - the position of this category on the server
      * @async
      * @private
-     * @requires this.activityName - to be set
+     * @requires this.name - to be set
      * @returns {Promise<CategoryChannel>} - a category with the activity name
      */
     async createCategory(position) {
@@ -322,7 +322,9 @@ class Activity {
 
 
     /**
-     * Will make this activity a workshop activity
+     * Will make this activity a workshop activity.
+     * @async
+     * @returns {Promise<{taChannel : TextChannel, assistanceChannel : TextChannel}>} - an object with two text channels, taChannel, assistanceChannel
      */
     async makeWorkshop() {
         // udpate the voice channel permission to no speaking for attendees
@@ -361,7 +363,7 @@ class Activity {
     /**
      * Archive the activity. Move general text channel to archive category, remove all remaining channels
      * and remove the category.
-     * @param {CategoryChannel} - the category where the general text channel will be moved to
+     * @param {CategoryChannel} archiveCategory - the category where the general text channel will be moved to
      * @async
      */
     async archive(archiveCategory) {
@@ -393,7 +395,7 @@ class Activity {
 
         await this.category.delete();
 
-        firebaseActivity.remove(activityName);
+        firebaseActivity.remove(this.name);
     }
 }
 

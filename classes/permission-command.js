@@ -72,16 +72,14 @@ class PermissionCommand extends Command {
         // Make sure it is only used in the permitted channel
         if (this.permittedChannel != null && message.channel.id != this.permittedChannel) {
             discordServices.sendMessageToMember(message.member, this.channelMessage, true);
-            return;
         }
 
         // Make sure only the permitted role can call it
-        if (this.permittedRole != null && !(discordServices.checkForRole(message.member, this.permittedRole))) {
+        else if (this.permittedRole != null && !(discordServices.checkForRole(message.member, this.permittedRole))) {
             discordServices.sendMessageToMember(message.member, this.roleMessage, true);
-            return;
         }
 
-        this.runCommand(message, args, fromPattern, result);
+        else this.runCommand(message, args, fromPattern, result);
     }
 
 
