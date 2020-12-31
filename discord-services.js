@@ -3,15 +3,15 @@ const firebaseActivity = require('./firebase-services/firebase-services-activiti
 const Discord = require('discord.js');
 
 // Available Roles
-var guestRole = '778651193362481213';
-var hackerRole = '738519785028976741';
-var attendeeRole = '742896999556448357';
-var mentorRole = '747527454200955051';
-var sponsorRole = '738519983981723748';
-var staffRole = '738519363904077916';
-var adminRole = '738491577596641311';
-var everyoneRole = '738475671977722058';
-var stamp0Role = '776690929557831680';
+var guestRole = '794063523625828403';
+var hackerRole = '794063523625828404';
+var attendeeRole = '794063523625828405';
+var mentorRole = '794063523625828406';
+var sponsorRole = '794063523625828407';
+var staffRole = '794063523625828408';
+var adminRole = '794063523625828409';
+var everyoneRole = '794063523625828402';
+var stamp0Role = '794281948079849512';
 var stamp1Role = '776694051482107944';
 var stamp2Role = '777163284679229461';
 var stamp3Role = '777163346456870913';
@@ -96,63 +96,63 @@ module.exports.stampCollectTime = stampCollectTime;
 // Common channels
 
 // announcement channel
-var announcementChannel = '784254136040161310';
+var announcementChannel = '794282648104468510';
 module.exports.announcementChannel = announcementChannel;
 
 // where hackers join the wait list to talk to a sponsor
 // at the moment its only one, planned to extend to multiple
-var boothingWaitList = '748370272049954927';
+var boothingWaitList = '748370272049954927'; // TODO
 module.exports.boothingWaitList = boothingWaitList;
 // only sponsors should have access to this channel, this is
 // where they accept/get the next group to talk to them
-var sponsorConsoleChannel = '748397163997954108';
+var sponsorConsoleChannel = '748397163997954108'; // TODO
 module.exports.sponsorConsoleChannel = sponsorConsoleChannel;
 // the category where the sponsorConsole and boothingwaitlist
 // channels are, used to add more private voice channels
-var sponsorCategory = '738528333935018034';
+var sponsorCategory = '738528333935018034'; // TODO
 module.exports.sponsorCategory = sponsorCategory;
 
 // console where most commands are accessible, only staff
 // should have access to this
-var adminConsolChannel = '748955441484005488';
+var adminConsolChannel = '794063525563727875';
 module.exports.adminConsoleChannel = adminConsolChannel;
 // channel where the bot can log important things like verifications, 
 // clear chat calls, etc
-var adminLogChannel = '743197503884755045';
+var adminLogChannel = '794063525563727873';
 // channel where the bot can ping members with DM off
-var botSupportChannel = '784910416224583751';
+var botSupportChannel = '794063524212899886';
 
 // channel where guests will use the !verify command,
 // usualy the welcome channel
-var welcomeChannel = '773401606120800257';
+var welcomeChannel = '794063524212899881';
 module.exports.welcomeChannel = welcomeChannel;
-var welcomeSupport = '742896827082211419';
+var welcomeSupport = '794063524212899882';
 module.exports.welcomeSupport = welcomeSupport;
 
 // where hackers can call the !attend command, usually a 
 // hidden channel in a hidden category, open only day of the event
-var attendChannel = '774754493081714699';
+var attendChannel = '774754493081714699'; // TODO
 module.exports.attendChannel = attendChannel;
 
 // where hackers can emoji to let the bot know if they are looking
 // for a team or a hacker(s)
-var teamformationChannel = '782500884545273886';
+var teamformationChannel = '794063524656971844';
 module.exports.teamformationChannel = teamformationChannel;
 // channel where team bios are posted, hackers shouldn't be able to post
-var recruitingChannel = '782506417079713802';
+var recruitingChannel = '794063524656971845';
 module.exports.recruitingChannel = recruitingChannel;
 // channel where hacker bios are posted, hackers shouldn't be able to post
-var lookingforteamChannel = '782506451746816000';
+var lookingforteamChannel = '794063525022007316';
 module.exports.lookingforteamChannel = lookingforteamChannel;
 
 // where hackers and other users can call the !createchannel command
 // to create new private channels for them and their team
-var channelcreationChannel = '754396445494214789';
+var channelcreationChannel = '794063525785763865';
 module.exports.channelcreationChannel = channelcreationChannel;
 
 // where the bot will send reports to
 // should be a admin or mod only channel
-var incomingReportChannel = '782683901998137355';
+var incomingReportChannel = '794063525785763860';
 module.exports.incomingReportChannel = incomingReportChannel;
 
 
