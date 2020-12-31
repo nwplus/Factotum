@@ -80,10 +80,10 @@ module.exports = class Verificaiton extends PermissionCommand {
                 discordServices.discordLog(message.guild, '<@' + message.author.id + '> Tried to verify email: ' + email + ' and faild! I couldnt find that email!');
                 break;
             default:
-                embed.addField('ERROR 401', 'Hi there, it seems the email you tried to verify with is already in use! Please make ' +
+                embed.addField('ERROR 401', 'Hi there, it seems the email you tried to verify with is already in use or you were not accepted! Please make ' +
                     'sure that you have the correct email. If you think this is an error please contact us in the welome-support channel.')
                     .setColor('#fc1403');
-                    discordServices.discordLog(message.guild, '<@' + message.author.id + '> Tried to verify email: ' + email + ' and faild! He already verified!');
+                    discordServices.discordLog(message.guild, '<@' + message.author.id + '> Tried to verify email: ' + email + ' and faild! He already verified or was not accepted!');
                 break;
         }
         discordServices.sendMessageToMember(message.member, embed);
