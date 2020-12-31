@@ -119,7 +119,7 @@ bot.once('ready', async () => {
     var isInitState = true;
 
     // start query listener for announcements
-    nwFirebase.firestore().collection('Hackathons').doc('LHD2021').collection('Announcements').onSnapshot(querySnapshot => {
+    nwFirebase.firestore().collection('Hackathons').doc('nwHacks2021').collection('Announcements').onSnapshot(querySnapshot => {
         // exit if we are at the initial state
         if (isInitState) {
             isInitState = false;
