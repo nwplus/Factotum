@@ -61,6 +61,5 @@ module.exports = class InitAmongUs extends ActivityCommand {
 
         // report success of coffee chat creation
         discordServices.replyAndDelete(message,'Activity named: ' + activity.name + ' is now archived.');
-        // console.log('end of archive command.');
     }
 }; 

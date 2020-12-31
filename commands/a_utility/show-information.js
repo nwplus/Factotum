@@ -25,8 +25,8 @@ module.exports = class ShowInformation extends PermissionCommand {
         });
     }
 
-    async runCommand(message, {command}) {
-
+ 
+  async runCommand(message, {command}) {
         const embed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor);
 

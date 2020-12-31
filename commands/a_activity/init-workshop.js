@@ -114,7 +114,6 @@ module.exports = class InitWorkshop extends ActivityCommand {
         taConsole.pin();
         taConsole.react('🤝');
 
-
     // Hacker Side
         // message embed for helpChannel
         const helpEmbed = new Discord.MessageEmbed()

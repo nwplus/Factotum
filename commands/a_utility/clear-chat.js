@@ -33,7 +33,8 @@ module.exports = class ClearChat extends PermissionCommand {
         });
     }
 
-    async runCommand (message, {keepPinned, isCommands}) {
+
+  async runCommand (message, {keepPinned, isCommands}) {
 
         if (keepPinned) {
             // other option is to get all channel messages, filter of the pined channels and pass those to bulkDelete, might be to costy?

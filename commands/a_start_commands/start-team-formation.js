@@ -21,8 +21,8 @@ module.exports = class StartTeamFormation extends PermissionCommand {
         });
     }
 
+  
     async runCommand(message) {
-
         // grab current channel
         var channel = message.channel;
                 

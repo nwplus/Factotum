@@ -28,9 +28,9 @@ var stamp12Role = '777163524568776704';
 var stamp13Role = '784224112909221948';
 var stamp14Role = '784224898230779945';
 var stamp15Role = '784224924633923635';
-var stamp16Role = '784224924633923635';
-var stamp17Role = '784224964001005589';
-var stamp18Role = '784224981386133525';
+var stamp16Role = '784224943730327592';
+var stamp17Role = '781404770803908609';
+var stamp18Role = '781404769133527040';
 var stamp19Role = '784224999698726942';
 var stamp20Role = '784225017172590622';
 module.exports.everyoneRole = everyoneRole;
@@ -96,7 +96,7 @@ module.exports.stampCollectTime = stampCollectTime;
 // Common channels
 
 // announcement channel
-var announcementChannel = '770353479905968138';
+var announcementChannel = '784254136040161310';
 module.exports.announcementChannel = announcementChannel;
 
 // where hackers join the wait list to talk to a sponsor
@@ -124,25 +124,25 @@ var botSupportChannel = '784910416224583751';
 
 // channel where guests will use the !verify command,
 // usualy the welcome channel
-var welcomeChannel = '743192401434378271';
+var welcomeChannel = '773401606120800257';
 module.exports.welcomeChannel = welcomeChannel;
 var welcomeSupport = '742896827082211419';
 module.exports.welcomeSupport = welcomeSupport;
 
 // where hackers can call the !attend command, usually a 
 // hidden channel in a hidden category, open only day of the event
-var attendChannel = '747581999363129474';
+var attendChannel = '774754493081714699';
 module.exports.attendChannel = attendChannel;
 
 // where hackers can emoji to let the bot know if they are looking
 // for a team or a hacker(s)
-var teamformationChannel = '770354140961570857';
+var teamformationChannel = '782500884545273886';
 module.exports.teamformationChannel = teamformationChannel;
 // channel where team bios are posted, hackers shouldn't be able to post
-var recruitingChannel = '770354487595499592';
+var recruitingChannel = '782506417079713802';
 module.exports.recruitingChannel = recruitingChannel;
 // channel where hacker bios are posted, hackers shouldn't be able to post
-var lookingforteamChannel = '770354521733857320';
+var lookingforteamChannel = '782506451746816000';
 module.exports.lookingforteamChannel = lookingforteamChannel;
 
 // where hackers and other users can call the !createchannel command
@@ -152,7 +152,7 @@ module.exports.channelcreationChannel = channelcreationChannel;
 
 // where the bot will send reports to
 // should be a admin or mod only channel
-var incomingReportChannel = '780305617267982366';
+var incomingReportChannel = '782683901998137355';
 module.exports.incomingReportChannel = incomingReportChannel;
 
 

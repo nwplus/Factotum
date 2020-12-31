@@ -58,12 +58,12 @@ module.exports = class Verificaiton extends PermissionCommand {
                 discordServices.discordLog(message.guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a hacker!");
                 break;
             case firebaseServices.status.SPONSOR_SUCCESS:
-                embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of nwHacks and for joining our discord!');
+                embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of HackCamp and for joining our discord!');
                 discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.sponsorRole);
                 discordServices.discordLog(message.guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a sponsor!");
                 break;
             case firebaseServices.status.MENTOR_SUCCESS:
-                embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of nwHacks and for joining our discord!');
+                embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of HackCamp and for joining our discord!');
                 discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.mentorRole);
                 discordServices.discordLog(message.guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and he is now a mentor!");
                 break;

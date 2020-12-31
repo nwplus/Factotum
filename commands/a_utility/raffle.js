@@ -8,7 +8,6 @@ module.exports = class Raffle extends PermissionCommand {
             group: 'a_utility',
             memberName: 'draw raffle winners',
             description: 'parses each hacker for their stamps and draws winners from them, one entry per stamp',
-            args: [],
         },
         {
             roleID: discordServices.staffRole,

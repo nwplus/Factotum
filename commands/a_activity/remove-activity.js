@@ -14,7 +14,6 @@ module.exports = class RemoveActivity extends ActivityCommand {
         });
     }
 
-
     /**
      * Required class by children, should contain the command code.
      * @param {Message} message - the message that has the command

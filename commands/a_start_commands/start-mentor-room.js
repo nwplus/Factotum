@@ -470,7 +470,6 @@ module.exports = class StartMentors extends PermissionCommand {
                             }
                         });
                     });
-
                     // update number of tickets
                     ticketCount += 1;
                 }).catch(error => {
