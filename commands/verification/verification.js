@@ -1,11 +1,11 @@
 // Discord.js commando requirements
-const { Command } = require('discord.js-commando');
+const PermissionCommand = require('../../classes/permission-command');
 const firebaseServices = require('../../firebase-services/firebase-services');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
 // Command export
-module.exports = class Verificaiton extends Command {
+module.exports = class Verificaiton extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'verify',
@@ -22,24 +22,18 @@ module.exports = class Verificaiton extends Command {
                 },
                 
             ],
+        },
+        {
+            channelID: discordServices.welcomeChannel,
+            channelMessage: 'Hi, the !verify command is only available in the welcome channel!',
+            roleID: discordServices.guestRole,
+            roleMessage: 'Hi there, it seems you have tried to verify your email when you ' +
+                            'don\'t need it or you dont have the guest role.'
         });
     }
 
     // Run function -> command body
-    async run(message, { email }) {
-        discordServices.deleteMessage(message);
-
-        // Make sure it is only used in the welcome channel
-        if (message.channel.id != discordServices.welcomeChannel) {
-            discordServices.sendMessageToMember(message.member, 'Hi, the !verify command is only available in the welcome channel!', true);
-            return;
-        }
-        // Make sure only guests can call this command
-        if (!(discordServices.checkForRole(message.member, discordServices.guestRole))) {
-            discordServices.sendMessageToMember(message.member, 'Hi there, it seems you have tried to verify your email when you ' +
-            'don\'t need it or you dont have the guest role.', true);
-            return;
-        }
+    async runCommand(message, { email }) {
 
         // let user know he has used the command incorrectly and exit
         if (email === '') {
@@ -61,35 +55,35 @@ module.exports = class Verificaiton extends Command {
                     .addField('Don\'t Forget!', 'Remember you need to !attend <your email> in the attend channel that will open a few hours before the hackathon begins.');
                 discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.hackerRole);
                 discordServices.addRoleToMember(message.member,discordServices.stamp0Role);
-                discordServices.discordLog(message.guild, "<@" + message.author.id + "> Verified email: " + email + " successfully and they are now a hacker!");
+                discordServices.discordLog(message.guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a hacker!");
                 break;
             case firebaseServices.status.SPONSOR_SUCCESS:
                 embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of HackCamp and for joining our discord!');
                 discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.sponsorRole);
-                discordServices.discordLog(message.guild, "<@" + message.author.id + "> Verified email: " + email + " successfully and they are now a sponsor!");
+                discordServices.discordLog(message.guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a sponsor!");
                 break;
             case firebaseServices.status.MENTOR_SUCCESS:
                 embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of HackCamp and for joining our discord!');
                 discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.mentorRole);
-                discordServices.discordLog(message.guild, "<@" + message.author.id + "> Verified email: " + email + " successfully and he is now a mentor!");
+                discordServices.discordLog(message.guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and he is now a mentor!");
                 break;
             case firebaseServices.status.STAFF_SUCCESS:
                 embed.addField('Welcome To Your Server!', 'Welcome to your discord server! If you need to know more about what I can do please call !help.');
                 discordServices.replaceRoleToMember(message.member, discordServices.guestRole, discordServices.staffRole);
-                discordServices.discordLog(message.guild, "<@" + message.author.id + "> Verified email: " + email + " successfully and he is now a staff!");
+                discordServices.discordLog(message.guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and he is now a staff!");
                 break;
             case firebaseServices.status.FAILURE:
                 embed.addField('ERROR 404', 'Hi there, the email you tried to verify yourself with is not' +
                 ' in our system, please make sure your email is well typed. If you think this is an error' +
                 ' please contact us in the welcome-support channel.')
                     .setColor('#fc1403');
-                discordServices.discordLog(message.guild, '<@' + message.author.id + '> Tried to verify email: ' + email + ' and faild! I couldnt find that email!');
+                discordServices.discordLog(message.guild, 'VERIFY ERROR : <@' + message.author.id + '> Tried to verify email: ' + email + ' and faild! I couldnt find that email!');
                 break;
             default:
-                embed.addField('ERROR 401', 'Hi there, it seems the email you tried to verify with is already in use! Please make ' +
+                embed.addField('ERROR 401', 'Hi there, it seems the email you tried to verify with is already in use or you were not accepted! Please make ' +
                     'sure that you have the correct email. If you think this is an error please contact us in the welome-support channel.')
                     .setColor('#fc1403');
-                    discordServices.discordLog(message.guild, '<@' + message.author.id + '> Tried to verify email: ' + email + ' and faild! He already verified!');
+                    discordServices.discordLog(message.guild, 'VERIFY WARNING : <@' + message.author.id + '> Tried to verify email: ' + email + ' and faild! He already verified or was not accepted!');
                 break;
         }
         discordServices.sendMessageToMember(message.member, embed);

@@ -1,10 +1,10 @@
 // Discord.js commando requirements
-const { Command } = require('discord.js-commando');
+const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
 // Command export
-module.exports = class StartMentors extends Command {
+module.exports = class StartMentors extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'startm',
@@ -13,24 +13,17 @@ module.exports = class StartMentors extends Command {
             description: 'Will create a private category for mentors with channels for them to use!',
             guildOnly: true,
             args: [],
+        },
+        {
+            channelID: discordServices.adminConsoleChannel,
+            channelMessage: 'This command can only be used in the admin console!',
+            roleID: discordServices.adminRole,
+            roleMessage: 'You do not have permision for this command, only admins can use it!',
         });
     }
 
-    // Run function -> command body
-    async run(message) {
-        discordServices.deleteMessage(message);
 
-    // Command Checks
-        // make sure command is only used in the admin console
-        if (!discordServices.isAdminConsole(message.channel)) {
-            discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
-            return;    
-        }
-        // only memebers with the Hacker tag can run this command!
-        if (!(discordServices.checkForRole(message.member, discordServices.adminRole))) {
-            discordServices.replyAndDelete(message, 'You do not have permision for this command, only admins can use it!');
-            return;
-        }
+    async runCommand(message) {
 
     // Mentor Cave Category and Channel Creation
         // check if mentor cave category has not been already created!

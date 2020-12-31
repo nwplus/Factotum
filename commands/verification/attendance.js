@@ -1,11 +1,11 @@
 // Discord.js commando requirements
-const { Command } = require('discord.js-commando');
+const PermissionCommand = require('../../classes/permission-command');
 const firebaseServices = require('../../firebase-services/firebase-services');
 const Discord = require('discord.js');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class Attendace extends Command {
+module.exports = class Attendace extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'attend',
@@ -22,23 +22,17 @@ module.exports = class Attendace extends Command {
                 },
                 
             ],
+        },
+        {
+            channelID: discordServices.attendChannel,
+            channelMessage: 'Hi there, the !attend command is only available in the attend-channel channel.',
+            roleID: discordServices.hackerRole,
+            roleMessage: 'Hi there, it seems you are already marked as attendee, or you do not need to be marked as attendee. Happy hacking!',
         });
     }
 
     // Run function -> command body
-    async run(message, { email }) {
-        discordServices.deleteMessage(message);
-
-        // make sure command is only used in the attend-channel channel
-        if (message.channel.id != discordServices.attendChannel) {
-            discordServices.sendMessageToMember(message.member, 'Hi there, the !attend command is only available in the attend-channel channel.', true);
-            return;   
-        }
-        // only memebers with the Hacker tag can run this command!
-        if (!(discordServices.checkForRole(message.member, discordServices.hackerRole))) {
-            discordServices.sendMessageToMember(message.member, 'Hi there, it seems you are already marked as attendee, or you do not need to be marked as attendee. Happy hacking!', true);
-            return;
-        }
+    async runCommand(message, { email }) {
 
         // let user know he has used the command incorrectly and exit
         if (email === '') {
@@ -57,10 +51,9 @@ module.exports = class Attendace extends Command {
         // Check the returned status and act accordingly!
         switch(status) {
             case firebaseServices.status.HACKER_SUCCESS:
-                embed.addField('Thank you for attending HackCamp 2020.', 'Happy hacking!!!');
+                embed.addField('Thank you for attending nwHacks 2021', 'Happy hacking!!!');
                 discordServices.addRoleToMember(message.member, discordServices.attendeeRole);
-                discordServices.discordLog(message.guild, "<@" + message.author.id + "> Hacker with email " + email +
-                    " is attending HackCamp 2020!");
+                discordServices.discordLog(message.guild, "ATTEND SUCCESS : <@" + message.author.id + "> with email: " + email + " is attending nwHacks 2021!");
                 break;
             case firebaseServices.status.HACKER_IN_USE:
                 embed.addField('Hi there, this email is already marked as attending', 'Have a great day!')
@@ -70,6 +63,7 @@ module.exports = class Attendace extends Command {
                     ' in our system, please make sure your email is well typed. If you think this is an error' +
                     ' please contact us in the support channel.')
                     .setColor('#fc1403');
+                discordServices.discordLog(message.guild, "ATTEND ERROR : <@" + message.author.id + "> with email: " + email + " tried to attend but I did not find his email!");
                 break;
         }
         discordServices.sendMessageToMember(message.member, embed);

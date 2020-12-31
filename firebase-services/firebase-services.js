@@ -1,10 +1,13 @@
 // Firebase requirements
+const { firestore } = require('firebase/app');
 const firebase = require('firebase/app');
 require('firebase/firestore');
 
 // var to hold firestore
 const db = firebase.firestore();
+const nwDB = firebase.firestore(firebase.apps.find((value, index, app) => value.name === 'nwFirebase'));
 module.exports.db = db;
+module.exports.nwDB = nwDB;
 
 // collection constats
 const groups = {
@@ -43,79 +46,87 @@ module.exports.status = status;
 
 
 
-// checks if the email is registerd
-// Params: the collection you want to check on, options: check collection constants
-async function verifyUser(email, group, id) {
-    var userRef = db.collection(group).doc(email);
-    var user = await userRef.get();
-    if(user.exists) {
+/**
+ * Verifies the mentor/sponsor/staff member via their email.
+ * @param {String} email - the user email
+ * @param {String} id - the user's discord snowflake
+ * @private
+ * @returns {Promise<String>} - one of the status constants
+ */
+async function verifyUser(email, id) {
+    var userRef = db.collection('members').where('email', '==', email).limit(1);
+    var user = (await userRef.get()).docs[0];
+    if(user != undefined) {
         var data = user.data();
         if(data['isVerified'] == false) {
-            userRef.update({
-                'isVerified' : true,
-                'discord id' : id,
-            });
-            return internalStatus.SUCCESS;
+            // user.ref.update({
+            //     'isVerified' : true,
+            //     'discord id' : id,
+            // });
+            return data['type'] == 'mentor' ? status.MENTOR_SUCCESS : data['type'] == 'sponsor' ? status.SPONSOR_SUCCESS : status.STAFF_SUCCESS;
         } else if (data['isVerified'] == true) {
-            return internalStatus.FAILTURE_IN_USE;
+            return status.FAILURE;
         }
     }
-    return internalStatus.FAILURE;
+    return status.FAILURE;
 }
 
-// checks all possible groups for the given email, will return 
-// a different status for each different success or in use case, failure will
-// be the very end case.
+
+/**
+ * Verify a hacker by their email. Will make sure the hacker was accepted.
+ * @param {String} email - the email of the hacker to verify
+ * @param {String} id - the user's discord id snowflake
+ * @private
+ * @returns {Promise<String>} - one of the status constants
+ */
+async function verifyHacker(email, id) {
+    var userRef = nwDB.collection('Hackathons').doc('nwHacks2021').collection('Applicants').where('basicInfo.email', '==', email).limit(1);
+    var user = (await userRef.get()).docs[0];
+
+    if (user != undefined) {
+        let data = user.data();
+        if (data['status'].applicationStatus === 'accepted' && (data['discord.isVerified'] == null || data['discord.isVerified'] == false) ) {
+            // user.ref.update({
+            //     'discord.id' : id,
+            //     'discord.isVerified' : true,
+            // });
+            return status.HACKER_SUCCESS;
+        } else return status.HACKER_IN_USE;
+    } else return status.FAILURE;
+}
+
+
+/**
+ * Verifies a discord member.
+ * @param {String} email - member's email with which to verify
+ * @param {String} id - member's discord id snowlfake
+ * @returns {Promise<String>} - one of the status constants
+ */
 async function verify(email, id) {
     // Check if hacker
-    var sts = await verifyUser(email, groups.hackerGroup, id);
-    if(sts == internalStatus.SUCCESS) {
-        return status.HACKER_SUCCESS;
-    } else if(sts == internalStatus.FAILTURE_IN_USE) {
-        return status.HACKER_IN_USE;
+    var sts = await verifyHacker(email, id);
+    if(sts != status.FAILURE) {
+        return sts;
     } else {
-        // Check if sponsor
-        sts = await verifyUser(email, groups.sponsorGroup, id);
-        if(sts == internalStatus.SUCCESS) {
-            return status.SPONSOR_SUCCESS;
-        } else if(sts == internalStatus.FAILTURE_IN_USE) {
-            return status.SPONSOR_IN_USE;
-        } else {
-            // Check if mentor
-            sts = await verifyUser(email, groups.mentorGroup, id);
-            if(sts == internalStatus.SUCCESS) {
-                return status.MENTOR_SUCCESS;
-            } else if(sts == internalStatus.FAILTURE_IN_USE) {
-                return status.MENTOR_IN_USE;
-            } else {
-                // Check if staff
-                sts = await verifyUser(email, groups.staffGroup, id);
-                if(sts == internalStatus.SUCCESS) {
-                    return status.STAFF_SUCCESS;
-                } else if(sts == internalStatus.FAILTURE_IN_USE) {
-                    return status.STAFF_IN_USE;
-                } else {
-                    // NOTHING WORKED
-                    return status.FAILURE;
-                }
-            }
-        }
+        // check everything else
+        sts = await verifyUser(email, id);
+        return sts;
     }
 }
 module.exports.verify = verify;
 
 // sets the attendance to true for this email, this only works with hackers!
 async function attendHacker(email) {
-    var userRef = db.collection(groups.hackerGroup).doc(email);
-    var user = await userRef.get();
-    if (user.exists) {
+    var userRef = nwDB.collection('Hackathons').doc('nwHacks2021').collection('Applicants').where('basicInfo.email', '==', email).limit(1);
+    var user = (await userRef.get()).docs[0];
+    if (user != undefined) {
         data = user.data();
-        if (data['isAttending'] == false) {
-            userRef.update({
-                'isAttending' : true,
-            });
+        if (data['discord.isAttending'] == false) {
+            // user.ref.update({
+            //     'discord.isAttending' : true,
+            // });
             return status.HACKER_SUCCESS;
-        } else if (data['isAttending'] == true) {
+        } else if (data['discord.isAttending'] == true) {
             return status.HACKER_IN_USE;
         }
     } else {

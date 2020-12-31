@@ -1,10 +1,10 @@
 // Discord.js commando requirements
-const { Command } = require('discord.js-commando');
+const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
 // Command export
-module.exports = class ClearChat extends Command {
+module.exports = class ClearChat extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'clearchat',
@@ -26,16 +26,15 @@ module.exports = class ClearChat extends Command {
                     default: false,
                 },
             ],
+        },
+        {
+            roleID: discordServices.adminRole,
+            roleMessage: 'Hey there, the command !clearchat is only available to Admins!',
         });
     }
 
-    async run (message, {keepPinned, isCommands}) {
-        discordServices.deleteMessage(message);
-        // only admins can use this command inside the guild
-        if (! (discordServices.checkForRole(message.member, discordServices.adminRole))) {
-            discordServices.replyAndDelete(message, 'Hey there, the command !clearchat is only available to Admins!');
-            return;
-        }
+
+  async runCommand (message, {keepPinned, isCommands}) {
 
         if (keepPinned) {
             // other option is to get all channel messages, filter of the pined channels and pass those to bulkDelete, might be to costy?
@@ -46,7 +45,7 @@ module.exports = class ClearChat extends Command {
             await message.channel.bulkDelete(100, true).catch(console.error);
         }
 
-        discordServices.discordLog(message.guild, "Cleared the channel: " + message.channel.name + ". By user: " + message.author.username);
+        discordServices.discordLog(message.guild, "CHANNEL CLEAR " + message.channel.name + ". By user: " + message.author.username);
         
         var commands = [];
 

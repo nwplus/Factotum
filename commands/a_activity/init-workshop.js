@@ -1,12 +1,11 @@
 // Discord.js commando requirements
-const { Command } = require('discord.js-commando');
-const firebaseWorkshops = require('../../firebase-services/firebase-services-workshops');
-const firebaseServices = require('../../firebase-services/firebase-services');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
+const Activity = require('../../classes/activity');
+const ActivityCommand = require('../../classes/activity-command');
 
 // Command export
-module.exports = class InitWorkshop extends Command {
+module.exports = class InitWorkshop extends ActivityCommand {
     constructor(client) {
         super(client, {
             name: 'initw',
@@ -14,99 +13,17 @@ module.exports = class InitWorkshop extends Command {
             memberName: 'initialize workshop funcitonality for activity',
             description: 'Will initialize the workshop functionality for the given workshop. General voice channel will be muted for all hackers.',
             guildOnly: true,
-            args: [
-                {
-                    key: 'activityName',
-                    prompt: 'the workshop name',
-                    type: 'string',
-                },
-                {
-                    key: 'categoryChannelKey',
-                    prompt: 'snowflake of the activiti\'s category',
-                    type: 'string',
-                    default: '',
-                },
-                {
-                    key: 'textChannelKey',
-                    prompt: 'snowflake of the general text channel for the activity',
-                    type: 'string',
-                    default: '',
-                },
-                {
-                    key: 'voiceChannelKey',
-                    prompt: 'snowflake of the general voice channel for the activity',
-                    type: 'string',
-                    default: '',
-                },
-            ],
         });
     }
 
-    // Run function -> command body
-    async run(message, { activityName, categoryChannelKey, textChannelKey, voiceChannelKey}) {
-        discordServices.deleteMessage(message);
+    /**
+     * Required class by children, should contain the command code.
+     * @param {Message} message - the message that has the command
+     * @param {Activity} activity - the activity for this activity command
+     */
+    async activityCommand(message, activity) {
 
-        // make sure command is only used in the admin console
-        if (!discordServices.isAdminConsole(message.channel)) {
-            discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
-            return;
-        }
-        // only memebers with the Hacker tag can run this command!
-        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
-            discordServices.replyAndDelete(message, 'You do not have permission for this command, only staff can use it!');
-            return;
-        }
-
-        // get category
-        if (categoryChannelKey === '') {
-            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName)).catch(console.error);
-        } else {
-            var category = message.guild.channels.resolve(categoryChannelKey);
-        }
-        
-
-        // make sure the workshop exists, else return
-        if (category === undefined) {
-            discordServices.replyAndDelete(message, 'The activity named: ' + activityName + ', does not exist! Did not create voice channels.');
-            return;
-        }
-
-        // grab general voice and update permission to no speak for attendees
-        if (voiceChannelKey === '') {
-            var generalVoice = await category.children.find(channel.type === 'voice'  && channel.name.endsWith(activityName + '-general-voice')).catch(console.error);
-        } else {
-            var generalVoice = message.guild.channels.resolve(voiceChannelKey);
-        }
-        
-        generalVoice.updateOverwrite(discordServices.attendeeRole, {
-            SPEAK: false
-        }).catch(console.error);
-        generalVoice.updateOverwrite(discordServices.mentorRole, {
-            SPEAK: true,
-            MOVE_MEMBERS: true,
-        }).catch(console.error);
-        generalVoice.updateOverwrite(discordServices.staffRole, {
-            SPEAK: true,
-            MOVE_MEMBERS: true,
-        });
-
-        // create TA console
-        var taChannel = await message.guild.channels.create(':🧑🏽‍🏫:' + 'ta-console', {
-            type: 'text', 
-            parent: category, 
-            topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
-        });
-        taChannel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
-        taChannel.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false});
-
-        // create question and help channel for hackers
-        var helpChannel = await message.guild.channels.create('🙋🏽' + 'assistance', { 
-            type: 'text', 
-            parent: category, 
-            topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
-        });
-        // add helpChannel to the black list
-        discordServices.blackList.set(helpChannel.id, 5000);
+        let taChannel, assistanceChannel = await activity.makeWorkshop();
 
     // important variables and embeds
         // pullInFunctionality is default to true
@@ -184,7 +101,7 @@ module.exports = class InitWorkshop extends Command {
                     commandRegistry.findCommands('workshop-polls', true)[0].run(message, { activityName: activityName, question: 'explanations', targetChannelKey: textChannelKey });
                 }
             });
-        }).catch(console.error);
+        });
 
         // embed message for TA console
         const taEmbed = new Discord.MessageEmbed()
@@ -193,7 +110,7 @@ module.exports = class InitWorkshop extends Command {
             .setDescription('* Make sure you are on a private voice channel not the general voice channel \n* To get the next hacker that needs help click 🤝');
 
         // send taConsole message and react with emoji
-        var taConsole = await taChannel.send(taEmbed);
+        var taConsole = await taChannel.send(taEmbed).catch(console.error);
         taConsole.pin();
         taConsole.react('🤝');
 
@@ -201,13 +118,13 @@ module.exports = class InitWorkshop extends Command {
         // message embed for helpChannel
         const helpEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
-            .setTitle(activityName + ' Help Desk')
-            .setDescription('Welcome to the ' + activityName + ' help desk. There are two ways to get help explained below:')
+            .setTitle(activity.name + ' Help Desk')
+            .setDescription('Welcome to the ' + activity.name + ' help desk. There are two ways to get help explained below:')
             .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, use the !ask command on the text channel ' + '<#' + textChannelKey + '>' + '!')
             .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the ' +  discordServices.activityVoiceChannelName + ' voice channel if not already there!');
 
         // send message with embed and react with emoji
-        var helpMessage = await helpChannel.send(helpEmbed).catch(console.error);
+        var helpMessage = await assistanceChannel.send(helpEmbed);
         helpMessage.pin();
         helpMessage.react('🧑🏽‍🏫');
 
@@ -234,7 +151,7 @@ module.exports = class InitWorkshop extends Command {
             }
 
             // collect the question the hacker has
-            var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond');
+            var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond').catch(console.error);
 
             helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000, error:['time'] }).then(async msgs => {
                 // get question
@@ -322,7 +239,7 @@ module.exports = class InitWorkshop extends Command {
         });
 
         // report success of workshop creation
-        discordServices.replyAndDelete(message, 'Activity named: ' + activityName + ' now has workshop functionality.');
+        discordServices.replyAndDelete(message, 'Activity named: ' + activity.name + ' now has workshop functionality.');
     }
 
 };

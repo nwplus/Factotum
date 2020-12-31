@@ -1,29 +1,32 @@
 
 const firebaseActivity = require('./firebase-services/firebase-services-activities');
+const Discord = require('discord.js');
 
-var guestRole = '774734424045649950';
-var hackerRole = '784252997327650816';
-var attendeeRole = '774735971375120404';
-var mentorRole = '774734376222195755';
-var sponsorRole = '774734345968812043';
-var staffRole = '774734326554296320';
-var adminRole = '773400712234663965';
-var everyoneRole = '772898802604310538';
-var stamp0Role = '781404710779224115';
-var stamp1Role = '781404761273794601';
-var stamp2Role = '781404770476097536';
-var stamp3Role = '781404766974640128';
-var stamp4Role = '781404765133078549';
-var stamp5Role = '784224898230779945';
-var stamp6Role = '781404768336609290';
-var stamp7Role = '784224981386133525';
-var stamp8Role = '784224964001005589';
-var stamp9Role = '781404767809044491';
-var stamp10Role = '781404771612622868';
-var stamp11Role = '781404769691631627';
-var stamp12Role = '782684483072950272';
-var stamp13Role = '782684457357410314';
-var stamp14Role = '784224112909221948';
+// Available Roles
+var guestRole = '778651193362481213';
+var hackerRole = '738519785028976741';
+var attendeeRole = '742896999556448357';
+var mentorRole = '747527454200955051';
+var sponsorRole = '738519983981723748';
+var staffRole = '738519363904077916';
+var adminRole = '738491577596641311';
+var everyoneRole = '738475671977722058';
+var stamp0Role = '776690929557831680';
+var stamp1Role = '776694051482107944';
+var stamp2Role = '777163284679229461';
+var stamp3Role = '777163346456870913';
+var stamp4Role = '777163367814922250';
+var stamp5Role = '777163388631253002';
+var stamp6Role = '777163410269011990';
+var stamp7Role = '777163427328163850';
+var stamp8Role = '777163452560048168';
+var stamp9Role = '777163468053938186';
+var stamp10Role = '777163488019480586';
+var stamp11Role = '777163506902237196';
+var stamp12Role = '777163524568776704';
+var stamp12Role = '777163524568776704';
+var stamp13Role = '784224112909221948';
+var stamp14Role = '784224898230779945';
 var stamp15Role = '784224924633923635';
 var stamp16Role = '784224943730327592';
 var stamp17Role = '781404770803908609';
@@ -60,6 +63,15 @@ module.exports.stamp18Role = stamp18Role;
 module.exports.stamp19Role = stamp19Role;
 module.exports.stamp20Role = stamp20Role;
 
+/**
+ * A collection of all the stamp roles.
+ * @type {Discord.Collection<Number, String>} - <StampNumber, roleID>
+ */
+var stampRoles = new Discord.Collection();
+let listOfStampRoles = [stamp0Role, stamp1Role, stamp2Role, stamp3Role, stamp4Role, stamp5Role, stamp6Role, stamp7Role, stamp8Role, stamp9Role, stamp10Role, stamp11Role,
+    stamp12Role, stamp13Role, stamp14Role, stamp15Role, stamp16Role, stamp17Role, stamp18Role, stamp19Role, stamp20Role];
+listOfStampRoles.forEach((value, index) => stampRoles.set(index, value));
+module.exports.stampRoles = stampRoles;
 
 // other project wide vars
 var embedColor = '#26fff4';
@@ -102,13 +114,13 @@ module.exports.sponsorCategory = sponsorCategory;
 
 // console where most commands are accessible, only staff
 // should have access to this
-var adminConsolChannel = '774754336215269386';
+var adminConsolChannel = '748955441484005488';
+module.exports.adminConsoleChannel = adminConsolChannel;
 // channel where the bot can log important things like verifications, 
 // clear chat calls, etc
-var adminLogChannel = '774754260570079252';
+var adminLogChannel = '743197503884755045';
 // channel where the bot can ping members with DM off
-var botSupportChannel = '785083314553094164';
-
+var botSupportChannel = '784910416224583751';
 
 // channel where guests will use the !verify command,
 // usualy the welcome channel
@@ -185,7 +197,7 @@ function addRoleToMember(member, addRole) {
         // try one more time
         member.roles.add(addRole).catch(error => {
             // now send error to admins
-            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role' + member.guild.roles.cache.get(addRole) +' please help me!');
+            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role ' + member.guild.roles.cache.get(addRole) +' please help me!');
         });
     });
 }
