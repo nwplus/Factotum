@@ -53,7 +53,7 @@ module.exports = class Attendace extends PermissionCommand {
             case firebaseServices.status.HACKER_SUCCESS:
                 embed.addField('Thank you for attending nwHacks 2021', 'Happy hacking!!!');
                 discordServices.addRoleToMember(message.member, discordServices.attendeeRole);
-                discordServices.discordLog(message.guild, "Hacker with email " + email + " is attending nwHacks 2021!");
+                discordServices.discordLog(message.guild, "ATTEND SUCCESS : <@" + message.author.id + "> with email: " + email + " is attending nwHacks 2021!");
                 break;
             case firebaseServices.status.HACKER_IN_USE:
                 embed.addField('Hi there, this email is already marked as attending', 'Have a great day!')
@@ -63,6 +63,7 @@ module.exports = class Attendace extends PermissionCommand {
                     ' in our system, please make sure your email is well typed. If you think this is an error' +
                     ' please contact us in the support channel.')
                     .setColor('#fc1403');
+                discordServices.discordLog(message.guild, "ATTEND ERROR : <@" + message.author.id + "> with email: " + email + " tried to attend but I did not find his email!");
                 break;
         }
         discordServices.sendMessageToMember(message.member, embed);
