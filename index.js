@@ -223,7 +223,7 @@ bot.on('message', async message => {
 bot.on('guildMemberAdd', member => {
 
     var embed = new Discord.MessageEmbed()
-        .setTitle('Welcome to the HackCamp 2020 Server!')
+        .setTitle('Welcome to the nwHacks 2021 Server!')
         .setDescription('We are very excited to have you here!')
         .addField('Gain more access by verifying yourself!', 'Go back to the welcome channel and use the !verify command. More info there!')
         .addField('Have a question?', 'Go to the welcome-assistance channel to talk with our staff!')
