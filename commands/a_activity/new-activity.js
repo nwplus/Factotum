@@ -20,12 +20,6 @@ module.exports = class NewActivity extends PermissionCommand {
                     prompt: 'the activity name, can use emojis!',
                     type: 'string',
                 },
-                // {
-                //     key: 'startsHidden',
-                //     prompt: 'do you want the activity to start hidden?',
-                //     type: 'boolean',
-                //     default: true,
-                // }
             ],
         },
         {
@@ -36,7 +30,7 @@ module.exports = class NewActivity extends PermissionCommand {
         });
     }
 
-    async runCommands(message, {activityName}) {
+    async runCommand(message, {activityName}) {
 
         let activity = await new Activity(activityName, message.guild).init();
 
@@ -64,7 +58,6 @@ module.exports = class NewActivity extends PermissionCommand {
                 '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.\n' + 
                 '🕵🏽 Will make this activity a among us activity!\n' + 
                 '💼 Will archive the activity, removing all channels except the text channel which will be sent to archive category.\n' // +
-                // '🤫 Will change the visibility of the activity, can only change twice! Look at category name to know if hidden or not.'
             );  
 
         // send message
@@ -74,17 +67,10 @@ module.exports = class NewActivity extends PermissionCommand {
         var emojis = ['🧑🏽‍💼', '☕', '⏫', '⏬', '⛔', 
                         '🌬️', '🔃', '👨‍👩‍👧‍👦', '🦜','🏕️','🏎️',
                         '✍️','🧑‍🏫', '🕵🏽', '💼', 
-                        // '🤫' we are not using hide/unhide functionality
                     ];
 
         // respond to message with emojis
         emojis.forEach(emoji => msgConsole.react(emoji));
-
-        // hide the activity if asked to
-        // if (startsHidden) {
-        //     this.client.registry.findCommands('hide_unhide', true)[0].run(message, {activityName: activityName, toHide: true, categoryChannelKey: category.id});
-        //     msgConsole.edit(msgConsole.embeds[0].addField('Activity is now HIDDEN', 'The activity is marked as HIDDEN, no one can see it!'));
-        // }
 
         // create collector
         const emojiCollector = await msgConsole.createReactionCollector((reaction, user) => user.bot != true && emojis.includes(reaction.emoji.name));
@@ -155,30 +141,6 @@ module.exports = class NewActivity extends PermissionCommand {
                 msgConsole.delete({timeout: 3000});
                 emojiCollector.stop();
             } 
-            // NOT USING HIDDEN FUNCTIONALITY -> BREAKS TOO MANY PERMISION STUFF!
-            // else if (emojiName === emojis[15]) {
-            //     isHidden = !isHidden;
-                
-            //     // guard to make sure the hide functinoality is not used more than possible due to discord API constraints
-            //     if (hiddenChanges >= maxHiddenChanges) {
-            //         discordServices.replyAndDelete(message, 'This activity can\'t be hidden/unhidden anymore!');
-            //         return;
-            //     }
-
-            //     // update HIDDEN/UNHIDDEN in the console
-            //     msgEmbed.addField('Activity is now HIDDEN', 'The activity is marked as HIDDEN, no one can see it!')
-
-            //     commandRegistry.findCommands('hide_unhide', true)[0].run(message, {activityName: activityName, toHide: isHidden, categoryChannelKey: category.id });
-            //     if (!isHidden && !(isWorkshop || isAmongUs || isCoffeeChats)) {
-            //         discordServices.changeVoiceChannelPermissions(activityName, category, false);
-            //         msgConsole.edit(msgConsole.embeds[0].addField('Activity is now HIDDEN', 'The activity is marked as HIDDEN, no one can see it!'));
-            //     } else {
-            //         discordServices.changeVoiceChannelPermissions(activityName, category, true);
-            //         msgConsole.edit(msgConsole.embeds[0].addField('Activity is now not HIDDEN', 'The activity is viewable by everyone!'));
-            //     }
-
-            //     hiddenChanges += 1;
-            // }
         });
     }
 };
