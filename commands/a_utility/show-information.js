@@ -1,10 +1,9 @@
-// Discord.js commando requirements
-const { Command } = require('discord.js-commando');
+const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
 // Command export
-module.exports = class ShowInformation extends Command {
+module.exports = class ShowInformation extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'showi',
@@ -19,16 +18,14 @@ module.exports = class ShowInformation extends Command {
                     type: 'string',
                 },
             ],
+        },
+        {
+            roleID: discordServices.adminRole,
+            roleMessage: 'Hey there, the command !showi is only available to Admins!',
         });
     }
 
-    async run (message, {command}) {
-        discordServices.deleteMessage(message);
-        // only admins can use this command inside the guild
-        if (! (discordServices.checkForRole(message.member, discordServices.adminRole))) {
-            discordServices.replyAndDelete(message, 'Hey there, the command !showi is only available to Admins!');
-            return;
-        }
+    async runCommand(message, {command}) {
 
         const embed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor);

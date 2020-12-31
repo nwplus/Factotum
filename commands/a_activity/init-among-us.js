@@ -2,9 +2,11 @@
 const { Command } = require('discord.js-commando');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
+const Activity = require('../../classes/activity');
+const ActivityCommand = require('../../classes/activity-command');
 
 // Command export
-module.exports = class InitAmongUs extends Command {
+module.exports = class InitAmongUs extends ActivityCommand {
     constructor(client) {
         super(client, {
             name: 'initau',
@@ -14,86 +16,24 @@ module.exports = class InitAmongUs extends Command {
             guildOnly: true,
             args: [
                 {
-                    key: 'activityName',
-                    prompt: 'the workshop name',
-                    type: 'string',
-                },
-                {
                     key: 'numOfChannels',
                     prompt: 'number of groups to participate in coffee chat',
                     type: 'integer',
                     default: 3,
                 },
-                {
-                    key: 'categoryChannelKey',
-                    prompt: 'snowflake of the activiti\'s category',
-                    type: 'string',
-                    default: '',
-                },
-                {
-                    key: 'textChannelKey',
-                    prompt: 'snowflake of the general text channel for the activity',
-                    type: 'string',
-                    default: '',
-                },
-                {
-                    key: 'voiceChannelKey',
-                    prompt: 'snowflake of the general voice channel for the activity',
-                    type: 'string',
-                    default: '',
-                },
             ],
         });
     }
 
-    // Run function -> command body
-    async run(message, {activityName, numOfChannels, categoryChannelKey, textChannelKey, voiceChannelKey}) {
-        discordServices.deleteMessage(message);
-        
-        // make sure command is only used in the admin console
-        if (! discordServices.isAdminConsole(message.channel)) {
-            discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
-            return;   
-        }
-        // only memebers with the staff tag can run this command!
-        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
-            discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
-            return;             
-        }
-        
-        // get category
-        if (categoryChannelKey === '') {
-            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName));
-        } else {
-            var category = message.guild.channels.resolve(categoryChannelKey);
-        }
 
-        // change name
-        category.edit({name: '😈' + category.name})
+    /**
+     * Required class by children, should contain the command code.
+     * @param {Message} message - the message that has the command
+     * @param {Activity} activity - the activity for this activity command
+     */
+    async activityCommand(message, activity, { numOfChannels}) {
 
-
-        // if no activity category then report failure and return
-        if (category === undefined) {
-            discordServices.replyAndDelete(message,'The activity named: ' + activityName +', does not exist! No action taken.');
-            return;
-        }
-
-        // add group creation text channel
-        var joinActivityChannel = await message.guild.channels.create('🕵🏽' + 'join-activity', {
-            topic: 'This channel is only intended for you to gain access to other channels! Please do not use it for anything else!',
-            parent: category,
-        });
-
-        // add game code channel
-        message.guild.channels.create('🎮' + 'game-codes', {
-            type: 'text',
-            topic: 'This channel is only intended to send game codes for others to join!',
-        }).then(channel => {
-            channel.setParent(category, {lockPermissions: false}).then(channel => channel.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false}));
-        });
-
-        // add voice channels
-        await discordServices.addVoiceChannelsToActivity(activityName, numOfChannels, category, message.guild.channels, true, 12);
+        let joinActivityTextChannel = await activity.makeAmongUs(numOfChannels);
 
         // reaction to use
         var emoji = '🚗';
@@ -111,7 +51,7 @@ module.exports = class InitAmongUs extends Command {
             '1. Please be respectful, remember this is just a game and the goal is to have fun and meet some fellow hackers!\n' +
             '2. Please do not leave games mid-way through.\n' +
             '3. Please do not spam the game code text channel, only send game codes!\n');
-        var joinMsg = await joinActivityChannel.send(msgEmbed);
+        var joinMsg = await joinActivityTextChannel.send(msgEmbed);
         joinMsg.pin();
         await joinMsg.react(emoji);
 
@@ -124,10 +64,14 @@ module.exports = class InitAmongUs extends Command {
         });
 
         // report success of coffee chat creation
-        discordServices.replyAndDelete(message,'Activity named: ' + activityName + ' now has among us functionality.');
+        discordServices.replyAndDelete(message,'Activity named: ' + activity.name + ' now has among us functionality.');
     }
 
-    // will let the user see all the available channels in the category
+    /**
+     * Gives a user full acccess to the category, that is, all its children!
+     * @param {Discord.User} user - the user give access to
+     * @param {Discord.CategoryChannel} category - the category to give access to
+     */
     gainAccess(user, category) {
         category.children.each(channel => channel.updateOverwrite(user, {
             'VIEW_CHANNEL' : true,

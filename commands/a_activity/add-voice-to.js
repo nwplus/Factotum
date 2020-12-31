@@ -1,9 +1,10 @@
 // Discord.js commando requirements
-const { Command } = require('discord.js-commando');
+const Activity = require('../../classes/activity');
+const ActivityCommand = require('../../classes/activity-command');
 const discordServices = require('../../discord-services');
 
 // Command export
-module.exports = class CreatePrivatesFor extends Command {
+module.exports = class CreatePrivatesFor extends ActivityCommand {
     constructor(client) {
         super(client, {
             name: 'addvoiceto',
@@ -13,20 +14,9 @@ module.exports = class CreatePrivatesFor extends Command {
             guildOnly: true,
             args: [
                 {
-                    key: 'activityName',
-                    prompt: 'the workshop name',
-                    type: 'string',
-                },
-                {
                     key: 'number',
                     prompt: 'number of private channels',
                     type: 'integer',
-                },
-                {
-                    key: 'categoryChannelKey',
-                    prompt: 'snowflake of the activiti\'s category',
-                    type: 'string',
-                    default: '',
                 },
                 {
                     key: 'isPrivate',
@@ -44,40 +34,16 @@ module.exports = class CreatePrivatesFor extends Command {
         });
     }
 
-    // Run function -> command body
-    async run(message, {activityName, number, categoryChannelKey, isPrivate, maxUsers}) {
-        discordServices.deleteMessage(message);
-
-        // make sure command is only used in the admin console
-        if (! discordServices.isAdminConsole(message.channel)) {
-            discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
-            return;   
-        }
-        // only memebers with the staff tag can run this command!
-        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
-            discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
-            return;             
-        }
-
-        // get category
-        if (categoryChannelKey === '') {
-            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName));
-        } else {
-            var category = message.guild.channels.resolve(categoryChannelKey);
-        }
-
-        
-        // if no category then report failure and return
-        if (category === undefined) {
-            // if the category does not excist
-            discordServices.replyAndDelete(message,'The workshop named: ' + activityName +', does not excist! Did not create voice channels.');
-            return;
-        }
-        
-        var final = await discordServices.addVoiceChannelsToActivity(activityName, number, category, message.guild.channels, isPrivate, maxUsers);
+    /**
+     * Command code.
+     * @param {Message} message 
+     * @param {Activity} activity 
+     */
+    async activityCommand(message, activity, {number, isPrivate, maxUsers}) {
+        activity.addVoiceChannels(number, isPrivate, maxUsers);
 
         // report success of workshop creation
-        discordServices.replyAndDelete(message,'Workshop session named: ' + activityName + ' now has ' + final + ' voice channels.');
+        discordServices.replyAndDelete(message,'Workshop session named: ' + activity.name + ' now has ' + final + ' voice channels.');
     }
 
 };

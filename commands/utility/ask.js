@@ -1,10 +1,10 @@
 // Discord.js commando requirements
-const { Command } = require('discord.js-commando');
+const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
 // Command export
-module.exports = class AskQuestion extends Command {
+module.exports = class AskQuestion extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'ask',
@@ -20,19 +20,15 @@ module.exports = class AskQuestion extends Command {
                     default: '',
                 }
             ],
+        },
+        {
+            roleID: discordServices.attendeeRole,
+            roleMessage: 'This command is only available for attendees!',
         });
     }
 
     // Run function -> command body
-    async run(message, {question}) {
-        discordServices.deleteMessage(message);
-
-        // only memebers with the Hacker tag can run this command!
-        if (!discordServices.checkForRole(message.member, discordServices.attendeeRole)) {
-            console.log(discordServices.checkForRole(message.member, discordServices.attendeeRole));
-            discordServices.sendMessageToMember(message.member, 'This command is only available for attendees!', true);
-            return;
-        }
+    async runCommand(message, {question}) {
 
         // if question is blank let user know via DM and exit
         if (question === '') {

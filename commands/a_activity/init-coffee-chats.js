@@ -1,12 +1,11 @@
-// Discord.js commando requirements
-const { Command } = require('discord.js-commando');
-const firebaseActivity = require('../../firebase-services/firebase-services-activities');
 const firebaseCoffeeChats = require('../../firebase-services/firebase-services-coffeechats');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
+const Activity = require('../../classes/activity');
+const ActivityCommand = require('../../classes/activity-command');
 
 // Command export
-module.exports = class InitCoffeeChats extends Command {
+module.exports = class InitCoffeeChats extends ActivityCommand {
     constructor(client) {
         super(client, {
             name: 'initcc',
@@ -15,76 +14,24 @@ module.exports = class InitCoffeeChats extends Command {
             description: 'Will initialize the coffee chat functionality for the given workshop.',
             guildOnly: true,
             args: [
-                {
-                    key: 'activityName',
-                    prompt: 'the workshop name',
-                    type: 'string',
-                },
+                
                 {
                     key: 'numOfGroups',
                     prompt: 'number of groups to participate in coffee chat',
                     type: 'integer'
                 },
-                {
-                    key: 'categoryChannelKey',
-                    prompt: 'snowflake of the activiti\'s category',
-                    type: 'string',
-                    default: '',
-                },
-                {
-                    key: 'textChannelKey',
-                    prompt: 'snowflake of the general text channel for the activity',
-                    type: 'string',
-                    default: '',
-                },
-                {
-                    key: 'voiceChannelKey',
-                    prompt: 'snowflake of the general voice channel for the activity',
-                    type: 'string',
-                    default: '',
-                },
             ],
         });
     }
 
-    // Run function -> command body
-    async run(message, {activityName, numOfGroups, categoryChannelKey, textChannelKey, voiceChannelKey}) {
-        discordServices.deleteMessage(message);
-        
-        // make sure command is only used in the admin console
-        if (! discordServices.isAdminConsole(message.channel)) {
-            discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
-            return;   
-        }
-        // only memebers with the staff tag can run this command!
-        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
-            discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
-            return;             
-        }
-        
-        // get category
-        if (categoryChannelKey === '') {
-            var category = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name.endsWith(activityName));
-        } else {
-            var category = message.guild.channels.resolve(categoryChannelKey);
-        }
-        
-        // if no activity category then report failure and return
-        if (category === undefined) {
-            discordServices.replyAndDelete(message,'The activity named: ' + activityName +', does not exist! No action taken.');
-            return;
-        }
+    /**
+     * Required class by children, should contain the command code.
+     * @param {Message} message - the message that has the command
+     * @param {Activity} activity - the activity for this activity command
+     */
+    async activityCommand(message, activity, { numOfGroups }) {
 
-        // initialize firebase fields
-        firebaseCoffeeChats.initCoffeeChat(activityName);
-
-        await discordServices.addVoiceChannelsToActivity(activityName, numOfGroups, category, message.guild.channels, true);
-
-        // add group creation text channel
-        var joinActivityChannel = await message.guild.channels.create('☕' + 'join-activity', {
-            topic: 'This channel is only intended to add your team to the activity list! Please do not use it for anything else!',
-            parent: category,
-        });
+        let joinActivityChannel = await activity.makeCoffeeChats(numOfGroups);
 
         // reaction to use
         var emoji = '⛷️';
@@ -103,14 +50,21 @@ module.exports = class InitCoffeeChats extends Command {
         const emojiCollector = joinMsg.createReactionCollector(emojiFilter, {max: numOfGroups});
 
         emojiCollector.on('collect', async (reaction, user) => {
-            await this.createGroup(user, joinActivityChannel, activityName);
+            await this.createGroup(user, joinActivityChannel, activity.name);
         });
 
         // report success of coffee chat creation
-        discordServices.replyAndDelete(message,'Activity named: ' + activityName + ' now has coffee chat functionality.');
+        discordServices.replyAndDelete(message,'Activity named: ' + activity.name + ' now has coffee chat functionality.');
     }
 
-    // will ask for group users and add the group to the coffee chat
+
+    /**
+     * Will create a group for the coffee chats to firebase.
+     * @param {Discord.User} user - the user that created the group
+     * @param {Discord.TextChannel} joinActivityChannel - the text channel where the user will send group members
+     * @param {String} activityName - the activity name for firebase
+     * @private
+     */
     async createGroup(user, joinActivityChannel, activityName) {
         // filter for message await
         const msgFilter = m => m.author.id === user.id;
