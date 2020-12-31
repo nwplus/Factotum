@@ -3,7 +3,7 @@ const firebaseActivity = require('./firebase-services/firebase-services-activiti
 const Discord = require('discord.js');
 
 // Available Roles
-var guestRole = '742896900419747961';
+var guestRole = '778651193362481213';
 var hackerRole = '738519785028976741';
 var attendeeRole = '742896999556448357';
 var mentorRole = '747527454200955051';
@@ -197,7 +197,7 @@ function addRoleToMember(member, addRole) {
         // try one more time
         member.roles.add(addRole).catch(error => {
             // now send error to admins
-            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role' + member.guild.roles.cache.get(addRole) +' please help me!');
+            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role ' + member.guild.roles.cache.get(addRole) +' please help me!');
         });
     });
 }
