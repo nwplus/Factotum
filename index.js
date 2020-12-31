@@ -156,14 +156,18 @@ bot.on('commandError', (command, error) => {
         '\nline number: ' + error.lineNumber +
         '\nstack: ' + error.stack
     );
+
     discordServices.discordLog(bot.guilds.cache.first(),
-        'Error on command: ' + command.name +  
-        'Uncaught Rejection, reason: ' + error.name + 
-        '\nmessage: ' + error.message +
-        '\nfile: ' + error.fileName + 
-        '\nline number: ' + error.lineNumber +
-        '\nstack: ' + error.stack + 
-        `\nException origin: ${origin}`
+        new Discord.MessageEmbed().setColor('#ed3434')
+            .setTitle('Command Error')
+            .setDescription('Error on command: ' + command.name +  
+            'Uncaught Rejection, reason: ' + error.name + 
+            '\nmessage: ' + error.message +
+            '\nfile: ' + error.fileName + 
+            '\nline number: ' + error.lineNumber +
+            '\nstack: ' + error.stack + 
+            `\nException origin: ${origin}`)
+            .setTimestamp()
     );
 });
 
@@ -176,13 +180,16 @@ process.on('uncaughtException', (error, origin) => {
         '\nstack: ' + error.stack + 
         `Exception origin: ${origin}`
     );
-    discordServices.discordLog(bot.guilds.cache.first(),  
-        'Uncaught Rejection, reason: ' + error.name + 
-        '\nmessage: ' + error.message +
-        '\nfile: ' + error.fileName + 
-        '\nline number: ' + error.lineNumber +
-        '\nstack: ' + error.stack + 
-        `\nException origin: ${origin}`
+    discordServices.discordLog(bot.guilds.cache.first(),
+        new Discord.MessageEmbed().setColor('#ed3434')
+            .setTitle('Uncaught Rejection')
+            .setDescription('Uncaught Rejection, reason: ' + error.name + 
+            '\nmessage: ' + error.message +
+            '\nfile: ' + error.fileName + 
+            '\nline number: ' + error.lineNumber +
+            '\nstack: ' + error.stack + 
+            `\nException origin: ${origin}`)
+            .setTimestamp()
     );
 });
 
@@ -194,17 +201,24 @@ process.on('unhandledRejection', (error, promise) => {
         '\nline number: ' + error.lineNumber +
         '\nstack: ' + error.stack
     );
-    discordServices.discordLog(bot.guilds.cache.first(), 
-        'Unhandled Rejection, reason: ' + error.name + 
-        '\nmessage: ' + error.message +
-        '\nfile: ' + error.fileName + 
-        '\nline number: ' + error.lineNumber
+    discordServices.discordLog(bot.guilds.cache.first(),
+        new Discord.MessageEmbed().setColor('#ed3434')
+            .setTitle('Unhandled Rejection')
+            .setDescription('Unhandled Rejection, reason: ' + error.name + 
+            '\nmessage: ' + error.message +
+            '\nfile: ' + error.fileName + 
+            '\nline number: ' + error.lineNumber)
+            .setTimestamp()
     );
 });
 
 process.on('exit', () => {
     console.log('Node is exiting!');
-    discordServices.discordLog(bot.guilds.cache.first(), 'The program is shutting down!');
+    discordServices.discordLog(bot.guilds.cache.first(), 
+    new Discord.MessageEmbed().setColor('#ed3434')
+            .setTitle('Unhandled Rejection')
+            .setDescription('The program is shutting down!')
+            .setTimestamp());
 });
 
 bot.on('message', async message => {

@@ -44,7 +44,7 @@ module.exports = class ClearChat extends PermissionCommand {
             await message.channel.bulkDelete(100, true).catch(console.error);
         }
 
-        discordServices.discordLog(message.guild, "Cleared the channel: " + message.channel.name + ". By user: " + message.author.username);
+        discordServices.discordLog(message.guild, "CHANNEL CLEAR " + message.channel.name + ". By user: " + message.author.username);
         
         var commands = [];
 
