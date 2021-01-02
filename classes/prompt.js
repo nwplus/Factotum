@@ -19,7 +19,8 @@ class Prompt {
      */
     static async messagePrompt(prompt, responseType, channel, userID, time = 0) {
 
-        let finalPrompt = '<@' + userID + '> ' + prompt + (responseType == 'number' ? ' Respond with a number only!' : responseType == 'boolean' ? ' (yes/no)' : '');
+        let finalPrompt = '<@' + userID + '> ' + prompt + (responseType == 'number' ? ' Respond with a number only!' : responseType == 'boolean' ? ' (yes/no)' : '' + 
+                        (time === 0 ? '' : 'Respond within ' + time + ' secodns.') + 'Respond with cancel to cancel.');
 
         // send prompt
         let promptMsg = await channel.send(finalPrompt);
@@ -31,9 +32,15 @@ class Prompt {
             discordServices.deleteMessage(promptMsg);
             discordServices.deleteMessage(msg);
 
+            // check if they responded with cancel
+            if (msg.content.toLocaleLowerCase() === 'cancel') {
+                return false;
+            }
+
             return msg;
         } catch (error) {
             channel.send('<@' + userID + '> Time is up, please try again once you are ready, we recommend you write the text, then react, then send!').then(msg => msg.delete({timeout: 10000}));
+            discordServices.deleteMessage(promptMsg);
             return false;
         }
     }
