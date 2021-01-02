@@ -160,7 +160,7 @@ module.exports = class StartTeamFormation extends PermissionCommand {
         
 
         // check if the prompt timed out, if so, exit
-        if (formMsg === false) {
+        if (formMsg === null) {
             isResponging = !isResponging;
             return;
         }

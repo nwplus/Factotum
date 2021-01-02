@@ -90,6 +90,21 @@ class Prompt {
         else if (promtMsg.content.toLowerCase() === 'yes') return true;
         else this.yesNoPrompt(prompt, channel, userID);
     }
+
+
+    /**
+     * Prompt the user for a channel mention.
+     * @param {String} prompt - the text prompt to send to user
+     * @param {Discord.TextChannel} channel - the channel to send the prompt to
+     * @param {String} userID - the ID of the user to prompt
+     * @async
+     * @returns {Promise<Discord.TextChannel>} - the text channel prompted
+     */
+    static async channelPrompt(prompt, channel, userID) {
+        let promptMsg = await this.messagePrompt(prompt, 'mention', channel, userID);
+        if (promptMsg === null) return null;
+        return promptMsg.mentions.channels.first();
+    }
 }
 
 module.exports = Prompt;
