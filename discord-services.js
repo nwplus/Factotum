@@ -73,19 +73,25 @@ let listOfStampRoles = [stamp0Role, stamp1Role, stamp2Role, stamp3Role, stamp4Ro
 listOfStampRoles.forEach((value, index) => stampRoles.set(index, value));
 module.exports.stampRoles = stampRoles;
 
-// other project wide vars
+
 var embedColor = '#26fff4';
 module.exports.embedColor = embedColor;
+
 var questionEmbedColor = '#f4ff26';
 module.exports.questionEmbedColor = questionEmbedColor;
-var announcementEmbedColor = '#8f26ff';
+
+var announcementEmbedColor = '#9352d9';
 module.exports.announcementEmbedColor = announcementEmbedColor;
-var tfTeamEmbedColor = '#1929ff';
+
+var tfTeamEmbedColor = '#60c2e6';
 module.exports.tfTeamEmbedColor = tfTeamEmbedColor;
-var tfHackerEmbedColor = '#ff33f1';
+
+var tfHackerEmbedColor = '#d470cd';
 module.exports.tfHackerEmbedColor = tfHackerEmbedColor;
+
 var specialDMEmbedColor = '#fc6b03';
 module.exports.specialDMEmbedColor = specialDMEmbedColor;
+
 
 const blackList = new Map();
 module.exports.blackList = blackList;
@@ -136,13 +142,13 @@ module.exports.attendChannel = attendChannel;
 
 // where hackers can emoji to let the bot know if they are looking
 // for a team or a hacker(s)
-var teamformationChannel = '782500884545273886';
+var teamformationChannel = '770354140961570857';
 module.exports.teamformationChannel = teamformationChannel;
 // channel where team bios are posted, hackers shouldn't be able to post
-var recruitingChannel = '782506417079713802';
+var recruitingChannel = '770354487595499592';
 module.exports.recruitingChannel = recruitingChannel;
 // channel where hacker bios are posted, hackers shouldn't be able to post
-var lookingforteamChannel = '782506451746816000';
+var lookingforteamChannel = '770354521733857320';
 module.exports.lookingforteamChannel = lookingforteamChannel;
 
 // where hackers and other users can call the !createchannel command
@@ -173,11 +179,16 @@ function checkForRole(member, role) {
 }
 module.exports.checkForRole = checkForRole;
 
-// Send a Direct meesage to a member, option to delete after 5 seconds
+/**
+ * Send a Direct meesage to a member, option to delete after 10 seconds
+ * @param {Discord.User | Discord.GuildMember} member - the user or member to send a DM to
+ * @param {String} message - the message to send
+ * @param {Boolean} isDelete - weather to delete message after 10 seconds
+ */
 async function sendMessageToMember(member, message, isDelete = false) {
     member.send(message).then(msg => {
         if (isDelete === true) {
-            msg.delete({timeout: 5000})
+            msg.delete({timeout: 10000})
         }
         return msg;
     }).catch(error => {
@@ -191,7 +202,11 @@ async function sendMessageToMember(member, message, isDelete = false) {
 }
 module.exports.sendMessageToMember = sendMessageToMember;
 
-// Add a role to a member
+/**
+ * Add a role to a member
+ * @param {Discord.GuildMember} member - the guild member to give a role to
+ * @param {String | Discord.Role} addRole - the role to add to the member
+ */
 function addRoleToMember(member, addRole) {
     member.roles.add(addRole).catch(error => {
         // try one more time
@@ -203,13 +218,17 @@ function addRoleToMember(member, addRole) {
 }
 module.exports.addRoleToMember = addRoleToMember;
 
-// Remove a role to a member
+/**
+ * Remove a role to a member
+ * @param {Discord.GuildMember} member - the guild member to give a role to
+ * @param {String | Discord.Role} removeRole - the role to add to the member
+ */
 function removeRolToMember(member, removeRole) {
     member.roles.remove(removeRole).catch(error => {
         // try one more time
         member.roles.remove(removeRole).catch(error => {
             // now send error to admins
-            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role ' + member.guild.roles.cache.get(removeRole) + ', please help me!');
+            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not loose the role ' + member.guild.roles.cache.get(removeRole) + ', please help me!');
         });
     });
 }
@@ -330,9 +349,13 @@ async function addLimitToVoiceChannels(activityName, category, limit) {
 }
 module.exports.addLimitToVoiceChannels = addLimitToVoiceChannels;
 
-// deletes a message if the message hasn't been deleted already
+/**
+ * Deletes a message if the message hasn't been deleted already
+ * @param {Discord.Message} message - the message to delete
+ * @param {Number} timeout - the time to wait in milliseconds
+ */
 function deleteMessage(message, timeout = 0) {
-    if (message.deleted === false) {
+    if (message.deleted === false && message.deletable) {
         message.delete({timeout: timeout});
     }
 }
