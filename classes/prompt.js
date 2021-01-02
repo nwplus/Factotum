@@ -1,4 +1,6 @@
-const { Message } = require("discord.js");
+const Discord  = require("discord.js");
+const discordServices = require('../discord-services');
+
 
 /**
  * The Prompt class has usefull static functions to prompt the user for information.
@@ -9,30 +11,38 @@ class Prompt {
      * Prompt the user for some text.
      * @param {String} prompt - the text prompt to send to user
      * @param {String} responseType - the type of response, one of string, number, boolean
-     * @param {Channel} channel - the channel to send the prompt to
+     * @param {Discord.TextChannel} channel - the channel to send the prompt to
      * @param {String} userID - the ID of the user to prompt
-     * @returns {Promise<Message>} - the message response to the prompt
+     * @param {Number} time - the time in seconds to wait for the response, if 0 then wait forever
+     * @returns {Promise<Discord.Message | Boolean>} - the message response to the prompt or false if it timed out!
      * @async
      */
-    static async messagePrompt(prompt, responseType, channel, userID) {
+    static async messagePrompt(prompt, responseType, channel, userID, time = 0) {
+
+        let finalPrompt = '<@' + userID + '> ' + prompt + (responseType == 'number' ? ' Respond with a number only!' : responseType == 'boolean' ? ' (yes/no)' : '');
+
         // send prompt
-        let promptMsg = await channel.send('<@' + userID + '> ' + prompt + responseType === 'number' ? ' Respond a number only!' : '');
+        let promptMsg = await channel.send(finalPrompt);
 
-        let msgs = await channel.awaitMessages(message => message.author.id === userID, {max: 1});
+        try {
+            var msgs = await channel.awaitMessages(message => message.author.id === userID, {max: 1, time: time == 0 ? null : time * 1000, errors: ['time']});
+            let msg = msgs.first();
 
-        let msg = msgs.first();
+            discordServices.deleteMessage(promptMsg);
+            discordServices.deleteMessage(msg);
 
-        promptMsg.delete();
-        msg.delete();
-
-        return msg;
+            return msg;
+        } catch (error) {
+            channel.send('<@' + userID + '> Time is up, please try again once you are ready, we recommend you write the text, then react, then send!').then(msg => msg.delete({timeout: 10000}));
+            return false;
+        }
     }
 
 
     /**
      * Prompt a user for a number, will ask again if not given a number.
      * @param {String} prompt - the text prompt to send to user
-     * @param {Channel} channel - the channel to send the prompt to
+     * @param {Discord.TextChannel} channel - the channel to send the prompt to
      * @param {String} userID - the ID of the user to prompt
      * @async
      * @returns {Promise<Number>} - the number gotten from the prompt
