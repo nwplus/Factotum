@@ -1,4 +1,5 @@
-const { Message } = require("discord.js");
+const Discord = require("discord.js");
+const discordServices = require('../discord-services');
 
 /**
  * The Prompt class has usefull static functions to prompt the user for information.
@@ -16,7 +17,7 @@ class Prompt {
      */
     static async messagePrompt(prompt, responseType, channel, userID) {
         // send prompt
-        let promptMsg = await channel.send('<@' + userID + '> ' + prompt + responseType === 'number' ? ' Respond a number only!' : '');
+        let promptMsg = await channel.send('<@' + userID + '> ' + prompt + (responseType === 'number' ? ' Respond a number only!' : ''));
 
         let msgs = await channel.awaitMessages(message => message.author.id === userID, {max: 1});
 
@@ -43,6 +44,24 @@ class Prompt {
         if (isNan(number)) return this.numberPrompt(prompt, channel, userId);
         else return number;
 
+    }
+
+    /**
+     * Prompts the user to respond to a message with an emoji.
+     * @param {String} prompt - the text prompt to send to user
+     * @param {Discord.TextChannel} channel - the channel to send the prompt to
+     * @param {String} userID - the ID of the user to prompt
+     * @async
+     * @returns {Promise<Discord.MessageReaction>} - the message reaction
+     */
+    static async reactionPrompt(prompt, channel, userID) {
+        let reactionMsg = await channel.send('<@' + userID + '> ' + prompt + ' React to this message with the emoji.');
+
+        let reactions = await reactionMsg.awaitReactions((reaction, user) => !user.bot, {max: 1});
+
+        discordServices.deleteMessage(reactionMsg);
+
+        return reactions.first();
     }
 }
 
