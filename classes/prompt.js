@@ -54,6 +54,22 @@ class Prompt {
         else return number;
 
     }
+
+
+    /**
+     * Prompt the user for a yes/no answer and return true/false.
+     * @param {String} prompt - the text prompt to send to user
+     * @param {Discord.TextChannel} channel - the channel to send the prompt to
+     * @param {String} userID - the ID of the user to prompt
+     * @async
+     * @returns {Promise<Boolean>} - yes == true, no == false
+     */
+    static async yesNoPrompt(prompt, channel, userID) {
+        let promtMsg = await this.messagePrompt(prompt, 'boolean', channel, userID);
+        if (promtMsg.content.toLowerCase() === 'no') return false;
+        else if (promtMsg.content.toLowerCase() === 'yes') return true;
+        else this.yesNoPrompt(prompt, channel, userID);
+    }
 }
 
 module.exports = Prompt;
