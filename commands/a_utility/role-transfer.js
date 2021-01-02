@@ -53,10 +53,14 @@ module.exports = class RoleTransfer extends PermissionCommand {
         let filter = (reaction, user) => !user.bot && (transfers.has(reaction.emoji.name) || reaction.emoji.name === newTransferEmoji);
         let reactionCollector = cardMsg.createReactionCollector(filter, {dispose: true});
 
+        // add role or a transfer depending on the emoji
         reactionCollector.on('collect', async (reaction, user) => {
+            // admin add new transfer
             if (reaction.emoji.name === newTransferEmoji && discordServices.checkForRole(message.guild.member(user), discordServices.staffRole)) {
                 let newTransferMsg = await Prompt.messagePrompt('What new transfer do you want to add? Your response should have (in this order, not including <>): @role <transfer name> - <transfer description>',
                                                                     'string', message.channel, user.id);
+                
+                // grab the role, name and description from the prompt message
                 let role = newTransferMsg.mentions.roles.first();
                 let firstStop = newTransferMsg.cleanContent.indexOf('-');
                 let name = newTransferMsg.cleanContent.substring(0, firstStop);
@@ -70,16 +74,20 @@ module.exports = class RoleTransfer extends PermissionCommand {
                     role: role,
                 });
 
+                // edit original embed with transfer information and react with new role
                 reaction.message.edit(reaction.message.embeds[0].addField(name + ' -> ' + roleReaction.emoji.name, description));
                 reaction.message.react(roleReaction.emoji.name);
+                
                 reaction.users.remove(user.id);
             }
 
+            // user add role
             if (transfers.has(reaction.emoji.name)) {
                 discordServices.addRoleToMember(message.guild.member(user), transfers.get(reaction.emoji.name).role);
             }
         });
 
+        // remove the role from the user if the emoji is a transfer emoji
         reactionCollector.on('remove', (reaction, user) => {
             if (transfers.has(reaction.emoji.name)) {
                 discordServices.removeRolToMember(message.guild.member(user), transfers.get(reaction.emoji.name).role);
