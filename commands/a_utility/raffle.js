@@ -1,5 +1,6 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
+const Discord = require('discord.js');
 
 module.exports = class Raffle extends PermissionCommand {
     constructor(client) {
@@ -8,14 +9,22 @@ module.exports = class Raffle extends PermissionCommand {
             group: 'a_utility',
             memberName: 'draw raffle winners',
             description: 'parses each hacker for their stamps and draws winners from them, one entry per stamp',
+            guildOnly: true,
+            args: [
+                {
+                    key: 'numberOfWinners',
+                    prompt: 'number of winners to be selected',
+                    type: 'integer'
+                },
+            ]
         },
         {
-            roleID: discordServices.staffRole,
-            roleMessage: 'You do not have permision for this command, only staff can use it!',
+            roleID: discordServices.adminRole,
+            roleMessage: 'You do not have permision for this command, only admins can use it!',
         });
     }
 
-    async runCommand(message) {
+    async runCommand(message, {numberOfWinners}) {
         var entries = new Array(3000);  //array size subject to change
         var position = {value:0};
         
@@ -24,16 +33,17 @@ module.exports = class Raffle extends PermissionCommand {
         });
         var length = Object.keys(entries).length;
         let winners = new Set();
-        var grand = entries[Math.floor(Math.random() * length)];
-        winners.add(grand);
-        while (winners.size < 2) {
-            var secondary = entries[Math.floor(Math.random() * length)];
-            winners.add(secondary);
+        while (winners.size < numberOfWinners) {
+            var num = Math.floor(Math.random() * length);
+            var winner = entries[num];
+            winners.add(winner);
         }
         winners = Array.from(winners);
-        winners.forEach(member => {
-            console.log(member); // or some other way to present winner information
-        });
+        const embed = new Discord.MessageEmbed()
+            .setColor(discordServices.embedColor)
+            .setTitle('The winners of the raffle draw are:')
+            .setDescription('<@' + winners.join('><@') + '>');
+        await message.channel.send(embed);
     }
 
     addEntries(member, entries, pos) {
@@ -52,7 +62,7 @@ module.exports = class Raffle extends PermissionCommand {
 
         var i;
         for (i = pos.value; i < stampNumber + pos.value; i++) {
-            entries[i] = member.user.username;
+            entries[i] = member.user.id;
         }
         pos.value = i++;
         return entries;
