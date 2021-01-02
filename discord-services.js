@@ -195,7 +195,7 @@ module.exports.checkForRole = checkForRole;
 async function sendMessageToMember(member, message, isDelete = false) {
     member.send(message).then(msg => {
         if (isDelete === true) {
-            msg.delete({timeout: 10000})
+            msg.delete({timeout: 15000})
         }
         return msg;
     }).catch(error => {
