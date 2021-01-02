@@ -225,11 +225,11 @@ module.exports = class StartMentors extends PermissionCommand {
                 mentorEmojis.set(reaction.emoji.name, [role.name.substring(2), role.id]);
 
                 // update mentor message and react
-                mentorConsoleMsg.edit(mentorConsoleMsg.embeds[0].addField(role.name.substring(2), 'Click the ' + reaction.emoji.name + ' emoji!'));
+                mentorConsoleMsg.edit(mentorConsoleMsg.embeds[0].addField('If you know ' + role.name.substring(2) + ' -> ' + reaction.emoji.name, '-------------------------------------'));
                 mentorConsoleMsg.react(reaction.emoji.name);
 
                 // add to ticket system embed and react
-                requestTicketMsg.edit(requestTicketMsg.embeds[0].addField('If your question involves ' + role.name.substring(2) + ':', 'React to this message with ' + reaction.emoji.name));
+                requestTicketMsg.edit(requestTicketMsg.embeds[0].addField('Question about ' + role.name.substring(2) + ' -> ' + reaction.emoji.name, '-------------------------------------'));
                 requestTicketMsg.react(reaction.emoji.name);
 
                 // remove msgs
