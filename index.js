@@ -22,7 +22,7 @@ const nwFirebaseConfig = {
     apiKey: process.env.NWFIREBASEAPIKEY,
     authDomain: process.env.NWFIREBASEAUTHDOMAIN,
     databaseURL: process.env.NWFIREBASEURL,
-    projectId: process.env.FIREBASEPROJECTID,
+    projectId: process.env.NWFIREBASEPROJECTID,
     storageBucket: process.env.NWFIREBASEBUCKET,
     messagingSenderId: process.env.NWFIREBASESENDERID,
     appId: process.env.NWFIREBASEAPPID,
