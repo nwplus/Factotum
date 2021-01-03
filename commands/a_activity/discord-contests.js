@@ -1,7 +1,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
-const { messagePrompt } = require('../../classes/prompt');
+const { messagePrompt, numberPrompt, yesNoPrompt } = require('../../classes/prompt');
 
 var interval;
 
@@ -25,20 +25,6 @@ module.exports = class DiscordContests extends PermissionCommand {
             memberName: 'handle discord contests',
             description: 'Sends each Discord contest question once at designated times and determines winners.',
             guildOnly: true,
-            args: [
-                {
-                    key: 'timeInMinutes',
-                    prompt: 'time between questions in minutes',
-                    type: 'integer',
-                    default: 30,
-                },
-                {
-                    key: 'startNow',
-                    prompt: 'True if posting first question now, false if waiting for next interval.',
-                    type: 'boolean',
-                    default: true,
-                },
-            ]
         },
             {
                 roleID: discordServices.staffRole,
@@ -52,23 +38,43 @@ module.exports = class DiscordContests extends PermissionCommand {
      * that tell it to pause, resume, or remove a specified question. 
      * @param {message} message - the message in which this command was called
      */
-    async runCommand(message, { timeInMinutes, startNow }) {
+    async runCommand(message) { 
+        var timeInterval;
+        await numberPrompt('What is the time interval between questions in minutes (integer only)? ', message.channel, message.author.id)
+            .then((minutes) => {
+                if (minutes != null) {
+                    timeInterval = 1000 * 60 * minutes;
+                } else {
+                    return;
+                }
+            });
+
+        var startNow;
+        await yesNoPrompt('Type "yes" to start first question now, "no" to start one time interval from now. ', message.channel, message.author.id)
+            .then((bool) => {
+                if (bool != null) {
+                    startNow = bool;
+                } else {
+                    return;
+                }
+            });
+
         //id of role to mention when new questions come out
         var role;
         await messagePrompt('What is the hacker role to notify for Discord contests? Tag it in your next message.', 'string', message.channel, message.author.id, 15)
-        .then((msg) => {
-            if (msg != null && msg.mentions.roles.first() != null) {
-                role = msg.mentions.roles.first().id;
-            } else if (msg.mentions.roles.first() == null) {
-                message.channel.send('No role mentions detected! Please try again.');
-                return;
-            } else {
-                return;
-            }
-        });
+            .then((msg) => {
+                if (msg != null && msg.mentions.roles.first() != null) {
+                    role = msg.mentions.roles.first().id;
+                } else if (msg.mentions.roles.first() == null) {
+                    message.channel.send('No role mentions detected! Please try again.')
+                        .then((msg) => msg.delete({ timeout: 3000 }));
+                    return;
+                } else {
+                    return;
+                }
+            });
         const time = new Date();
         //calculate time till next interval to display as the start time if startNow is false
-        var timeInterval = 1000 * 60 * timeInMinutes;
         const nextQTime = time.valueOf() + timeInterval;
         //paused keeps track of whether it has been paused
         var paused = false;
@@ -184,7 +190,7 @@ module.exports = class DiscordContests extends PermissionCommand {
                     qEmbed.setDescription('Staff: click the 👑 emoji to announce a winner!');
                 }
 
-                await message.channel.send('<@&' + role + '>', {embed: qEmbed}).then((msg) => {
+                await message.channel.send('<@&' + role + '>', { embed: qEmbed }).then((msg) => {
                     if (listOfQ.get(nextQ).length == 0) {
                         msg.react('👑');
                         //if it cannot be automatically marked, notify Staff and start listening for the crown emoji

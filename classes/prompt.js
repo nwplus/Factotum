@@ -54,10 +54,10 @@ class Prompt {
      * @returns {Promise<Number>} - the number gotten from the prompt
      */
     static async numberPrompt(prompt, channel, userID) {
-        let promptMsg = await this.messagePrompt(prompt, 'number', channel, userID);
+        let promptMsg = await Prompt.messagePrompt(prompt, 'number', channel, userID);
         if(promptMsg === null) return null;
         let number = parseInt(promptMsg.content);
-        if (isNan(number)) return this.numberPrompt(prompt, channel, userId);
+        if (isNaN(number)) return Prompt.numberPrompt(prompt, channel, userID);
         else return number;
 
     }
@@ -86,11 +86,11 @@ class Prompt {
      * @returns {Promise<Boolean>} - yes == true, no == false
      */
     static async yesNoPrompt(prompt, channel, userID) {
-        let promptMsg = await this.messagePrompt(prompt, 'boolean', channel, userID);
+        let promptMsg = await Prompt.messagePrompt(prompt, 'boolean', channel, userID);
         if (promptMsg === null) return null;
         if (promptMsg.content.toLowerCase() === 'no') return false;
         else if (promptMsg.content.toLowerCase() === 'yes') return true;
-        else this.yesNoPrompt(prompt, channel, userID);
+        else return Prompt.yesNoPrompt(prompt, channel, userID);
     }
 
 
@@ -103,7 +103,7 @@ class Prompt {
      * @returns {Promise<Discord.TextChannel>} - the text channel prompted
      */
     static async channelPrompt(prompt, channel, userID) {
-        let promptMsg = await this.messagePrompt(prompt, 'mention', channel, userID);
+        let promptMsg = await Prompt.messagePrompt(prompt, 'mention', channel, userID);
         if (promptMsg === null) return null;
         return promptMsg.mentions.channels.first();
     }
