@@ -24,10 +24,10 @@ module.exports = class BoothDirectory extends PermissionCommand {
                 },
             ],
         },
-            {
-                roleID: discordServices.staffRole,
-                roleMessage: 'This command can only be ran by staff!',
-            });
+        {
+            roleID: discordServices.staffRole,
+            roleMessage: 'This command can only be ran by staff!',
+        });
     }
 
 /**
@@ -64,9 +64,12 @@ module.exports = class BoothDirectory extends PermissionCommand {
             msg.pin();
             msg.react('🚪');
             //only listen for the door react from Staff and Sponsors
-            const emojiFilter = (reaction, user) => (reaction.emoji.name === '🚪') && (message.guild.member(user).roles.cache.has(discordServices.staffRole) || message.guild.member(user).roles.cache.has(discordServices.sponsorRole));
+            const emojiFilter = (reaction, user) => (reaction.emoji.name === '🚪') && (discordServices.checkForRole(message.guild.member(user), discordServices.staffRole) || discordServices.checkForRole(message.guild.member(user), discordServices.sponsorRole));
             const emojicollector = msg.createReactionCollector(emojiFilter);
-            emojicollector.on('collect', (reaction, user) => {
+            
+            var announcementMsg;
+
+            emojicollector.on('collect', async (reaction, user) => {
                 reaction.users.remove(user);
                 if (closed) {
                     //embed for open state
@@ -78,12 +81,13 @@ module.exports = class BoothDirectory extends PermissionCommand {
                     msg.edit(openEmbed);
                     closed = false;
                     //notify people of the given role that booth is open and delete notification after 5 mins
-                    message.channel.send('<@&' + role + '> ' + sponsorName + ' \'s booth has just opened!')
-                    .then((msg) => msg.delete({timeout:300 * 1000}));
+                    announcementMsg = await message.channel.send('<@&' + role + '> ' + sponsorName + ' \'s booth has just opened!');
+                    announcementMsg.delete({timeout:300 * 1000});
                 } else {
                     //change to closed state embed if closed is false
                     msg.edit(embed);
                     closed = true;
+                    discordServices.deleteMessage(announcementMsg);
                 }
             });
         });
