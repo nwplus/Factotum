@@ -212,7 +212,7 @@ module.exports.sendMessageToMember = sendMessageToMember;
 /**
  * Add a role to a member
  * @param {Discord.GuildMember} member - the guild member to give a role to
- * @param {String | Discord.Role} addRole - the role to add to the member
+ * @param {Discord.RoleResolvable} addRole - the role to add to the member
  */
 function addRoleToMember(member, addRole) {
     member.roles.add(addRole).catch(error => {
