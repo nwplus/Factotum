@@ -96,7 +96,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
             } else {
                 let groupMsg = await Prompt.messagePrompt('Please mention all your current group members in one message. You mention by typing @friendName .', 'string', message.channel, user.id, 15);
 
-                if (groupMsg === false) {
+                if (groupMsg === null) {
                     reaction.users.remove(user.id);
                     return;
                 }

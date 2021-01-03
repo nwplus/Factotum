@@ -60,6 +60,11 @@ module.exports = class RoleTransfer extends PermissionCommand {
                 let newTransferMsg = await Prompt.messagePrompt('What new transfer do you want to add? Your response should have (in this order, not including <>): @role <transfer name> - <transfer description>',
                                                                     'string', message.channel, user.id);
                 
+                if (newTransferMsg === null) {
+                    reaction.users.remove(user.id);
+                    return;
+                }
+                
                 // grab the role, name and description from the prompt message
                 let role = newTransferMsg.mentions.roles.first();
                 let firstStop = newTransferMsg.cleanContent.indexOf('-');

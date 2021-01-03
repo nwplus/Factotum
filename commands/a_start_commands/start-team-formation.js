@@ -122,7 +122,7 @@ module.exports = class StartTeamFormation extends PermissionCommand {
                 '\n* Try to respond to all the sections! \n* Once you are ready to submit, react to this message with 🇩 and then send me your information!\n' +
                 '* Once you find a hacker, please come back and click the ⛔ emoji.')
             .addField('Format:', isTeam ? 'Team Member(s): \nTeam Background: \nObjective: \nFun Fact About Team: \nLooking For: ' : 
-                                                'Name: \nSchool: \nPlace of Origin: \nSkills: \nFun Fact: ')
+                                                'Name: \nSchool: \nPlace of Origin: \nSkills: \nFun Fact: \nDeveloper or Designer?:')
             .addField('READ THIS!', 'As soon as you submit your form, you will be notified of every new ' + (isTeam ? 'available hacker.' : 'available team.') + 
                                     'Once you close your form, you will stop receiving notifications!');
 
@@ -160,7 +160,7 @@ module.exports = class StartTeamFormation extends PermissionCommand {
         
 
         // check if the prompt timed out, if so, exit
-        if (formMsg === false) {
+        if (formMsg === null) {
             isResponging = !isResponging;
             return;
         }
