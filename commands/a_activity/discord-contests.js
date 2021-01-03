@@ -11,11 +11,6 @@ var interval;
  * it the winner. It can also be paused and unpaused, and questions can be removed.
  * 
  * Note: all answers are case-insensitive but any extra or missing characters will be considered incorrect.
- * 
- * Command activated by running !contests with optional arguments
- * @param {string} timeInMinutes - the amount of time between when one question is asked and the next
- * @param {boolean} startNow - if true, the first question will be sent as soon as the command is sent, else it will be sent one interval
- * later
  */
 module.exports = class DiscordContests extends PermissionCommand {
     constructor(client) {
@@ -38,7 +33,8 @@ module.exports = class DiscordContests extends PermissionCommand {
      * that tell it to pause, resume, or remove a specified question. 
      * @param {message} message - the message in which this command was called
      */
-    async runCommand(message) { 
+    async runCommand(message) {
+        //ask user for time interval between questions
         var timeInterval;
         await numberPrompt('What is the time interval between questions in minutes (integer only)? ', message.channel, message.author.id)
             .then((minutes) => {
@@ -49,6 +45,7 @@ module.exports = class DiscordContests extends PermissionCommand {
                 }
             });
 
+        // ask user whether to start asking questions now(true) or after 1 interval (false)
         var startNow;
         await yesNoPrompt('Type "yes" to start first question now, "no" to start one time interval from now. ', message.channel, message.author.id)
             .then((bool) => {
