@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "discord-oauth2": "^2.6.0",
     "discord.js": "^12.5.1",
     "discord.js-commando": "github:discordjs/commando",
     "dotenv-flow": "^3.2.0",
