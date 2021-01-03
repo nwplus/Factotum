@@ -53,6 +53,19 @@ module.exports = class DiscordContests extends PermissionCommand {
      * @param {message} message - the message in which this command was called
      */
     async runCommand(message, { timeInMinutes, startNow }) {
+        //id of role to mention when new questions come out
+        var role;
+        await messagePrompt('What is the hacker role to notify for Discord contests? Tag it in your next message.', 'string', message.channel, message.author.id, 15)
+        .then((msg) => {
+            if (msg != null && msg.mentions.roles.first() != null) {
+                role = msg.mentions.roles.first().id;
+            } else if (msg.mentions.roles.first() == null) {
+                message.channel.send('No role mentions detected! Please try again.');
+                return;
+            } else {
+                return;
+            }
+        });
         const time = new Date();
         //calculate time till next interval to display as the start time if startNow is false
         var timeInterval = 1000 * 60 * timeInMinutes;
@@ -170,7 +183,7 @@ module.exports = class DiscordContests extends PermissionCommand {
                     qEmbed.setDescription('Staff: click the 👑 emoji to announce a winner!');
                 }
 
-                await message.channel.send(qEmbed).then((msg) => {
+                await message.channel.send('<@&' + role + '>', {embed: qEmbed}).then((msg) => {
                     if (listOfQ.get(nextQ).length == 0) {
                         msg.react('👑');
                         //if it cannot be automatically marked, notify Staff and start listening for the crown emoji
