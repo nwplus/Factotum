@@ -45,23 +45,18 @@ module.exports = class StartAttend extends PermissionCommand {
             //ask user to mention channel to be used for !attend
             var channelMention = await messagePrompt('Please mention the channel to be used for the !attend command. ', 'string', message.channel, message.author.id, 20);
             if (channelMention == null) {
-                let errormsg = message.channel.send('Command not completed.');
-                discordServices.deleteMessage(errormsg);
                 return;
             }
             channel = channelMention.mentions.channels.first();
             if (channel == null) {
-                let errormsg = message.channel.send('No channels mentioned. Please try the command again.');
-                discordServices.deleteMessage(errormsg);
+                message.channel.send('No channels mentioned. Please try the command again.')
+                .then((msg) => msg.delete({timeout: 3000}));
                 return;
             }
         } else {
             //ask user for category to create new attend channel under
-            let categoryReply = await messagePrompt('What category do you want the new attend channel under? ', 'string', message.channel, message.author.id, 20)
-            // .then ((categoryReply) => {
+            let categoryReply = await messagePrompt('What category do you want the new attend channel under? ', 'string', message.channel, message.author.id, 20);
             if (categoryReply == null) {
-                let errormsg = message.channel.send('Command not completed.');
-                discordServices.deleteMessage(errormsg);
                 return;
             }
             var categoryName = categoryReply.content;
@@ -72,8 +67,8 @@ module.exports = class StartAttend extends PermissionCommand {
             if (category) {
                 newChannel.setParent(category.id);
             } else {
-                let errormsg = message.channel.send('That category doesn\'t exist! Check your spelling and try the command again.');
-                discordServices.deleteMessage(errormsg);
+                message.channel.send('Invalid category name. Please try the command again.')
+                .then((msg) => msg.delete({timeout: 3000}));
                 return;
             }
             channel = newChannel;
