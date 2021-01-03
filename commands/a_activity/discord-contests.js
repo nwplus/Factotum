@@ -79,7 +79,6 @@ module.exports = class DiscordContests extends PermissionCommand {
             ['What is the strongly-typed and compiled alternative of JavaScript called?', ["typescript"]],
             ['What is CocoaPods?', []],
             ['Which is the oldest web front-end framework: Angular, React or Vue?', ['angular']],
-            ['Post a pic of your nwHacks setup.', []],
             ['Complete the Star Wars line: Hello there! ______ ______. (2 words)', ['general kenobi']],
             ['Give your best tech pickup line.', []],
         ]);
