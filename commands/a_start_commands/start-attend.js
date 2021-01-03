@@ -80,8 +80,8 @@ module.exports = class StartAttend extends PermissionCommand {
             .setDescription('In order to indicate that you are participating at nwHacks 2021, please send the **!attend** command to this channel followed by the email you used to sign up. \nFor example: !attend example@gmail.com')
             .addField('Do you need assistance?', 'Head over to the support channel and ping the admins!')
             .addField('Worry Not! Your email will be kept private!', 'All messages to this channel are automatically removed!');
-        await channel.send(embed).then(msg => msg.pin());
-        channel.send('<@&' + discordServices.hackerRole + '> You can now check-in to nwHacks 2021! Read the above instructions to unlock more channels!');
+        await channel.send('<@&' + discordServices.hackerRole + '>', {embed: embed}).then(msg => msg.pin());
         discordServices.attendChannel = channel.id;
+        module.exports.attendChannel = channel.id;
     }
 }

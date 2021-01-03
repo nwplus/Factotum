@@ -2,6 +2,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
+const StartAttend = require('../a_start_commands/start-attend');
 
 // Command export
 module.exports = class ClearChat extends PermissionCommand {
@@ -56,7 +57,7 @@ module.exports = class ClearChat extends PermissionCommand {
                 commands = this.client.registry.findCommands('verify');
             } 
             // if in the attend channel
-            else if (message.channel.id === discordServices.attendChannel) {
+            else if (message.channel.id === StartAttend.attendChannel) {
                 commands = this.client.registry.findCommands('attend');
             } 
             // admin console

@@ -137,8 +137,8 @@ module.exports.welcomeSupport = welcomeSupport;
 
 // where hackers can call the !attend command, usually a 
 // hidden channel in a hidden category, open only day of the event
-var attendChannel = '774754493081714699';
-module.exports.attendChannel = attendChannel;
+// var attendChannel = '774754493081714699';
+// module.exports.attendChannel = attendChannel;
 
 // where hackers can emoji to let the bot know if they are looking
 // for a team or a hacker(s)
