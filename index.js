@@ -22,7 +22,7 @@ const nwFirebaseConfig = {
     apiKey: process.env.NWFIREBASEAPIKEY,
     authDomain: process.env.NWFIREBASEAUTHDOMAIN,
     databaseURL: process.env.NWFIREBASEURL,
-    projectId: process.env.NWFIREBASEPROJECTID,
+    projectId: process.env.FIREBASEPROJECTID,
     storageBucket: process.env.NWFIREBASEBUCKET,
     messagingSenderId: process.env.NWFIREBASESENDERID,
     appId: process.env.NWFIREBASEAPPID,
@@ -37,6 +37,7 @@ const nwFirebase = firebase.initializeApp(nwFirebaseConfig, 'nwFirebase');
 
 const discordServices = require('./discord-services');
 const firebaseServices = require('./firebase-services/firebase-services');
+const StartAttend = require('./commands/a_start_commands/start-attend');
 
 const config = {
     token: process.env.TOKEN,
@@ -68,7 +69,7 @@ bot.once('ready', async () => {
 
     // add verify and attend channels to the black list
     discordServices.blackList.set(discordServices.welcomeChannel, 3000);
-    discordServices.blackList.set(discordServices.attendChannel, 3000);
+    discordServices.blackList.set(StartAttend.attendChannel, 3000);
 
     // check roles
     // we asume the bot is only in one guild!
