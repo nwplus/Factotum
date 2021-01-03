@@ -1,6 +1,5 @@
-require('dotenv-flow').config({
-    path: '../',
-});
+
+require('dotenv-flow');
 require("firebase/firestore");
 
 
@@ -12,7 +11,7 @@ const firebaseConfig = {
     apiKey: process.env.FIREBASEAPIKEY,
     authDomain: process.env.FIREBASEAUTHDOMAIN,
     databaseURL: process.env.FIREBASEURL,
-    projectId: process.env.FIREBASEPROJECTID,
+    projectId: 'nwplus-bot',
     storageBucket: process.env.FIREBASEBUCKET,
     messagingSenderId: process.env.FIREBASESENDERID,
     appId: process.env.FIREBASEAPPID,
@@ -134,14 +133,26 @@ let staff2 = ['victoria@nwplus.io',
     'victorial@nwplus.io',
     'vincent@nwplus.io']
 
-staff2.forEach((value, index, list) => {
-    db.collection('members').doc().set({
-        'name' : value.substring(0, value.indexOf('@')),
-        'email' : value,
-        'type' : 'staff',
-        'isVerified' : false
-    });
-});
+let mentor2 = ['thomas_girard@sfu.ca',
+    'me@anand.io',
+    'angelokn14@gmail.com',
+    'sujith_somepalli@srmap.edu.in',
+    'chhokaradarsh@gmail.com',
+    'ananthanarayan.sanjay@gmail.com',
+    'rsrkpatwari1234@gmail.com',
+    'aditya123ss@gmai.com',
+    '1994constant@gmail.com',
+    'nickwu241@gmail.com',
+    'kian.shahangyan@alumni.ubc.ca']
+
+// staff2.forEach((value, index, list) => {
+//     db.collection('members').doc().set({
+//         'name' : value.substring(0, value.indexOf('@')),
+//         'email' : value,
+//         'type' : 'staff',
+//         'isVerified' : false
+//     });
+// });
 
 // staffList.forEach((value, index, list) => {
 //     db.collection('members').doc().set({
@@ -153,14 +164,14 @@ staff2.forEach((value, index, list) => {
 // });
 
 
-// mentorList.forEach((value, index, list) => {
-//     db.collection('members').doc().set({
-//         'name' : value.substring(0, value.indexOf('@')),
-//         'email' : value,
-//         'type' : 'mentor',
-//         'isVerified' : false
-//     });
-// });
+mentor2.forEach((value, index, list) => {
+    db.collection('members').doc().set({
+        'name' : value.substring(0, value.indexOf('@')),
+        'email' : value,
+        'type' : 'mentor',
+        'isVerified' : false
+    });
+});
 
 // sponsorList.forEach((value, index, list) => {
 //     db.collection('members').doc().set({
