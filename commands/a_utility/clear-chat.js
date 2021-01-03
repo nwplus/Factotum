@@ -56,10 +56,6 @@ module.exports = class ClearChat extends PermissionCommand {
             if (message.channel.id === discordServices.welcomeChannel) {
                 commands = this.client.registry.findCommands('verify');
             } 
-            // if in the attend channel
-            else if (message.channel.id === StartAttend.attendChannel) {
-                commands = this.client.registry.findCommands('attend');
-            } 
             // admin console
             else if (discordServices.isAdminConsole(message.channel) === true) {
                 // grab all the admin command groups

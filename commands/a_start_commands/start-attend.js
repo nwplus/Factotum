@@ -36,7 +36,7 @@ module.exports = class StartAttend extends PermissionCommand {
      * If existsChannel is true, asks user to indicate the channel to use. Else asks user to indicate the category under which the
      * channel should be created, and then creates it. In both cases it will send an embed containing the instructions for hackers to 
      * check in.
-     * @param {message} message - message containing command
+     * @param {Discord.Message} message - message containing command
      * @param {boolean} existsChannel - boolean representing whether to use an existing channel(true) or new channel(false) 
      */
     async runCommand(message, { existsChannel }) {
@@ -81,7 +81,7 @@ module.exports = class StartAttend extends PermissionCommand {
             .addField('Do you need assistance?', 'Head over to the support channel and ping the admins!')
             .addField('Worry Not! Your email will be kept private!', 'All messages to this channel are automatically removed!');
         await channel.send('<@&' + discordServices.hackerRole + '>', {embed: embed}).then(msg => msg.pin());
-        discordServices.attendChannel = channel.id;
-        module.exports.attendChannel = channel.id;
+        discordServices.blackList.set(channel.id, 5000);
+        this.client.registry.commands.get('attend').setEnabledIn(message.guild, true);
     }
 }

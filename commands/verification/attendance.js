@@ -25,8 +25,6 @@ module.exports = class Attendace extends PermissionCommand {
             ],
         },
         {
-            channelID: StartAttend.attendChannel,
-            channelMessage: 'Hi there, the !attend command is only available in the attend-channel channel.',
             roleID: discordServices.hackerRole,
             roleMessage: 'Hi there, it seems you are already marked as attendee, or you do not need to be marked as attendee. Happy hacking!',
         });
