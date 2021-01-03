@@ -63,8 +63,8 @@ module.exports = class DiscordContests extends PermissionCommand {
         var listOfQ = new Map([
             ['What is the command to exit Vim?', [":wq", ":q"]],
             ['What is the name of the Linux mascot?', ['tux']],
-            ['In "The Office", who teams up with Dwight to prank Jim into giving them a week\'s supply of meatballs?', ['stanley']],
             ['Draw the nwPlus logo in 1 pen stroke.', []],
+            ['In "The Office", who teams up with Dwight to prank Jim into giving them a week\'s supply of meatballs?', ['stanley']],
             ['Who invented the Java programming language?', ['james gosling']],
             ['What is nwPlus\' next hackathon after nwHacks?', ['cmd-f']],
             ['Draw your team out. We\'ll pick the funniest picture.', []],
@@ -79,7 +79,6 @@ module.exports = class DiscordContests extends PermissionCommand {
             ['What is the strongly-typed and compiled alternative of JavaScript called?', ["typescript"]],
             ['What is CocoaPods?', []],
             ['Which is the oldest web front-end framework: Angular, React or Vue?', ['angular']],
-            ['Post a pic of your nwHacks setup.', []],
             ['Complete the Star Wars line: Hello there! ______ ______. (2 words)', ['general kenobi']],
             ['Give your best tech pickup line.', []],
         ]);
@@ -121,48 +120,41 @@ module.exports = class DiscordContests extends PermissionCommand {
                 } else if (reaction.emoji.name === '⏯️') {
                     //if it is currently paused, restart the interval and send the next question immediately
                     if (paused) {
-                        sendQuestion(keys, listOfQ, message, winners);
-                        interval = setInterval(sendQuestion, timeInterval, keys, listOfQ, message, winners);
+                        sendQuestion();
+                        interval = setInterval(sendQuestion, timeInterval);
                         paused = false;
                     }
                 } else if (reaction.emoji.name === '⛔') {
                     //prompt user in DMs which question to remove
-                    user.send("Enter the question to remove. (Needs to be exact, refer to the Notion page with the list of questions. Automatically cancels in 30 seconds.)");
-                    const filter = m => m.author === user;
-                    const collector = msg.channel.createMessageCollector(filter, { max: 1, timeout: 30000 });
-                    collector.on('collect', m => {
-                        //deletes the key from the map if it exists
-                        if (listOfQ.has(m.content)) {
-                            listOfQ.delete(m.content);
-                        }
-                        user.send("Deleted \"" + m.content + "\"");
-                    });
-                    // same function as above but with messagePrompt
-                    // var m = messagePrompt("Enter the question to remove.", 'string', message.channel, user.id);
-                    // if (listOfQ.has(m.content)) {
-                    //     listOfQ.delete(m.content);
-                    // }
+                    user.send("Enter the question to remove. (Needs to be exact including punctuation, refer to the Notion page with the list of questions. Automatically cancels in 30 seconds.)")
+                        .then((prompt) => {
+                            prompt.channel.awaitMessages(message => message.author.id === user.id, { max: 1, time: 30 * 1000, errors: ['time'] })
+                                .then((remove) => {
+                                    var removeKey = remove.first().content;
+                                    if (listOfQ.has(removeKey)) {
+                                        listOfQ.delete(removeKey);
+                                        user.send("Deleted \"" + removeKey + "\"");
+                                    } else {
+                                        user.send("The question isn't in our list!");
+                                    }
+                                });
+                        });
                 }
             });
         })
 
         //starts the interval, and sends the first question immediately if startNow is true
         if (startNow) {
-            sendQuestion(keys, listOfQ, message, winners);
+            sendQuestion();
         }
-        interval = setInterval(sendQuestion, timeInterval, keys, listOfQ, message, winners);
+        interval = setInterval(sendQuestion, timeInterval);
 
         /**
-         * @param {Iterator} keys - iterator with the questions list
-         * @param {Map} listOfQ - map with list of questions
-         * @param {Discord.Message} message - original message that activated the command
-         * @param {Array} winners - array of winners so far
-         * 
          * sendQuestion is the function that picks and sends the next question, then picks the winner by matching participants' messages
          * against the answer(s) or receives the winner from Staff. Once it reaches the end it will notify Staff in the Logs channel and
          * list all the winners in order.
          */
-        async function sendQuestion(keys, listOfQ, message, winners) {
+        async function sendQuestion() {
             //get next question from iterator
             var nextQ = keys.next().value;
             //if a question has been removed already and there are still more questions, get the next question
@@ -174,9 +166,13 @@ module.exports = class DiscordContests extends PermissionCommand {
                 const qEmbed = new Discord.MessageEmbed()
                     .setColor(discordServices.embedColor)
                     .setTitle(nextQ);
+                if (listOfQ.get(nextQ).length == 0) {
+                    qEmbed.setDescription('Staff: click the 👑 emoji to announce a winner!');
+                }
 
                 await message.channel.send(qEmbed).then((msg) => {
                     if (listOfQ.get(nextQ).length == 0) {
+                        msg.react('👑');
                         //if it cannot be automatically marked, notify Staff and start listening for the crown emoji
                         message.channel.send("<@&" + discordServices.staffRole + "> will be manually reviewing answers for this question.");
                         const emojiFilter = (reaction, user) => (reaction.emoji.name === '👑') && message.guild.member(user).roles.cache.has(discordServices.staffRole);
@@ -184,17 +180,15 @@ module.exports = class DiscordContests extends PermissionCommand {
                         emojicollector.on('collect', (reaction, user) => {
                             //once someone from Staff hits the crown emoji, tell them to mention the winner in a message in the channel
                             reaction.users.remove(user.id);
-                            message.channel.send("<@" + user.id + "> Pick a winner for the previous question by mentioning them in your next message in this channel!").then((msg) => {
-                                msg.delete({ timeout: 10000 })
-                            });
-                            const filter = m => m.author === user;
-                            const collector = message.channel.createMessageCollector(filter, { max: 1 });
-                            collector.on('collect', m => {
-                                //delete Staff's message with winner's name and replace it with standard congratulatory message
-                                m.delete();
-                                winners.push(m.mentions.members.first().id);
-                                message.channel.send("Congrats <@" + m.mentions.members.first().id + "> for the best answer!");
-                            });
+
+                            messagePrompt('Pick a winner for the previous question by mentioning them in your next message in this channel!', 'string', message.channel, user.id, 20)
+                                .then(msg => {
+                                    if (msg != null && msg.mentions.members.first() != null) {
+                                        winners.push(msg.mentions.members.first().id);
+                                        message.channel.send("Congrats <@" + msg.mentions.members.first().id + "> for the best answer to the previous question!");
+                                        emojicollector.stop();
+                                    }
+                                });
                         });
                     } else {
                         //automatically mark answers
