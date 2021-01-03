@@ -178,7 +178,8 @@ module.exports = class DiscordContests extends PermissionCommand {
             if (nextQ != null) {
                 const qEmbed = new Discord.MessageEmbed()
                     .setColor(discordServices.embedColor)
-                    .setTitle(nextQ);
+                    .setTitle('A new Discord Contest Question:')
+                    .setDescription(nextQ);
                 if (listOfQ.get(nextQ).length == 0) {
                     qEmbed.setDescription('Staff: click the 👑 emoji to announce a winner!');
                 }
