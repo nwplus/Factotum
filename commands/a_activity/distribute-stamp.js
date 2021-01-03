@@ -27,6 +27,6 @@ module.exports = class DistributeStamp extends ActivityCommand {
      * @param {Activity} activity 
      */
     async activityCommand(message, activity, {timeLimit}) {
-        ActivityManager.distributeStamp(activity, time);
+        ActivityManager.distributeStamp(activity, timeLimit);
     }
 };
