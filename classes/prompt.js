@@ -19,7 +19,7 @@ class Prompt {
     static async messagePrompt(prompt, responseType, channel, userID, time = 0) {
 
         let finalPrompt = '<@' + userID + '> ' + prompt + (responseType == 'number' ? ' Respond with a number only!' : responseType == 'boolean' ? ' (yes/no)' : responseType == 'mention' ? ' To make a mention use the @ or # for a user or channel respectively!' : '' + 
-                        (time === 0 ? '' : 'Respond within ' + time + ' secodns.') + 'Respond with cancel to cancel.');
+                        (time === 0 ? '' : '\n* Respond within ' + time + ' secodns.') + '\n* Respond with cancel to cancel.');
 
         // send prompt
         let promptMsg = await channel.send(finalPrompt);
@@ -32,7 +32,7 @@ class Prompt {
             discordServices.deleteMessage(msg);
 
             // check if they responded with cancel
-            if (msg.content.toLocaleLowerCase() === 'cancel') {
+            if (msg.content.toLowerCase() === 'cancel') {
                 return null;
             }
 
