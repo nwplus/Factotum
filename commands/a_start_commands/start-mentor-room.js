@@ -24,7 +24,6 @@ module.exports = class StartMentors extends PermissionCommand {
         });
     }
 
-  
     /**
      * 
      * @param {Discord.Message} message - a message

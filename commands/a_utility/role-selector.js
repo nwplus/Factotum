@@ -97,7 +97,8 @@ module.exports = class RoleSelector extends PermissionCommand {
         // remove the role from the user if the emoji is a transfer emoji
         reactionCollector.on('remove', (reaction, user) => {
             if (transfers.has(reaction.emoji.name)) {
-                discordServices.removeRolToMember(message.guild.member(user), transfers.get(reaction.emoji.name).role);
+                let role = transfers.get(reaction.emoji.name).role;
+                discordServices.removeRolToMember(message.guild.member(user), role);
                 message.channel.send('<@' + user.id + '> You have lost the role: ' + role.name).then(msg => msg.delete({timeout: 4000}));
             }
         });

@@ -61,8 +61,8 @@ class Prompt {
         else return number;
 
     }
-  
-  
+
+ 
     /**
      * Prompts the user to respond to a message with an emoji.
      * @param {String} prompt - the text prompt to send to user
