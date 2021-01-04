@@ -67,13 +67,13 @@ class Prompt {
      * @param {Discord.TextChannel} channel - the channel to send the prompt to
      * @param {String} userID - the ID of the user to prompt
      * @async
-     * @returns {Promise<Discord.MessageReaction>} - the message reaction
+     * @returns {Promise<Discord.GuildEmoji | Discord.ReactionEmoji>} - the message reaction
      */
     static async reactionPrompt(prompt, channel, userID) {
         let reactionMsg = await channel.send('<@' + userID + '> ' + prompt + ' React to this message with the emoji.');
         let reactions = await reactionMsg.awaitReactions((reaction, user) => !user.bot, {max: 1});
         discordServices.deleteMessage(reactionMsg);
-        return reactions.first();
+        return reactions.first().emoji;
     }
   
       

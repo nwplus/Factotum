@@ -11,14 +11,15 @@ class Cave {
      * @property {String} preRoleText - the text to add before every role name, not including '-'
      * @property {String} color - the role color to use for this cave
      * @property {Discord.Role} role - the role associated with this cave
-     * @property {String} joinTicketEmoji - the join ticket emoji
-     * @property {String} giveHelpEmoji - the give help to ticket emoji
+     * @property {Discord.GuildEmoji} joinTicketEmoji - the join ticket emoji
+     * @property {Discord.GuildEmoji} giveHelpEmoji - the give help to ticket emoji
+     * @property {Discord.GuildEmoji} requestTicketEmoji - the request ticket emoji
      */
 
     /**
      * @typedef RoleInfo
      * @property {String} name - the role name
-     * @property {String} id - the role id (snowflake)
+     * @property {Discord.Snowflake} id - the role id (snowflake)
      * @property {Number} activeUsers - number of users with this role
      */
 
@@ -48,8 +49,9 @@ class Cave {
     /**
      * Contructor to create a cave.
      * @param {CaveOptions} caveOptions - the cave options
+     * @param {Discord.Guild} guild - the guild where this cave is happening
      */
-    constructor(caveOptions) {
+    constructor(caveOptions, guild) {
 
         /**
          * The name of the cave category.
@@ -57,7 +59,7 @@ class Cave {
          */
         this.caveOptions;
 
-        this.validateCaveOptions(caveOptions);
+        this.validateCaveOptions(caveOptions, guild);
 
         /**
          * The private channels of this cave.
@@ -75,15 +77,15 @@ class Cave {
 
         /**
          * The adminEmojis
-         * @type {Array<String>}
+         * @type {Array<Discord.GuildEmoji>}
          */
-        this.adminEmojis = ['🧠'];
+        this.adminEmojis = [guild.emojis.cache.find(emoji => emoji.name === '🧠')];
 
         /**
          * The emojis to use for roles.
-         * key :  emoji name, 
+         * key :  emoji id, 
          * value : RoleInfo
-         * @type {Map<String, RoleInfo>}
+         * @type {Map<Discord.Snowflake, RoleInfo>}
          */
         this.emojis = new Map();
 
@@ -92,12 +94,6 @@ class Cave {
          * @type {EmbedMessages}
          */
         this.embedMessages = {};
-
-        /**
-         * The request ticket emoji to use.
-         * @type {String}
-         */
-        this.requestTicketEmoji = '🎫';
 
         /**
          * The ticket count.
@@ -156,16 +152,18 @@ class Cave {
     /**
      * Validates and set the cave options.
      * @param {CaveOptions} caveOptions - the cave options to validate
+     * @param {Discord.Guild} guild - the guild where this cave is happening
      * @private
      */
-    validateCaveOptions(caveOptions) {
+    validateCaveOptions(caveOptions, guild) {
         if (typeof caveOptions.name != 'string' && caveOptions.name.length === 0) throw new Error('caveOptions.name must be a non empty string');
         if (typeof caveOptions.preEmojis != 'string') throw new Error('The caveOptions.preEmojis must be a string of emojis!');
         if (typeof caveOptions.preRoleText != 'string' && caveOptions.preRoleText.length === 0) throw new Error('The caveOptions.preRoleText must be a non empty string!');
         if (typeof caveOptions.color != 'string' && caveOptions.color.length === 0) throw new Error('The caveOptions.color must be a non empty string!');
         if (!caveOptions.role instanceof Discord.Role) throw new Error('The caveOptions.role must be Role obbject!');
-        if (typeof caveOptions.giveHelpEmoji != 'string') caveOptions.giveHelpEmoji = '🤝';
-        if (typeof caveOptions.joinTicketEmoji != 'string') caveOptions.joinTicketEmoji = '🏃🏽';
+        if (caveOptions.giveHelpEmoji instanceof Discord.GuildEmoji) caveOptions.giveHelpEmoji = guild.emojis.cache.find(emoji => emoji.name === '🤝');
+        if (caveOptions.joinTicketEmoji instanceof Discord.GuildEmoji) caveOptions.joinTicketEmoji = guild.emojis.cache.find(emoji => emoji.name === '🏃🏽');
+        if (!caveOptions.requestTicketEmoji instanceof Discord.GuildEmoji) caveOptions.requestTicketEmoji = guild.emojis.cache.find(emoji => emoji.name === '🎫');
         this.caveOptions = caveOptions;
     }
 
@@ -308,15 +306,15 @@ class Cave {
             .setDescription('If you or your team want to talk with a ' + this.caveOptions.name + ' follow the instructions below:' + 
             '\n* React to this message with the correct emoji and follow instructions' + 
             '\n* Once done, wait for someone to accept your ticket!')
-            .addField('For a general ticket:', 'React with ' + this.requestTicketEmoji);
+            .addField('For a general ticket:', 'React with ' + this.caveOptions.requestTicketEmoji.toString());
         this.embedMessages.request = await (await this.publicChannels.outgoingTickets.send(requestTicketEmbed)).pin();
-        this.embedMessages.request.react(this.requestTicketEmoji);
+        this.embedMessages.request.react(this.caveOptions.requestTicketEmoji);
 
-        const collector = this.embedMessages.request.createReactionCollector((reaction, user) => !user.bot && (this.emojis.has(reaction.emoji.name) || reaction.emoji.name === this.requestTicketEmoji));
+        const collector = this.embedMessages.request.createReactionCollector((reaction, user) => !user.bot && (this.emojis.has(reaction.emoji.id) || reaction.emoji.id === this.caveOptions.requestTicketEmoji.id));
 
         collector.on('collect', async (reaction, user) => {
             // check if role they request has users in it
-            if (this.emojis.has(reaction.emoji.name) && this.emojis.get(reaction.emoji.name).activeUsers === 0) {
+            if (this.emojis.has(reaction.emoji.id) && this.emojis.get(reaction.emoji.id).activeUsers === 0) {
                 this.publicChannels.outgoingTickets.send('<@' + user.id + '> There are no mentors available with that role. Please request another role or the general role!').then(msg => msg.delete({timeout: 10000}));
                 return;
             }
@@ -329,7 +327,7 @@ class Cave {
             this.ticketCount ++;
 
             var roleId;
-            if (this.emojis.has(reaction.emoji.name)) roleId = this.emojis.get(reaction.emoji.name).id;
+            if (this.emojis.has(reaction.emoji.id)) roleId = this.emojis.get(reaction.emoji.id).id;
             else roleId = this.caveOptions.role.id;
 
             // the embed used in the incoming tickets channel to let mentors know about the question
@@ -350,10 +348,10 @@ class Cave {
             ticketMsg.react(this.caveOptions.giveHelpEmoji);
 
             /**
-             * @type {Discord.Collection<String, Number>} - <Emoji name, number>
+             * @type {Discord.Collection<Discord.Snowflake, Discord.GuildEmoji>} - <guild emoji snowflake, guild emoji>
              */
             const ticketEmojis = new Discord.Collection();
-            ticketEmojis.set(this.caveOptions.giveHelpEmoji, 1);
+            ticketEmojis.set(this.caveOptions.giveHelpEmoji.id, this.caveOptions.giveHelpEmoji);
 
             /**
              * @type {TicketInfo}
@@ -369,10 +367,10 @@ class Cave {
 
             let ticketPermissions = {'VIEW_CHANNEL': true, 'USE_VAD': true};
 
-            const ticketCollector = ticketMsg.createReactionCollector((reaction, user) => !user.bot && ticketEmojis.has(reaction.emoji.name));
+            const ticketCollector = ticketMsg.createReactionCollector((reaction, user) => !user.bot && ticketEmojis.has(reaction.emoji.id));
 
             ticketCollector.on('collect', async (reaction, helper) => {
-                if (reaction.emoji.name === this.caveOptions.joinTicketEmoji) {
+                if (reaction.emoji.id === this.caveOptions.joinTicketEmoji.id) {
                     // add new mentor to existing ticket channels
                     await ticketInfo.category.updateOverwrite(helper, ticketPermissions);
                     ticketInfo.textChannel.send('<@' + helper.id + '> Has joined the ticket!').then(msg => msg.delete({timeout: 10000}));
@@ -383,11 +381,11 @@ class Cave {
                 } else {
                     // edit incoming ticket with mentor information
                     ticketMsg.edit(ticketMsg.embeds[0].addField('This ticket is being handled!', '<@' + helper.id + '> Is helping this team!')
-                                        .addField('Still want to help?', 'Click the ' + this.caveOptions.joinTicketEmoji + ' emoji to join the ticket!')
+                                        .addField('Still want to help?', 'Click the ' + this.caveOptions.joinTicketEmoji.toString() + ' emoji to join the ticket!')
                                         .setColor('#80c904'));
                     ticketMsg.react(this.caveOptions.joinTicketEmoji);
-                    ticketEmojis.delete(this.caveOptions.giveHelpEmoji);
-                    ticketEmojis.set(this.caveOptions.joinTicketEmoji, 10);
+                    ticketEmojis.delete(this.caveOptions.giveHelpEmoji.id);
+                    ticketEmojis.set(this.caveOptions.joinTicketEmoji.id, this.caveOptions.joinTicketEmoji);
 
                     // new ticket, create channels and add users
                     ticketInfo = await this.createTicketChannels(reaction.message.guild.channels);
@@ -488,11 +486,11 @@ class Cave {
             'comfortable answering questions for. \n* When someone sends a help ticket, and has specificed one of your roles, you will get pinged!');
         this.embedMessages.console = await (await this.privateChannels.console.send(caveConsoleEmbed)).pin();
 
-        const collector = this.embedMessages.console.createReactionCollector((reaction, user) => !user.bot && this.emojis.has(reaction.emoji.name), {dispose: true});
+        const collector = this.embedMessages.console.createReactionCollector((reaction, user) => !user.bot && this.emojis.has(reaction.emoji.id), {dispose: true});
 
         collector.on('collect', async (reaction, user) => {
             let member = reaction.message.guild.member(user);
-            let role = this.emojis.get(reaction.emoji.name);
+            let role = this.emojis.get(reaction.emoji.id);
 
             if (member.roles.cache.has(role.id)) {
                 this.privateChannels.console.send('<@' + user.id + '> You already have the ' + role.name + ' role!').then(msg => msg.delete({timeout: 10000}));
@@ -506,7 +504,7 @@ class Cave {
 
         collector.on('remove', (reaction, user) => {
             let member = reaction.message.guild.member(user);
-            let role = this.emojis.get(reaction.emoji.name);
+            let role = this.emojis.get(reaction.emoji.id);
 
             discordServices.removeRolToMember(member, role.id);
             role.activeUsers -= 1;
@@ -528,19 +526,19 @@ class Cave {
             .setColor(discordServices.embedColor)
             .setTitle(this.caveOptions.name + ' Cave Console')
             .setDescription(this.caveOptions.name + ' cave options are found below.')
-            .addField('Add a role', 'To add a role please click the ' + this.adminEmojis[0] + ' emoji.');
+            .addField('Add a role', 'To add a role please click the ' + this.adminEmojis[0].toString() + ' emoji.');
         this.embedMessages.adminConsole = await adminConsole.send(msgEmbed);
         this.adminEmojis.forEach(emoji => this.embedMessages.adminConsole.react(emoji));
 
         // create collector
-        const collector = this.embedMessages.adminConsole.createReactionCollector((reaction, user) => !user.bot && this.adminEmojis.includes(reaction.emoji.name));
+        const collector = this.embedMessages.adminConsole.createReactionCollector((reaction, user) => !user.bot && this.adminEmojis.includes(reaction.emoji));
 
         // on emoji reaction
         collector.on('collect', async (reaction, admin) => {
             // remove reaction
             reaction.users.remove(admin.id);
 
-            if (reaction.emoji.name === this.adminEmojis[0]) {
+            if (reaction.emoji.id === this.adminEmojis[0].id) {
                 await this.newRole(adminConsole, promptUserId);
             }
 
@@ -560,10 +558,10 @@ class Cave {
         let initialRoles = roleManager.cache.filter(role => role.name.startsWith(this.caveOptions.preRoleText + '-'));
 
         initialRoles.each(async role => {
-            let messageReaction = await this.promptAndCheckReaction('React with emoji for role named: ', role.name, adminConsole, userId);
+            let emoji = await this.promptAndCheckReaction('React with emoji for role named: ', role.name, adminConsole, userId);
 
             let activeUsers = role.members.array().length;
-            this.addRole(role, messageReaction.emoji.name, activeUsers);
+            this.addRole(role, emoji, activeUsers);
         });
     }
 
@@ -576,38 +574,38 @@ class Cave {
      * @param {Discord.Snowflake} userId - the user to prompt
      * @async
      * @private
-     * @returns {Promise<Discord.MessageReaction>}
+     * @returns {Promise<Discord.GuildEmoji | Discord.ReactionEmoji>}
      */
     async promptAndCheckReaction(prompt, roleName, promptChannel, userId) {
-        let messageReaction = await Prompt.reactionPrompt(prompt + roleName, promptChannel, userId);
-            if (this.emojis.has(messageReaction.emoji.name)) {
+        let emoji = await Prompt.reactionPrompt(prompt + roleName, promptChannel, userId);
+            if (this.emojis.has(emoji.id)) {
                 promptChannel.send('<@' + userId + '> That emoji is already in use! Try again!').then(msg => msg.delete({timeout: 8000}));
                 return this.promptAndCheckReaction(roleName, promptChannel, userId);
-            } else return messageReaction;
+            } else return emoji;
     }
 
 
     /**
      * Adds a role to this cave
      * @param {Discord.Role} role - the role to add
-     * @param {String} emojiName - the emoji associated to this role
+     * @param {Discord.GuildEmoji} emoji - the emoji associated to this role
      * @param {Number} currentActiveUsers - number of active users with this role
      * @private
      */
-    addRole(role, emojiName, currentActiveUsers = 0) {
+    addRole(role, emoji, currentActiveUsers = 0) {
         // add to the emoji collectioin
-        this.emojis.set(emojiName, {
+        this.emojis.set(emoji.id, {
             name: role.name.substring(this.caveOptions.preRoleText.length + 1), 
             id: role.id,
             activeUsers: currentActiveUsers,
         });
 
         // add to the embeds
-        this.embedMessages.console.edit(this.embedMessages.console.embeds[0].addField('If you know ' + role.name.substring(2) + ' -> ' + emojiName, '-------------------------------------'));
-        this.embedMessages.console.react(emojiName);
+        this.embedMessages.console.edit(this.embedMessages.console.embeds[0].addField('If you know ' + role.name.substring(2) + ' -> ' + emoji.toString(), '-------------------------------------'));
+        this.embedMessages.console.react(emoji);
 
-        this.embedMessages.request.edit(this.embedMessages.request.embeds[0].addField('Question about ' + role.name.substring(2) + ' -> ' + emojiName, '-------------------------------------'));
-        this.embedMessages.request.react(emojiName);
+        this.embedMessages.request.edit(this.embedMessages.request.embeds[0].addField('Question about ' + role.name.substring(2) + ' -> ' + emoji.toString(), '-------------------------------------'));
+        this.embedMessages.request.react(emoji);
     }
 
 
@@ -622,10 +620,10 @@ class Cave {
 
         if (roleName === null) return null;
 
-        let reaction = await this.promptAndCheckReaction('What emoji do you want to associate with this new role?', roleName, channel, userId);
+        let emoji = await this.promptAndCheckReaction('What emoji do you want to associate with this new role?', roleName, channel, userId);
         
         // make sure the reaction is not already in use!
-        if (cave.emojis.has(reaction.emoji.name)) {
+        if (cave.emojis.has(emoji.id)) {
             message.channel.send('<@' + userId + '>This emoji is already in use! Please try again!').then(msg => msg.delete({timeout: 8000}));
             return;
         }
@@ -637,7 +635,7 @@ class Cave {
             }
         });
 
-        this.addRole(role, reaction.emoji.name);
+        this.addRole(role, emoji);
 
         let addPublic = await Prompt.yesNoPrompt('Do you want me to create a public text channel?', channel, userId);
 

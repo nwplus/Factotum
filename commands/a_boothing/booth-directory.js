@@ -2,6 +2,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const Discord = require('discord.js');
 const { messagePrompt } = require('../../classes/prompt');
 const discordServices = require('../../discord-services');
+const Prompt = require('../../classes/prompt');
 
 module.exports = class BoothDirectory extends PermissionCommand {
     constructor(client) {
@@ -37,7 +38,7 @@ module.exports = class BoothDirectory extends PermissionCommand {
  * on that emoji, the embed changes to the other state. When a booth goes from Closed to Open, it will also notify a role (specified by 
  * the user) that it is open.
  * 
- * @param {message} message - messaged that called this command
+ * @param {Discord.Message} message - messaged that called this command
  * @param {string} sponsorName - Exact name of the sponsor 
  * @param {string} link - sponsor's Zoom boothing link
  */
@@ -50,6 +51,9 @@ module.exports = class BoothDirectory extends PermissionCommand {
         } else {
             role = rolemsg.mentions.roles.first().id;
         }
+
+        // prompt user for emoji to use
+        let emoji = await Prompt.reactionPrompt('What emoji do you want to use?', message.channel, message.author.id);
     
         //variable to keep track of state (Open vs Closed)
         var closed = true;
@@ -62,9 +66,9 @@ module.exports = class BoothDirectory extends PermissionCommand {
         //send closed embed at beginning (default is Closed)
         message.channel.send(embed).then((msg) => {
             msg.pin();
-            msg.react('🚪');
+            msg.react(emoji);
             //only listen for the door react from Staff and Sponsors
-            const emojiFilter = (reaction, user) => (reaction.emoji.name === '🚪') && (discordServices.checkForRole(message.guild.member(user), discordServices.staffRole) || discordServices.checkForRole(message.guild.member(user), discordServices.sponsorRole));
+            const emojiFilter = (reaction, user) => (reaction.emoji.id === emoji.id) && (discordServices.checkForRole(message.guild.member(user), discordServices.staffRole) || discordServices.checkForRole(message.guild.member(user), discordServices.sponsorRole));
             const emojicollector = msg.createReactionCollector(emojiFilter);
             
             var announcementMsg;

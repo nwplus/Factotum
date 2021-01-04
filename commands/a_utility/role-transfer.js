@@ -39,7 +39,7 @@ module.exports = class RoleTransfer extends PermissionCommand {
 
         /**
          * The transfers on this role transfer card.
-         * @type {Discord.Collection<String, Transfer>}
+         * @type {Discord.Collection<Discord.Snowflake, Transfer>}
          */
         let transfers = new Discord.Collection();
 
@@ -50,7 +50,7 @@ module.exports = class RoleTransfer extends PermissionCommand {
         let cardMsg = await message.channel.send(cardEmbed);
         cardMsg.react(newTransferEmoji);
 
-        let filter = (reaction, user) => !user.bot && (transfers.has(reaction.emoji.name) || reaction.emoji.name === newTransferEmoji);
+        let filter = (reaction, user) => !user.bot && (transfers.has(reaction.emoji.id) || reaction.emoji.name === newTransferEmoji);
         let reactionCollector = cardMsg.createReactionCollector(filter, {dispose: true});
 
         // add role or a transfer depending on the emoji
@@ -71,31 +71,31 @@ module.exports = class RoleTransfer extends PermissionCommand {
                 let name = newTransferMsg.cleanContent.substring(0, firstStop);
                 let description = newTransferMsg.cleanContent.substring(firstStop + 1);
 
-                let roleReaction = await Prompt.reactionPrompt('What emoji to you want to use for this transfer?', message.channel, message.author.id);
+                let emoji = await Prompt.reactionPrompt('What emoji to you want to use for this transfer?', message.channel, message.author.id);
 
-                transfers.set(roleReaction.emoji.name, {
+                transfers.set(emoji.id, {
                     name: name,
                     description: description,
                     role: role,
                 });
 
                 // edit original embed with transfer information and react with new role
-                reaction.message.edit(reaction.message.embeds[0].addField(name + ' -> ' + roleReaction.emoji.name, description));
-                reaction.message.react(roleReaction.emoji.name);
+                reaction.message.edit(reaction.message.embeds[0].addField(name + ' -> ' + emoji.toString(), description));
+                reaction.message.react(emoji);
                 
                 reaction.users.remove(user.id);
             }
 
             // user add role
-            if (transfers.has(reaction.emoji.name)) {
-                discordServices.addRoleToMember(message.guild.member(user), transfers.get(reaction.emoji.name).role);
+            if (transfers.has(reaction.emoji.id)) {
+                discordServices.addRoleToMember(message.guild.member(user), transfers.get(reaction.emoji.id).role);
             }
         });
 
         // remove the role from the user if the emoji is a transfer emoji
         reactionCollector.on('remove', (reaction, user) => {
-            if (transfers.has(reaction.emoji.name)) {
-                discordServices.removeRolToMember(message.guild.member(user), transfers.get(reaction.emoji.name).role);
+            if (transfers.has(reaction.emoji.id)) {
+                discordServices.removeRolToMember(message.guild.member(user), transfers.get(reaction.emoji.id).role);
             }
         });
 
