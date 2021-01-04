@@ -32,7 +32,7 @@ module.exports = class DiscordContests extends PermissionCommand {
      * Stores a map which keeps the questions (strings) as keys and an array of possible answers (strings) as values. It iterates through
      * each key in order and asks them in the Discord channel in which it was called at the given intervals. It also listens for emojis
      * that tell it to pause, resume, or remove a specified question. 
-     * @param {message} message - the message in which this command was called
+     * @param {Discord.Message} message - the message in which this command was called
      */
     async runCommand(message) {
         //ask user for time interval between questions
@@ -46,7 +46,7 @@ module.exports = class DiscordContests extends PermissionCommand {
         if (startNow === null) return;
 
         // id of role to mention when new questions come out
-        var role = (await rolePrompt('What is the hacker role to notify for Discord contests?', 'string', message.channel, message.author.id, 15)).id;
+        var role = (await rolePrompt('What is the hacker role to notify for Discord contests?', message.channel, message.author.id, 15)).id;
         if (role === null) return;
 
 
@@ -95,6 +95,7 @@ module.exports = class DiscordContests extends PermissionCommand {
                     if (interval != null && !paused) {
                         clearInterval(interval);
                         paused = true;
+                        message.channel.send('<@' + user.id + '> Discord contest has been paused!').then(msg => msg.delete({timeout: 10000}));
                     }
                 } else if (reaction.emoji.name === '⏯️') {
                     //if it is currently paused, restart the interval and send the next question immediately
@@ -102,6 +103,7 @@ module.exports = class DiscordContests extends PermissionCommand {
                         sendQuestion();
                         interval = setInterval(sendQuestion, timeInterval);
                         paused = false;
+                        message.channel.send('<@' + user.id + '> Discord contest has been un-paused!').then(msg => msg.delete({timeout: 10000}));
                     }
                 } 
             });
@@ -129,18 +131,18 @@ module.exports = class DiscordContests extends PermissionCommand {
                 return;
             }
 
-            let question = data['question'];
-            let answers = data['answers'];
-            let needAllAnswers = data['needAllAnswers'];
+            let question = data.question;
+            let answers = data.answers;
+            let needAllAnswers = data.needAllAnswers;
 
             const qEmbed = new Discord.MessageEmbed()
                 .setColor(discordServices.embedColor)
                 .setTitle('A new Discord Contest Question:')
-                .setDescription(question + '\n' + (answers.length === 0) ? 'Staff: click the 👑 emoji to announce a winner!' : 
-                                                                            'Exact answers only!');
+                .setDescription(question + '\n' + ((answers.length === 0) ? 'Staff: click the 👑 emoji to announce a winner!' : 
+                                                                            'Exact answers only!'));
 
 
-            message.channel.send('<@&' + role + '>' + (answer.length === 0) ? ('<@&' + discordServices.staffRole + '> Need manual review!') : '', { embed: qEmbed }).then((msg) => {
+            message.channel.send('<@&' + role + '>' + ((answers.length === 0) ? (' - <@&' + discordServices.staffRole + '> Need manual review!') : ''), { embed: qEmbed }).then((msg) => {
                 if (answers.length === 0) {
                     msg.react('👑');
 
@@ -157,6 +159,10 @@ module.exports = class DiscordContests extends PermissionCommand {
                                 message.channel.send("Congrats <@" + member.id + "> for the best answer to the previous question!");
                                 emojicollector.stop();
                             });
+                    });
+
+                    emojicollector.on('end', collected => {
+                        message.channel.send("Answers are no longer being accepted. Stay tuned for the next question!");
                     });
                 } else {
                     //automatically mark answers

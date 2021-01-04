@@ -47,6 +47,7 @@ module.exports.status = status;
 /**
  * Retrieves a question from the db that has not already been asked at the Discord Contests, then marks the question as having been 
  * asked in the db.
+ * @returns {Object | null} - the data object of a question or null if no more questions
  */
 async function getQuestion() {
     //checks that the question has not been asked
