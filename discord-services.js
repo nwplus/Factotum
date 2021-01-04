@@ -92,7 +92,10 @@ module.exports.tfHackerEmbedColor = tfHackerEmbedColor;
 var specialDMEmbedColor = '#fc6b03';
 module.exports.specialDMEmbedColor = specialDMEmbedColor;
 
-
+/**
+ * A list of channels where messages will get deleted after x amount of tipe
+ * @type {Map<Discord.Snowflake, Number>} - <text channel snowflake, Number>
+ */
 const blackList = new Map();
 module.exports.blackList = blackList;
 
@@ -134,11 +137,6 @@ var welcomeChannel = '773401606120800257';
 module.exports.welcomeChannel = welcomeChannel;
 var welcomeSupport = '742896827082211419';
 module.exports.welcomeSupport = welcomeSupport;
-
-// where hackers can call the !attend command, usually a 
-// hidden channel in a hidden category, open only day of the event
-var attendChannel = '774754493081714699';
-module.exports.attendChannel = attendChannel;
 
 // where hackers can emoji to let the bot know if they are looking
 // for a team or a hacker(s)
