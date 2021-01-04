@@ -104,9 +104,9 @@ module.exports = class DiscordContests extends PermissionCommand {
         var keys = listOfQ.keys();
         var string;
         if (startNow) {
-            string = "Discord contests starting now!";
+            string = "Discord contests starting now! Be the first to answer correctly or give the best answer to win a prize!";
         } else {
-            string = "Discord contests starting at " + new Date(nextQTime) + " !";
+            string = "Discord contests starting at " + new Date(nextQTime) + "Be the first to answer correctly or give the best answer to win a prize!";
         }
         const startEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
@@ -117,7 +117,7 @@ module.exports = class DiscordContests extends PermissionCommand {
                 '⏯️ to resume\n' +
                 '⛔ to remove a question\n');
 
-        message.channel.send(startEmbed).then((msg) => {
+        message.channel.send('<@&' + role + '>', {embed: startEmbed}).then((msg) => {
             msg.pin();
             msg.react('⏸️');
             msg.react('⏯️');
