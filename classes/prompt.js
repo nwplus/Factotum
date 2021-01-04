@@ -54,10 +54,10 @@ class Prompt {
      * @returns {Promise<Number>} - the number gotten from the prompt
      */
     static async numberPrompt(prompt, channel, userID) {
-        let promptMsg = await this.messagePrompt(prompt, 'number', channel, userID);
+        let promptMsg = await Prompt.messagePrompt(prompt, 'number', channel, userID);
         if(promptMsg === null) return null;
         let number = parseInt(promptMsg.content);
-        if (isNan(number)) return this.numberPrompt(prompt, channel, userId);
+        if (isNaN(number)) return Prompt.numberPrompt(prompt, channel, userID);
         else return number;
 
     }
@@ -86,26 +86,70 @@ class Prompt {
      * @returns {Promise<Boolean>} - yes == true, no == false
      */
     static async yesNoPrompt(prompt, channel, userID) {
-        let promptMsg = await this.messagePrompt(prompt, 'boolean', channel, userID);
+        let promptMsg = await Prompt.messagePrompt(prompt, 'boolean', channel, userID);
         if (promptMsg === null) return null;
         if (promptMsg.content.toLowerCase() === 'no') return false;
         else if (promptMsg.content.toLowerCase() === 'yes') return true;
-        else this.yesNoPrompt(prompt, channel, userID);
+        else return Prompt.yesNoPrompt(prompt, channel, userID);
     }
 
 
     /**
      * Prompt the user for a channel mention.
      * @param {String} prompt - the text prompt to send to user
-     * @param {Discord.TextChannel} channel - the channel to send the prompt to
+     * @param {Discord.TextChannel} promptChannel - the channel to send the prompt to
      * @param {String} userID - the ID of the user to prompt
      * @async
      * @returns {Promise<Discord.TextChannel>} - the text channel prompted
      */
-    static async channelPrompt(prompt, channel, userID) {
-        let promptMsg = await this.messagePrompt(prompt, 'mention', channel, userID);
+    static async channelPrompt(prompt, promptChannel, userID) {
+        let promptMsg = await Prompt.messagePrompt(prompt, 'mention', promptChannel, userID);
         if (promptMsg === null) return null;
-        return promptMsg.mentions.channels.first();
+        let channel = promptMsg.mentions.channels.first();
+        if (channel === null) {
+            promptChannel.send('<@' + userID + '> No channel was mentioned, try again!').then(msg => msg.delete({timeout: 8000}));
+            return Prompt.channelPrompt(prompt, promptChannel, userID);
+        }
+        else return channel;
+    }
+
+
+    /**
+     * Prompt the user for a role mention.
+     * @param {String} prompt - the text prompt to send to user
+     * @param {Discord.TextChannel} promptChannel - the channel to send the prompt to
+     * @param {String} userID - the ID of the user to prompt
+     * @async
+     * @returns {Promise<Discord.Role>} - the role prompted
+     */
+    static async rolePrompt(prompt, promptChannel, userID) {
+        let promptMsg = await Prompt.messagePrompt(prompt, 'mention', promptChannel, userID);
+        if (promptMsg === null) return null;
+        let role = promptMsg.mentions.roles.first();
+        if (role === null) {
+            promptChannel.send('<@' + userID + '> You did not mention a role, try again!').then(msg => msg.delete({timeout: 8000}));
+            return Prompt.rolePrompt(prompt, promptChannel, userID);
+        }
+        else return role;
+    }
+
+    /**
+     * Prompt the user for a member mention.
+     * @param {String} prompt - the text prompt to send to user
+     * @param {Discord.TextChannel} promptChannel - the channel to send the prompt to
+     * @param {String} userID - the ID of the user to prompt
+     * @async
+     * @returns {Promise<Discord.GuildMember>} - the member prompted
+     */
+    static async memberPrompt(prompt, promptChannel, userID) {
+        let promptMsg = await Prompt.messagePrompt(prompt, 'mention', promptChannel, userID);
+        if (promptMsg === null) return null;
+        let member = promptMsg.mentions.members.first();
+        if (member === null) {
+            promptChannel.send('<@' + userID + '> You did not mention a role, try again!').then(msg => msg.delete({timeout: 8000}));
+            return Prompt.rolePrompt(prompt, promptChannel, userID);
+        }
+        else return member;
     }
 }
 
