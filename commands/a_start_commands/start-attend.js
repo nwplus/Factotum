@@ -2,6 +2,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const { messagePrompt } = require('../../classes/prompt');
+const Prompt = require('../../classes/prompt');
 
 /**
  * StartAttend makes a new channel called #attend, or uses an existing channel of the user's choice, as the channel where the attend
@@ -16,13 +17,6 @@ module.exports = class StartAttend extends PermissionCommand {
             memberName: 'initiate attend process',
             description: 'identifies/makes a channel to be used for !attend and notifies people',
             guildOnly: true,
-            args: [
-                {
-                    key: 'existsChannel',
-                    prompt: 'Is there already a channel that exists that hackers will be using !attend in? Type "true" for yes and "false" for no.',
-                    type: 'boolean',
-                },
-            ],
         },
             {
                 channelID: discordServices.adminConsoleChannel,
@@ -37,10 +31,14 @@ module.exports = class StartAttend extends PermissionCommand {
      * channel should be created, and then creates it. In both cases it will send an embed containing the instructions for hackers to 
      * check in.
      * @param {Discord.Message} message - message containing command
-     * @param {boolean} existsChannel - boolean representing whether to use an existing channel(true) or new channel(false) 
      */
-    async runCommand(message, { existsChannel }) {
+    async runCommand(message) {
         var channel;
+
+        let existsChannel = await Prompt.yesNoPrompt('Is there already a channel that exists that hackers will be using !attend in?', message.channel, message.author.id);
+
+        if (existsChannel === null) return;
+
         if (existsChannel) {
             //ask user to mention channel to be used for !attend
             var channelMention = await messagePrompt('Please mention the channel to be used for the !attend command. ', 'string', message.channel, message.author.id, 20);
