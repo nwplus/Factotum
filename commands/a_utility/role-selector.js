@@ -5,10 +5,10 @@ const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt');
 
 // Command export
-module.exports = class RoleTransfer extends PermissionCommand {
+module.exports = class RoleSelector extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'roletransfer',
+            name: 'role-selector',
             group: 'a_utility',
             memberName: 'transfer role',
             description: 'Will let users transfer roles. Usefull for sponsor reps that are also mentors!',
@@ -44,7 +44,7 @@ module.exports = class RoleTransfer extends PermissionCommand {
         let transfers = new Discord.Collection();
 
         const cardEmbed = new Discord.MessageEmbed().setColor(discordServices.embedColor)
-            .setTitle('Role Transfer!')
+            .setTitle('Role Selector!')
             .setDescription('React to the specified emoji to get the role, un-react to remove the role.');
 
         let cardMsg = await message.channel.send(cardEmbed);
