@@ -247,7 +247,6 @@ class Activity {
                 }
             ]);
         }
-
         return total;
     }
 
@@ -268,7 +267,6 @@ class Activity {
             let channel = this.voiceChannels.get(channelName);
             if (channel != undefined) discordServices.deleteChannel(channel);
         }
-
         return final;
     }
 

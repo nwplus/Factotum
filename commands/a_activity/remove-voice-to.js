@@ -28,7 +28,6 @@ module.exports = class RemovePrivatesFor extends ActivityCommand {
      * @param {Activity} activity - the activity for this activity command
      */
     async activityCommand(message, activity, { number }) {
-        
         let final = activity.removeVoiceChannels(number);
 
         // report success of channel deletions
