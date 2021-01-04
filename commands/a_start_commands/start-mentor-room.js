@@ -30,15 +30,17 @@ module.exports = class StartMentors extends PermissionCommand {
      */
     async runCommand(message) {
 
-        let emojis = '🧑🏽🎓';
-
         let cave = new Cave({
             name: 'Mentor',
             preEmojis: '🧑🏽🎓',
             preRoleText: 'M',
             color: 'ORANGE',
             role: message.guild.roles.resolve(discordServices.mentorRole),
-        });
+            joinTicketEmoji: await Prompt.reactionPrompt('What is the join ticket emoji?', message.channel, message.author.id),
+            giveHelpEmoji: await Prompt.reactionPrompt('What is the give help emoji?', message.channel, message.author.id),
+            requestTicketEmoji: await Prompt.reactionPrompt('What is the request ticket emoji?', message.channel, message.author.id),
+            addRoleEmoji: await Prompt.reactionPrompt('What is the add role emoji?', message.channel, message.author.id),
+        }, message.guild);
 
         let adminConsole = message.guild.channels.resolve(discordServices.adminConsoleChannel);
 

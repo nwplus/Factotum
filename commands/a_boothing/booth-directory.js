@@ -1,7 +1,8 @@
 const PermissionCommand = require('../../classes/permission-command');
 const Discord = require('discord.js');
-const { messagePrompt } = require('../../classes/prompt');
+const { messagePrompt, rolePrompt } = require('../../classes/prompt');
 const discordServices = require('../../discord-services');
+const Prompt = require('../../classes/prompt');
 
 module.exports = class BoothDirectory extends PermissionCommand {
     constructor(client) {
@@ -11,18 +12,6 @@ module.exports = class BoothDirectory extends PermissionCommand {
             memberName: 'keep track of booths',
             description: 'Sends embeds to booth directory to notify hackers of booth statuses',
             guildOnly: true,
-            args: [
-                {
-                    key: 'sponsorName',
-                    prompt: 'Name of sponsor',
-                    type: 'string'
-                },
-                {
-                    key: 'link',
-                    prompt: 'Zoom link to booth',
-                    type: 'string',
-                },
-            ],
         },
         {
             roleID: discordServices.staffRole,
@@ -37,19 +26,23 @@ module.exports = class BoothDirectory extends PermissionCommand {
  * on that emoji, the embed changes to the other state. When a booth goes from Closed to Open, it will also notify a role (specified by 
  * the user) that it is open.
  * 
- * @param {message} message - messaged that called this command
- * @param {string} sponsorName - Exact name of the sponsor 
- * @param {string} link - sponsor's Zoom boothing link
+ * @param {Discord.Message} message - messaged that called this command
  */
-    async runCommand(message, { sponsorName, link }) {
+    async runCommand(message) {
+
+        let sponsorName = await messagePrompt('What is the sponsor name?', 'string', message.channel, message.author.id);
+        if (sponsorName === null) return;
+        else sponsorName = sponsorName.content;
+
+        let link = await messagePrompt('What is the sponsor link?', 'string', message.channel, message.author.id);
+        if (link === null) return;
+        else link = link.content;
+
         //ask user for role and save its id in the role variable
-        let rolemsg = await messagePrompt('What role will get pinged when booths open?','string', message.channel, message.author.id, 10);
-        let role;
-        if (rolemsg == null) {
-            return;
-        } else {
-            role = rolemsg.mentions.roles.first().id;
-        }
+        let role = await rolePrompt('What role will get pinged when booths open?', message.channel, message.author.id);
+
+        // prompt user for emoji to use
+        let emoji = await Prompt.reactionPrompt('What emoji do you want to use?', message.channel, message.author.id);
     
         //variable to keep track of state (Open vs Closed)
         var closed = true;
@@ -62,9 +55,9 @@ module.exports = class BoothDirectory extends PermissionCommand {
         //send closed embed at beginning (default is Closed)
         message.channel.send(embed).then((msg) => {
             msg.pin();
-            msg.react('🚪');
+            msg.react(emoji);
             //only listen for the door react from Staff and Sponsors
-            const emojiFilter = (reaction, user) => (reaction.emoji.name === '🚪') && (discordServices.checkForRole(message.guild.member(user), discordServices.staffRole) || discordServices.checkForRole(message.guild.member(user), discordServices.sponsorRole));
+            const emojiFilter = (reaction, user) => (reaction.emoji.name === emoji.name) && (discordServices.checkForRole(message.guild.member(user), discordServices.staffRole) || discordServices.checkForRole(message.guild.member(user), discordServices.sponsorRole));
             const emojicollector = msg.createReactionCollector(emojiFilter);
             
             var announcementMsg;

@@ -5,10 +5,10 @@ const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt');
 
 // Command export
-module.exports = class RoleTransfer extends PermissionCommand {
+module.exports = class RoleSelector extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'roletransfer',
+            name: 'role-selector',
             group: 'a_utility',
             memberName: 'transfer role',
             description: 'Will let users transfer roles. Usefull for sponsor reps that are also mentors!',
@@ -44,7 +44,7 @@ module.exports = class RoleTransfer extends PermissionCommand {
         let transfers = new Discord.Collection();
 
         const cardEmbed = new Discord.MessageEmbed().setColor(discordServices.embedColor)
-            .setTitle('Role Transfer!')
+            .setTitle('Role Selector!')
             .setDescription('React to the specified emoji to get the role, un-react to remove the role.');
 
         let cardMsg = await message.channel.send(cardEmbed);
@@ -71,24 +71,26 @@ module.exports = class RoleTransfer extends PermissionCommand {
                 let name = newTransferMsg.cleanContent.substring(0, firstStop);
                 let description = newTransferMsg.cleanContent.substring(firstStop + 1);
 
-                let roleReaction = await Prompt.reactionPrompt('What emoji to you want to use for this transfer?', message.channel, message.author.id);
+                let emoji = await Prompt.reactionPrompt('What emoji to you want to use for this transfer?', message.channel, message.author.id);
 
-                transfers.set(roleReaction.emoji.name, {
+                transfers.set(emoji.name, {
                     name: name,
                     description: description,
                     role: role,
                 });
 
                 // edit original embed with transfer information and react with new role
-                reaction.message.edit(reaction.message.embeds[0].addField(name + ' -> ' + roleReaction.emoji.name, description));
-                reaction.message.react(roleReaction.emoji.name);
+                reaction.message.edit(reaction.message.embeds[0].addField(name + ' -> ' + emoji.toString(), description));
+                reaction.message.react(emoji);
                 
                 reaction.users.remove(user.id);
             }
 
             // user add role
             if (transfers.has(reaction.emoji.name)) {
-                discordServices.addRoleToMember(message.guild.member(user), transfers.get(reaction.emoji.name).role);
+                let role = transfers.get(reaction.emoji.name).role;
+                discordServices.addRoleToMember(message.guild.member(user), role);
+                message.channel.send('<@' + user.id + '> You have been given the role: ' + role.name).then(msg => msg.delete({timeout: 4000}));
             }
         });
 
@@ -96,6 +98,7 @@ module.exports = class RoleTransfer extends PermissionCommand {
         reactionCollector.on('remove', (reaction, user) => {
             if (transfers.has(reaction.emoji.name)) {
                 discordServices.removeRolToMember(message.guild.member(user), transfers.get(reaction.emoji.name).role);
+                message.channel.send('<@' + user.id + '> You have lost the role: ' + role.name).then(msg => msg.delete({timeout: 4000}));
             }
         });
 
