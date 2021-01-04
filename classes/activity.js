@@ -220,6 +220,7 @@ class Activity {
      * @param {Number} number - the number of new voice channels to add
      * @param {Boolean} isPrivate - if the channels should be private to attndees
      * @param {Number} maxUsers - max number of users per channel, 0 if unlimited
+     * @returns {Number} - total number of channels
      */
     addVoiceChannels(number, isPrivate, maxUsers = 0) {
         let current = this.voiceChannels.array().length;
@@ -246,12 +247,15 @@ class Activity {
                 }
             ]);
         }
+
+        return total;
     }
 
 
     /**
      * Removes voice channels from the category
      * @param {Number} numberOfChannels - the number of channels to remove
+     * @returns {Number} - the final number of voice channels
      */
     removeVoiceChannels(numberOfChannels) {
         let total = this.voiceChannels.array().length;
@@ -264,6 +268,8 @@ class Activity {
             let channel = this.voiceChannels.get(channelName);
             if (channel != undefined) discordServices.deleteChannel(channel);
         }
+
+        return final;
     }
 
 
@@ -346,7 +352,7 @@ class Activity {
             topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
         },[
             { roleID: discordServices.attendeeRole, permissions: {VIEW_CHANNEL: false} },
-            { roleID: discordService.sponsorRole, permissions: {VIEW_CHANNEL: false} }
+            { roleID: discordServices.sponsorRole, permissions: {VIEW_CHANNEL: false} }
         ]);
 
         // create and blacklist an assistance channel
@@ -356,7 +362,7 @@ class Activity {
         });
         discordServices.blackList.set(assistanceChannel.id, 5000);
         
-        return taChannel, assistanceChannel;
+        return {taChannel, assistanceChannel};
     }
 
 
