@@ -40,7 +40,7 @@ module.exports = class CreatePrivatesFor extends ActivityCommand {
      * @param {Activity} activity 
      */
     async activityCommand(message, activity, {number, isPrivate, maxUsers}) {
-        activity.addVoiceChannels(number, isPrivate, maxUsers);
+        let final = activity.addVoiceChannels(number, isPrivate, maxUsers);
 
         // report success of workshop creation
         discordServices.replyAndDelete(message,'Workshop session named: ' + activity.name + ' now has ' + final + ' voice channels.');
