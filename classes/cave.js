@@ -560,7 +560,7 @@ class Cave {
         let initialRoles = roleManager.cache.filter(role => role.name.startsWith(this.caveOptions.preRoleText + '-'));
 
         initialRoles.each(async role => {
-            let messageReaction = await this.promptAndCheckReaction(role, adminConsole, userId);
+            let messageReaction = await this.promptAndCheckReaction('React with emoji for role named: ', role.name, adminConsole, userId);
 
             let activeUsers = role.members.array().length;
             this.addRole(role, messageReaction.emoji.name, activeUsers);
@@ -570,18 +570,19 @@ class Cave {
 
     /**
      * Prompt for an emoji for a role, will make sure that emoji is not already in use!
-     * @param {Discord.Role} role - role in question
-     * @param {Discord.TextChannel} adminConsole
+     * @param {String} prompt - the prompt string
+     * @param {String} roleName - the role name
+     * @param {Discord.TextChannel} promptChannel - channel to prompt for role
      * @param {Discord.Snowflake} userId - the user to prompt
      * @async
      * @private
      * @returns {Promise<Discord.MessageReaction>}
      */
-    async promptAndCheckReaction(role, adminConsole, userId) {
-        let messageReaction = await Prompt.reactionPrompt('React with emoji for role named: ' + role.name, adminConsole, userId);
+    async promptAndCheckReaction(prompt, roleName, promptChannel, userId) {
+        let messageReaction = await Prompt.reactionPrompt(prompt + roleName, promptChannel, userId);
             if (this.emojis.has(messageReaction.emoji.name)) {
-                adminConsole.send('<@' + userId + '> That emoji is already in use! Try again!').then(msg => msg.delete({timeout: 8000}));
-                return this.promptAndCheckReaction(role, adminConsole, userId);
+                promptChannel.send('<@' + userId + '> That emoji is already in use! Try again!').then(msg => msg.delete({timeout: 8000}));
+                return this.promptAndCheckReaction(roleName, promptChannel, userId);
             } else return messageReaction;
     }
 
@@ -621,8 +622,8 @@ class Cave {
 
         if (roleName === null) return null;
 
-        let reaction = await Prompt.reactionPrompt('What emoji do you want to associate with this new role?', channel, userId);
-
+        let reaction = await this.promptAndCheckReaction('What emoji do you want to associate with this new role?', roleName, channel, userId);
+        
         // make sure the reaction is not already in use!
         if (cave.emojis.has(reaction.emoji.name)) {
             message.channel.send('<@' + userId + '>This emoji is already in use! Please try again!').then(msg => msg.delete({timeout: 8000}));
