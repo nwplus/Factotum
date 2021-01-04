@@ -37,14 +37,6 @@ module.exports = class DiscordContests extends PermissionCommand {
     async runCommand(message) {
         //ask user for time interval between questions
         var timeInterval;
-        // await numberPrompt('What is the time interval between questions in minutes (integer only)? ', message.channel, message.author.id)
-        //     .then((minutes) => {
-        //         if (minutes != null) {
-        //             timeInterval = 1000 * 60 * minutes;
-        //         } else {
-        //             return;
-        //         }
-        //     });
         let num = await numberPrompt('What is the time interval between questions in minutes (integer only)? ', message.channel, message.author.id);
         if (num != null) timeInterval = 1000 * 60 * num;
         else return;
@@ -160,7 +152,7 @@ module.exports = class DiscordContests extends PermissionCommand {
                 const qEmbed = new Discord.MessageEmbed()
                     .setColor(discordServices.embedColor)
                     .setTitle('A new Discord Contest Question:')
-                    .setDescription(question);
+                    .setDescription(question + '\n' + 'Exact answers only!');
                 if (answers.length == 0) {
                     qEmbed.setDescription(question + '\n' + 'Staff: click the 👑 emoji to announce a winner!');
                 }
@@ -192,15 +184,15 @@ module.exports = class DiscordContests extends PermissionCommand {
                         collector.on('collect', m => {
                             if (!needAllAnswers) {
                                 //for most questions, an answer that contains at least once item of the answer array is correct
-                                if (answers.some(correctAnswer => m.content.toLowerCase().includes(correctAnswer))) {
+                                if (answers.some(correctAnswer => m.content.toLowerCase().includes(correctAnswer.toLowerCase()))) {
                                     message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + answers.join(' or ') + ".");
                                     winners.push(m.author.id);
                                     collector.stop();
                                 }
                             } else {
                                 //check if all answers in answer array are in the message
-                                if (answers.every((answer) => m.content.toLowerCase().includes(answer))) {
-                                    message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + answers.join(' or ') + ".");
+                                if (answers.every((answer) => m.content.toLowerCase().includes(answer.toLowerCase()))) {
+                                    message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + answers.join(', ') + ".");
                                     winners.push(m.author.id);
                                     collector.stop();
                                 };
