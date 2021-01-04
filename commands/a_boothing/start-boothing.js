@@ -38,7 +38,7 @@ module.exports = class StartBoothing extends PermissionCommand {
             .setTitle('Sponsor Boothing')
             .setDescription('Welcome to our sponsor booth! Please react to one of the emojis below to get started!')
             .addField('Join Wait List Alone', 'If you want to join the wait list by yourself please react to ' + ':sunglasses:')
-            .addField('Joine Wait List with Group', 'If you want to join the wait list with a group of friends, please react to ' + ':family_mwgb:' + ' and follow the prompts.');
+            .addField('Join Wait List with Group', 'If you want to join the wait list with a group of friends, please react to ' + ':family_mwgb:' + ' and follow the prompts.');
 
         var msg = await message.channel.send(textEmbed);
         await msg.react('😎');
