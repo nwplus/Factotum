@@ -36,7 +36,6 @@ firebase.initializeApp(firebaseConfig);
 const nwFirebase = firebase.initializeApp(nwFirebaseConfig, 'nwFirebase');
 
 const discordServices = require('./discord-services');
-const firebaseServices = require('./firebase-services/firebase-services');
 
 const config = {
     token: process.env.TOKEN,
@@ -68,12 +67,14 @@ bot.once('ready', async () => {
 
     // add verify and attend channels to the black list
     discordServices.blackList.set(discordServices.welcomeChannel, 3000);
-    discordServices.blackList.set(discordServices.attendChannel, 3000);
 
     // check roles
     // we asume the bot is only in one guild!
     var guild = bot.guilds.cache.first();
     var roleManager = await guild.roles.fetch();
+
+    // disable the attend command
+    bot.registry.commands.get('attend').setEnabledIn(guild, false);
 
     // roles we are looking for
     // dict key: role name, value: list of color and then id (snowflake)

@@ -3,6 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const firebaseServices = require('../../firebase-services/firebase-services');
 const Discord = require('discord.js');
 const discordServices = require('../../discord-services');
+const StartAttend = require('../a_start_commands/start-attend');
 
 // Command export
 module.exports = class Attendace extends PermissionCommand {
@@ -24,8 +25,6 @@ module.exports = class Attendace extends PermissionCommand {
             ],
         },
         {
-            channelID: discordServices.attendChannel,
-            channelMessage: 'Hi there, the !attend command is only available in the attend-channel channel.',
             roleID: discordServices.hackerRole,
             roleMessage: 'Hi there, it seems you are already marked as attendee, or you do not need to be marked as attendee. Happy hacking!',
         });
