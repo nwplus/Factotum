@@ -56,10 +56,8 @@ module.exports = class StartTeamFormation extends PermissionCommand {
         let areCreated = await Prompt.yesNoPrompt('Are the team formation roles already created?', message.channel, message.author.id);
 
         if (areCreated) {
-            let lftRoleMsg = await Prompt.messagePrompt('Please tag the looking for team role!', 'string', message.channel, message.author.id);
-            this.lookingForTeamRole = lftRoleMsg.mentions.roles.first();
-            let lfmRoleMsg = await Prompt.messagePrompt('Please tag the looking for members role!', 'string', message.channel, message.author.id);
-            this.lookingForMembersRole = lfmRoleMsg.mentions.roles.first();
+            this.lookingForTeamRole = await Prompt.rolePrompt('Please tag the looking for team role!', message.channel, message.author.id);
+            this.lookingForMembersRole = await Prompt.rolePrompt('Please tag the looking for members role!', message.channel, message.author.id);
         } else {
             this.lookingForTeamRole = await message.guild.roles.create({
                 data: {
@@ -156,7 +154,7 @@ module.exports = class StartTeamFormation extends PermissionCommand {
     async gatherForm(user, guild, dmMsg, collector, isResponging, isTeam) {
 
         let formMsg = await Prompt.messagePrompt('Please send me your completed form, if you do not follow the form your post will be deleted! You have 10 seconds to send your information.', 
-                                                    'string', user.dmChannel, user.id, 10);
+                                                    'string', user.dmChannel, user.id, 30);
         
 
         // check if the prompt timed out, if so, exit
