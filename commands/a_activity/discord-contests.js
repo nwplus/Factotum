@@ -2,6 +2,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const { messagePrompt, numberPrompt, yesNoPrompt } = require('../../classes/prompt');
+const { getQuestion } = require('../../firebase-services/firebase-services');
 
 var interval;
 
@@ -36,77 +37,73 @@ module.exports = class DiscordContests extends PermissionCommand {
     async runCommand(message) {
         //ask user for time interval between questions
         var timeInterval;
-        await numberPrompt('What is the time interval between questions in minutes (integer only)? ', message.channel, message.author.id)
-            .then((minutes) => {
-                if (minutes != null) {
-                    timeInterval = 1000 * 60 * minutes;
-                } else {
-                    return;
-                }
-            });
+        // await numberPrompt('What is the time interval between questions in minutes (integer only)? ', message.channel, message.author.id)
+        //     .then((minutes) => {
+        //         if (minutes != null) {
+        //             timeInterval = 1000 * 60 * minutes;
+        //         } else {
+        //             return;
+        //         }
+        //     });
+        let num = await numberPrompt('What is the time interval between questions in minutes (integer only)? ', message.channel, message.author.id);
+        if (num != null) timeInterval = 1000 * 60 * num;
+        else return;
 
         // ask user whether to start asking questions now(true) or after 1 interval (false)
         var startNow;
-        await yesNoPrompt('Type "yes" to start first question now, "no" to start one time interval from now. ', message.channel, message.author.id)
-            .then((bool) => {
-                if (bool != null) {
-                    startNow = bool;
-                } else {
-                    return;
-                }
-            });
+        let bool = await yesNoPrompt('Type "yes" to start first question now, "no" to start one time interval from now. ', message.channel, message.author.id)
+        if (bool != null) startNow = bool;
+        else return;
 
         //id of role to mention when new questions come out
         var role;
-        await messagePrompt('What is the hacker role to notify for Discord contests? Tag it in your next message.', 'string', message.channel, message.author.id, 15)
-            .then((msg) => {
-                if (msg != null && msg.mentions.roles.first() != null) {
-                    role = msg.mentions.roles.first().id;
-                } else if (msg.mentions.roles.first() == null) {
-                    message.channel.send('No role mentions detected! Please try again.')
-                        .then((msg) => msg.delete({ timeout: 3000 }));
-                    return;
-                } else {
-                    return;
-                }
-            });
-        const time = new Date();
-        //calculate time till next interval to display as the start time if startNow is false
-        const nextQTime = time.valueOf() + timeInterval;
+        let msg = await messagePrompt('What is the hacker role to notify for Discord contests? Tag it in your next message.', 'string', message.channel, message.author.id, 15)
+        if (msg != null && msg.mentions.roles.first() != null) {
+            role = msg.mentions.roles.first().id;
+        } else if (msg.mentions.roles.first() == null) {
+            message.channel.send('No role mentions detected! Please try again.')
+                .then((msg) => msg.delete({ timeout: 3000 }));
+            return;
+        } else {
+            return;
+        }
         //paused keeps track of whether it has been paused
         var paused = false;
         //all correct answers are listed in the arrays that are the values; any that cannot be automatically marked have an empty array
-        var listOfQ = new Map([
-            ['What is the command to exit Vim?', [":wq", ":q"]],
-            ['What is the name of the Linux mascot?', ['tux']],
-            ['Draw the nwPlus logo in 1 pen stroke.', []],
-            ['In "The Office", who teams up with Dwight to prank Jim into giving them a week\'s supply of meatballs?', ['stanley']],
-            ['Who invented the Java programming language?', ['james gosling']],
-            ['What is nwPlus\' next hackathon after nwHacks?', ['cmd-f']],
-            ['Draw your team out. We\'ll pick the funniest picture.', []],
-            ['What does the MEAN web-stack acronym stand for?', ['mongodb', 'express', 'angularjs', 'node.js']],
-            ['What ancestral and unceded Indigenous territory is UBC\'s Vancouver Campus situated on?', ['musqueam']],
-            ['What does a 503 error code mean?', ['service unavailable']],
-            ['Who created Flutter?', ['google']],
-            ['What is the capital of Uruguay?', ['montevideo']],
-            ['What is Dumbledore\'s full name?', ['albus wulfric percival brian dumbledore']],
-            ['Which of these is not a white wine: Pinot Grigio, Zifandel, Chardonnay?', ['zifandel']],
-            ['Take a picture of your lunch.', []],
-            ['What is the strongly-typed and compiled alternative of JavaScript called?', ["typescript"]],
-            ['What is CocoaPods?', []],
-            ['Which is the oldest web front-end framework: Angular, React or Vue?', ['angular']],
-            ['Complete the Star Wars line: Hello there! ______ ______. (2 words)', ['general kenobi']],
-            ['Give your best tech pickup line.', []],
-        ]);
+        // var listOfQ = new Map([
+        //     ['What is the command to exit Vim?', [":wq", ":q"]],
+        //     ['What is the name of the Linux mascot?', ['tux']],
+        //     ['Draw the nwPlus logo in 1 pen stroke.', []],
+        //     ['In "The Office", who teams up with Dwight to prank Jim into giving them a week\'s supply of meatballs?', ['stanley']],
+        //     ['Who invented the Java programming language?', ['james gosling']],
+        //     ['What is nwPlus\' next hackathon after nwHacks?', ['cmd-f']],
+        //     ['Draw your team out. We\'ll pick the funniest picture.', []],
+        //     ['What does the MEAN web-stack acronym stand for?', ['mongodb', 'express', 'angularjs', 'node.js']],
+        //     ['What ancestral and unceded Indigenous territory is UBC\'s Vancouver Campus situated on?', ['musqueam']],
+        //     ['What does a 503 error code mean?', ['service unavailable']],
+        //     ['Who created Flutter?', ['google']],
+        //     ['What is the capital of Uruguay?', ['montevideo']],
+        //     ['What is Dumbledore\'s full name?', ['albus wulfric percival brian dumbledore']],
+        //     ['Which of these is not a white wine: Pinot Grigio, Zifandel, Chardonnay?', ['zifandel']],
+        //     ['Take a picture of your lunch.', []],
+        //     ['What is the strongly-typed and compiled alternative of JavaScript called?', ["typescript"]],
+        //     ['What is CocoaPods?', []],
+        //     ['Which is the oldest web front-end framework: Angular, React or Vue?', ['angular']],
+        //     ['Complete the Star Wars line: Hello there! ______ ______. (2 words)', ['general kenobi']],
+        //     ['Give your best tech pickup line.', []],
+        // ]);
         //array of winners' ids
         const winners = [];
-        //iterator of all keys in listOfQ
-        var keys = listOfQ.keys();
         var string;
         if (startNow) {
-            string = "Discord contests starting now! Be the first to answer correctly or give the best answer to win a prize!";
+            string = "Discord contests starting now! Answer for a chance to win a prize!";
         } else {
-            string = "Discord contests starting at " + new Date(nextQTime) + "Be the first to answer correctly or give the best answer to win a prize!";
+            const time = new Date();
+            //calculate time till next interval to display as the start time if startNow is false
+            const nextQTime = time.valueOf() + timeInterval;
+            let options = { weekday: 'long', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short'};
+            var nextTime = new Date(nextQTime).toLocaleString('en-US', options);
+            string = "Discord contests starting at " + nextTime + "! Answer for a chance to win a prize!";
         }
         const startEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
@@ -114,14 +111,12 @@ module.exports = class DiscordContests extends PermissionCommand {
             .setDescription('Note: Questions that have correct answers are non-case sensitive but any extra or missing symbols will be considered incorrect.\n' +
                 'For Staff only:\n' +
                 '⏸️ to pause\n' +
-                '⏯️ to resume\n' +
-                '⛔ to remove a question\n');
+                '⏯️ to resume\n');
 
-        message.channel.send('<@&' + role + '>', {embed: startEmbed}).then((msg) => {
+        message.channel.send('<@&' + role + '>', { embed: startEmbed }).then((msg) => {
             msg.pin();
             msg.react('⏸️');
             msg.react('⏯️');
-            msg.react('⛔');
             //filters so that it will only respond to Staff who reacted with one of the 3 emojis 
             const emojiFilter = (reaction, user) => (reaction.emoji.name === '⏸️' || reaction.emoji.name === '⏯️' || reaction.emoji.name === '⛔') && message.guild.member(user).roles.cache.has(discordServices.staffRole);
             const emojicollector = msg.createReactionCollector(emojiFilter);
@@ -140,22 +135,7 @@ module.exports = class DiscordContests extends PermissionCommand {
                         interval = setInterval(sendQuestion, timeInterval);
                         paused = false;
                     }
-                } else if (reaction.emoji.name === '⛔') {
-                    //prompt user in DMs which question to remove
-                    user.send("Enter the question to remove. (Needs to be exact including punctuation and case, refer to the Notion page with the list of questions. Automatically cancels in 30 seconds.)")
-                        .then((prompt) => {
-                            prompt.channel.awaitMessages(message => message.author.id === user.id, { max: 1, time: 30 * 1000, errors: ['time'] })
-                                .then((remove) => {
-                                    var removeKey = remove.first().content;
-                                    if (listOfQ.has(removeKey)) {
-                                        listOfQ.delete(removeKey);
-                                        user.send("Deleted \"" + removeKey + "\"");
-                                    } else {
-                                        user.send("The question isn't in our list!");
-                                    }
-                                });
-                        });
-                }
+                } 
             });
         })
 
@@ -171,24 +151,22 @@ module.exports = class DiscordContests extends PermissionCommand {
          * list all the winners in order.
          */
         async function sendQuestion() {
-            //get next question from iterator
-            var nextQ = keys.next().value;
-            //if a question has been removed already and there are still more questions, get the next question
-            if (!listOfQ.has(nextQ) && nextQ != null) {
-                nextQ = keys.next().value;
-            }
-            //if iterator isn't empty, send it
-            if (nextQ != null) {
+            //get question's parameters from db 
+            var data = await getQuestion();
+            if (data != null) {
+                var question = data['question'];
+                var answers = data['answers'];
+                var needAllAnswers = data['needAllAnswers'];
                 const qEmbed = new Discord.MessageEmbed()
                     .setColor(discordServices.embedColor)
                     .setTitle('A new Discord Contest Question:')
-                    .setDescription(nextQ);
-                if (listOfQ.get(nextQ).length == 0) {
-                    qEmbed.setDescription(nextQ + '\n' + 'Staff: click the 👑 emoji to announce a winner!');
+                    .setDescription(question);
+                if (answers.length == 0) {
+                    qEmbed.setDescription(question + '\n' + 'Staff: click the 👑 emoji to announce a winner!');
                 }
 
                 await message.channel.send('<@&' + role + '>', { embed: qEmbed }).then((msg) => {
-                    if (listOfQ.get(nextQ).length == 0) {
+                    if (answers.length == 0) {
                         msg.react('👑');
                         //if it cannot be automatically marked, notify Staff and start listening for the crown emoji
                         message.channel.send("<@&" + discordServices.staffRole + "> will be manually reviewing answers for this question.");
@@ -212,17 +190,17 @@ module.exports = class DiscordContests extends PermissionCommand {
                         const filter = m => !m.author.bot;
                         const collector = message.channel.createMessageCollector(filter, { time: timeInterval * 0.75 });
                         collector.on('collect', m => {
-                            if (!nextQ.includes('MEAN')) {
+                            if (!needAllAnswers) {
                                 //for most questions, an answer that contains at least once item of the answer array is correct
-                                if (listOfQ.get(nextQ).some(correctAnswer => m.content.toLowerCase().includes(correctAnswer))) {
-                                    message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + listOfQ.get(nextQ).join(' or ') + ".");
+                                if (answers.some(correctAnswer => m.content.toLowerCase().includes(correctAnswer))) {
+                                    message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + answers.join(' or ') + ".");
                                     winners.push(m.author.id);
                                     collector.stop();
                                 }
                             } else {
-                                //for the question asking about the MEAN acronym, participants need to get all correct
-                                if (listOfQ.get(nextQ).every((answer) => m.content.toLowerCase().includes(answer))) {
-                                    message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + listOfQ.get(nextQ).join(' or ') + ".");
+                                //check if all answers in answer array are in the message
+                                if (answers.every((answer) => m.content.toLowerCase().includes(answer))) {
+                                    message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + answers.join(' or ') + ".");
                                     winners.push(m.author.id);
                                     collector.stop();
                                 };
