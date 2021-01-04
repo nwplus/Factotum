@@ -74,8 +74,8 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
             .addField('If you are in a group of two or three', 'React with ' + this.teamEmoji + ' and I will send you instructions.');
         
         var cardMessage = await channel.send(msgEmbed);
-        cardMessage.react(this.teamEmoji);
         cardMessage.react(this.soloEmoji);
+        cardMessage.react(this.teamEmoji);
 
         // collect form reaction collector and its filter
         const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === this.soloEmoji || reaction.emoji.name === this.teamEmoji);
