@@ -24,6 +24,7 @@ module.exports = class StartMentors extends PermissionCommand {
         });
     }
 
+  
     /**
      * 
      * @param {Discord.Message} message - a message
@@ -40,7 +41,7 @@ module.exports = class StartMentors extends PermissionCommand {
             giveHelpEmoji: await Prompt.reactionPrompt('What is the give help emoji?', message.channel, message.author.id),
             requestTicketEmoji: await Prompt.reactionPrompt('What is the request ticket emoji?', message.channel, message.author.id),
             addRoleEmoji: await Prompt.reactionPrompt('What is the add role emoji?', message.channel, message.author.id),
-        }, message.guild);
+        });
 
         let adminConsole = message.guild.channels.resolve(discordServices.adminConsoleChannel);
 

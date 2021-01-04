@@ -1,6 +1,5 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
 
 /**
  * The Raffle class randomly picks a set number of winners from all members in a Discord server that have a role ending in a 1-2 digit 
