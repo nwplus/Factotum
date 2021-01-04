@@ -111,7 +111,7 @@ module.exports = class DiscordContests extends PermissionCommand {
         const startEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle(string)
-            .setDescription('Note: Questions with correct answers are non-case sensitive but any extra or missing symbols will be considered incorrect.\n' +
+            .setDescription('Note: Questions that have correct answers are non-case sensitive but any extra or missing symbols will be considered incorrect.\n' +
                 'For Staff only:\n' +
                 '⏸️ to pause\n' +
                 '⏯️ to resume\n' +
@@ -142,7 +142,7 @@ module.exports = class DiscordContests extends PermissionCommand {
                     }
                 } else if (reaction.emoji.name === '⛔') {
                     //prompt user in DMs which question to remove
-                    user.send("Enter the question to remove. (Needs to be exact including punctuation, refer to the Notion page with the list of questions. Automatically cancels in 30 seconds.)")
+                    user.send("Enter the question to remove. (Needs to be exact including punctuation and case, refer to the Notion page with the list of questions. Automatically cancels in 30 seconds.)")
                         .then((prompt) => {
                             prompt.channel.awaitMessages(message => message.author.id === user.id, { max: 1, time: 30 * 1000, errors: ['time'] })
                                 .then((remove) => {
@@ -184,7 +184,7 @@ module.exports = class DiscordContests extends PermissionCommand {
                     .setTitle('A new Discord Contest Question:')
                     .setDescription(nextQ);
                 if (listOfQ.get(nextQ).length == 0) {
-                    qEmbed.setDescription('Staff: click the 👑 emoji to announce a winner!');
+                    qEmbed.setDescription(nextQ + '\n' + 'Staff: click the 👑 emoji to announce a winner!');
                 }
 
                 await message.channel.send('<@&' + role + '>', { embed: qEmbed }).then((msg) => {
