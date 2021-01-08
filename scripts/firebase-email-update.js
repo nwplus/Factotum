@@ -145,6 +145,26 @@ let mentor2 = ['thomas_girard@sfu.ca',
     'nickwu241@gmail.com',
     'kian.shahangyan@alumni.ubc.ca']
 
+let groundswell = [
+    'kathrynh@gscloudsolutions.com',
+    'pei@gscloudsolutions.com',
+    'colin@gscloudsolutions.com',
+    'mark@gscloudsolutions.com',
+    'mike@gscloudsolutions.com',
+    'stefan@gscloudsolutions.com',
+    'donovan@gscloudsolutions.com',
+    'adam@gscloudsolutions.com',
+]
+
+let groundswell2 = [
+    'leonardo@gscloudsolutions.com',
+    'liezl@gscloudsolutions.com',
+    'sally@gscloudsolutions.com',
+    'liezl@gscloudsolutions.com',
+]
+
+addEventListener(groundswell2, 'sponsor');
+
 // staff2.forEach((value, index, list) => {
 //     db.collection('members').doc().set({
 //         'name' : value.substring(0, value.indexOf('@')),
@@ -164,14 +184,20 @@ let mentor2 = ['thomas_girard@sfu.ca',
 // });
 
 
-mentor2.forEach((value, index, list) => {
-    db.collection('members').doc().set({
-        'name' : value.substring(0, value.indexOf('@')),
-        'email' : value,
-        'type' : 'mentor',
-        'isVerified' : false
+function addEventListener(list, type) {
+    list.forEach((value, index, list) => {
+        db.collection('members').doc().set({
+            'name' : value.substring(0, value.indexOf('@')),
+            'email' : value,
+            'type' : type,
+            'isVerified' : false
+        });
     });
-});
+    console.log('adding users done');
+}
+
+
+
 
 // sponsorList.forEach((value, index, list) => {
 //     db.collection('members').doc().set({
