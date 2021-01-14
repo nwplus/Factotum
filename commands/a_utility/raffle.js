@@ -51,16 +51,14 @@ module.exports = class Raffle extends PermissionCommand {
         }
 
         //array to contain the ids
-        var entries = new Array(20000);  //array size subject to change
-        //variable to track location in array
-        var position = {value:0};
+        var entries = new Array(); 
         
         await message.guild.members.cache.forEach(member => {
-            entries = this.addEntries(member, entries, position);
+            entries = this.addEntries(member, entries);
         });
 
         //number of array spaces that are actually occupied by ids
-        var length = Object.keys(entries).length;
+        var length = entries.length;
         //set to keep track of winners
         let winners = new Set();
         //randomly generate a number and add the corresponding winner into the set
@@ -82,12 +80,11 @@ module.exports = class Raffle extends PermissionCommand {
      * the entries array that many times.
      * @param {member} member - given member to check roles and add entries for
      * @param {Array} entries - array from runCommand to collect entries
-     * @param {Object} pos - first empty position in array entries
      */
-    addEntries(member, entries, pos) {
+    addEntries(member, entries) {
         //don't add entries if member is a bot
         if (member.user.bot) {
-            return;
+            return entries;
         }
         
         var stampRole;
@@ -107,10 +104,9 @@ module.exports = class Raffle extends PermissionCommand {
 
         var i;
         //starting from the first empty value in entries indicated by pos.value, add member's id stampNumber times 
-        for (i = pos.value; i < stampNumber + pos.value; i++) {
-            entries[i] = member.user.id;
+        for (i = 0; i < stampNumber; i++) {
+            entries.push(member.user.id);
         }
-        pos.value = i++;
         return entries;
     }
 }
