@@ -428,7 +428,36 @@ class Cave {
                             ticketInfo.category.updateOverwrite(exitUser, {VIEW_CHANNEL: false, SEND_MESSAGES: false, READ_MESSAGE_HISTORY: false});
                         }
                     });
+                    
+                    var interval;
+                    interval = setInterval(deletionSequence, 60 * 1000);//change number in deployment
+                    async function deletionSequence() {
+                        var hackerMentions = '<@' + hacker.id + '>';
+                        if (hackerMentions.members != null) { 
+                            hackerMentions = hackerMentions + '<@' + hackerTicketMentions.members.join('><@') + '>';
+                        }
+                        ticketTextChannel.send(hackerMentions + ' Hello! Just checking in.\n' +
+                        'If your problem has been solved and you have all the information you need, please click the 👋 emoji above to leave the channel.\n' +
+                        'If you need to keep the channel, please click the emoji below, otherwise this ticket will be deleted soon.')
+                        .then((warning) => {
+                            warning.react('🔄');
+                            const deletionCollector = warning.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🔄', {time: 30 * 1000, max: 1}); //change number in deployment
+                            deletionCollector.on('collect', (reaction, user) => {
+                                clearInterval(interval);
+                            });
+                            deletionCollector.on('end', async (collected) => {
+                                if (collected.size == 0) {
+                                    await ticketTextChannel.delete();
+                                    await ticketVoiceChannel.delete();
+                                    await ticketCategory.delete();
+                                } else {
+                                    await ticketTextChannel.send('You have indicated that you need more time. I\'ll check in with you later!');
+                                    interval = setInterval(deletionSequence, 60 * 1000);
+                                }
+                            });
+                        });
 
+                    }
                 }
             });
         });
