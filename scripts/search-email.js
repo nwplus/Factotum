@@ -9,7 +9,7 @@ const firebaseConfig = {
     apiKey: process.env.FIREBASEAPIKEY,
     authDomain: process.env.FIREBASEAUTHDOMAIN,
     databaseURL: process.env.FIREBASEURL,
-    projectId: process.env.FIREBASEPROJECTID,
+    projectId: 'nwplus-bot',
     storageBucket: process.env.FIREBASEBUCKET,
     messagingSenderId: process.env.FIREBASESENDERID,
     appId: process.env.FIREBASEAPPID,
@@ -33,11 +33,11 @@ const status = {
 }
 
 
-let email = 'jacky@nwplus.io';
+// let email = 'jacky@nwplus.io';
 
-let response = verifyUser(email, '00000000000')
+// let response = verifyUser(email, '00000000000')
 
-console.log(response);
+// console.log(response);
 
 /**
  * Verifies the mentor/sponsor/staff member via their email.
@@ -65,3 +65,12 @@ async function verifyUser(email, id) {
     }
     return status.FAILURE;
 }
+
+async function goodMentors() {
+    var ref = await db.collection('members').where('type', '==', 'mentor').where('isVerified', '==', true).get();
+    ref.forEach(queryDocumentSnapshot => {
+        console.log(queryDocumentSnapshot.get('email'));
+    });
+}
+
+goodMentors();
