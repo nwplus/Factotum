@@ -38,7 +38,7 @@ module.exports = class StartBoothing extends PermissionCommand {
             .setTitle('Sponsor Boothing')
             .setDescription('Welcome to our sponsor booth! Please react to one of the emojis below to get started!')
             .addField('Join Wait List Alone', 'If you want to join the wait list by yourself please react to ' + ':sunglasses:')
-            .addField('Joine Wait List with Group', 'If you want to join the wait list with a group of friends, please react to ' + ':family_mwgb:' + ' and follow the promts.');
+            .addField('Join Wait List with Group', 'If you want to join the wait list with a group of friends, please react to ' + ':family_mwgb:' + ' and follow the prompts.');
 
         var msg = await message.channel.send(textEmbed);
         await msg.react('😎');
@@ -128,7 +128,7 @@ module.exports = class StartBoothing extends PermissionCommand {
         const dmEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle('Sponsor Boothing Wait List')
-            .setDescription('Hey there! We got you singed up to talk to a sponsor! Sit tight in the voice channel. If you ' +
+            .setDescription('Hey there! We got you signed up to talk to a sponsor! Sit tight in the voice channel. If you ' +
                 'are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!')
             .addField('Wait list position', 'You are number: ' + number + ' in the wait list.')
             .addField('!position', 'Command you can call in this DM to get your spot in the wait list.')
@@ -151,7 +151,7 @@ module.exports = class StartBoothing extends PermissionCommand {
 
                 // remove from wait list
                 firebaseBoothing.removeGroupFromBooth(boothName, username);
-                discordServices.sendMessageToMember(user, 'Hey there! You have ben removed from the waitlist, thanks for letting us know!', true);
+                discordServices.sendMessageToMember(user, 'Hey there! You have been removed from the waitlist, thanks for letting us know!', true);
 
                 // remove group from wait list
                 sponsorMsg.edit(sponsorMsg.embeds[0].spliceFields(0, 1));
@@ -174,7 +174,7 @@ module.exports = class StartBoothing extends PermissionCommand {
 
         // if the sponsor is not in a voice channel warn him and return
         if (sponsorVoice === null) {
-            sponsorChannel.send('<@' + user.id + '> Please join a voice channel before asking me to assing you a group!').then(msg => msg.delete({ timeout: 5000 }));
+            sponsorChannel.send('<@' + user.id + '> Please join a voice channel before asking me to assign you a group!').then(msg => msg.delete({ timeout: 5000 }));
             return;
         }
 
@@ -208,14 +208,14 @@ module.exports = class StartBoothing extends PermissionCommand {
                 discordServices.sendMessageToMember(member, 'Hey hey, a sponsor is ready to talk to you! You are now live!');
             } catch (err) {
                 discordServices.sendMessageToMember(member, 'Hi there! We tried to get you in a voice channel with a sponsor but you were not available. ' +
-                    'Remember you need to stay in the wait list voice channel! If you would like to try again please call the command again in the boothin-wait-list text chanel.' +
-                    'If you were in a group and one of your friends made it into the private call then join the waitlist voicechannel ASAP so the sponsor can add you manualy!');
+                    'Remember you need to stay in the wait list voice channel! If you would like to try again please call the command again in the boothing-wait-list text channel.' +
+                    'If you were in a group and one of your friends made it into the private call then join the waitlist voicechannel ASAP so the sponsor can add you manually!');
             }
         }
 
         // if no one was added skip this team and let the sponsor know!
         if (isAdded === false) {
-            sponsorChannel.send('<@' + user.id + '> The team is not available right now! They have been skiped, please try again.').then(msg => msg.delete({ timeout: 5000 }));
+            sponsorChannel.send('<@' + user.id + '> The team is not available right now! They have been skipped, please try again.').then(msg => msg.delete({ timeout: 5000 }));
         } else {
             sponsorChannel.send('<@' + user.id + '> The group has been added! Happy talking!!!').then(msg => msg.delete({ timeout: 5000 }));
         }

@@ -93,13 +93,13 @@ module.exports = class StartChannelCreation extends PermissionCommand {
                                     message.guild.channels.create(channelName, {
                                         type: channelType, 
                                         parent: category
-                                    }).then(channel => {
-                                        channel.updateOverwrite(user, {
+                                    }).then(newChannel => {
+                                        newChannel.updateOverwrite(user, {
                                             VIEW_CHANNEL : true,
                                         });
 
                                         // add guests
-                                        guests.each(mem => channel.updateOverwrite(mem.user, {
+                                        guests.each(mem => newChannel.updateOverwrite(mem.user, {
                                             VIEW_CHANNEL : true,
                                         }));
 

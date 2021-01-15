@@ -23,7 +23,10 @@ module.exports = class InitWorkshop extends ActivityCommand {
      */
     async activityCommand(message, activity) {
 
-        let taChannel, assistanceChannel = await activity.makeWorkshop();
+        let channels = await activity.makeWorkshop();
+
+        let taChannel = channels.taChannel;
+        let assistanceChannel = channels.assistanceChannel;
 
     // important variables and embeds
         // pullInFunctionality is default to true
@@ -92,13 +95,13 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 reaction.users.remove(user.id);
 
                 if (emojiName === emojis[0]) {
-                    commandRegistry.findCommands('distribute-stamp', true)[0].run(message, { activityName: activityName, timeLimit: discordServices.stampCollectTime, targetChannelKey: textChannelKey });
+                    commandRegistry.findCommands('distribute-stamp', true)[0].run(message, activity, { timeLimit: discordServices.stampCollectTime });
                 } else if (emojiName === emojis[1]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].run(message, { activityName: activityName, question: 'speed', targetChannelKey: textChannelKey });
+                    commandRegistry.findCommands('workshop-polls', true)[0].run(message, activity, { question: 'speed' });
                 } else if (emojiName === emojis[2]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].run(message, { activityName: activityName, question: 'difficulty', targetChannelKey: textChannelKey });
+                    commandRegistry.findCommands('workshop-polls', true)[0].run(message, activity, { question: 'difficulty'});
                 } else if (emojiName === emojis[3]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].run(message, { activityName: activityName, question: 'explanations', targetChannelKey: textChannelKey });
+                    commandRegistry.findCommands('workshop-polls', true)[0].run(message, activity, { question: 'explanations'});
                 }
             });
         });
@@ -120,7 +123,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
             .setColor(discordServices.embedColor)
             .setTitle(activity.name + ' Help Desk')
             .setDescription('Welcome to the ' + activity.name + ' help desk. There are two ways to get help explained below:')
-            .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, use the !ask command on the text channel ' + '<#' + textChannelKey + '>' + '!')
+            .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, use the !ask command on the text channel ' + '<#' + activity.generalText.id + '>' + '!')
             .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the ' +  discordServices.activityVoiceChannelName + ' voice channel if not already there!');
 
         // send message with embed and react with emoji

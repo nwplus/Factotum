@@ -44,6 +44,25 @@ const status = {
 }
 module.exports.status = status;
 
+/**
+ * Retrieves a question from the db that has not already been asked at the Discord Contests, then marks the question as having been 
+ * asked in the db.
+ * @returns {Object | null} - the data object of a question or null if no more questions
+ */
+async function getQuestion() {
+    //checks that the question has not been asked
+    var qref = db.collection('questions').where('asked', '==', false).limit(1);
+    var question = (await qref.get()).docs[0];
+    //if there exists an unasked question, change its status to asked
+    if (question != undefined) {
+        question.ref.update({
+            'asked' : true,
+        });
+        return question.data();
+    }
+    return null;
+}
+module.exports.getQuestion = getQuestion;
 
 
 /**

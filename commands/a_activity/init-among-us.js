@@ -60,7 +60,7 @@ module.exports = class InitAmongUs extends ActivityCommand {
         const emojiCollector = joinMsg.createReactionCollector(emojiFilter);
 
         emojiCollector.on('collect', async (reaction, user) => {
-            this.gainAccess(user, category);
+            this.gainAccess(user, activity.category);
         });
 
         // report success of coffee chat creation
