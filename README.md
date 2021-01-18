@@ -105,3 +105,8 @@ The bot is currently in developemnt, we are constantly adding new features and i
 Let us know by filing a ticket! We are always working on improving this bot to make it the best it can be!
 
 ### Contribute
+
+## Creators
+[JP Garcia](https://github.com/JPGarCar)
+
+[Maggie Wang](https://github.com/mwang2000)
