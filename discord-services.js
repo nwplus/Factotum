@@ -226,9 +226,9 @@ module.exports.sendMessageToMember = sendMessageToMember;
  */
 async function sendEmbedToMember(member, embedOptions, isDelete = false) {
     // check embedOptions
-    if (embedOptions?.title === undefined) throw new Error('A title is needed for the embed!');
-    if (embedOptions?.description === undefined) throw new Error('A description is needed for the embed!');
-    if (embedOptions?.color === undefined) embedOptions.color === '#ff0000';
+    if (embedOptions?.title === undefined || embedOptions?.title === '') throw new Error('A title is needed for the embed!');
+    if (embedOptions?.description === undefined || embedOptions?.description === '') throw new Error('A description is needed for the embed!');
+    if (embedOptions?.color === undefined || embedOptions?.color === '') embedOptions.color === '#ff0000';
 
     let embed = new Discord.MessageEmbed().setColor(embedOptions.color)
                         .setTitle(embedOptions.title)
