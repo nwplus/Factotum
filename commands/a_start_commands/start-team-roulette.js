@@ -84,15 +84,17 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         mainCollector.on('collect', async (reaction, user) => {
             // creator check
             if (this.participants.has(user.id)) {
-                discordServices.sendMessageToMember(user, 'You are already signed up on the team roulette activity!', true);
+                discordServices.sendEmbedToMember(user, {
+                    title: 'Team Roulette',
+                    description: 'You are already signed up on the team roulette activity!',
+                }, true);
                 return;
             }
 
             if (reaction.emoji.name === this.soloEmoji) {
                 // solo user
                 this.groupList.get(1).push([user.id]);
-                this.participants.set(user.id, user);
-                discordServices.sendMessageToMember(user, 'You have been added to the roulette. I will get back to you as soon as I have a team for you!', true);
+                
             } else {
                 let groupMsg = await Prompt.messagePrompt('Please mention all your current group members in one message. You mention by typing @friendName .', 'string', message.channel, user.id, 15);
 
@@ -106,30 +108,51 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 // remove any self mentions
                 groupMembers.delete(user.id);
 
+                // check if they have more than 4 group members
+                if (groupMembers.array().length > 2) {
+                    discordServices.sendEmbedToMember(user, {
+                        title: 'Team Roulette',
+                        description: 'You just tried to use the team roulette, but you mentioned more than 2 members. That should mean you have a group of 4 already! If you mentioned yourself by accident, try again!',
+                    }, true);
+                    return;
+                }
+
+                // list of all team members
+                let list = [];
+
                 // delete any mentions of users already in the activity.
                 groupMembers.forEach((sr, index) => {
                     if (this.participants.has(sr.id)) {
                         groupMembers.delete(sr.id);
-                        discordServices.sendMessageToMember(user, 'We had to remove ' + sr.username + ' from your team roulette group because he already participated in the roulette.', true);
+                        discordServices.sendEmbedToMember(user, {
+                            title: 'Team Roulette',
+                            description: 'We had to remove ' + sr.username + ' from your team roulette group because he already participated in the roulette.',
+                        }, true);
                     } else {
-                        discordServices.sendMessageToMember(sr, 'You have been added to ' + user.username + ' team roulette group! I will ping you as soon as I find a team for all of you!', true);
+                        // push member to the team list and activity list
+                        list.push(sr.id);
+                        this.participants.set(sr.id, sr);
+
+                        discordServices.sendEmbedToMember(sr, {
+                            title: 'Team Roulette',
+                            description: 'You have been added to ' + user.username + ' team roulette group! I will ping you as soon as I find a team for all of you!',
+                            color: '#57f542',
+                        });
                     }
                 });
                 
-                // check if they have more than 4 group members
-                if (groupMembers.array().length > 2) {
-                    discordServices.sendMessageToMember(user, 'You just tried to use the team roulette, but you mentioned more than 2 members. That should mean you have a group of 4 already! If you mentioned yourself by accident, try again!', true);
-                    return;
-                }
-                let list = [];
-                groupMembers.forEach(sr => {
-                    list.push(sr.id);
-                    this.participants.set(sr.id, sr);
-                });
+                // team leader joins list and add list to collection
                 list.push(user.id);
-                this.participants.set(user.id, user);
                 this.groupList.get(list.length).push(list);
             }
+
+            // add team leader or solo to activity list and notify of success
+            this.participants.set(user.id, user);
+            discordServices.sendEmbedToMember(user, {
+                title: 'Team Roulette',
+                description: 'You' + (reaction.emoji.name != this.soloEmoji ? ' and your team' : '') + ' have been added to the roulette. I will get back to you as soon as I have a team for you!',
+                color: '#57f542',
+            }, true);
 
             // call the team creator
             let group = this.runTeamCreator();
