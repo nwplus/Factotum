@@ -187,13 +187,15 @@ module.exports.checkForRole = checkForRole;
 /**
  * Send a Direct meesage to a member, option to delete after 10 seconds
  * @param {Discord.User | Discord.GuildMember} member - the user or member to send a DM to
- * @param {String} message - the message to send
+ * @param {String | Discord.MessageEmbed} message - the message to send
  * @param {Boolean} isDelete - weather to delete message after 10 seconds
+ * @async
+ * @return {Discord.Message}
  */
 async function sendMessageToMember(member, message, isDelete = false) {
-    member.send(message).then(msg => {
+    return await member.send(message).then(msg => {
         if (isDelete === true) {
-            msg.delete({timeout: 15000})
+            msg.delete({timeout: 60000})
         }
         return msg;
     }).catch(error => {
@@ -206,6 +208,36 @@ async function sendMessageToMember(member, message, isDelete = false) {
     
 }
 module.exports.sendMessageToMember = sendMessageToMember;
+
+/**
+ * @typedef EmbedOptions
+ * @property {String} title - embed title
+ * @property {String} description - embed description
+ * @property {String} color - embed color
+ */
+
+/**
+ * 
+ * @param {Discord.User | Discord.GuildMember} member - member to send embed to
+ * @param {EmbedOptions} embedOptions - embed infomration
+ * @param {Boolean} isDelete - should the message be deleted after some time?
+ * @async
+ * @returns {Discord.Message}
+ */
+async function sendEmbedToMember(member, embedOptions, isDelete = false) {
+    // check embedOptions
+    if (embedOptions?.title === undefined) throw new Error('A title is needed for the embed!');
+    if (embedOptions?.description === undefined) throw new Error('A description is needed for the embed!');
+    if (embedOptions?.color === undefined) embedOptions.color === '#ff0000';
+
+    let embed = new Discord.MessageEmbed().setColor(embedOptions.color)
+                        .setTitle(embedOptions.title)
+                        .setDescription(embedOptions.description)
+                        .setTimestamp();
+
+    return sendMessageToMember(member, embed, isDelete);
+}
+module.exports.sendEmbedToMember = sendEmbedToMember;
 
 /**
  * Add a role to a member
