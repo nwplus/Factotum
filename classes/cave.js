@@ -348,7 +348,7 @@ class Cave {
                 .setTitle('New Ticket! - ' + this.ticketCount)
                 .setDescription('<@' + user.id + '> has the question: ' + promptMsg.content)
                 .addField('They are requesting:', '<@&' + roleId + '>')
-                .addField('Can you help them?', 'If so, react to this message with ' + this.caveOptions.giveHelpEmoji + '.');
+                .addField('Can you help them?', 'If so, react to this message with ' + this.caveOptions.giveHelpEmoji.toString() + '.');
 
             // the embed used to inform hackers and users of the open ticket, sent to the ticket text channel
             const openTicketEmbed = new Discord.MessageEmbed()
