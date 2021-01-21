@@ -24,6 +24,12 @@ class Team {
          * @type {Discord.TextChannel}
          */
         this.textChannel;
+
+        /**
+         * The team leader.
+         * @type {Discord.Snowflake} - ID of the team leader
+         */
+        this.leader;
     }
 
     /**
@@ -78,4 +84,22 @@ class Team {
         });
     }
 
+    /**
+     * Add a new user to the team.
+     * @param {Discord.User | Discord.GuildMember} user - the user to add to the team
+     * @async
+     */
+    async addTeamMember(user) {
+        if (!this.members.has(user.id)) {
+            this.members.set(user.id, user);
+            await this.addUserToTextChannel(user);
+
+            if (this.members.array().length === 1) {
+                this.leader = user.id;
+                
+            }
+        }
+    }
+
 }
+module.exports = Team;
