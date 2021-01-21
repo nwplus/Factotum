@@ -293,6 +293,7 @@ class Cave {
      * @property {Discord.TextChannel} textChannel - the text channel
      * @property {Discord.VoiceChannel} voiceChannel - the voice channel
      * @property {Number} userCount - the reactions needed to remove the ticket
+     * @property {Number} id - the id of this ticket (ticket number)
      */
 
     /**
@@ -336,16 +337,23 @@ class Cave {
             if (promptMsg === null) return;
             else usersSubmittingTicket.delete(user.id);
 
-            this.ticketCount ++;
-
             var roleId;
             if (this.emojis.has(reaction.emoji.name)) roleId = this.emojis.get(reaction.emoji.name).id;
             else roleId = this.caveOptions.role.id;
 
+            /**
+             * @type {TicketInfo}
+             */
+            var ticketInfo = {
+                id: this.ticketCount,
+            };
+
+            this.ticketCount ++;
+
             // the embed used in the incoming tickets channel to let mentors know about the question
             const incomingTicketEmbed = new Discord.MessageEmbed()
                 .setColor(this.caveOptions.color)
-                .setTitle('New Ticket! - ' + this.ticketCount)
+                .setTitle('New Ticket! - ' + ticketInfo.id)
                 .setDescription('<@' + user.id + '> has the question: ' + promptMsg.content)
                 .addField('They are requesting:', '<@&' + roleId + '>')
                 .addField('Can you help them?', 'If so, react to this message with ' + this.caveOptions.giveHelpEmoji.toString() + '.');
@@ -364,11 +372,6 @@ class Cave {
              */
             const ticketEmojis = new Discord.Collection();
             ticketEmojis.set(this.caveOptions.giveHelpEmoji.name, this.caveOptions.giveHelpEmoji);
-
-            /**
-             * @type {TicketInfo}
-             */
-            var ticketInfo = {};
 
             /**
              * The message with the infomration embed sent to the ticket channel.
@@ -400,7 +403,7 @@ class Cave {
                     ticketEmojis.set(this.caveOptions.joinTicketEmoji.name, this.caveOptions.joinTicketEmoji);
 
                     // new ticket, create channels and add users
-                    ticketInfo = await this.createTicketChannels(reaction.message.guild.channels);
+                    ticketInfo = await this.createTicketChannels(reaction.message.guild.channels, ticketInfo);
                     await ticketInfo.category.updateOverwrite(helper, ticketPermissions);
                     await ticketInfo.category.updateOverwrite(user, ticketPermissions);
                     promptMsg.mentions.users.forEach((user, snowflake, map) => ticketInfo.category.updateOverwrite(user, ticketPermissions));
@@ -448,17 +451,13 @@ class Cave {
     /**
      * Creates the ticket category and channels.
      * @param {Discord.GuildChannelManager} channelManager - the channel manger to use
+     * @param {TicketInfo} ticketInfo - the current ticket info to use
      * @private
      * @async
      * @returns {Promise<TicketInfo>} - the ticket info object with all the channels created
      */
-    async createTicketChannels(channelManager) {
-        /**
-         * @type {TicketInfo}
-         */
-        let ticketInfo = {};
-
-        ticketInfo.category = await channelManager.create(this.caveOptions.name + ' Ticket-' + this.ticketCount, {
+    async createTicketChannels(channelManager, ticketInfo = {}) {
+        ticketInfo.category = await channelManager.create(this.caveOptions.name + ' Ticket-' + ticketInfo?.id || 'uknown', {
             type: 'category',
             permissionOverwrites: [
                 {
