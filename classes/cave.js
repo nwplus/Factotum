@@ -334,6 +334,7 @@ class Cave {
                                     '\n* Mention your team members using @friendName .', 'string', this.publicChannels.outgoingTickets, user.id, 45);
             
             if (promptMsg === null) return;
+            else usersSubmittingTicket.delete(user.id);
 
             this.ticketCount ++;
 
