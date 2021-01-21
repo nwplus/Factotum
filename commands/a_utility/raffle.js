@@ -81,7 +81,7 @@ module.exports = class Raffle extends PermissionCommand {
      * the entries array that many times.
      * @param {member} member - given member to check roles and add entries for
      * @param {Array} entries - array from runCommand to collect entries
-
+    */
     addEntries(member, entries) {
         //don't add entries if member is a bot
         if (member.user.bot) {
