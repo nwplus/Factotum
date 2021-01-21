@@ -275,11 +275,10 @@ class Cave {
     /**
      * Sends all the necessary embeds to the channels.
      * @param {Discord.TextChannel} adminConsole - the admin console
-     * @param {Discord.Snowflake} promptUserId - the user to prompt
      * @async
      */
-    async sendConsoleEmbeds(adminConsole, promptUserId) {
-        await this.sendAdminConsole(adminConsole, promptUserId);
+    async sendConsoleEmbeds(adminConsole) {
+        await this.sendAdminConsole(adminConsole);
 
         await this.sendCaveConsole();
 
@@ -518,11 +517,10 @@ class Cave {
     /**
      * Will send the admin console embed and create the collector.
      * @param {Discord.TextChannel} adminConsole - the admin console
-     * @param {Discord.Snowflake} promptUserId - the user to prompt
      * @private
      * @async
      */
-    async sendAdminConsole(adminConsole, promptUserId) {
+    async sendAdminConsole(adminConsole) {
         // admin console embed
         const msgEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
@@ -541,11 +539,11 @@ class Cave {
             reaction.users.remove(admin.id);
 
             if (reaction.emoji.name === this.adminEmojis.first().name) {
-                await this.newRole(adminConsole, promptUserId);
+                await this.newRole(adminConsole, admin.id);
             }
 
             // let admin know the action was succesfull
-            adminConsole.send('<@' + promptUserId + '> The role has been added!').then(msg => msg.delete({timeout: 8000}));
+            adminConsole.send('<@' + admin.id + '> The role has been added!').then(msg => msg.delete({timeout: 8000}));
         });
     }
 
