@@ -377,7 +377,7 @@ class Cave {
              */
             var openTicketEmbedMsg;
 
-            let ticketPermissions = {'VIEW_CHANNEL': true, 'USE_VAD': true};
+            let ticketPermissions = {'VIEW_CHANNEL': true, 'USE_VAD': true, 'SEND_MESSAGES': true};
 
             const ticketCollector = ticketMsg.createReactionCollector((reaction, user) => !user.bot && ticketEmojis.has(reaction.emoji.name));
 
