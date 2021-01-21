@@ -179,12 +179,32 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 });
             });
 
+            let leaveEmoji = '👋';
+
             const infoEmbed = new Discord.MessageEmbed()
                 .setColor(discordServices.embedColor)
                 .setTitle('WELCOME TO YOUR NEW TEAM!!!')
-                .setDescription('This is your new team, please get to know each other by creating a voice channel or via this text channel. Best of luck!');
+                .setDescription('This is your new team, please get to know each other by creating a voice channel in a new Discord server or via this text channel. Best of luck!')
+                .addField('Leav the Team', 'If you would like to leave this team react to this message with ' + leaveEmoji);
 
-            groupTextChannel.send(usersMentions, {embed: infoEmbed});
+            let teamCard = await groupTextChannel.send(usersMentions, {embed: infoEmbed});
+
+            let teamCardCollection = teamCard.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === leaveEmoji);
+
+            teamCardCollection.on('collect', (reaction, exitUser) => {
+                // remove user from channel
+                groupTextChannel.createOverwrite(exitUser.id, {
+                    VIEW_CHANNEL: false,
+                    SEND_MESSAGES: false,
+                });
+
+                // reduce team size
+                
+
+                // remove user from activity list
+
+                // search for more members depending on new team size
+            });
         });
         
     }
