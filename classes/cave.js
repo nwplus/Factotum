@@ -312,9 +312,18 @@ class Cave {
         this.embedMessages.request = await (await this.publicChannels.outgoingTickets.send(requestTicketEmbed)).pin();
         this.embedMessages.request.react(this.caveOptions.requestTicketEmoji);
 
-        const collector = this.embedMessages.request.createReactionCollector((reaction, user) => !user.bot && (this.emojis.has(reaction.emoji.name) || reaction.emoji.name === this.caveOptions.requestTicketEmoji.name));
+        /**
+         * collection of users already working on a ticket
+         * @type {Discord.Collection<Discord.Snowflake, Discord.User | Discord.GuildMember>} - <ID, user | member>
+         */
+        const usersSubmittingTicket = new Discord.Collection();
+
+        const collector = this.embedMessages.request.createReactionCollector((reaction, user) => !user.bot && !usersSubmittingTicket.has(user.id) && (this.emojis.has(reaction.emoji.name) || reaction.emoji.name === this.caveOptions.requestTicketEmoji.name));
 
         collector.on('collect', async (reaction, user) => {
+            // currently submitting a ticket
+            usersSubmittingTicket.set(user.id, user);
+
             // check if role they request has users in it
             if (this.emojis.has(reaction.emoji.name) && this.emojis.get(reaction.emoji.name).activeUsers === 0) {
                 this.publicChannels.outgoingTickets.send('<@' + user.id + '> There are no mentors available with that role. Please request another role or the general role!').then(msg => msg.delete({timeout: 10000}));
