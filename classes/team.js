@@ -64,11 +64,12 @@ class Team {
      * @param {Team} team - team to merge into this team
      * @async
      */
-    async mergeTeams(team) {
+    async mergeTeam(team) {
         team.members.forEach((user, id) => {
             this.members.set(id, user);
-            await this.addUserToTextChannel(user);
+            this.addUserToTextChannel(user);
         });
+        return this;
     }
 
     /**
@@ -99,6 +100,31 @@ class Team {
                 
             }
         }
+    }
+
+    /**
+     * Removes a user from the team.
+     * @param {Discord.User} user - the user to remove from the team
+     */
+    removeTeamMember(user) {
+        this.members.delete(user.id);
+        this.textChannel.createOverwrite(user.id, {
+            VIEW_CHANNEL: false,
+            SEND_MESSAGES: false,
+        });
+
+        // if user is the team leader apoint another team member
+        if (this.leader = user.id) {
+            this.leader = this.members.first().id;
+        }
+    }
+
+    /**
+     * Return the length of the members collection.
+     * @returns {Number}
+     */
+    size() {
+        return this.members.array().length;
     }
 
 }
