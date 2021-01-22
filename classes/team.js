@@ -67,7 +67,7 @@ class Team {
      * @async
      */
     async mergeTeam(team) {
-        if (this.textChannel || !team.textChannel) {
+        if (this?.textChannel || !team?.textChannel) {
             team.members.forEach((user, id) => {
                 this.members.set(id, user);
                 this.addUserToTextChannel(user);
@@ -86,7 +86,7 @@ class Team {
      * @async
      */
     async addUserToTextChannel(user) {
-        if (this.textChannel) {
+        if (this?.textChannel) {
             await this.textChannel.createOverwrite(user.id, {
                 'VIEW_CHANNEL' : true,
                 'SEND_MESSAGES' : true,
