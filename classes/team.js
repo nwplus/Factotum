@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const discordServices = require("../discord-services");
 
 
 /**
@@ -78,16 +79,20 @@ class Team {
     }
 
     /**
-     * Add a user to the team's text channel by giving them permission
+     * Add a user to the team's text channel by giving them permission. 
+     * Will also introduce them to the team.
      * @param {Discord.User} user
      * @private
      * @async
      */
     async addUserToTextChannel(user) {
-        if (this.textChannel) await this.textChannel.createOverwrite(user.id, {
-            'VIEW_CHANNEL' : true,
-            'SEND_MESSAGES' : true,
-        });
+        if (this.textChannel) {
+            await this.textChannel.createOverwrite(user.id, {
+                'VIEW_CHANNEL' : true,
+                'SEND_MESSAGES' : true,
+            });
+            this.textChannel.send('Helo <@' + user.id + '>, welcome to the team!');
+        }
     }
 
     /**
