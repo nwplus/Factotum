@@ -31,6 +31,12 @@ class Team {
          * @type {Discord.Snowflake} - ID of the team leader
          */
         this.leader;
+
+        /**
+         * True if the team has been complete at least once.
+         * @type {Boolean}
+         */
+        this.hasBeenComplete= false;
     }
 
     /**
@@ -110,15 +116,18 @@ class Team {
                 
             }
         }
+
+        if (this.size() === 4) this.hasBeenComplete = true;
     }
 
     /**
      * Removes a user from the team.
      * @param {Discord.User} user - the user to remove from the team
+     * @returns {Number} - the new size of this team
      */
     removeTeamMember(user) {
         this.members.delete(user.id);
-        this.textChannel.createOverwrite(user.id, {
+        if (this?.textChannel) this.textChannel.createOverwrite(user.id, {
             VIEW_CHANNEL: false,
             SEND_MESSAGES: false,
         });
@@ -127,6 +136,8 @@ class Team {
         if (this.leader = user.id) {
             this.leader = this.members.first().id;
         }
+
+        return this.size();
     }
 
     /**
@@ -135,6 +146,13 @@ class Team {
      */
     size() {
         return this.members.array().length;
+    }
+
+    /**
+     * True if the team has 4 memebrs, false otherwise.
+     */
+    isComplete() {
+        return this.size() === 4;
     }
 
 }

@@ -82,10 +82,10 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === this.soloEmoji || reaction.emoji.name === this.teamEmoji);
         var mainCollector = cardMessage.createReactionCollector(emojiFilter);
 
-        mainCollector.on('collect', async (reaction, user) => {
+        mainCollector.on('collect', async (reaction, teamLeaderUser) => {
             // creator check
-            if (this.participants.has(user.id)) {
-                discordServices.sendEmbedToMember(user, {
+            if (this.participants.has(teamLeaderUser.id)) {
+                discordServices.sendEmbedToMember(teamLeaderUser, {
                     title: 'Team Roulette',
                     description: 'You are already signed up on the team roulette activity!',
                 }, true);
@@ -97,24 +97,29 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
             this.teamNumber ++;
 
             // add team leader
-            newTeam.addTeamMember(user);
+            newTeam.addTeamMember(teamLeaderUser);
+
+            // the emoji used to leave a team
+            let leaveTeamEmoji = '👎';
+            // the emoji used to remove a team from the roulette
+            let destroyTeamEmoji = '🛑';
 
             if (reaction.emoji.name === this.teamEmoji) {
-                let groupMsg = await Prompt.messagePrompt('Please mention all your current team members in one message. You mention by typing @friendName .', 'string', message.channel, user.id, 30);
+                let groupMsg = await Prompt.messagePrompt('Please mention all your current team members in one message. You mention by typing @friendName .', 'string', message.channel, teamLeaderUser.id, 30);
 
                 if (groupMsg === null) {
-                    reaction.users.remove(user.id);
+                    reaction.users.remove(newTeam.leader);
                     return;
                 }
 
                 let groupMembers = groupMsg.mentions.users;
 
                 // remove any self mentions
-                groupMembers.delete(user.id);
+                groupMembers.delete(newTeam.leader);
 
                 // check if they have more than 4 team members
                 if (groupMembers.array().length > 2) {
-                    discordServices.sendEmbedToMember(user, {
+                    discordServices.sendEmbedToMember(teamLeaderUser, {
                         title: 'Team Roulette',
                         description: 'You just tried to use the team roulette, but you mentioned more than 2 members. That should mean you have a team of 4 already! If you mentioned yourself by accident, try again!',
                     }, true);
@@ -122,21 +127,37 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 }
 
                 // delete any mentions of users already in the activity.
-                groupMembers.forEach((sr, index) => {
-                    if (this.participants.has(sr.id)) {
-                        discordServices.sendEmbedToMember(user, {
+                groupMembers.forEach((teamMember, index) => {
+                    if (this.participants.has(teamMember.id)) {
+                        discordServices.sendEmbedToMember(teamLeaderUser, {
                             title: 'Team Roulette',
-                            description: 'We had to remove ' + sr.username + ' from your team roulette team because he already participated in the roulette.',
+                            description: 'We had to remove ' + teamMember.username + ' from your team roulette team because he already participated in the roulette.',
                         }, true);
                     } else {
                         // push member to the team list and activity list
-                        newTeam.addTeamMember(sr);
-                        this.participants.set(sr.id, sr);
+                        newTeam.addTeamMember(teamMember);
+                        this.participants.set(teamMember.id, teamMember);
 
-                        discordServices.sendEmbedToMember(sr, {
+                        discordServices.sendEmbedToMember(teamMember, {
                             title: 'Team Roulette',
-                            description: 'You have been added to ' + user.username + ' team roulette team! I will ping you as soon as I find a team for all of you!',
+                            description: 'You have been added to ' + teamLeaderUser.username + ' team roulette team! I will ping you as soon as I find a team for all of you!',
                             color: '#57f542',
+                        }).then(memberMsg => {
+                            // reaction to leave the team only works before the team has been completed!!
+                            memberMsg.awaitReactions((reaction, user) => !user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === leaveTeamEmoji).then(reactions => {
+                                // remove member from list
+                                let newSize = this.removeMemberFromTeam(newTeam, teamMember, memberMsg);
+
+                                // add team without user to correct teamList and notify team leader
+                                if(newSize > 0) {
+                                    this.teamList.get(newSize).push(newTeam);
+                                    discordServices.sendEmbedToMember(newTeam.members.get(newTeam.leader), {
+                                        title: 'Team Roulette',
+                                        description: teamMember.username + ' has left the team, but worry not, we are still working on getting you a team!',
+                                    });
+                                }
+                                
+                            });
                         });
                     }
                 });
@@ -144,17 +165,59 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
             this.teamList.get(newTeam.size()).push(newTeam);
 
-            // add team leader or solo to activity list and notify of success
-            this.participants.set(user.id, user);
-            discordServices.sendEmbedToMember(user, {
+            // add team leader to activity list and notify of success
+            this.participants.set(teamLeaderUser.id, teamLeaderUser);
+            let leaderDM = await discordServices.sendEmbedToMember(teamLeaderUser, {
                 title: 'Team Roulette',
                 description: 'You' + (reaction.emoji.name === this.teamEmoji ? ' and your team' : '') + ' have been added to the roulette. I will get back to you as soon as I have a team for you!',
                 color: '#57f542',
             });
 
+            // reaction to destroy the team only works before the team is completed
+            leaderDM.awaitReactions((reaction, user) => !user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === destroyTeamEmoji).then(reactions => {
+                // remove the team from the list, remove the team leader mssg and send a confirmation message
+                this.teamList.get(newTeam.size()).splice(this.teamList.get(newTeam.size()).indexOf(newTeam), 1);
+                leaderDM.delete();
+                discordServices.sendEmbedToMember(teamLeaderUser, {
+                    title: 'Team Roulette',
+                    description: 'Your team has been removed from the roulette!',
+                }, true);
+
+                // remove all users from the activity and let them know
+                newTeam.members.forEach(user => {
+                    this.participants.delete(user.id);
+                    discordServices.sendEmbedToMember(user, {
+                        title: 'Team Roulette',
+                        description: 'Your team with <@' + newTeam.leader + '> has been destroyed!',
+                    });
+                });
+            })
+
             this.runTeamCreator(message.guild.channels);
         });
         
+    }
+
+    /**
+     * Will remove the team member from the team, notify the user of success, and remove the team from the teamList
+     * @param {Team} team - the team to remove user from 
+     * @param {Discord.User} teamMember - the user to remove from the team
+     * @param {Discord.Message} memberMsg - the message to remove if any
+     * @returns {Number} - the new size of the team
+     */
+    removeMemberFromTeam(team, teamMember, memberMsg = null) {
+        // remove the team from the list
+        if (!team.isComplete()) this.teamList.get(team.size()).splice(this.teamList.get(team.size()).indexOf(team), 1);
+
+        // remove user from team and notify
+        this.participants.delete(user.id);
+        let newSize = team.removeTeamMember(teamMember);
+        if (memberMsg) memberMsg.delete();
+        discordServices.sendEmbedToMember(teamMember, {
+            title: 'Team Roulette',
+            description: 'You have been removed from the team!'
+        }, true);
+        return newSize;
     }
 
     /**
@@ -188,14 +251,13 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
             let teamCardCollection = teamCard.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === leaveEmoji);
 
             teamCardCollection.on('collect', (reaction, exitUser) => {
-                // remove user from channel
-                team.removeTeamMember(exitUser);
-
-                // remove user from activity list
-                this.participants.delete(exitUser.id);
+                // remove user from team
+                let newSize = this.removeMemberFromTeam(team, exitUser);
 
                 // search for more members depending on new team size
                 if (team.size()) {
+                    team.textChannel.send('<@' + exitUser.id + '> Has left the group, but worry not, we are working on getting you more members!');
+
                     this.teamList.get(team.size()).push(team);
                     this.runTeamCreator(channelManager);
                 }
