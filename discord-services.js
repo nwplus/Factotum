@@ -265,58 +265,6 @@ function isAdminConsole(channel) {
 }
 module.exports.isAdminConsole = isAdminConsole;
 
-// will add given number of voice channels to the given activity, the category object of the activity is necessary
-async function addVoiceChannelsToActivity(activityName, number, category, channelManager, isPrivate, maxUsers = 0) {
-    // udpate db and get total number of channels
-    var total = await firebaseActivity.addVoiceChannels(activityName, number);
-
-    // grab index where channel naming should stampt, in case there are already channels made
-    var index = total - number;
-
-    // create voice channels
-    for (; index < total; index++) {
-        channelManager.create('🔊Room' + '-' + index, {
-            type: 'voice', 
-            parent: category, 
-            userLimit: maxUsers === 0 ? undefined : maxUsers
-        }).then(channel => {
-            channel.updateOverwrite(attendeeRole, {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true});
-            channel.updateOverwrite(sponsorRole, {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true});
-            channel.updateOverwrite(mentorRole, {MOVE_MEMBERS: true, USE_VAD: true});
-        }).catch(console.error);
-    }
-
-    return total;
-}
-module.exports.addVoiceChannelsToActivity = addVoiceChannelsToActivity;
-
-// will remove given number of voice channels from the activity
-// returns the final number of channels in the activity
-async function removeVoiceChannelsToActivity(activityName, number, category){
-    // udpate db and get total number of channels
-    var total = await firebaseActivity.removeVoiceChannels(activityName, number);
-
-    // grab the final number of channels there should be, no less than 0
-    var final = total - number;
-    if (final < 0) {
-        final = 0;
-    }
-
-    // grab index where channel naming should stampt, in case there are already channels made
-    // we remove one because we are counting from 0
-    // remove voice channels
-    for (var index = total - 1; index >= final; index--) {
-        var channelName = '🔊Room' + '-' + index;
-        var channel = await category.children.find(channel => channel.name.endsWith(channelName));
-        if (channel != undefined) {
-            deleteChannel(channel);
-        }
-    }
-
-    return final;
-}
-module.exports.removeVoiceChannelsToActivity = removeVoiceChannelsToActivity;
-
 // will make all voice channels except the general one private to attendees and sponsors
 async function changeVoiceChannelPermissions(activityName, category, toHide) {
     // udpate db and get total number of channels
