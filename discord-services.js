@@ -222,7 +222,7 @@ module.exports.sendMessageToMember = sendMessageToMember;
  * @param {EmbedOptions} embedOptions - embed infomration
  * @param {Boolean} isDelete - should the message be deleted after some time?
  * @async
- * @returns {Discord.Message}
+ * @returns {Promise<Discord.Message>}
  */
 async function sendEmbedToMember(member, embedOptions, isDelete = false) {
     // check embedOptions
