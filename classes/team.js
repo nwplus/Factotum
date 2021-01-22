@@ -60,16 +60,21 @@ class Team {
     }
 
     /**
-     * Merge a team into this team and if text channel, add them to the channel
+     * Merge two teams. Team with a text channel, if any will be kept. New 
+     * members will be added to the text channel, if any.
      * @param {Team} team - team to merge into this team
      * @async
      */
     async mergeTeam(team) {
-        team.members.forEach((user, id) => {
-            this.members.set(id, user);
-            this.addUserToTextChannel(user);
-        });
-        return this;
+        if (this.textChannel || !team.textChannel) {
+            team.members.forEach((user, id) => {
+                this.members.set(id, user);
+                this.addUserToTextChannel(user);
+            });
+            return this;
+        } else {
+            return await team.mergeTeam(this);
+        }
     }
 
     /**
