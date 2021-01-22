@@ -29,32 +29,6 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
      */
     async runCommand(message) {
 
-        // ask for channel to use, this will also give us the category to use
-        let needChannel = await Prompt.yesNoPrompt('Do you need a new channel and category or have you created one already?', message.channel, message.author.id);
-        
-        let channel;
-
-        if (needChannel) {
-            let category = await message.guild.channels.create('Team Roulette', {
-                type: 'category',
-            });
-
-            channel = await message.guild.channels.create('team-roulette-info', {
-                type: 'text',
-                topic: 'Channel should only be used for team roulette.',
-                parent: category,
-            });
-        } else {
-            channel = await Prompt.channelPrompt('What channel would you like to use for team roulette, this channels category will be used for the new team channels.', message.channel, message.author.id);
-            channel.bulkDelete(100, true);
-        }
-
-        // let user know everything is good to go
-        message.channel.send('<@' + message.author.id + '> All set! <#' + channel.id + '>.').then(msg => msg.delete({timeout: 10000}));
-
-        // add channel to black list
-        discordServices.blackList.set(channel.id, 5000);
-
         /**
          * The solo join emoji.
          * @type {String} - an emoji string
@@ -86,6 +60,9 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         this.participants = new Discord.Collection();
 
         this.initList();
+
+        // ask for channel to use, this will also give us the category to use
+        let channel = await this.getOrCreateChannel(message.channel, message.author.id, message.guild.channels);
                 
         // create and send embed message to channel with emoji collector
         const msgEmbed = new Discord.MessageEmbed()
@@ -220,6 +197,43 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         });
         
     }
+
+    /**
+     * Ask user if new channels are needed, if so create them, else ask for current channels to use for TR.
+     * @param {Discord.TextChannel} promptChannel - channel to prompt on
+     * @param {Discord.Snowflake} promptId - user's ID to prompt
+     * @param {Discord.GuildChannelManager} guildChannelManager - manager to create channels
+     * @async
+     * @returns {Promise<Discord.TextChannel>}
+     */
+    async getOrCreateChannel(promptChannel, promptId, guildChannelManager) {
+        let needChannel = await Prompt.yesNoPrompt('Do you need a new channel and category or have you created one already?', promptChannel, promptId);
+
+        let channel;
+
+        if (needChannel) {
+            let category = await guildChannelManager.create('Team Roulette', {
+                type: 'category',
+            });
+
+            channel = await guildChannelManager.create('team-roulette-info', {
+                type: 'text',
+                topic: 'Channel should only be used for team roulette.',
+                parent: category,
+            });
+        } else {
+            channel = await Prompt.channelPrompt('What channel would you like to use for team roulette, this channels category will be used for the new team channels.', promptChannel, promptId);
+            channel.bulkDelete(100, true);
+        }
+
+        // let user know everything is good to go
+        promptChannel.send('<@' + promptId + '> All set! <#' + channel.id + '>.').then(msg => msg.delete({ timeout: 10000 }));
+
+        // add channel to black list
+        discordServices.blackList.set(channel.id, 5000);
+        return channel;
+    }
+
 
     /**
      * Will remove the team member from the team, notify the user of success, and remove the team from the teamList
