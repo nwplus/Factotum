@@ -3,6 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt.js');
+const Team = require('../../classes/team');
 
 // Command export
 module.exports = class StartTeamRoulette extends PermissionCommand {
@@ -41,13 +42,13 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         this.teamEmoji = '👯';
 
         /**
-         * The group list from which to create teams.
-         * @type {Discord.Collection<Number, Array<Array<String>>>} - <Group Size, list of user's IDs>
+         * The team list from which to create teams.
+         * @type {Discord.Collection<Number, Array<Team>} - <Team Size, List of Teams>
          */
-        this.groupList = new Discord.Collection();
+        this.teamList = new Discord.Collection();
 
         /**
-         * The current group number.
+         * The current team number.
          * @type {Number}
          */
         this.teamNumber = 0;
@@ -68,10 +69,10 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
             .setColor(discordServices.embedColor)
             .setTitle('Team Roulette Information')
             .setDescription('Welcome to the team rulette section! If you are looking to join a random team, you are in the right place!')
-            .addField('How does this work?', 'Reacting to this message will get you or your group on a list. I will try to assing you a team of 4 as fast as possible. When I do I will notify you on a private text channel with your new team!')
+            .addField('How does this work?', 'Reacting to this message will get you or your team on a list. I will try to assing you a team of 4 as fast as possible. When I do I will notify you on a private text channel with your new team!')
             .addField('Disclaimer!!', 'By participating in this activity, you will be assigned a random team with random hackers! You can only use this activity once!')
             .addField('If you are solo', 'React with ' + this.soloEmoji + ' and I will send you instructions.')
-            .addField('If you are in a group of two or three', 'React with ' + this.teamEmoji + ' and I will send you instructions.');
+            .addField('If you are in a team of two or three', 'React with ' + this.teamEmoji + ' and I will send you instructions.');
         
         var cardMessage = await channel.send(msgEmbed);
         cardMessage.react(this.soloEmoji);
@@ -91,12 +92,15 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 return;
             }
 
-            if (reaction.emoji.name === this.soloEmoji) {
-                // solo user
-                this.groupList.get(1).push([user.id]);
-                
-            } else {
-                let groupMsg = await Prompt.messagePrompt('Please mention all your current group members in one message. You mention by typing @friendName .', 'string', message.channel, user.id, 15);
+            // add team or solo to their team
+            let newTeam = new Team(this.teamNumber);
+            this.teamNumber ++;
+
+            // add team leader
+            newTeam.addTeamMember(user);
+
+            if (reaction.emoji.name === this.teamEmoji) {
+                let groupMsg = await Prompt.messagePrompt('Please mention all your current team members in one message. You mention by typing @friendName .', 'string', message.channel, user.id, 30);
 
                 if (groupMsg === null) {
                     reaction.users.remove(user.id);
@@ -108,76 +112,68 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 // remove any self mentions
                 groupMembers.delete(user.id);
 
-                // check if they have more than 4 group members
+                // check if they have more than 4 team members
                 if (groupMembers.array().length > 2) {
                     discordServices.sendEmbedToMember(user, {
                         title: 'Team Roulette',
-                        description: 'You just tried to use the team roulette, but you mentioned more than 2 members. That should mean you have a group of 4 already! If you mentioned yourself by accident, try again!',
+                        description: 'You just tried to use the team roulette, but you mentioned more than 2 members. That should mean you have a team of 4 already! If you mentioned yourself by accident, try again!',
                     }, true);
                     return;
                 }
 
-                // list of all team members
-                let list = [];
-
                 // delete any mentions of users already in the activity.
                 groupMembers.forEach((sr, index) => {
                     if (this.participants.has(sr.id)) {
-                        groupMembers.delete(sr.id);
                         discordServices.sendEmbedToMember(user, {
                             title: 'Team Roulette',
-                            description: 'We had to remove ' + sr.username + ' from your team roulette group because he already participated in the roulette.',
+                            description: 'We had to remove ' + sr.username + ' from your team roulette team because he already participated in the roulette.',
                         }, true);
                     } else {
                         // push member to the team list and activity list
-                        list.push(sr.id);
+                        newTeam.addTeamMember(sr);
                         this.participants.set(sr.id, sr);
 
                         discordServices.sendEmbedToMember(sr, {
                             title: 'Team Roulette',
-                            description: 'You have been added to ' + user.username + ' team roulette group! I will ping you as soon as I find a team for all of you!',
+                            description: 'You have been added to ' + user.username + ' team roulette team! I will ping you as soon as I find a team for all of you!',
                             color: '#57f542',
                         });
                     }
                 });
-                
-                // team leader joins list and add list to collection
-                list.push(user.id);
-                this.groupList.get(list.length).push(list);
             }
+
+            this.teamList.get(newTeam.size()).push(newTeam);
 
             // add team leader or solo to activity list and notify of success
             this.participants.set(user.id, user);
             discordServices.sendEmbedToMember(user, {
                 title: 'Team Roulette',
-                description: 'You' + (reaction.emoji.name != this.soloEmoji ? ' and your team' : '') + ' have been added to the roulette. I will get back to you as soon as I have a team for you!',
+                description: 'You' + (reaction.emoji.name === this.teamEmoji ? ' and your team' : '') + ' have been added to the roulette. I will get back to you as soon as I have a team for you!',
                 color: '#57f542',
-            }, true);
-
-            // call the team creator
-            let group = this.runTeamCreator();
-
-            // if no group then just return
-            if (group === null) return;
-
-        // create the text channel and invite all the users
-            let privateChannelCategory = message.guild.channels.resolve(discordServices.channelcreationChannel).parent;
-
-            let groupTextChannel = await message.guild.channels.create('Team ' + this.teamNumber, {
-                type: 'text',
-                topic: 'Welcome to your new team, good luck!',
-                parent: privateChannelCategory,
             });
-            this.teamNumber ++;
-            let usersMentions = '';
 
-            group.forEach(userID => {
-                usersMentions += '<@' + userID + '>';
-                groupTextChannel.createOverwrite(userID, {
-                    'VIEW_CHANNEL' : true,
-                    'SEND_MESSAGES' : true,
-                });
-            });
+            this.runTeamCreator(message.guild.channels);
+        });
+        
+    }
+
+    /**
+     * Will try to create a team and set them up for success!
+     * @param {Discord.GuildChannelManager} channelManager
+     * @async
+     */
+    async runTeamCreator(channelManager) {
+        // call the team creator
+        let team = await this.findTeam();
+
+        // if no team then just return
+        if (!team) return;
+
+        // if team does NOT have a text channel
+        if (!team?.textChannel) {
+            let privateChannelCategory = channelManager.resolve(discordServices.channelcreationChannel).parent;
+
+            await team.createTextChannel(channelManager, privateChannelCategory);
 
             let leaveEmoji = '👋';
 
@@ -187,98 +183,100 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 .setDescription('This is your new team, please get to know each other by creating a voice channel in a new Discord server or via this text channel. Best of luck!')
                 .addField('Leav the Team', 'If you would like to leave this team react to this message with ' + leaveEmoji);
 
-            let teamCard = await groupTextChannel.send(usersMentions, {embed: infoEmbed});
+            let teamCard = await team.textChannel.send(infoEmbed);
 
             let teamCardCollection = teamCard.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === leaveEmoji);
 
             teamCardCollection.on('collect', (reaction, exitUser) => {
                 // remove user from channel
-                groupTextChannel.createOverwrite(exitUser.id, {
-                    VIEW_CHANNEL: false,
-                    SEND_MESSAGES: false,
-                });
-
-                // reduce team size
-                
+                team.removeTeamMember(exitUser);
 
                 // remove user from activity list
+                this.participants.delete(exitUser.id);
 
                 // search for more members depending on new team size
+                if (team.size()) {
+                    this.teamList.get(team.size()).push(team);
+                    this.runTeamCreator(channelManager);
+                }
             });
-        });
-        
+        }
     }
 
 
     /**
      * Will try to create teams with the current groups signed up!
-     * @param {Number} groupSize - the size of the new group
+     * @param {Number} teamSize - the size of the new team
      * @private
-     * @returns {Array<String> | null}
+     * @returns {Promise<Team | null>}
+     * @async
      */
-    runTeamCreator(groupSize) {
-        let newGroup = [];
+    async findTeam(teamSize) {
+        let newTeam;
 
-        if (groupSize === 3) newGroup = this.assignGroupOf3();
-        else if (groupSize === 2) newGroup = this.assignGroupOf2();
+        if (teamSize === 3) newTeam = await this.assignGroupOf3();
+        else if (teamSize === 2) newTeam = await this.assignGroupOf2();
         else {
-            if (this.groupList.get(3).length >=1) newGroup = this.assignGroupOf3();
-            else if (this.groupList.get(2).length >= 1) newGroup = this.assignGroupOf2();
-            else newGroup = this.assignGroupsOf1();
+            if (this.teamList.get(3).length >=1) newTeam = await this.assignGroupOf3();
+            else if (this.teamList.get(2).length >= 1) newTeam = await this.assignGroupOf2();
+            else newTeam = await this.assignGroupsOf1();
         }
-        return newGroup;
+        return newTeam;
     }
 
 
     /**
-     * Will assign a group of 3 with a group of 1.
-     * @returns {Array<String> | null}
-     * @requires this.groupList to have a group of 3.
+     * Will assign a team of 3 with a team of 1.
+     * @returns {Promise<Team | null>}
+     * @requires this.groupList to have a team of 3.
+     * @async
      */
-    assignGroupOf3() {
-        let listOf1 = this.groupList.get(1);
+    async assignGroupOf3() {
+        let listOf1 = this.teamList.get(1);
         if (listOf1.length === 0) return null;
-        let groupOf3 = this.groupList.get(3).shift();
-        return groupOf3.concat(listOf1.shift());
+        let teamOf3 = this.teamList.get(3).shift();
+        return await teamOf3.mergeTeam(listOf1.shift());
     }
 
     /**
-     * Will assign a group of 2 with a group of 2 or two of 1
-     * @returns {Array<String> | null}
-     * @requires this.groupList to have a group of 2
+     * Will assign a team of 2 with a team of 2 or two of 1
+     * @returns {Promise<Team | null>}
+     * @requires this.groupList to have a team of 2
+     * @async
      */
-    assignGroupOf2() {
-        let listOf2 = this.groupList.get(2);
+    async assignGroupOf2() {
+        let listOf2 = this.teamList.get(2);
         if (listOf2.length >= 2) {
-            return listOf2.shift().concat(listOf2.shift());
+            return listOf2.shift().mergeTeam(listOf2.shift());
         } else {
-            let listOf1 = this.groupList.get(1);
+            let listOf1 = this.teamList.get(1);
             if (listOf1.length <= 1) return null;
-            return listOf2.shift().concat(listOf1.shift()).concat(listOf1.shift());
+            return await (await listOf2.shift().mergeTeam(listOf1.shift())).mergeTeam(listOf1.shift());
         }
     }
 
     /**
      * Assigns 4 groups of 1 together.
-     * @returns {Array<String> | null}
+     * @returns {Promise<Team | null>}
+     * @async
      */
-    assignGroupsOf1() {
-        let groupOf1 = this.groupList.get(1);
+    async assignGroupsOf1() {
+        let groupOf1 = this.teamList.get(1);
         if (groupOf1.length < 4) return null;
-        else return groupOf1.shift().concat(groupOf1.shift()).concat(groupOf1.shift()).concat(groupOf1.shift());
+        else return await (await (await groupOf1.shift().mergeTeam(groupOf1.shift())).mergeTeam(groupOf1.shift())).mergeTeam(groupOf1.shift());
     }
 
 
     /**
-     * Initializes the group list by creating three key value pairs.
+     * Initializes the team list by creating three key value pairs.
      * 1 -> empy array
      * 2 -> empy array
      * 3 -> empy array
      * @private
      */
     initList() {
-        this.groupList.set(1, []);
-        this.groupList.set(2, []);
-        this.groupList.set(3, []);
+        this.teamList.set(1, []);
+        this.teamList.set(2, []);
+        this.teamList.set(3, []);
     }
 }
