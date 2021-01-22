@@ -209,15 +209,23 @@ async function sendMessageToMember(member, message, isDelete = false) {
 }
 module.exports.sendMessageToMember = sendMessageToMember;
 
+
+/**
+ * @typedef FieldInfo
+ * @property {String} title - field title
+ * @property {String} description - field description
+ */
+
 /**
  * @typedef EmbedOptions
  * @property {String} title - embed title
  * @property {String} description - embed description
  * @property {String} color - embed color
+ * @property {Array<FieldInfo>} fields - embed fields
  */
 
 /**
- * 
+ * Sends an embed to a user via DM. Title and description are required, color and fields are optional.
  * @param {Discord.User | Discord.GuildMember} member - member to send embed to
  * @param {EmbedOptions} embedOptions - embed infomration
  * @param {Boolean} isDelete - should the message be deleted after some time?
@@ -234,6 +242,8 @@ async function sendEmbedToMember(member, embedOptions, isDelete = false) {
                         .setTitle(embedOptions.title)
                         .setDescription(embedOptions.description)
                         .setTimestamp();
+
+    if (embedOptions?.fields) embedOptions.fields.forEach((fieldInfo, index) => embed.addField(fieldInfo.title, fieldInfo.description));
 
     return sendMessageToMember(member, embed, isDelete);
 }
