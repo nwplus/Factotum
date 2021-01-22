@@ -227,7 +227,36 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         }
 
         // let user know everything is good to go
-        promptChannel.send('<@' + promptId + '> All set! <#' + channel.id + '>.').then(msg => msg.delete({ timeout: 10000 }));
+        let listEmoji = '📰';
+
+        const adminEmbed = new Discord.MessageEmbed().setColor(discordServices.embedColor)
+                                    .setTitle('Team Roulette Console')
+                                    .setDescription('Team roulette is ready and operational! <#' + channel.id + '>.')
+                                    .addField('Check the list!', 'React with ' + listEmoji + ' to get a message with tea roulette team lists.');
+
+        let adminEmbedMsg = await promptChannel.send(adminEmbed);
+        adminEmbedMsg.react(listEmoji);
+
+        // emoji reaction to send team roulette information
+        let adminEmbedMsgCollector = adminEmbedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === listEmoji);
+        adminEmbedMsgCollector.on('collect', (reaction, user) => {
+            let infoEmbed = new Discord.MessageEmbed().setColor(discordServices.embedColor)
+                                        .setTitle('Team Roulette Information')
+                                        .setDescription('These are all the teams that are still waiting.');
+
+            // loop over each list type and add them to one field
+            this.teamList.forEach((teams, key) => {
+                let teamListString = '';
+
+                teams.forEach((team, index) => {
+                    teamListString += team.toString() + ' ; ';
+                });
+
+                infoEmbed.addField('Lists of size: ' + key, '[ ' + teamListString + ' ]');
+            });
+
+            promptChannel.send(infoEmbed);
+        });
 
         // add channel to black list
         discordServices.blackList.set(channel.id, 5000);

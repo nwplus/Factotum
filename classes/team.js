@@ -155,5 +155,19 @@ class Team {
         return this.size() === 4;
     }
 
+    /**
+     * Returns a string with the team id and all the team members.
+     * @returns {String}
+     */
+    toString() {
+        let teamMemberString = '';
+
+        this.members.forEach((user, key) => {
+            teamMemberString += user.username + ', ';
+        });
+
+        return 'Team ' + this.id + ': ' + teamMemberString;
+    }
+
 }
 module.exports = Team;
