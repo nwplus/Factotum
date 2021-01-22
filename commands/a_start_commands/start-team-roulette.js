@@ -18,8 +18,6 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         {
             roleID: discordServices.staffRole,
             roleMessage: 'Hey there, the !starttf command is only for staff!',
-            channelID: discordServices.teamRouletteChannel,
-            channelMessage: 'Hey there, the !starttf command is only available in the team formation channel.',
         });
     }
 
@@ -28,6 +26,32 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
      * @param {Discord.Message} message - the message in which the command was run
      */
     async runCommand(message) {
+
+        // ask for channel to use, this will also give us the category to use
+        let needChannel = await Prompt.yesNoPrompt('Do you need a new channel and category or have you created one already?', message.channel, message.author.id);
+        
+        let channel;
+
+        if (needChannel) {
+            let category = await message.guild.channels.create('Team Roulette', {
+                type: 'category',
+            });
+
+            channel = await message.guild.channels.create('team-roulette-info', {
+                type: 'text',
+                topic: 'Channel should only be used for team roulette.',
+                parent: category,
+            });
+        } else {
+            channel = await Prompt.channelPrompt('What channel would you like to use for team roulette, this channels category will be used for the new team channels.', message.channel, message.author.id);
+            channel.bulkDelete(100, true);
+        }
+
+        // let user know everything is good to go
+        message.channel.send('<@' + message.author.id + '> All set! <#' + channel.id + '>.').then(msg => msg.delete({timeout: 10000}));
+
+        // add channel to black list
+        discordServices.blackList.set(channel.id, 5000);
 
         /**
          * The solo join emoji.
@@ -60,9 +84,6 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         this.participants = new Discord.Collection();
 
         this.initList();
-
-        // grab current channel
-        var channel = message.channel;
                 
         // create and send embed message to channel with emoji collector
         const msgEmbed = new Discord.MessageEmbed()
@@ -252,7 +273,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
             teamCardCollection.on('collect', (reaction, exitUser) => {
                 // remove user from team
-                let newSize = this.removeMemberFromTeam(team, exitUser);
+                this.removeMemberFromTeam(team, exitUser);
 
                 // search for more members depending on new team size
                 if (team.size()) {
