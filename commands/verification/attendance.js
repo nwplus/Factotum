@@ -34,14 +34,17 @@ module.exports = class Attendace extends PermissionCommand {
      * @param {String} param1 
      */
     async runCommand(message, { email }) {
-       // regex to validate email
-       const re = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+        // make email lowercase
+        email = email.toLowerCase();
 
-       // let user know he has used the command incorrectly and exit
-       if (email === '' || re.test(email.toLowerCase())) {
-           discordServices.sendMessageToMember(message.author, 'You have used the verify command incorrectly! \nPlease write a valid email after the command like this: !verify email@gmail.com');
-           return;
-       }
+        // regex to validate email
+        const re = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+
+        // let user know he has used the command incorrectly and exit
+        if (email === '' || re.test(email)) {
+            discordServices.sendMessageToMember(message.author, 'You have used the verify command incorrectly! \nPlease write a valid email after the command like this: !verify email@gmail.com');
+            return;
+        }
 
         // check if the user needs to attend, else warn and return
         if (discordServices.checkForRole(member, discordServices.attendeeRole)) {

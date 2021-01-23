@@ -30,14 +30,17 @@ module.exports = class Verificaiton extends PermissionCommand {
     /**
      * 
      * @param {Discord.Message} message 
-     * @param {String} param1 
+     * @param {String} email 
      */
     async runCommand(message, { email }) {
+        // make email lowercase
+        email = email.toLowerCase();
+
         // regex to validate email
         const re = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
 
         // let user know he has used the command incorrectly and exit
-        if (email === '' || !re.test(email.toLowerCase())) {
+        if (email === '' || !re.test(email)) {
             discordServices.sendMessageToMember(message.author, 'You have used the verify command incorrectly! \nPlease write a valid email after the command like this: !verify email@gmail.com');
             return;
         }
