@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const discordServices = require('../discord-services');
 const Prompt = require('../classes/prompt');
+const Ticket = require('../classes/ticket');
 
 class Cave {
 
@@ -101,6 +102,8 @@ class Cave {
          * @type {Number}
          */
         this.ticketCount = 0;
+
+        this.tickets = new Map();
     }
 
 
@@ -143,7 +146,7 @@ class Cave {
 
         // add request ticket channel to black list
         discordServices.blackList.set(this.publicChannels.outgoingTickets.id, 5000);
-        
+
         // delete everything from incoming outgoing and console
         this.publicChannels.outgoingTickets.bulkDelete(100, true);
         this.privateChannels.console.bulkDelete(100, true);
@@ -178,55 +181,57 @@ class Cave {
      */
     async initPrivate(guildChannelManager) {
         // Create category
-        this.privateChannels.category = await guildChannelManager.create(this.caveOptions.preEmojis + this.caveOptions.name + ' Cave', {type: 'category',  permissionOverwrites: [
-            {
-                id: discordServices.hackerRole,
-                deny: ['VIEW_CHANNEL'],
-            },
-            {
-                id: discordServices.attendeeRole,
-                deny: ['VIEW_CHANNEL'],
-            },
-            {
-                id: this.caveOptions.role.id,
-                allow: ['VIEW_CHANNEL'],
-                deny: ['SEND_MESSAGES'],
-            },
-            {
-                id: discordServices.sponsorRole,
-                deny: ['VIEW_CHANNEL'],
-            },
-            {
-                id: discordServices.staffRole,
-                allow: ['VIEW_CHANNEL'],
-            }
-        ]});
+        this.privateChannels.category = await guildChannelManager.create(this.caveOptions.preEmojis + this.caveOptions.name + ' Cave', {
+            type: 'category', permissionOverwrites: [
+                {
+                    id: discordServices.hackerRole,
+                    deny: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: discordServices.attendeeRole,
+                    deny: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: this.caveOptions.role.id,
+                    allow: ['VIEW_CHANNEL'],
+                    deny: ['SEND_MESSAGES'],
+                },
+                {
+                    id: discordServices.sponsorRole,
+                    deny: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: discordServices.staffRole,
+                    allow: ['VIEW_CHANNEL'],
+                }
+            ]
+        });
 
         // general text channel to talk
         this.privateChannels.generalText = await guildChannelManager.create('✍' + this.caveOptions.name + '-banter', {
-            type: 'text', 
+            type: 'text',
             parent: this.privateChannels.category,
             topic: 'For any and all social interactions. This entire category is only for ' + this.caveOptions.name + 's and staff!',
-        }).then(channel => channel.updateOverwrite(this.caveOptions.role.id, {SEND_MESSAGES: true}));
+        }).then(channel => channel.updateOverwrite(this.caveOptions.role.id, { SEND_MESSAGES: true }));
 
 
         // console channel to ask for tags
         this.privateChannels.console = await guildChannelManager.create('📝' + this.caveOptions.name + '-console', {
-            type: 'text', 
+            type: 'text',
             parent: this.privateChannels.category,
             topic: 'Sign yourself up for specific roles! New roles will be added as requested, only add yourself to one if you feel comfortable responing to questions about the topic.',
         });
 
         // incoming tickets
         this.privateChannels.incomingTickets = await guildChannelManager.create('📨incoming-tickets', {
-            type: 'text', 
+            type: 'text',
             parent: this.privateChannels.category,
             topic: 'All incoming tickets! Those in yellow still need help!!! Those in green have been handled by someone.',
         });
 
         // create a couple of voice channels
         for (var i = 0; i < 3; i++) {
-            this.privateChannels.voiceChannels.push(await guildChannelManager.create('🗣️ Room ' + i, {type: 'voice', parent: this.privateChannels.category}));
+            this.privateChannels.voiceChannels.push(await guildChannelManager.create('🗣️ Room ' + i, { type: 'voice', parent: this.privateChannels.category }));
         }
     }
 
@@ -238,32 +243,34 @@ class Cave {
      */
     async initPublic(guildChannelManager) {
         // create help public channels category
-        this.publicChannels.category = await guildChannelManager.create('👉🏽👈🏽' + this.caveOptions.name + ' Help', {type: 'category', permissionOverwrites: [
-            {
-                id: discordServices.hackerRole,
-                deny: ['VIEW_CHANNEL'],
-            },
-            {
-                id: discordServices.attendeeRole,
-                allow: ['VIEW_CHANNEL'],
-            },
-            {
-                id: this.caveOptions.role.id,
-                allow: ['VIEW_CHANNEL'],
-            },
-            {
-                id: discordServices.sponsorRole,
-                allow: ['VIEW_CHANNEL'],
-            },
-            {
-                id: discordServices.staffRole,
-                allow: ['VIEW_CHANNEL'],
-            }
-        ]});
+        this.publicChannels.category = await guildChannelManager.create('👉🏽👈🏽' + this.caveOptions.name + ' Help', {
+            type: 'category', permissionOverwrites: [
+                {
+                    id: discordServices.hackerRole,
+                    deny: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: discordServices.attendeeRole,
+                    allow: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: this.caveOptions.role.id,
+                    allow: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: discordServices.sponsorRole,
+                    allow: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: discordServices.staffRole,
+                    allow: ['VIEW_CHANNEL'],
+                }
+            ]
+        });
 
         // create request ticket channel
         this.publicChannels.outgoingTickets = await guildChannelManager.create('🎫request-ticket', {
-            type: 'text', 
+            type: 'text',
             parent: this.publicChannels.category,
             topic: 'Do you need help? Request a ticket here! Do not send messages, they will be automatically removed!',
         });
@@ -305,9 +312,9 @@ class Cave {
         const requestTicketEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle('Ticket Request System')
-            .setDescription('If you or your team want to talk with a ' + this.caveOptions.name + ' follow the instructions below:' + 
-            '\n* React to this message with the correct emoji and follow instructions' + 
-            '\n* Once done, wait for someone to accept your ticket!')
+            .setDescription('If you or your team want to talk with a ' + this.caveOptions.name + ' follow the instructions below:' +
+                '\n* React to this message with the correct emoji and follow instructions' +
+                '\n* Once done, wait for someone to accept your ticket!')
             .addField('For a general ticket:', 'React with ' + this.caveOptions.requestTicketEmoji.toString());
         this.embedMessages.request = await (await this.publicChannels.outgoingTickets.send(requestTicketEmbed)).pin();
         this.embedMessages.request.react(this.caveOptions.requestTicketEmoji);
@@ -317,21 +324,21 @@ class Cave {
         collector.on('collect', async (reaction, user) => {
             // check if role they request has users in it
             if (this.emojis.has(reaction.emoji.name) && this.emojis.get(reaction.emoji.name).activeUsers === 0) {
-                this.publicChannels.outgoingTickets.send('<@' + user.id + '> There are no mentors available with that role. Please request another role or the general role!').then(msg => msg.delete({timeout: 10000}));
+                this.publicChannels.outgoingTickets.send('<@' + user.id + '> There are no mentors available with that role. Please request another role or the general role!').then(msg => msg.delete({ timeout: 10000 }));
                 return;
             }
 
-            let promptMsg = await Prompt.messagePrompt('Please send ONE message with: \n* A one liner of your problem ' + 
-                                    '\n* Mention your team members using @friendName .', 'string', this.publicChannels.outgoingTickets, user.id, 45);
-            
+            let promptMsg = await Prompt.messagePrompt('Please send ONE message with: \n* A one liner of your problem ' +
+                '\n* Mention your team members using @friendName .', 'string', this.publicChannels.outgoingTickets, user.id, 45);
+
             if (promptMsg === null) return;
 
-            this.ticketCount ++;
+            this.ticketCount++;
+
 
             var roleId;
             if (this.emojis.has(reaction.emoji.name)) roleId = this.emojis.get(reaction.emoji.name).id;
             else roleId = this.caveOptions.role.id;
-
             // the embed used in the incoming tickets channel to let mentors know about the question
             const incomingTicketEmbed = new Discord.MessageEmbed()
                 .setColor(this.caveOptions.color)
@@ -340,126 +347,12 @@ class Cave {
                 .addField('They are requesting:', '<@&' + roleId + '>')
                 .addField('Can you help them?', 'If so, react to this message with ' + this.caveOptions.giveHelpEmoji + '.');
 
-            // the embed used to inform hackers and users of the open ticket, sent to the ticket text channel
-            const openTicketEmbed = new Discord.MessageEmbed()
-                .setColor(discordServices.embedColor)
-                .setTitle('Original Question')
-                .setDescription('<@' + user.id + '> has the question: ' + promptMsg.content);
 
             let ticketMsg = await this.privateChannels.incomingTickets.send('<@&' + roleId + '>', incomingTicketEmbed);
             ticketMsg.react(this.caveOptions.giveHelpEmoji);
 
-            /**
-             * @type {Discord.Collection<Discord.Snowflake, Discord.GuildEmoji>} - <guild emoji snowflake, guild emoji>
-             */
-            const ticketEmojis = new Discord.Collection();
-            ticketEmojis.set(this.caveOptions.giveHelpEmoji.name, this.caveOptions.giveHelpEmoji);
-
-            /**
-             * @type {TicketInfo}
-             */
-            var ticketInfo = {};
-
-            /**
-             * The message with the infomration embed sent to the ticket channel.
-             * We have it up here for higher scope!
-             * @type {Discord.Message}
-             */
-            var openTicketEmbedMsg;
-
-            let ticketPermissions = {'VIEW_CHANNEL': true, 'USE_VAD': true};
-
-            const ticketCollector = ticketMsg.createReactionCollector((reaction, user) => !user.bot && ticketEmojis.has(reaction.emoji.name));
-
-            ticketCollector.on('collect', async (reaction, helper) => {
-                if (reaction.emoji.name === this.caveOptions.joinTicketEmoji.name) {
-                    // add new mentor to existing ticket channels
-                    await ticketInfo.category.updateOverwrite(helper, ticketPermissions);
-                    ticketInfo.textChannel.send('<@' + helper.id + '> Has joined the ticket!').then(msg => msg.delete({timeout: 10000}));
-                    ticketInfo.userCount += 1;
-
-                    ticketMsg.edit(ticketMsg.embeds[0].addField('More hands on deck!', '<@' + helper.id + '> Joined the ticket!'));
-                    openTicketEmbedMsg.edit(openTicketEmbedMsg.embeds[0].addField('More hands on deck!', '<@' + helper.id + '> Joined the ticket!'));
-                } else {
-                    // edit incoming ticket with mentor information
-                    ticketMsg.edit(ticketMsg.embeds[0].addField('This ticket is being handled!', '<@' + helper.id + '> Is helping this team!')
-                                        .addField('Still want to help?', 'Click the ' + this.caveOptions.joinTicketEmoji.toString() + ' emoji to join the ticket!')
-                                        .setColor('#80c904'));
-                    ticketMsg.react(this.caveOptions.joinTicketEmoji);
-                    ticketEmojis.delete(this.caveOptions.giveHelpEmoji.name);
-                    ticketEmojis.set(this.caveOptions.joinTicketEmoji.name, this.caveOptions.joinTicketEmoji);
-
-                    // new ticket, create channels and add users
-                    ticketInfo = await this.createTicketChannels(reaction.message.guild.channels);
-                    await ticketInfo.category.updateOverwrite(helper, ticketPermissions);
-                    await ticketInfo.category.updateOverwrite(user, ticketPermissions);
-                    promptMsg.mentions.users.forEach((user, snowflake, map) => ticketInfo.category.updateOverwrite(user, ticketPermissions));
-
-                    let leaveTicketEmoji = '👋🏽';
-
-                    openTicketEmbed.addField('Thank you for helping this team.', '<@' + helper.id + '> Best of luck!')
-                        .addField('When done:', '* React to this message with ' + leaveTicketEmoji + ' to lose access to these channels!');
-
-                    openTicketEmbedMsg = await ticketInfo.textChannel.send(openTicketEmbed);
-                    openTicketEmbedMsg.react(leaveTicketEmoji);
-
-                    // add the mentor, ticket author and his group
-                    ticketInfo.userCount += promptMsg.mentions.users.array().length + 2;
-
-                    // send message mentioning all the parties involved so they get a notification
-                    let notificationMessage = '<@' + helper.id + '> <@' + user.id + '>';
-                    promptMsg.mentions.users.forEach(user => notificationMessage.concat('<@' + user.id + '>'));
-                    ticketInfo.textChannel.send(notificationMessage).then(msg => msg.delete({timeout: 15000}));
-
-                    const looseAccessCollector = openTicketEmbedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === leaveTicketEmoji);
-
-                    looseAccessCollector.on('collect', async (reaction, exitUser) => {
-                        ticketInfo.userCount -= 1;
-
-                        if (ticketInfo.userCount === 0) {
-                            ticketCollector.stop();
-                            looseAccessCollector.stop();
-                            await discordServices.deleteChannel(ticketInfo.voiceChannel);
-                            await discordServices.deleteChannel(ticketInfo.textChannel);
-                            await discordServices.deleteChannel(ticketInfo.category);
-
-                            ticketMsg.edit(ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed!! Good job!'));
-                        } else {
-                            ticketInfo.category.updateOverwrite(exitUser, {VIEW_CHANNEL: false, SEND_MESSAGES: false, READ_MESSAGE_HISTORY: false});
-                        }
-                    });
-                    
-                    var interval;
-                    interval = setInterval(deletionSequence, 60 * 1000);//change number in deployment
-                    async function deletionSequence() {
-                        var hackerMentions = '<@' + hacker.id + '>';
-                        if (hackerMentions.members != null) { 
-                            hackerMentions = hackerMentions + '<@' + hackerTicketMentions.members.join('><@') + '>';
-                        }
-                        ticketTextChannel.send(hackerMentions + ' Hello! Just checking in.\n' +
-                        'If your problem has been solved and you have all the information you need, please click the 👋 emoji above to leave the channel.\n' +
-                        'If you need to keep the channel, please click the emoji below, otherwise this ticket will be deleted soon.')
-                        .then((warning) => {
-                            warning.react('🔄');
-                            const deletionCollector = warning.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🔄', {time: 30 * 1000, max: 1}); //change number in deployment
-                            deletionCollector.on('collect', (reaction, user) => {
-                                clearInterval(interval);
-                            });
-                            deletionCollector.on('end', async (collected) => {
-                                if (collected.size == 0) {
-                                    await ticketTextChannel.delete();
-                                    await ticketVoiceChannel.delete();
-                                    await ticketCategory.delete();
-                                } else {
-                                    await ticketTextChannel.send('You have indicated that you need more time. I\'ll check in with you later!');
-                                    interval = setInterval(deletionSequence, 60 * 1000);
-                                }
-                            });
-                        });
-
-                    }
-                }
-            });
+            let ticket = new Ticket(promptMsg.guild, promptMsg.content, this.caveOptions, user, promptMsg.mentions.users, this.ticketCount, ticketMsg,);
+            this.tickets.set(this.ticketCount, ticket);
         });
     }
 
@@ -488,12 +381,12 @@ class Cave {
         });
 
         ticketInfo.textChannel = await channelManager.create('banter', {
-            type: 'text', 
+            type: 'text',
             parent: ticketInfo.category
         });
 
         ticketInfo.voiceChannel = await channelManager.create('discussion', {
-            type: 'voice', 
+            type: 'voice',
             parent: ticketInfo.category
         });
 
@@ -513,24 +406,24 @@ class Cave {
         const caveConsoleEmbed = new Discord.MessageEmbed()
             .setColor(this.caveOptions.color)
             .setTitle(this.caveOptions.name + ' Role Console')
-            .setDescription('Hi! Thank you for being here. \n* Please read over all the available roles. \n* Choose those you would feel ' + 
-            'comfortable answering questions for. \n* When someone sends a help ticket, and has specificed one of your roles, you will get pinged!');
+            .setDescription('Hi! Thank you for being here. \n* Please read over all the available roles. \n* Choose those you would feel ' +
+                'comfortable answering questions for. \n* When someone sends a help ticket, and has specificed one of your roles, you will get pinged!');
         this.embedMessages.console = await (await this.privateChannels.console.send(caveConsoleEmbed)).pin();
 
-        const collector = this.embedMessages.console.createReactionCollector((reaction, user) => !user.bot && this.emojis.has(reaction.emoji.name), {dispose: true});
+        const collector = this.embedMessages.console.createReactionCollector((reaction, user) => !user.bot && this.emojis.has(reaction.emoji.name), { dispose: true });
 
         collector.on('collect', async (reaction, user) => {
             let member = reaction.message.guild.member(user);
             let role = this.emojis.get(reaction.emoji.name);
 
             if (member.roles.cache.has(role.id)) {
-                this.privateChannels.console.send('<@' + user.id + '> You already have the ' + role.name + ' role!').then(msg => msg.delete({timeout: 10000}));
+                this.privateChannels.console.send('<@' + user.id + '> You already have the ' + role.name + ' role!').then(msg => msg.delete({ timeout: 10000 }));
                 return;
             }
 
             discordServices.addRoleToMember(member, role.id);
             role.activeUsers += 1;
-            this.privateChannels.console.send('<@' + user.id + '> You have been granted the ' + role.name + ' role!').then(msg => msg.delete({timeout: 10000}));
+            this.privateChannels.console.send('<@' + user.id + '> You have been granted the ' + role.name + ' role!').then(msg => msg.delete({ timeout: 10000 }));
         });
 
         collector.on('remove', (reaction, user) => {
@@ -539,7 +432,7 @@ class Cave {
 
             discordServices.removeRolToMember(member, role.id);
             role.activeUsers -= 1;
-            this.privateChannels.console.send('<@' + user.id + '> You have lost the ' + role.name + ' role!').then(msg => msg.delete({timeout: 10000}));
+            this.privateChannels.console.send('<@' + user.id + '> You have lost the ' + role.name + ' role!').then(msg => msg.delete({ timeout: 10000 }));
         });
     }
 
@@ -574,7 +467,7 @@ class Cave {
             }
 
             // let admin know the action was succesfull
-            adminConsole.send('<@' + promptUserId + '> The role has been added!').then(msg => msg.delete({timeout: 8000}));
+            adminConsole.send('<@' + promptUserId + '> The role has been added!').then(msg => msg.delete({ timeout: 8000 }));
         });
     }
 
@@ -608,11 +501,11 @@ class Cave {
      * @returns {Promise<Discord.GuildEmoji | Discord.ReactionEmoji>}
      */
     async promptAndCheckReaction(prompt, roleName, promptChannel, userId) {
-        let emoji = await Prompt.reactionPrompt(prompt + ' ' +  roleName + '.', promptChannel, userId);
-            if (this.emojis.has(emoji.name)) {
-                promptChannel.send('<@' + userId + '> That emoji is already in use! Try again!').then(msg => msg.delete({timeout: 8000}));
-                return this.promptAndCheckReaction(prompt, roleName, promptChannel, userId);
-            } else return emoji;
+        let emoji = await Prompt.reactionPrompt(prompt + ' ' + roleName + '.', promptChannel, userId);
+        if (this.emojis.has(emoji.name)) {
+            promptChannel.send('<@' + userId + '> That emoji is already in use! Try again!').then(msg => msg.delete({ timeout: 8000 }));
+            return this.promptAndCheckReaction(prompt, roleName, promptChannel, userId);
+        } else return emoji;
     }
 
 
@@ -626,7 +519,7 @@ class Cave {
     addRole(role, emoji, currentActiveUsers = 0) {
         // add to the emoji collectioin
         this.emojis.set(emoji.name, {
-            name: role.name.substring(this.caveOptions.preRoleText.length + 1), 
+            name: role.name.substring(this.caveOptions.preRoleText.length + 1),
             id: role.id,
             activeUsers: currentActiveUsers,
         });
@@ -652,10 +545,10 @@ class Cave {
         if (roleName === null) return null;
 
         let emoji = await this.promptAndCheckReaction('What emoji do you want to associate with this new role?', roleName, channel, userId);
-        
+
         // make sure the reaction is not already in use!
         if (this.emojis.has(emoji.name)) {
-            message.channel.send('<@' + userId + '>This emoji is already in use! Please try again!').then(msg => msg.delete({timeout: 8000}));
+            message.channel.send('<@' + userId + '>This emoji is already in use! Please try again!').then(msg => msg.delete({ timeout: 8000 }));
             return;
         }
 
