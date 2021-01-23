@@ -30,14 +30,20 @@ module.exports = class Attendace extends PermissionCommand {
         });
     }
 
-    // Run function -> command body
+    /**
+     * 
+     * @param {Discord.Message} message 
+     * @param {String} param1 
+     */
     async runCommand(message, { email }) {
+       // regex to validate email
+       const re = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
 
-        // let user know he has used the command incorrectly and exit
-        if (email === '') {
-            discordServices.sendMessageToMember(message.author, 'You have used the attend command incorrectly! \nPlease write your email after the command like this: !attend email@gmail.com');
-            return;
-        }
+       // let user know he has used the command incorrectly and exit
+       if (email === '' || re.test(email.toLowerCase())) {
+           discordServices.sendMessageToMember(message.author, 'You have used the verify command incorrectly! \nPlease write a valid email after the command like this: !verify email@gmail.com');
+           return;
+       }
         
         // call the firebase services attendhacker function
         var status = await firebaseServices.attendHacker(email);

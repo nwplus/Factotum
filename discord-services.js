@@ -133,7 +133,7 @@ var botSupportChannel = '784910416224583751';
 
 // channel where guests will use the !verify command,
 // usualy the welcome channel
-var welcomeChannel = '773401606120800257';
+var welcomeChannel = '743192401434378271';
 module.exports.welcomeChannel = welcomeChannel;
 var welcomeSupport = '742896827082211419';
 module.exports.welcomeSupport = welcomeSupport;
