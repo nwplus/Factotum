@@ -65,22 +65,28 @@ class PermissionCommand extends Command {
         // delete the message
         discordServices.deleteMessage(message);
 
-        // check for DM only
-        if (this.permissionInfo.dmOnly && message.channel.type != 'dm') {
-            discordServices.sendEmbedToMember(message.member, {
-                title: 'Error',
-                description: 'The command you just tried to use is only usable via DM!',
-            });
+        // check for DM only, when true, all other checks should not happen!
+        if (this.permissionInfo.dmOnly) {
+            if (message.channel.type != 'dm') {
+                discordServices.sendEmbedToMember(message.member, {
+                    title: 'Error',
+                    description: 'The command you just tried to use is only usable via DM!',
+                });
+                return;
+            }
+        } else {
+            // Make sure it is only used in the permitted channel
+            if (this.permissionInfo?.channelID && message.channel.id != this.permittedChannel) {
+                discordServices.sendMessageToMember(message.member, this.permissionInfo.channelMessage, true);
+                return;
+            }
+            // Make sure only the permitted role can call it
+            else if (this.permissionInfo?.roleID && !discordServices.checkForRole(message.member, this.permittedRole)) {
+                discordServices.sendMessageToMember(message.member, this.permissionInfo.roleMessage, true);
+                return;
+            }
         }
-        // Make sure it is only used in the permitted channel
-        else if (this.permissionInfo?.channelID && message.channel.id != this.permittedChannel) {
-            discordServices.sendMessageToMember(message.member, this.channelMessage, true);
-        }
-        // Make sure only the permitted role can call it
-        else if (this.permissionInfo?.roleID && !discordServices.checkForRole(message.member, this.permittedRole)) {
-            discordServices.sendMessageToMember(message.member, this.roleMessage, true);
-        }
-        else this.runCommand(message, args, fromPattern, result);
+        this.runCommand(message, args, fromPattern, result);
     }
 
 
