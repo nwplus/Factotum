@@ -393,6 +393,9 @@ class Cave {
                     ticketMsg.edit(ticketMsg.embeds[0].addField('More hands on deck!', '<@' + helper.id + '> Joined the ticket!'));
                     openTicketEmbedMsg.edit(openTicketEmbedMsg.embeds[0].addField('More hands on deck!', '<@' + helper.id + '> Joined the ticket!'));
                 } else {
+                    // close remove ticket collector
+                    reqTicketUserEmbedMsgcollector.stop();
+
                     // edit incoming ticket with mentor information
                     ticketMsg.edit(ticketMsg.embeds[0].addField('This ticket is being handled!', '<@' + helper.id + '> Is helping this team!')
                                         .addField('Still want to help?', 'Click the ' + this.caveOptions.joinTicketEmoji.toString() + ' emoji to join the ticket!')
@@ -442,6 +445,32 @@ class Cave {
                     });
 
                 }
+            });
+
+            // let user know that ticket was submitted and give option to remove ticket
+            let removeTicketEmoji = '⚔️';
+
+            let reqTicketUserEmbedMsg = await discordServices.sendEmbedToMember(user, {
+                title: 'Ticket was Succesfull!',
+                description: 'Your ticket to the ' + this.caveOptions.name + ' group was succesful!',
+                fields: [{
+                    title: 'Remove the ticket',
+                    description: 'If you don\'t need help anymore, react to this message with ' + removeTicketEmoji,
+                }]
+            });
+
+            let reqTicketUserEmbedMsgcollector = reqTicketUserEmbedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === removeTicketEmoji, {max: 1});
+            reqTicketUserEmbedMsgcollector.on('collect', (reaction, user) => {
+                ticketCollector.stop();
+                ticketMsg.edit(ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed by the user!'));
+                reqTicketUserEmbedMsg.delete({timeout: 3000});
+                discordServices.sendEmbedToMember(user, {
+                    title: 'Ticket Closed!',
+                    description: 'Your ticket has been closed!',
+                }, true);
+            });
+            reqTicketUserEmbedMsgcollector.on('end', (collected) => {
+                reqTicketUserEmbedMsg.edit(reqTicketUserEmbedMsg.embeds[0].addField('Ticket Open!', 'Your ticket has been opened! Good luck!'));
             });
         });
     }
