@@ -76,12 +76,12 @@ class PermissionCommand extends Command {
             }
         } else {
             // Make sure it is only used in the permitted channel
-            if (this.permissionInfo?.channelID && message.channel.id != this.permittedChannel) {
+            if (this.permissionInfo?.channelID && message.channel.id != this.permissionInfo.channelID) {
                 discordServices.sendMessageToMember(message.member, this.permissionInfo.channelMessage, true);
                 return;
             }
             // Make sure only the permitted role can call it
-            else if (this.permissionInfo?.roleID && !discordServices.checkForRole(message.member, this.permittedRole)) {
+            else if (this.permissionInfo?.roleID && !discordServices.checkForRole(message.member, this.permissionInfo.roleID)) {
                 discordServices.sendMessageToMember(message.member, this.permissionInfo.roleMessage, true);
                 return;
             }
