@@ -1,3 +1,4 @@
+const Discord = require('discord.js');
 const { Command } = require('discord.js-commando');
 const discordServices = require('../discord-services');
 
@@ -18,6 +19,7 @@ class PermissionCommand extends Command {
      * @property {string} channelID - the channel ID where this command can be run
      * @property {string} roleMessage - the message to be sent for an incorrect role
      * @property {string} channelMessage - the message to be sent for an incorrect channel
+     * @property {Boolean} dmOnly - true if this command can only be used on a DM
      */
 
     /**
@@ -29,43 +31,44 @@ class PermissionCommand extends Command {
     constructor(client, info, permissionInfo) {
         super(client, info);
 
+        /**
+         * The permission info
+         * @type {CommandPermissionInfo}
+         */
+        this.permissionInfo = this.validateInfo(permissionInfo);
+    }
+
+    /**
+     * Adds default values if not found on the object.
+     * @param {CommandPermissionInfo} permissionInfo 
+     * @returns {CommandPermissionInfo}
+     */
+    validateInfo(permissionInfo) {
         // Make sure permissionInfo is an object, if not given then create empty object
         if (typeof permissionInfo != 'object') permissionInfo = {};
-
-        /**
-         * Channel where this command can be run.
-         * @type {string} snowflake/id
-         */
-        this.permittedChannel = permissionInfo.channelID || null;
-
-        /**
-         * The permitted role to call this command.
-         * @type {string} snowflake/id
-         */
-        this.permittedRole = permissionInfo.roleID || null;
-
-        /**
-         * The message to be sent to the member if they call the command on the wrong channel
-         * @type {string}
-         */
-        this.channelMessage = 'channelMessage' in permissionInfo ? permissionInfo.channelMessage : 'Hi, the command you just used is not available on that channel!';
-
-        /**
-         * The message to be sent to the member if they call the command without having the permitted role
-         * @type {string}
-         */
-        this.roleMessage = 'roleMessage' in permissionInfo ? permissionInfo.roleMessage : 'Hi, the command you just used is not available to your current role!';
+        if (!permissionInfo?.channelMessage) permissionInfo.channelMessage = 'Hi, the command you just used is not available on that channel!';
+        if (!permissionInfo?.roleMessage) permissionInfo.roleMessage = 'Hi, the command you just used is not available to your current role!';
+        permissionInfo.dmOnly = permissionInfo?.dmOnly ?? false;
+        return permissionInfo;
     }
 
 
     /**
      * Run command used by Command class. Has the permission checks and runs the child runCommand method.
-     * @param {CommandoMessage} message 
+     * @param {Discord.Message} message 
      * @param {Object|string|string[]} args 
      * @param {boolean} fromPattern 
      * @param {Promise<?Message|?Array<Message>>} result 
      */
     async run(message, args, fromPattern, result){
+        // check for DM only
+        if (this.permissionInfo.dmOnly && message.channel.type != 'dm') {
+            discordServices.sendEmbedToMember(message.member, {
+                title: 'Error',
+                description: 'The command you just tried to use is only usable via DM!',
+            });
+        }
+
         // delete the message
         discordServices.deleteMessage(message);
 
