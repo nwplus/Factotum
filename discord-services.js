@@ -350,8 +350,10 @@ module.exports.addLimitToVoiceChannels = addLimitToVoiceChannels;
  * @param {Number} timeout - the time to wait in milliseconds
  */
 function deleteMessage(message, timeout = 0) {
-    if (!message.deleted && message.deletable) {
+    if (!message.deleted && message.deletable &&  message.channel.type != 'dm') {
         message.delete({timeout: timeout});
+    } else if (message.channel.type === 'dm' && message.author.bot) {
+        message.delete({timeout: timeout})
     }
 }
 module.exports.deleteMessage = deleteMessage;
