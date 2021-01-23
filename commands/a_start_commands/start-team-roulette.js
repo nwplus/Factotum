@@ -142,9 +142,15 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                             title: 'Team Roulette',
                             description: 'You have been added to ' + teamLeaderUser.username + ' team roulette team! I will ping you as soon as I find a team for all of you!',
                             color: '#57f542',
+                            fields: [{
+                                title:'Leave the team',
+                                description: 'To leave the team please react to this message with ' + leaveTeamEmoji,
+                            }]
                         }).then(memberMsg => {
+                            memberMsg.react(leaveTeamEmoji);
+
                             // reaction to leave the team only works before the team has been completed!!
-                            memberMsg.awaitReactions((reaction, user) => !user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === leaveTeamEmoji).then(reactions => {
+                            memberMsg.awaitReactions((reaction, user) => !user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === leaveTeamEmoji, {max: 1}).then(reactions => {
                                 // remove member from list
                                 let newSize = this.removeMemberFromTeam(newTeam, teamMember, memberMsg);
 
@@ -171,10 +177,20 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 title: 'Team Roulette',
                 description: 'You' + (reaction.emoji.name === this.teamEmoji ? ' and your team' : '') + ' have been added to the roulette. I will get back to you as soon as I have a team for you!',
                 color: '#57f542',
+                fields: [{
+                    title: 'Destroy the team',
+                    description: 'If you want remove the team from the roulette react to this message with ' + destroyTeamEmoji,
+                }]
             });
+            leaderDM.react(destroyTeamEmoji);
 
             // reaction to destroy the team only works before the team is completed
-            leaderDM.awaitReactions((reaction, user) => !user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === destroyTeamEmoji).then(reactions => {
+            console.log(newTeam.hasBeenComplete);
+            leaderDM.awaitReactions((reaction, user) => {
+                console.log(!user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === destroyTeamEmoji);
+                return !user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === destroyTeamEmoji;
+            }, {max: 1}).then(reactions => {
+                console.log('inside await reactions');
                 // remove the team from the list, remove the team leader mssg and send a confirmation message
                 this.teamList.get(newTeam.size()).splice(this.teamList.get(newTeam.size()).indexOf(newTeam), 1);
                 leaderDM.delete();
@@ -191,7 +207,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                         description: 'Your team with <@' + newTeam.leader + '> has been destroyed!',
                     });
                 });
-            })
+            });
 
             this.runTeamCreator(message.guild.channels);
         });
