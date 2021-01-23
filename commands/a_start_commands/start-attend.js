@@ -37,20 +37,9 @@ module.exports = class StartAttend extends PermissionCommand {
 
         let existsChannel = await Prompt.yesNoPrompt('Is there already a channel that exists that hackers will be using !attend in?', message.channel, message.author.id);
 
-        if (existsChannel === null) return;
-
         if (existsChannel) {
             //ask user to mention channel to be used for !attend
-            var channelMention = await messagePrompt('Please mention the channel to be used for the !attend command. ', 'string', message.channel, message.author.id, 20);
-            if (channelMention == null) {
-                return;
-            }
-            channel = channelMention.mentions.channels.first();
-            if (channel == null) {
-                message.channel.send('No channels mentioned. Please try the command again.')
-                .then((msg) => msg.delete({timeout: 3000}));
-                return;
-            }
+            var channel = await Prompt.channelPrompt('Please mention the channel to be used for the !attend command. ', message.channel, message.author.id);
         } else {
             //ask user for category to create new attend channel under
             let categoryReply = await messagePrompt('What category do you want the new attend channel under? ', 'string', message.channel, message.author.id, 20);
@@ -72,14 +61,38 @@ module.exports = class StartAttend extends PermissionCommand {
             channel = newChannel;
         }
         //send embed with information and tagging hackers
+        let attendEmoji = '🔋';
+
         const embed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle('Hey there!')
-            .setDescription('In order to indicate that you are participating at nwHacks 2021, please send the **!attend** command to this channel followed by the email you used to sign up. \nFor example: !attend example@gmail.com')
+            .setDescription('In order to indicate that you are participating, please react to this message with ' + attendEmoji)
             .addField('Do you need assistance?', 'Head over to the support channel and ping the admins!')
-            .addField('Worry Not! Your email will be kept private!', 'All messages to this channel are automatically removed!');
-        await channel.send('<@&' + discordServices.hackerRole + '>', {embed: embed}).then(msg => msg.pin());
-        discordServices.blackList.set(channel.id, 5000);
-        this.client.registry.commands.get('attend').setEnabledIn(message.guild, true);
+        let embedMsg = await channel.send('<@&' + discordServices.hackerRole + '>', {embed: embed});
+        embedMsg.pin();
+        embedMsg.react(attendEmoji);
+        discordServices.blackList.set(channel.id, 1000);
+        
+        // reaction collector to attend hackers
+        let embedMsgCollector = embedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === attendEmoji);
+
+        embedMsgCollector.on('collect', (reaction, user) => {
+            let member = message.guild.member(user.id);
+
+            // check if user needs to attend
+            if (discordServices.checkForRole(member, discordServices.hackerRole) && 
+                !discordServices.checkForRole(member, discordServices.attendeeRole)) {
+                    discordServices.addRoleToMember(member, discordServices.attendeeRole)
+                    discordServices.sendEmbedToMember(user, {
+                        title: 'Attend Success!',
+                        description: 'You have been marked as attending! Happy hacking!!!'
+                    });
+            } else {
+                discordServices.sendEmbedToMember(member, {
+                    title: 'Attend Error',
+                    description: 'You do not need to attend, you are already attending or you are not a hacker!'
+                }, true);
+            }
+        });
     }
 }
