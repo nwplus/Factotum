@@ -61,6 +61,10 @@ class PermissionCommand extends Command {
      * @param {Promise<?Message|?Array<Message>>} result 
      */
     async run(message, args, fromPattern, result){
+
+        // delete the message
+        discordServices.deleteMessage(message);
+
         // check for DM only
         if (this.permissionInfo.dmOnly && message.channel.type != 'dm') {
             discordServices.sendEmbedToMember(message.member, {
@@ -68,20 +72,14 @@ class PermissionCommand extends Command {
                 description: 'The command you just tried to use is only usable via DM!',
             });
         }
-
-        // delete the message
-        discordServices.deleteMessage(message);
-
         // Make sure it is only used in the permitted channel
-        if (this.permittedChannel != null && message.channel.id != this.permittedChannel) {
+        else if (this.permissionInfo?.channelID && message.channel.id != this.permittedChannel) {
             discordServices.sendMessageToMember(message.member, this.channelMessage, true);
         }
-
         // Make sure only the permitted role can call it
-        else if (this.permittedRole != null && !(discordServices.checkForRole(message.member, this.permittedRole))) {
+        else if (this.permissionInfo?.roleID && !discordServices.checkForRole(message.member, this.permittedRole)) {
             discordServices.sendMessageToMember(message.member, this.roleMessage, true);
         }
-
         else this.runCommand(message, args, fromPattern, result);
     }
 
