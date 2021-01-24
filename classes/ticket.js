@@ -17,6 +17,7 @@ class Ticket {
         this.number = number;
         this.ticketMsg = ticketMsg;
         this.interval;
+        this.deletionSequence = false;
         this.init();
     }
 
@@ -105,6 +106,8 @@ class Ticket {
                 this.hackers.forEach(user => notificationMessage.concat('<@' + user.id + '>'));
                 this.text.send(notificationMessage).then(msg => msg.delete({ timeout: 15000 }));
 
+                await this.createActivityListener();
+
                 const looseAccessCollector = openTicketEmbedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === leaveTicketEmoji);
 
                 looseAccessCollector.on('collect', async (reaction, exitUser) => {
@@ -127,27 +130,32 @@ class Ticket {
 
                         this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed!! Good job!'));
                     } else if (this.mentors.length == 0) {
-                        this.deletionSequence();
-                        this.interval = setInterval(() => this.deletionSequence(), 60 * 1000);//change number in deployment
+                        if (!this.deletionSequence) {
+                            this.deletionSequence = true;
+                            await this.askToDelete('mentor');
+                            if (!this.category.deleted) {
+                                this.interval = setInterval(() => this.askToDelete('mentor'), 60 * 1000);//change number in deployment
+                            }
+                        }
                     } else {
                         this.category.updateOverwrite(exitUser, { VIEW_CHANNEL: false, SEND_MESSAGES: false, READ_MESSAGE_HISTORY: false });
                     }
                 });
-
-
-
-
             }
         });
     }
 
-
-    async deletionSequence() {
-        var hackerMentions = '<@' + this.requester.id + '>';
-        this.hackers.forEach(user => hackerMentions.concat('<@' + user.id + '>'));
-        this.text.send(hackerMentions + ' Hello! Just checking in.\n' + //might change the wording later to depend on situation
-            'If your problem has been solved and you have all the information you need, please click the 👋 emoji above to leave the channel.\n' +
-            'If you need to keep the channel, please click the emoji below, otherwise this ticket will be deleted soon.')
+    async askToDelete(reason) {
+        var requestMsg = '<@' + this.requester.id + '>';
+        this.hackers.forEach(user => requestMsg.concat('<@' + user.id + '>'));
+        if (reason === 'inactivity') {
+            this.mentors.forEach(user => requestMsg.concat('<@' + user.id + '>'));
+            requestMsg = requestMsg + ' Hello! I detected some inactivity on this channel and wanted to check in.\n';
+        } else if (reason === 'mentor') {
+            requestMsg = requestMsg + ' Hello! Your mentor(s) has/have left the ticket.'
+        }
+        this.text.send(requestMsg + '\nIf the ticket has been solved, please click the 👋 emoji above to leave the channel.\n' +
+            'If you need to keep the channel, please click the emoji below, **otherwise this ticket will be deleted soon**.')
             .then((warning) => {
                 warning.react('🔄');
                 const deletionCollector = warning.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🔄', { time: 30 * 1000, max: 1 }); //change number in deployment
@@ -164,6 +172,20 @@ class Ticket {
                 });
             });
 
+    }
+
+    async createActivityListener() {
+        if (!this.category.deleted) {
+            const activityListener = this.text.createMessageCollector(m => !m.author.bot, { idle: 60 * 1000 }); //change time in deployment
+            activityListener.on('end', collected => {
+                if (!this.deletionSequence && (this.voice.members.size === 0)) {
+                    this.askToDelete('inactivity');
+                    if (!this.category.deleted) {
+                        this.createActivityListener();
+                    }
+                }
+            });
+        }
     }
 }
 
