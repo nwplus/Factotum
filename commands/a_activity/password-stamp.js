@@ -64,7 +64,8 @@ module.exports = class DistributeStamp extends Command {
         const qEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
             .setTitle('React with anything to claim a stamp for attending ' + activityName)
-            .setDescription('Once you react to this message, check for a DM from this bot. **You can only emoji this message once!**');
+            .setDescription('Once you react to this message, check for a DM from this bot. **You can only emoji this message once!**')
+            .addField('A Password Is Required!', 'Through the Bot\s DM, you will have 3 attempts in the first 60 seconds to enter the correct password.');
         
         targetChannel.send(qEmbed).then((msg) => {
 
