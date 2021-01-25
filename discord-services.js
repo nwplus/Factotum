@@ -133,7 +133,7 @@ var botSupportChannel = '784910416224583751';
 
 // channel where guests will use the !verify command,
 // usualy the welcome channel
-var welcomeChannel = '773401606120800257';
+var welcomeChannel = '743192401434378271';
 module.exports.welcomeChannel = welcomeChannel;
 var welcomeSupport = '742896827082211419';
 module.exports.welcomeSupport = welcomeSupport;
@@ -350,8 +350,10 @@ module.exports.addLimitToVoiceChannels = addLimitToVoiceChannels;
  * @param {Number} timeout - the time to wait in milliseconds
  */
 function deleteMessage(message, timeout = 0) {
-    if (!message.deleted && message.deletable) {
+    if (!message.deleted && message.deletable &&  message.channel.type != 'dm') {
         message.delete({timeout: timeout});
+    } else if (message.channel.type === 'dm' && message.author.bot) {
+        message.delete({timeout: timeout})
     }
 }
 module.exports.deleteMessage = deleteMessage;
