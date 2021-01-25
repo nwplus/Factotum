@@ -373,7 +373,7 @@ class Cave {
             ticketEmojis.set(this.caveOptions.giveHelpEmoji.name, this.caveOptions.giveHelpEmoji);
 
             /**
-             * The message with the infomration embed sent to the ticket channel.
+             * The message with the information embed sent to the ticket channel.
              * We have it up here for higher scope!
              * @type {Discord.Message}
              */
@@ -451,12 +451,16 @@ class Cave {
             let removeTicketEmoji = '⚔️';
 
             let reqTicketUserEmbedMsg = await discordServices.sendEmbedToMember(user, {
-                title: 'Ticket was Succesfull!',
+                title: 'Ticket was Successful!',
                 description: 'Your ticket to the ' + this.caveOptions.name + ' group was succesful!',
                 fields: [{
                     title: 'Remove the ticket',
                     description: 'If you don\'t need help anymore, react to this message with ' + removeTicketEmoji,
-                }]
+                },
+            {
+                title: 'Ticket Description:',
+                description: promptMsg.content,
+            }]
             });
 
             let reqTicketUserEmbedMsgcollector = reqTicketUserEmbedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === removeTicketEmoji, {max: 1});
