@@ -90,8 +90,12 @@ module.exports = class DistributeStamp extends Command {
                 const member = message.guild.member(user);
 
                 // prompt member for password
-                var dmMessage = await user.send("You have 60 seconds and 3 attempts to type the password correctly to get the " + activityName + " stamp.\n" +
-                "Please enter the password (leave no stray spaces or anything):");
+                var dmMessage = await discordServices.sendEmbedToMember(user, {
+                    description: "You have 60 seconds and 3 attempts to type the password correctly to get the " + activityName + " stamp.\n" +
+                    "Please enter the password (leave no stray spaces or anything):",
+                    title: 'Stamp Collector For ' + activityName,
+                    color: '#b2ff2e',
+                });
 
                 var correctPassword = false;
                 var incorrectPasswords = 0;
@@ -106,25 +110,34 @@ module.exports = class DistributeStamp extends Command {
                         member.roles.cache.forEach(async role => (await this.parseRole(member, user, role, message, activityName)));
                         correctPassword = true;
                         //discordServices.deleteMessage(msgs);
-                        //discordServices.deleteMessage(dmMessage);
+                        discordServices.deleteMessage(dmMessage);
                         pwdCollector.stop();
                     } else if (incorrectPasswords < 2) {
                         //add 1 to number of incorrect guesses and prompts user to try again
-                        await user.send("Incorrect. Please try again.");
+                        await discordServices.sendMessageToMember(user, "Incorrect. Please try again.", true);
                     }
                     incorrectPasswords++;
                 });
                 pwdCollector.on('end', collected => {
+                    discordServices.deleteMessage(dmMessage);
+
                     //show different messages after password collection expires depending on circumstance
                     if (!correctPassword) {
                         if (incorrectPasswords < 3) {
-                            user.send("Time's up! You took too long to enter the password for the " + activityName + " stamp. If you have extenuating circumstances please contact an organizer.");
+                            discordServices.sendEmbedToMember(user, {
+                                title: 'Stamp Collector',
+                                description: "Time's up! You took too long to enter the password for the " + activityName + " stamp. If you have extenuating circumstances please contact an organizer.",
+                            });
                         } else {
-                            user.send("Incorrect. You have no attempts left. If you have extenuating circumstances please contact an organizer.");
+                            discordServices.sendEmbedToMember(user, {
+                                title: 'Stamp Collector',
+                                description: "Incorrect. You have no attempts left for the " + activityName + " stamp. If you have extenuating circumstances please contact an organizer.",
+                            });
                         }
                     }
                 });
             });
+
             //edits the embedded message to notify people when it stops collecting reacts
             collector.on('end', collected => {
                 if (msg.guild.channels.cache.find(channel => channel.name === targetChannel.name)) {
@@ -161,10 +174,14 @@ module.exports = class DistributeStamp extends Command {
         //we have provided
         if (newRole == null) {
             newRole = curRole;
-            await user.send('A problem occurred. Please contact an organizer/admin.');
+            await discordServices.sendMessageToMember(user, 'A problem occurred. Please contact an organizer/admin.', true);
         } 
         //replace curRole with newRole and send dm with details
         discordServices.replaceRoleToMember(member, curRole, newRole);
-        await user.send('You have been upgraded from ' + curRole.name + ' to ' + newRole.name + ' for attending ' + activityName + '\'s booth!');
+        await discordServices.sendEmbedToMember(user, {
+            title: 'Stamp Collector for ' + activityName,
+            description: 'You have been upgraded from ' + curRole.name + ' to ' + newRole.name + ' for attending ' + activityName + '\'s booth!',
+            color: '#b2ff2e',
+        });
     } 
 }
