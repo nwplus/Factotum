@@ -160,12 +160,12 @@ class Ticket {
                 warning.react('🔄');
                 const deletionCollector = warning.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🔄', { time: 30 * 1000, max: 1 }); //change number in deployment
                 deletionCollector.on('end', async (collected) => {
-                    if (collected.size == 0) {
+                    if (collected.size === 0) {
                         clearInterval(this.interval);
                         await this.voice.delete();
                         await this.text.delete();
                         await this.category.delete();
-                        this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed!! Good job!'));
+                        this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed Due to Inactivity', 'This ticket has been closed!! Good job!'));
                     } else {
                         await this.text.send('You have indicated that you need more time. I\'ll check in with you later!');
                     }

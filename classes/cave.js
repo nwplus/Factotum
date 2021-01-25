@@ -2,6 +2,7 @@ const Discord = require("discord.js");
 const discordServices = require('../discord-services');
 const Prompt = require('../classes/prompt');
 const Ticket = require('../classes/ticket');
+const { messagePrompt } = require("../classes/prompt");
 
 class Cave {
 
@@ -16,6 +17,7 @@ class Cave {
      * @property {Discord.GuildEmoji | Discord.ReactionEmoji} giveHelpEmoji - the give help to ticket emoji
      * @property {Discord.GuildEmoji | Discord.ReactionEmoji} requestTicketEmoji - the request ticket emoji
      * @property {Discord.GuildEmoji | Discord.ReactionEmoji} addRoleEmoji - emoji to add role
+     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} deleteChannelsEmoji - emoji to delete channels
      */
 
     /**
@@ -82,6 +84,7 @@ class Cave {
          */
         this.adminEmojis = new Discord.Collection();
         this.adminEmojis.set(this.caveOptions.addRoleEmoji.name, this.caveOptions.addRoleEmoji);
+        this.adminEmojis.set(this.caveOptions.deleteChannelsEmoji.name, this.caveOptions.deleteChannelsEmoji);
 
         /**
          * The emojis to use for roles.
@@ -169,6 +172,7 @@ class Cave {
         if (!caveOptions.joinTicketEmoji instanceof Discord.GuildEmoji) throw new Error('The caveOptions.joinTicketEmoji must be GuildEmoji or ReactionEmoji object!');
         if (!caveOptions.requestTicketEmoji instanceof Discord.GuildEmoji) throw new Error('The caveOptions.requestTicketEmoji must be GuildEmoji or ReactionEmoji object!');
         if (!caveOptions.addRoleEmoji instanceof Discord.GuildEmoji) throw new Error('The caveOptions.addRoleEmoji must be GuildEmoji or ReactionEmoji object!');
+        if (!caveOptions.deleteChannelsEmoji instanceof Discord.GuildEmoji) throw new Error('The caveOptions.deleteChannelsEmoji must be GuildEmoji or ReactionEmoji object!');
         this.caveOptions = caveOptions;
     }
 
@@ -358,45 +362,6 @@ class Cave {
 
 
     /**
-     * Creates the ticket category and channels.
-     * @param {Discord.GuildChannelManager} channelManager - the channel manger to use
-     * @private
-     * @async
-     * @returns {Promise<TicketInfo>} - the ticket info object with all the channels created
-     */
-    async createTicketChannels(channelManager) {
-        /**
-         * @type {TicketInfo}
-         */
-        let ticketInfo = {};
-
-        ticketInfo.category = await channelManager.create(this.caveOptions.name + ' Ticket-' + this.ticketCount, {
-            type: 'category',
-            permissionOverwrites: [
-                {
-                    id: discordServices.everyoneRole,
-                    deny: ['VIEW_CHANNEL'],
-                }
-            ]
-        });
-
-        ticketInfo.textChannel = await channelManager.create('banter', {
-            type: 'text',
-            parent: ticketInfo.category
-        });
-
-        ticketInfo.voiceChannel = await channelManager.create('discussion', {
-            type: 'voice',
-            parent: ticketInfo.category
-        });
-
-        ticketInfo.userCount = 0;
-
-        return ticketInfo;
-    }
-
-
-    /**
      * Will send the cave console embed and create the collector.
      * @private
      * @async
@@ -450,7 +415,8 @@ class Cave {
             .setColor(discordServices.embedColor)
             .setTitle(this.caveOptions.name + ' Cave Console')
             .setDescription(this.caveOptions.name + ' cave options are found below.')
-            .addField('Add a role', 'To add a role please click the ' + this.adminEmojis.first().toString() + ' emoji.');
+            .addField('Add a role', 'To add a role please click the ' + this.adminEmojis.first().toString() + ' emoji.')
+            .addField('Delete ticket channels', 'Click the ⛔ emoji to delete some or all mentor ticket channels.');
         this.embedMessages.adminConsole = await adminConsole.send(msgEmbed);
         this.adminEmojis.forEach(emoji => this.embedMessages.adminConsole.react(emoji));
 
@@ -464,10 +430,70 @@ class Cave {
 
             if (reaction.emoji.name === this.adminEmojis.first().name) {
                 await this.newRole(adminConsole, promptUserId);
+
+                // let admin know the action was succesfull
+                adminConsole.send('<@' + promptUserId + '> The role has been added!').then(msg => msg.delete({ timeout: 8000 }));
+            } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[1]) {
+                let all = await Prompt.yesNoPrompt('Type "yes" if you would like to delete all mentor channels, "no" if you would like to only delete some.', adminConsole, promptUserId);
+                if (all) {
+                    let deleteNow = await Prompt.yesNoPrompt('All ticket categories older than a minute will be deleted. Type "yes" to confirm or "no" to set a different timeframe. Careful - this cannot be undone!', adminConsole, promptUserId);
+                    var age;
+                    adminConsole.guild.channels.cache.forEach(async channel => {
+                        (deleteNow) ? age = 1 : age = await Prompt.numberPrompt('Enter the number of minutes. All ticket channels older than this time will be deleted. Careful - this cannot be undone!', adminConsole, promptUserId);
+                        if (channel.type === 'category' && channel.name.startsWith('Ticket -') && (Date.now() - channel.createdTimestamp > age * 60)) {
+                            await channel.children.forEach(child => child.delete());
+                            channel.delete();
+                        }
+                    });
+                } else {
+                    var exclude = await Prompt.yesNoPrompt('Type "yes" if you would like to delete all ticket channels **except** for the ones you mention, "no" if you would like for the channels you mention to be deleted.', adminConsole, promptUserId);
+                    var prompt;
+                    if (exclude) {
+                        prompt = 'In **one** message, send all the ticket numbers to be excluded, separated by spaces.\n' +
+                            'To save a specific channel, mention that channel in the same message. Careful - this cannot be undone!';
+                    } else {
+                        prompt = 'In **one** message, send all the ticket numbers to be deleted, separated by spaces.\n' +
+                            'To delete a specific channel, mention that channel in the same message. Careful - this cannot be undone!';
+                    }
+                    var response = await Prompt.messagePrompt(prompt, 'string', adminConsole, admin.id, 30);
+                    var categoryMentions = [];
+                    if (response != null) {
+                        var channelMentions = Array.from(response.mentions.channels.values());
+                        response.content.split(" ").forEach(substring => {
+                            if (!isNaN(substring)) {
+                                categoryMentions.push('Ticket - ' + substring);
+                            }
+                        });
+                        console.log(categoryMentions);
+
+                        if (exclude) {
+                            adminConsole.guild.channels.cache.forEach(async channel => {
+                                if (channel.type === 'category' && !categoryMentions.includes(channel.name) && channel.name.startsWith('Ticket')) {
+                                    await channel.children.forEach(child => {
+                                        if (!channelMentions.includes(child)) {
+                                            child.delete();
+                                        }
+                                    });
+                                    channel.delete();
+                                } else if (!channelMentions.includes(channel) && (channel.type === 'text' || channel.type === 'voice') && channel.parent.name != null && channel.parent.name.startsWith('Ticket') && !categoryMentions.includes(channel.parent.name)) {
+                                    channel.delete();
+                                }
+                            });
+                        } else {
+                            adminConsole.guild.channels.cache.forEach(async channel => {
+                                if (channel.type === 'category' && categoryMentions.includes(channel.name) && channel.name.startsWith('Ticket')) {
+                                    await channel.children.forEach(child => child.delete());
+                                    channel.delete();
+                                } else if (channelMentions.includes(channel) && (channel.type === 'text' || channel.type === 'voice') && channel.parent.name != null && channel.parent.name.startsWith('Ticket -')) {
+                                    channel.delete();
+                                }
+                            });
+
+                        }
+                    }
+                }
             }
 
-            // let admin know the action was succesfull
-            adminConsole.send('<@' + promptUserId + '> The role has been added!').then(msg => msg.delete({ timeout: 8000 }));
         });
     }
 
@@ -540,9 +566,10 @@ class Cave {
      * @async
      */
     async newRole(channel, userId) {
-        let roleName = (await Prompt.messagePrompt('What is the name of the new role?', 'string', channel, userId)).content;
+        let roleName = await Prompt.messagePrompt('What is the name of the new role?', 'string', channel, userId);
 
-        if (roleName === null) return null;
+        if (roleName === null) return null
+        else roleName = roleName.content;
 
         let emoji = await this.promptAndCheckReaction('What emoji do you want to associate with this new role?', roleName, channel, userId);
 
