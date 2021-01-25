@@ -185,12 +185,12 @@ function checkForRole(member, role) {
 module.exports.checkForRole = checkForRole;
 
 /**
- * Send a Direct meesage to a member, option to delete after 10 seconds
+ * Send a Direct message to a member, option to delete after 10 seconds
  * @param {Discord.User | Discord.GuildMember} member - the user or member to send a DM to
  * @param {String | Discord.MessageEmbed} message - the message to send
  * @param {Boolean} isDelete - weather to delete message after 10 seconds
  * @async
- * @return {Discord.Message}
+ * @return {Promise<Discord.Message>}
  */
 async function sendMessageToMember(member, message, isDelete = false) {
     return await member.send(message).then(msg => {
