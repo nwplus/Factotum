@@ -69,23 +69,22 @@ module.exports = class DistributeStamp extends Command {
         
         targetChannel.send(qEmbed).then((msg) => {
 
-            // filter emoji reaction and collector
-            const emojiFilter = (reaction,user) => user.id != msg.author.id;
             let emoji = '👍';
             msg.react(emoji);
-            const collector = msg.createReactionCollector(emojiFilter, {time: (1000 * stopTime * 60)});  // stopTime is in minutes, multiply to get seconds, then milliseconds 
             
-            //seenUsers keeps track of which users have already reacted to the message so there are no duplicates
-            var seenUsers = [];
+            /**
+             * keeps track of which users have already reacted to the message so there are no duplicates
+             * @type {Discord.Collection<Discord.Snowflake, String>} - <User.id, User.username>
+             */
+            var seenUsers = new Discord.Collection();
+
+            // filter emoji reaction and collector
+            const emojiFilter = (reaction, user) => !user.bot && !seenUsers.has(user.id);
+            const collector = msg.createReactionCollector(emojiFilter, {time: (1000 * stopTime * 60)});  // stopTime is in minutes, multiply to get seconds, then milliseconds 
 
             //send hacker a dm upon reaction
-            collector.on('collect', async(reaction,user) => {
-                //check if user has reacted already
-                if (seenUsers.includes(user.id)) {
-                    return;
-                } else {
-                    seenUsers.push(user.id);
-                }
+            collector.on('collect', async(reaction, user) => {
+                seenUsers.set(user.id, user.username);
 
                 const member = message.guild.member(user);
 
@@ -102,7 +101,7 @@ module.exports = class DistributeStamp extends Command {
 
                 const filter = m => user.id === m.author.id;
                 //message collector for the user's password attempts
-                const pwdCollector = await dmMessage.channel.createMessageCollector(filter,{time: 60000, max: 3});
+                const pwdCollector = dmMessage.channel.createMessageCollector(filter,{time: 60000, max: 3});
 
                 pwdCollector.on('collect', async m => {
                     //update role and stop collecting if password matches
