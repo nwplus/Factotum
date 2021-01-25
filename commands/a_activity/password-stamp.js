@@ -50,7 +50,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
             activityName = prompt.content;
         }
         if(password === '') {
-            var prompt = await Prompt.messagePrompt('Please respond with the password for hackers to use to get stamp.', message.channel, message.author.id);
+            var prompt = await Prompt.messagePrompt('Please respond with the password for hackers to use to get stamp.', 'string', message.channel, message.author.id);
             password = prompt.content;
         }
 
