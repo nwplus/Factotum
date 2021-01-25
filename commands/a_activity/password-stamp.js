@@ -46,20 +46,12 @@ module.exports = class DistributeStamp extends PermissionCommand {
     async run(message, {activityName, password, stopTime}) {
         // check if arguments have been given
         if (activityName === '') {
-            var prompt = await message.reply('Please respond with the workshop/activity name.');
-            await message.channel.awaitMessages(m => m.author.id === message.author.id, {max: 1}).then(msgs => {
-                activityName = msgs.first().content;
-                prompt.delete();
-                msgs.each(msg => msg.delete());
-            });
+            var prompt = await Prompt.messagePrompt('Please respond with the workshop/activity name.', 'string', message.channel, message.author.id);
+            activityName = prompt.content;
         }
         if(password === '') {
-            var prompt = await message.reply('Please respond with the password for hackers to use to get stamp.');
-            await message.channel.awaitMessages(m => m.author.id === message.author.id, {max: 1}).then(msgs => {
-                password = msgs.first().content;
-                prompt.delete();
-                msgs.each(msg => msg.delete());
-            });
+            var prompt = await Prompt.messagePrompt('Please respond with the password for hackers to use to get stamp.', message.channel, message.author.id);
+            password = prompt.content;
         }
 
         // target channel is where the collector will be sent
