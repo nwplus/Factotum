@@ -44,14 +44,6 @@ module.exports = class DistributeStamp extends PermissionCommand {
      * @param {Discord.Message} message
      */
     async run(message, {activityName, password, stopTime}) {
-        discordServices.deleteMessage(message);
-
-        //check that it has been called by admin or staff
-        if (!await(discordServices.checkForRole(message.member,discordServices.staffRole)) && !await(discordServices.checkForRole(message.member,discordServices.adminRole))) {
-            discordServices.replyAndDelete(message, 'You do not have permission for this command, only admins and staff can use it!');
-            return;
-        }
-
         // check if arguments have been given
         if (activityName === '') {
             var prompt = await message.reply('Please respond with the workshop/activity name.');
