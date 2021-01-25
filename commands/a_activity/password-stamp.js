@@ -1,8 +1,10 @@
 const { Command } = require('discord.js-commando');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
+const PermissionCommand = require('../../classes/permission-command');
+const Prompt = require('../../classes/prompt');
 
-module.exports = class DistributeStamp extends Command {
+module.exports = class DistributeStamp extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'password-stamp',
@@ -28,9 +30,19 @@ module.exports = class DistributeStamp extends Command {
                     default: 120,
                 }
             ],
+        }, 
+        {
+            channelID: discordServices.adminConsoleChannel,
+            channelMessage: 'This command is only available on the admin console!',
+            roleID: discordServices.staffRole,
+            roleMessage: 'This command can only available to staff!',
         });
     }
 
+    /**
+     * 
+     * @param {Discord.Message} message
+     */
     async run(message, {activityName, password, stopTime}) {
         discordServices.deleteMessage(message);
 
@@ -58,8 +70,8 @@ module.exports = class DistributeStamp extends Command {
             });
         }
 
-        // target channel is where the collector will be sent, at this point is the message's channel
-        var targetChannel = message.channel;
+        // target channel is where the collector will be sent
+        var targetChannel = await Prompt.channelPrompt('What channel do you want to send the stamp collector to? Users should have access to this channel!', message.channel, message.author.id);
 
         const qEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
