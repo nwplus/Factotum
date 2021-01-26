@@ -30,17 +30,37 @@ module.exports = class StartMentors extends PermissionCommand {
      */
     async runCommand(message) {
 
+        let joinTicketEmoji = await Prompt.reactionPrompt('What is the join ticket emoji?', message.channel, message.author.id);
+        var giveHelpEmoji = await Prompt.reactionPrompt('What is the give help emoji?', message.channel, message.author.id);
+        while (joinTicketEmoji.name === giveHelpEmoji.name) {
+            giveHelpEmoji = await Prompt.reactionPrompt('The join ticket and give help emojis cannot be the same! What is the give help emoji?', message.channel, message.author.id);
+        }
+        let adminEmojis = [];
+        var addRoleEmoji = await Prompt.reactionPrompt('What is the add role emoji?', message.channel, message.author.id); 
+        adminEmojis.push(addRoleEmoji.name);
+        var deleteChannelsEmoji = await Prompt.reactionPrompt('What is the delete ticket channels emoji?', message.channel, message.author.id);
+        while (adminEmojis.includes(deleteChannelsEmoji.name)) {
+            deleteChannelsEmoji = await Prompt.reactionPrompt('The admin emojis cannot repeat! What is the delete ticket channels emoji?', message.channel, message.author.id);
+        }
+        adminEmojis.push(deleteChannelsEmoji.name);
+        var excludeFromAutodeleteEmoji = await Prompt.reactionPrompt('What is the exclude ticket from garbage collection emoji?', message.channel, message.author.id);
+        while (adminEmojis.includes(excludeFromAutodeleteEmoji.name)) {
+            excludeFromAutodeleteEmoji = await Prompt.reactionPrompt('The admin emojis cannot repeat! What is the exclude ticket from garbage collection emoji?', message.channel, message.author.id);
+        }
+        adminEmojis.push(excludeFromAutodeleteEmoji.name);
+
         let cave = new Cave({
             name: 'Mentor',
             preEmojis: '🧑🏽🎓',
             preRoleText: 'M',
             color: 'ORANGE',
             role: message.guild.roles.resolve(discordServices.mentorRole),
-            joinTicketEmoji: await Prompt.reactionPrompt('What is the join ticket emoji?', message.channel, message.author.id),
-            giveHelpEmoji: await Prompt.reactionPrompt('What is the give help emoji?', message.channel, message.author.id),
+            joinTicketEmoji: joinTicketEmoji,
+            giveHelpEmoji: giveHelpEmoji,
             requestTicketEmoji: await Prompt.reactionPrompt('What is the request ticket emoji?', message.channel, message.author.id),
-            addRoleEmoji: await Prompt.reactionPrompt('What is the add role emoji?', message.channel, message.author.id),
-            deleteChannelsEmoji: await Prompt.reactionPrompt('What is the delete ticket channels emoji?', message.channel, message.author.id),
+            addRoleEmoji: addRoleEmoji,
+            deleteChannelsEmoji: deleteChannelsEmoji,
+            excludeFromAutodeleteEmoji: excludeFromAutodeleteEmoji,
         });
 
         let adminConsole = message.guild.channels.resolve(discordServices.adminConsoleChannel);

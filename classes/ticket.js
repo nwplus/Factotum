@@ -20,7 +20,14 @@ class Ticket {
         this.bufferTime = bufferTime;
         this.interval;
         this.deletionSequence = false;
+        this.excluded = false;
         this.init();
+    }
+    async includeExclude(exclude) {
+        this.excluded = exclude;
+        if (!exclude) {
+            this.createActivityListener();
+        }
     }
 
     async createCategory() {
@@ -100,15 +107,13 @@ class Ticket {
 
                 openTicketEmbedMsg = await this.text.send(openTicketEmbed);
                 openTicketEmbedMsg.react(leaveTicketEmoji);
-
                 this.mentors.push(helper.id);
 
                 // send message mentioning all the parties involved so they get a notification
                 let notificationMessage = '<@' + helper.id + '> <@' + this.requester.id + '>';
                 this.hackers.forEach(user => notificationMessage.concat('<@' + user.id + '>'));
                 this.text.send(notificationMessage).then(msg => msg.delete({ timeout: 15000 }));
-
-                await this.createActivityListener();
+                this.createActivityListener();
 
                 const looseAccessCollector = openTicketEmbedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === leaveTicketEmoji);
 
@@ -130,12 +135,12 @@ class Ticket {
                         await discordServices.deleteChannel(this.text);
                         await discordServices.deleteChannel(this.category);
                         this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed!! Good job!'));
-                    } else if (this.mentors.length == 0) {
-                        if (!this.deletionSequence) {
+                    } else if (this.mentors.length === 0) {
+                        if (!this.deletionSequence && !this.excluded) {
                             this.deletionSequence = true;
-                            ticketCollector.stop();
                             await this.askToDelete('mentor');
-                            if (!this.category.deleted) {
+                            ticketCollector.stop();
+                            if (!this.category.deleted && !this.voice.deleted && !this.text.deleted) {
                                 this.interval = setInterval(() => this.askToDelete('mentor'), this.inactivePeriod * 60 * 1000);
                             }
                         }
@@ -148,7 +153,7 @@ class Ticket {
     }
 
     async askToDelete(reason) {
-        if (this.category.deleted || this.text.deleted) return;
+        if (this.category.deleted || this.text.deleted || this.voice.deleted || this.excluded) return;
         var requestMsg = '<@' + this.requester.id + '>';
         this.hackers.forEach(user => requestMsg.concat('<@' + user.id + '>'));
         if (reason === 'inactivity') {
@@ -163,13 +168,15 @@ class Ticket {
                 warning.react('🔄');
                 const deletionCollector = warning.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🔄', { time: this.bufferTime * 60 * 1000, max: 1 });
                 deletionCollector.on('end', async (collected) => {
-                    if (collected.size === 0) {
+                    if (this.voice.deleted || this.text.deleted || this.category.deleted) {
+                        clearInterval(this.interval);
+                    } else if (collected.size === 0 && !this.excluded) {
                         clearInterval(this.interval);
                         await discordServices.deleteChannel(this.voice);
                         await discordServices.deleteChannel(this.text);
                         await discordServices.deleteChannel(this.category);
                         this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed Due to Inactivity', 'This ticket has been closed!! Good job!'));
-                    } else {
+                    } else if (collected.size > 0) {
                         await this.text.send('You have indicated that you need more time. I\'ll check in with you later!');
                     }
                 });
@@ -178,16 +185,15 @@ class Ticket {
     }
 
     async createActivityListener() {
-        if (!this.category.deleted && !this.text.deleted) {
-            const activityListener = this.text.createMessageCollector(m => !m.author.bot, { idle: this.inactivePeriod * 60 * 1000 });
-            activityListener.on('end', collected => {
-                //don't start deletion sequence if the text/voice channel got deleted while the collector was listening
-                if (!this.deletionSequence && !this.category.deleted && !this.text.deleted && !this.voice.deleted && (this.voice.members.size === 0)) {
-                    this.askToDelete('inactivity');
-                    this.createActivityListener();
-                }
-            });
-        }
+        if (this.category.deleted || this.text.deleted || this.voice.deleted || this.excluded) return;
+        const activityListener = this.text.createMessageCollector(m => !m.author.bot, { idle: this.inactivePeriod * 60 * 1000 });
+        activityListener.on('end', async collected => {
+            //don't start deletion sequence if the text/voice channel got deleted while the collector was listening
+            if (!this.deletionSequence && !this.category.deleted && !this.text.deleted && !this.voice.deleted && (this.voice.members.size === 0)) {
+                await this.askToDelete('inactivity');
+                this.createActivityListener();
+            }
+        });
     }
 }
 

@@ -18,6 +18,7 @@ class Cave {
      * @property {Discord.GuildEmoji | Discord.ReactionEmoji} requestTicketEmoji - the request ticket emoji
      * @property {Discord.GuildEmoji | Discord.ReactionEmoji} addRoleEmoji - emoji to add role
      * @property {Discord.GuildEmoji | Discord.ReactionEmoji} deleteChannelsEmoji - emoji to delete channels
+     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} excludeFromAutodeleteEmoji - emoji to exclude a ticket from garbage collector
      */
 
     /**
@@ -85,6 +86,7 @@ class Cave {
         this.adminEmojis = new Discord.Collection();
         this.adminEmojis.set(this.caveOptions.addRoleEmoji.name, this.caveOptions.addRoleEmoji);
         this.adminEmojis.set(this.caveOptions.deleteChannelsEmoji.name, this.caveOptions.deleteChannelsEmoji);
+        this.adminEmojis.set(this.caveOptions.excludeFromAutodeleteEmoji.name, this.caveOptions.excludeFromAutodeleteEmoji);
 
         /**
          * The emojis to use for roles.
@@ -175,6 +177,7 @@ class Cave {
         if (!caveOptions.requestTicketEmoji instanceof Discord.GuildEmoji) throw new Error('The caveOptions.requestTicketEmoji must be GuildEmoji or ReactionEmoji object!');
         if (!caveOptions.addRoleEmoji instanceof Discord.GuildEmoji) throw new Error('The caveOptions.addRoleEmoji must be GuildEmoji or ReactionEmoji object!');
         if (!caveOptions.deleteChannelsEmoji instanceof Discord.GuildEmoji) throw new Error('The caveOptions.deleteChannelsEmoji must be GuildEmoji or ReactionEmoji object!');
+        if (!caveOptions.excludeFromAutodeleteEmoji instanceof Discord.GuildEmoji) throw new Error('The caveOptions.excludeFromAutodeleteEmoji must be GuildEmoji or ReactionEmoji object!');
         this.caveOptions = caveOptions;
     }
 
@@ -351,13 +354,14 @@ class Cave {
                 .setTitle('New Ticket! - ' + this.ticketCount)
                 .setDescription('<@' + user.id + '> has the question: ' + promptMsg.content)
                 .addField('They are requesting:', '<@&' + roleId + '>')
-                .addField('Can you help them?', 'If so, react to this message with ' + this.caveOptions.giveHelpEmoji + '.');
+                .addField('Can you help them?', 'If so, react to this message with ' + this.caveOptions.giveHelpEmoji.toString() + '.');
 
 
             let ticketMsg = await this.privateChannels.incomingTickets.send('<@&' + roleId + '>', incomingTicketEmbed);
             ticketMsg.react(this.caveOptions.giveHelpEmoji);
 
-            let ticket = new Ticket(promptMsg.guild, promptMsg.content, this.caveOptions, user, promptMsg.mentions.users, this.ticketCount, ticketMsg,);
+            let ticket = new Ticket(promptMsg.guild, promptMsg.content, this.caveOptions, user, promptMsg.mentions.users,
+                this.ticketCount, ticketMsg, this.inactivePeriod, this.bufferTime);
             this.tickets.set(this.ticketCount, ticket);
         });
     }
@@ -418,13 +422,16 @@ class Cave {
             .setTitle(this.caveOptions.name + ' Cave Console')
             .setDescription(this.caveOptions.name + ' cave options are found below.')
             .addField('Add a role', 'To add a role please click the ' + this.adminEmojis.first().toString() + ' emoji.')
-            .addField('Delete ticket channels', 'Click the ⛔ emoji to delete some or all mentor ticket channels.');
+            .addField('Delete ticket channels', 'Click the ' + Array.from(this.adminEmojis.values())[1].toString() + ' emoji to delete some or all mentor ticket channels.\n' +
+                'Note that if some of a ticket\'s channels are deleted, it will be automatically excluded from the garbage collector.')
+            .addField('Include/Exclude tickets from garbage collector', 'Click the ' + Array.from(this.adminEmojis.values())[2].toString() +
+                ' emoji to include/exclude a ticket from being automatically deleted for inactivity or mentors leaving. (All tickets are included by default, and partially deleted tickets cannot be re-included)');
         this.embedMessages.adminConsole = await adminConsole.send(msgEmbed);
         this.adminEmojis.forEach(emoji => this.embedMessages.adminConsole.react(emoji));
         this.inactivePeriod = await Prompt.numberPrompt('How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
-        adminConsole, promptUserId);
+            adminConsole, promptUserId);
         this.bufferTime = await Prompt.numberPrompt('How long, in minutes, will the bot wait for a response to its request to delete a ticket?',
-        adminConsole, promptUserId);
+            adminConsole, promptUserId);
 
         // create collector
         const collector = this.embedMessages.adminConsole.createReactionCollector((reaction, user) => !user.bot && this.adminEmojis.has(reaction.emoji.name));
@@ -496,6 +503,35 @@ class Cave {
                             });
 
                         }
+                    }
+                }
+            } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[2]) {
+                var response = await Prompt.messagePrompt('**In one message separated by spaces**, ' +
+                    'type whether you want to "include" or "exclude" tickets along with the ticket numbers to operate on.', 'string', adminConsole, promptUserId, 30);
+                if (response != null) {
+                    var words = response.content.split(" ");
+                    var exclude;
+                    if (words.includes('include')) {
+                        exclude = false;
+                    } else if (words.includes('exclude')) {
+                        exclude = true;
+                    } else {
+                        adminConsole.send('<@' + promptUserId + '> You did not specify "include" or "exclude"! Please try again.')
+                            .then(message => message.delete({ timeout: 5000 }));
+                    }
+                    var validNumbers = [];
+                    words.forEach(word => {
+                        if (!isNaN(word) && this.tickets.has(parseInt(word))) {
+                            var ticket = this.tickets.get(parseInt(word));
+                            if (!ticket.category.deleted && !ticket.text.deleted && !ticket.voice.deleted) {
+                                ticket.includeExclude(exclude);
+                                validNumbers.push(word);
+                            }
+                        }
+                    });
+                    (exclude) ? exclude = 'exclude' : exclude = 'include';
+                    if (validNumbers.length > 0) {
+                        adminConsole.send('Status updated to ' + exclude + ' for tickets: ' + validNumbers.join(', '));
                     }
                 }
             }
