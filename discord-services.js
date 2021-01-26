@@ -167,16 +167,6 @@ module.exports.channelcreationChannel = channelcreationChannel;
 var incomingReportChannel = '782683901998137355';
 module.exports.incomingReportChannel = incomingReportChannel;
 
-
-// naming conventions
-
-var activityTextChannelName = 'activity-banter';
-module.exports.activityTextChannelName = activityTextChannelName;
-
-var activityVoiceChannelName = 'activity-room';
-module.exports.activityVoiceChannelName = activityVoiceChannelName;
-
-
 /**
  * Checks if the member has a role, returns true if it does
  * @param {Discord.GuildMember} member - member to check role
