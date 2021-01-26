@@ -68,7 +68,7 @@ module.exports.colors = {
 }
 
 /**
- * A list of channels where messages will get deleted after x amount of tipe
+ * A list of channels where messages will get deleted after x amount of time
  * @type {Map<Discord.Snowflake, Number>} - <text channel snowflake, Number>
  */
 const blackList = new Map();
@@ -203,7 +203,7 @@ module.exports.sendMessageToMember = sendMessageToMember;
 /**
  * Sends an embed to a user via DM. Title and description are required, color and fields are optional.
  * @param {Discord.User | Discord.GuildMember} member - member to send embed to
- * @param {EmbedOptions} embedOptions - embed infomration
+ * @param {EmbedOptions} embedOptions - embed information
  * @param {Boolean} isDelete - should the message be deleted after some time?
  * @async
  * @returns {Promise<Discord.Message>}
