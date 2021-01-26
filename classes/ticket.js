@@ -163,7 +163,7 @@ class Ticket {
             requestMsg = requestMsg + ' Hello! Your mentor(s) has/have left the ticket.'
         }
         this.text.send(requestMsg + '\nIf the ticket has been solved, please click the 👋 emoji above to leave the channel.\n' +
-            'If you need to keep the channel, please click the emoji below, **otherwise this ticket will be deleted soon**.')
+            'If you need to keep the channel, please click the emoji below, **otherwise this ticket will be deleted in ** ' + this.bufferTime + ' **minutes.')
             .then((warning) => {
                 warning.react('🔄');
                 const deletionCollector = warning.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🔄', { time: this.bufferTime * 60 * 1000, max: 1 });
