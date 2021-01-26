@@ -107,6 +107,8 @@ class Cave {
         this.ticketCount = 0;
 
         this.tickets = new Map();
+        this.inactivePeriod;
+        this.bufferTime;
     }
 
 
@@ -419,6 +421,10 @@ class Cave {
             .addField('Delete ticket channels', 'Click the ⛔ emoji to delete some or all mentor ticket channels.');
         this.embedMessages.adminConsole = await adminConsole.send(msgEmbed);
         this.adminEmojis.forEach(emoji => this.embedMessages.adminConsole.react(emoji));
+        this.inactivePeriod = await Prompt.numberPrompt('How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
+        adminConsole, promptUserId);
+        this.bufferTime = await Prompt.numberPrompt('How long, in minutes, will the bot wait for a response to its request to delete a ticket?',
+        adminConsole, promptUserId);
 
         // create collector
         const collector = this.embedMessages.adminConsole.createReactionCollector((reaction, user) => !user.bot && this.adminEmojis.has(reaction.emoji.name));
@@ -441,8 +447,8 @@ class Cave {
                     adminConsole.guild.channels.cache.forEach(async channel => {
                         (deleteNow) ? age = 1 : age = await Prompt.numberPrompt('Enter the number of minutes. All ticket channels older than this time will be deleted. Careful - this cannot be undone!', adminConsole, promptUserId);
                         if (channel.type === 'category' && channel.name.startsWith('Ticket -') && (Date.now() - channel.createdTimestamp > age * 60)) {
-                            await channel.children.forEach(child => child.delete());
-                            channel.delete();
+                            await channel.children.forEach(async child => await discordServices.deleteChannel(child));
+                            await discordServices.deleteChannel(channel);
                         }
                     });
                 } else {
@@ -469,23 +475,23 @@ class Cave {
                         if (exclude) {
                             adminConsole.guild.channels.cache.forEach(async channel => {
                                 if (channel.type === 'category' && !categoryMentions.includes(channel.name) && channel.name.startsWith('Ticket')) {
-                                    await channel.children.forEach(child => {
+                                    await channel.children.forEach(async child => {
                                         if (!channelMentions.includes(child)) {
-                                            child.delete();
+                                            await discordServices.deleteChannel(child);
                                         }
                                     });
-                                    channel.delete();
+                                    await discordServices.deleteChannel(channel);
                                 } else if (!channelMentions.includes(channel) && (channel.type === 'text' || channel.type === 'voice') && channel.parent.name != null && channel.parent.name.startsWith('Ticket') && !categoryMentions.includes(channel.parent.name)) {
-                                    channel.delete();
+                                    await discordServices.deleteChannel(channel);
                                 }
                             });
                         } else {
                             adminConsole.guild.channels.cache.forEach(async channel => {
                                 if (channel.type === 'category' && categoryMentions.includes(channel.name) && channel.name.startsWith('Ticket')) {
-                                    await channel.children.forEach(child => child.delete());
-                                    channel.delete();
+                                    await channel.children.forEach(async child => await discordServices.deleteChannel(child));
+                                    await discordServices.deleteChannel(channel);
                                 } else if (channelMentions.includes(channel) && (channel.type === 'text' || channel.type === 'voice') && channel.parent.name != null && channel.parent.name.startsWith('Ticket -')) {
-                                    channel.delete();
+                                    await discordServices.deleteChannel(channel);
                                 }
                             });
 

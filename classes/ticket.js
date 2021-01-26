@@ -3,7 +3,7 @@ const Discord = require("discord.js");
 const discordServices = require('../discord-services');
 
 class Ticket {
-    constructor(guild, question, caveOptions, requester, hackers, number, ticketMsg) {
+    constructor(guild, question, caveOptions, requester, hackers, number, ticketMsg, inactivePeriod, bufferTime) {
         this.guild = guild;
         this.category;
         this.question = question;
@@ -16,6 +16,8 @@ class Ticket {
         this.mentors = [];
         this.number = number;
         this.ticketMsg = ticketMsg;
+        this.inactivePeriod = inactivePeriod;
+        this.bufferTime = bufferTime;
         this.interval;
         this.deletionSequence = false;
         this.init();
@@ -127,14 +129,15 @@ class Ticket {
                         await discordServices.deleteChannel(this.voice);
                         await discordServices.deleteChannel(this.text);
                         await discordServices.deleteChannel(this.category);
-
                         this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed!! Good job!'));
                     } else if (this.mentors.length == 0) {
+                        console.log('shouldn\'t run mentor leave condition');
                         if (!this.deletionSequence) {
                             this.deletionSequence = true;
+                            ticketCollector.stop();
                             await this.askToDelete('mentor');
                             if (!this.category.deleted) {
-                                this.interval = setInterval(() => this.askToDelete('mentor'), 60 * 1000);//change number in deployment
+                                this.interval = setInterval(() => this.askToDelete('mentor'), this.inactivePeriod * 60 * 1000);
                             }
                         }
                     } else {
@@ -146,6 +149,8 @@ class Ticket {
     }
 
     async askToDelete(reason) {
+        console.log('should not run askToDelete');
+        if (this.category.deleted || this.text.deleted) return;
         var requestMsg = '<@' + this.requester.id + '>';
         this.hackers.forEach(user => requestMsg.concat('<@' + user.id + '>'));
         if (reason === 'inactivity') {
@@ -158,13 +163,13 @@ class Ticket {
             'If you need to keep the channel, please click the emoji below, **otherwise this ticket will be deleted soon**.')
             .then((warning) => {
                 warning.react('🔄');
-                const deletionCollector = warning.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🔄', { time: 30 * 1000, max: 1 }); //change number in deployment
+                const deletionCollector = warning.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🔄', { time: this.bufferTime * 60 * 1000, max: 1 });
                 deletionCollector.on('end', async (collected) => {
                     if (collected.size === 0) {
                         clearInterval(this.interval);
-                        await this.voice.delete();
-                        await this.text.delete();
-                        await this.category.delete();
+                        await discordServices.deleteChannel(this.voice);
+                        await discordServices.deleteChannel(this.text);
+                        await discordServices.deleteChannel(this.category);
                         this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed Due to Inactivity', 'This ticket has been closed!! Good job!'));
                     } else {
                         await this.text.send('You have indicated that you need more time. I\'ll check in with you later!');
@@ -175,14 +180,14 @@ class Ticket {
     }
 
     async createActivityListener() {
-        if (!this.category.deleted) {
-            const activityListener = this.text.createMessageCollector(m => !m.author.bot, { idle: 60 * 1000 }); //change time in deployment
+        if (!this.category.deleted && !this.text.deleted) {
+            const activityListener = this.text.createMessageCollector(m => !m.author.bot, { idle: this.inactivePeriod * 60 * 1000 });
             activityListener.on('end', collected => {
-                if (!this.deletionSequence && (this.voice.members.size === 0)) {
+                //don't start deletion sequence if the text/voice channel got deleted while the collector was listening
+                if (!this.deletionSequence && !this.category.deleted && !this.text.deleted && !this.voice.deleted && (this.voice.members.size === 0)) {
+                    console.log('should not run inactivity delete');
                     this.askToDelete('inactivity');
-                    if (!this.category.deleted) {
-                        this.createActivityListener();
-                    }
+                    this.createActivityListener();
                 }
             });
         }
