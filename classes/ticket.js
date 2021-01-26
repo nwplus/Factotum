@@ -131,7 +131,6 @@ class Ticket {
                         await discordServices.deleteChannel(this.category);
                         this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed!! Good job!'));
                     } else if (this.mentors.length == 0) {
-                        console.log('shouldn\'t run mentor leave condition');
                         if (!this.deletionSequence) {
                             this.deletionSequence = true;
                             ticketCollector.stop();
@@ -149,7 +148,6 @@ class Ticket {
     }
 
     async askToDelete(reason) {
-        console.log('should not run askToDelete');
         if (this.category.deleted || this.text.deleted) return;
         var requestMsg = '<@' + this.requester.id + '>';
         this.hackers.forEach(user => requestMsg.concat('<@' + user.id + '>'));
@@ -185,7 +183,6 @@ class Ticket {
             activityListener.on('end', collected => {
                 //don't start deletion sequence if the text/voice channel got deleted while the collector was listening
                 if (!this.deletionSequence && !this.category.deleted && !this.text.deleted && !this.voice.deleted && (this.voice.members.size === 0)) {
-                    console.log('should not run inactivity delete');
                     this.askToDelete('inactivity');
                     this.createActivityListener();
                 }
