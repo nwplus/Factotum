@@ -409,7 +409,7 @@ class Activity {
      * @returns {Promise<null>} 
      */
     async addLimitToVoiceChannels(limit) {
-        this.voiceChannels.forEach((channel) => {
+        this.voiceChannels.forEach(async (channel) => {
             await channel.edit({userLimit: limit});
         });
     }
