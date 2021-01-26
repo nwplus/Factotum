@@ -15,7 +15,7 @@ module.exports = class StartTeamFormation extends PermissionCommand {
             guildOnly: true,
         },
         {
-            roleID: discordServices.staffRole,
+            roleID: discordServices.roleIDs.staffRole,
             roleMessage: 'Hey there, the !starttf command is only for staff!',
             channelID: discordServices.teamformationChannel,
             channelMessage: 'Hey there, the !starttf command is only available in the team formation channel.',

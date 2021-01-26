@@ -23,7 +23,7 @@ module.exports = class DiscordContests extends PermissionCommand {
             guildOnly: true,
         },
             {
-                roleID: discordServices.staffRole,
+                roleID: discordServices.roleIDs.staffRole,
                 roleMessage: 'Hey there, the command !contests is only available to Staff!',
             });
     }
@@ -85,7 +85,7 @@ module.exports = class DiscordContests extends PermissionCommand {
             msg.react('⏯️');
 
             //filters so that it will only respond to Staff who reacted with one of the 3 emojis 
-            const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '⏸️' || reaction.emoji.name === '⏯️') && message.guild.member(user).roles.cache.has(discordServices.staffRole);
+            const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '⏸️' || reaction.emoji.name === '⏯️') && message.guild.member(user).roles.cache.has(discordServices.roleIDs.staffRole);
             const emojicollector = msg.createReactionCollector(emojiFilter);
             
             emojicollector.on('collect', (reaction, user) => {
@@ -126,7 +126,7 @@ module.exports = class DiscordContests extends PermissionCommand {
             
             //sends results to Staff after all questions have been asked and stops looping
             if (data === null) {
-                discordServices.discordLog(message.guild, "<@&" + discordServices.staffRole + "> Discord contests have ended! Winners are: <@" + winners.join('> <@') + ">");
+                discordServices.discordLog(message.guild, "<@&" + discordServices.roleIDs.staffRole + "> Discord contests have ended! Winners are: <@" + winners.join('> <@') + ">");
                 clearInterval(interval);
                 return;
             }
@@ -142,11 +142,11 @@ module.exports = class DiscordContests extends PermissionCommand {
                                                                             'Exact answers only!'));
 
 
-            message.channel.send('<@&' + role + '>' + ((answers.length === 0) ? (' - <@&' + discordServices.staffRole + '> Need manual review!') : ''), { embed: qEmbed }).then((msg) => {
+            message.channel.send('<@&' + role + '>' + ((answers.length === 0) ? (' - <@&' + discordServices.roleIDs.staffRole + '> Need manual review!') : ''), { embed: qEmbed }).then((msg) => {
                 if (answers.length === 0) {
                     msg.react('👑');
 
-                    const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '👑') && discordServices.checkForRole(message.guild.member(user), discordServices.staffRole);
+                    const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '👑') && discordServices.checkForRole(message.guild.member(user), discordServices.roleIDs.staffRole);
                     const emojicollector = msg.createReactionCollector(emojiFilter);
 
                     emojicollector.on('collect', (reaction, user) => {

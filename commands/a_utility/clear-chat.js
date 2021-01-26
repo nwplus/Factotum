@@ -29,7 +29,7 @@ module.exports = class ClearChat extends PermissionCommand {
             ],
         },
         {
-            roleID: discordServices.adminRole,
+            roleID: discordServices.roleIDs.adminRole,
             roleMessage: 'Hey there, the command !clearchat is only available to Admins!',
         });
     }

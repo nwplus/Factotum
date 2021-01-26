@@ -20,7 +20,7 @@ module.exports = class ShowInformation extends PermissionCommand {
             ],
         },
         {
-            roleID: discordServices.adminRole,
+            roleID: discordServices.roleIDs.adminRole,
             roleMessage: 'Hey there, the command !showi is only available to Admins!',
         });
     }

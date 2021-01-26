@@ -1,14 +1,21 @@
 const Discord = require('discord.js');
 
 // Available Roles
-var guestRole = '778651193362481213';
-var hackerRole = '738519785028976741';
-var attendeeRole = '742896999556448357';
-var mentorRole = '747527454200955051';
-var sponsorRole = '738519983981723748';
-var staffRole = '738519363904077916';
-var adminRole = '738491577596641311';
-var everyoneRole = '738475671977722058';
+
+/**
+ * All the available roles from server creation.
+ */
+module.exports.roleIDs = {
+    guestRole = '778651193362481213',
+    hackerRole = '738519785028976741',
+    attendeeRole = '742896999556448357',
+    mentorRole = '747527454200955051',
+    sponsorRole = '738519983981723748',
+    staffRole = '738519363904077916',
+    adminRole = '738491577596641311',
+    everyoneRole = '738475671977722058',
+}
+
 var stamp0Role = '776690929557831680';
 var stamp1Role = '776694051482107944';
 var stamp2Role = '777163284679229461';
@@ -31,35 +38,11 @@ var stamp17Role = '781404770803908609';
 var stamp18Role = '781404769133527040';
 var stamp19Role = '784224999698726942';
 var stamp20Role = '784225017172590622';
-module.exports.everyoneRole = everyoneRole;
-module.exports.hackerRole = hackerRole;
-module.exports.guestRole = guestRole;
-module.exports.adminRole = adminRole;
-module.exports.attendeeRole = attendeeRole;
-module.exports.mentorRole = mentorRole;
-module.exports.sponsorRole = sponsorRole;
-module.exports.staffRole = staffRole;
+
+/**
+ * We need this role available for when users verify. The first stamp role.
+ */
 module.exports.stamp0Role = stamp0Role;
-module.exports.stamp1Role = stamp1Role;
-module.exports.stamp2Role = stamp2Role;
-module.exports.stamp3Role = stamp3Role;
-module.exports.stamp4Role = stamp4Role;
-module.exports.stamp5Role = stamp5Role;
-module.exports.stamp6Role = stamp6Role;
-module.exports.stamp7Role = stamp7Role;
-module.exports.stamp8Role = stamp8Role;
-module.exports.stamp9Role = stamp9Role;
-module.exports.stamp10Role = stamp10Role;
-module.exports.stamp11Role = stamp11Role;
-module.exports.stamp12Role = stamp12Role;
-module.exports.stamp13Role = stamp13Role;
-module.exports.stamp14Role = stamp14Role;
-module.exports.stamp15Role = stamp15Role;
-module.exports.stamp16Role = stamp16Role;
-module.exports.stamp17Role = stamp17Role;
-module.exports.stamp18Role = stamp18Role;
-module.exports.stamp19Role = stamp19Role;
-module.exports.stamp20Role = stamp20Role;
 
 /**
  * A collection of all the stamp roles.

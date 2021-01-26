@@ -180,11 +180,11 @@ class Cave {
         // Create category
         this.privateChannels.category = await guildChannelManager.create(this.caveOptions.preEmojis + this.caveOptions.name + ' Cave', {type: 'category',  permissionOverwrites: [
             {
-                id: discordServices.hackerRole,
+                id: discordServices.roleIDs.hackerRole,
                 deny: ['VIEW_CHANNEL'],
             },
             {
-                id: discordServices.attendeeRole,
+                id: discordServices.roleIDs.attendeeRole,
                 deny: ['VIEW_CHANNEL'],
             },
             {
@@ -193,11 +193,11 @@ class Cave {
                 deny: ['SEND_MESSAGES'],
             },
             {
-                id: discordServices.sponsorRole,
+                id: discordServices.roleIDs.sponsorRole,
                 deny: ['VIEW_CHANNEL'],
             },
             {
-                id: discordServices.staffRole,
+                id: discordServices.roleIDs.staffRole,
                 allow: ['VIEW_CHANNEL'],
             }
         ]});
@@ -240,11 +240,11 @@ class Cave {
         // create help public channels category
         this.publicChannels.category = await guildChannelManager.create('👉🏽👈🏽' + this.caveOptions.name + ' Help', {type: 'category', permissionOverwrites: [
             {
-                id: discordServices.hackerRole,
+                id: discordServices.roleIDs.hackerRole,
                 deny: ['VIEW_CHANNEL'],
             },
             {
-                id: discordServices.attendeeRole,
+                id: discordServices.roleIDs.attendeeRole,
                 allow: ['VIEW_CHANNEL'],
             },
             {
@@ -252,11 +252,11 @@ class Cave {
                 allow: ['VIEW_CHANNEL'],
             },
             {
-                id: discordServices.sponsorRole,
+                id: discordServices.roleIDs.sponsorRole,
                 allow: ['VIEW_CHANNEL'],
             },
             {
-                id: discordServices.staffRole,
+                id: discordServices.roleIDs.staffRole,
                 allow: ['VIEW_CHANNEL'],
             }
         ]});
@@ -493,7 +493,7 @@ class Cave {
             type: 'category',
             permissionOverwrites: [
                 {
-                    id: discordServices.everyoneRole,
+                    id: discordServices.roleIDs.everyoneRole,
                     deny: ['VIEW_CHANNEL'],
                 }
             ]

@@ -22,7 +22,7 @@ module.exports = class AskQuestion extends PermissionCommand {
             ],
         },
         {
-            roleID: discordServices.attendeeRole,
+            roleID: discordServices.roleIDs.attendeeRole,
             roleMessage: 'This command is only available for attendees!',
         });
     }
@@ -85,7 +85,7 @@ module.exports = class AskQuestion extends PermissionCommand {
                             // if cancel then do nothing
                             if (response.content.toLowerCase() != 'cancel') {
                                 // if user has a mentor role, they get a spcial title
-                                if (discordServices.checkForRole(response.member, discordServices.mentorRole)) {
+                                if (discordServices.checkForRole(response.member, discordServices.roleIDs.mentorRole)) {
                                     msg.edit(msg.embeds[0].addField('🤓 ' + user.username + ' Responded:', response.content));
                                 } else {
                                     // add a field to the message embed with the response
@@ -118,7 +118,7 @@ module.exports = class AskQuestion extends PermissionCommand {
                 // remove emoji will remove the message
                 else if (reaction.emoji.name === '⛔') {
                     // check that user is staff
-                    if (discordServices.checkForRole(msg.guild.member(user), discordServices.staffRole)) {
+                    if (discordServices.checkForRole(msg.guild.member(user), discordServices.roleIDs.staffRole)) {
                         msg.delete();
                     } else {
                         discordServices.sendMessageToMember(user, 'Deleting a question is only available to staff!', true);

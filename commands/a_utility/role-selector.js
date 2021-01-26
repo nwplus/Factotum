@@ -15,7 +15,7 @@ module.exports = class RoleSelector extends PermissionCommand {
             guildOnly: true,
         },
         {
-            roleID: discordServices.staffRole,
+            roleID: discordServices.roleIDs.staffRole,
             roleMessage: 'Hey there, the command !roletransfer is only available to staff!',
         });
     }
@@ -56,7 +56,7 @@ module.exports = class RoleSelector extends PermissionCommand {
         // add role or a transfer depending on the emoji
         reactionCollector.on('collect', async (reaction, user) => {
             // admin add new transfer
-            if (reaction.emoji.name === newTransferEmoji && discordServices.checkForRole(message.guild.member(user), discordServices.staffRole)) {
+            if (reaction.emoji.name === newTransferEmoji && discordServices.checkForRole(message.guild.member(user), discordServices.roleIDs.staffRole)) {
                 let newTransferMsg = await Prompt.messagePrompt('What new transfer do you want to add? Your response should have (in this order, not including <>): @role <transfer name> - <transfer description>',
                                                                     'string', message.channel, user.id);
                 

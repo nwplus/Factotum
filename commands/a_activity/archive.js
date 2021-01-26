@@ -35,23 +35,23 @@ module.exports = class InitAmongUs extends ActivityCommand {
                 position: position + 1,
                 permissionOverwrites: [
                 {
-                    id: discordServices.hackerRole,
+                    id: discordServices.roleIDs.hackerRole,
                     deny: ['VIEW_CHANNEL'],
                 },
                 {
-                    id: discordServices.attendeeRole,
+                    id: discordServices.roleIDs.attendeeRole,
                     allow: ['VIEW_CHANNEL'],
                 },
                 {
-                    id: discordServices.mentorRole,
+                    id: discordServices.roleIDs.mentorRole,
                     allow: ['VIEW_CHANNEL'],
                 },
                 {
-                    id: discordServices.sponsorRole,
+                    id: discordServices.roleIDs.sponsorRole,
                     allow: ['VIEW_CHANNEL'],
                 },
                 {
-                    id: discordServices.staffRole,
+                    id: discordServices.roleIDs.staffRole,
                     allow: ['VIEW_CHANNEL'],
                 }
             ]});

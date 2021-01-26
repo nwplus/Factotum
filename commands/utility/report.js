@@ -49,7 +49,7 @@ module.exports = class Report extends Command {
                 .setDescription(msg.content);
 
             // send embed with text message to ping admin
-            incomingReportChn.send('<@&' + discordServices.adminRole + '> Incoming Report', {embed: adminMsgEmbed});
+            incomingReportChn.send('<@&' + discordServices.roleIDs.adminRole + '> Incoming Report', {embed: adminMsgEmbed});
         })
         
     }

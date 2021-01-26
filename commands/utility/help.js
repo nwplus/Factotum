@@ -25,7 +25,7 @@ module.exports = class ClearChat extends Command {
         } else {
             discordServices.deleteMessage(message);
 
-            if ((discordServices.checkForRole(message.member, discordServices.staffRole))) {
+            if ((discordServices.checkForRole(message.member, discordServices.roleIDs.staffRole))) {
                 var commandGroups = this.client.registry.findGroups('a_');
             } else {
                 var commandGroups = this.client.registry.findGroups('utility');

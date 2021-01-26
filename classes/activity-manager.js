@@ -45,7 +45,7 @@ class ActivityManager {
      * @param {Activity} activity - the activity to use
      */
     static async mentorShuffle(activity) {
-        let mentors = activity.generalVoice.members.filter(member => discordServices.checkForRole(member, discordServices.mentorRole));
+        let mentors = activity.generalVoice.members.filter(member => discordServices.checkForRole(member, discordServices.roleIDs.mentorRole));
 
         let channels = activity.category.children.filter(channel => channel.type === 'voice' && channel.id != activity.generalVoice.id);
 

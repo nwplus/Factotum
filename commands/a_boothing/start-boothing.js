@@ -17,7 +17,7 @@ module.exports = class StartBoothing extends PermissionCommand {
             args: [],
         },
         {
-            roleID: discordServices.adminRole,
+            roleID: discordServices.roleIDs.adminRole,
             roleMessage: 'This command can only be ran by admins!'
         });
     }

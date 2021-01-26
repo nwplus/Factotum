@@ -21,7 +21,7 @@ module.exports = class StartAttend extends PermissionCommand {
             {
                 channelID: discordServices.adminConsoleChannel,
                 channelMessage: 'This command can only be used in the admin console!',
-                roleID: discordServices.adminRole,
+                roleID: discordServices.roleIDs.adminRole,
                 roleMessage: 'Hey there, the command !startatt is only available to Admins!',
             });
     }
@@ -68,7 +68,7 @@ module.exports = class StartAttend extends PermissionCommand {
             .setTitle('Hey there!')
             .setDescription('In order to indicate that you are participating, please react to this message with ' + attendEmoji)
             .addField('Do you need assistance?', 'Head over to the support channel and ping the admins!')
-        let embedMsg = await channel.send('<@&' + discordServices.hackerRole + '>', {embed: embed});
+        let embedMsg = await channel.send('<@&' + discordServices.roleIDs.hackerRole + '>', {embed: embed});
         embedMsg.pin();
         embedMsg.react(attendEmoji);
         discordServices.blackList.set(channel.id, 1000);
@@ -80,9 +80,9 @@ module.exports = class StartAttend extends PermissionCommand {
             let member = message.guild.member(user.id);
 
             // check if user needs to attend
-            if (discordServices.checkForRole(member, discordServices.hackerRole) && 
-                !discordServices.checkForRole(member, discordServices.attendeeRole)) {
-                    discordServices.addRoleToMember(member, discordServices.attendeeRole)
+            if (discordServices.checkForRole(member, discordServices.roleIDs.hackerRole) && 
+                !discordServices.checkForRole(member, discordServices.roleIDs.attendeeRole)) {
+                    discordServices.addRoleToMember(member, discordServices.roleIDs.attendeeRole)
                     discordServices.sendEmbedToMember(user, {
                         title: 'Attend Success!',
                         description: 'You have been marked as attending! Happy hacking!!!'

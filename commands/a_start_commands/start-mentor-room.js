@@ -19,7 +19,7 @@ module.exports = class StartMentors extends PermissionCommand {
         {
             channelID: discordServices.adminConsoleChannel,
             channelMessage: 'This command can only be used in the admin console!',
-            roleID: discordServices.adminRole,
+            roleID: discordServices.roleIDs.adminRole,
             roleMessage: 'You do not have permision for this command, only admins can use it!',
         });
     }
@@ -35,7 +35,7 @@ module.exports = class StartMentors extends PermissionCommand {
             preEmojis: '🧑🏽🎓',
             preRoleText: 'M',
             color: 'ORANGE',
-            role: message.guild.roles.resolve(discordServices.mentorRole),
+            role: message.guild.roles.resolve(discordServices.roleIDs.mentorRole),
             joinTicketEmoji: await Prompt.reactionPrompt('What is the join ticket emoji?', message.channel, message.author.id),
             giveHelpEmoji: await Prompt.reactionPrompt('What is the give help emoji?', message.channel, message.author.id),
             requestTicketEmoji: await Prompt.reactionPrompt('What is the request ticket emoji?', message.channel, message.author.id),

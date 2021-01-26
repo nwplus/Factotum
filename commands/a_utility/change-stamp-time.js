@@ -19,7 +19,7 @@ module.exports = class ChangeStampTime extends PermissionCommand {
             ],
         },
         {
-            roleID: discordServices.adminRole,
+            roleID: discordServices.roleIDs.adminRole,
             roleMessage: 'Hey there, the command !stamptime is only available to Admins!',
         });
     }
