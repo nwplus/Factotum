@@ -177,9 +177,11 @@ var activityVoiceChannelName = 'activity-room';
 module.exports.activityVoiceChannelName = activityVoiceChannelName;
 
 
-// helper function
-
-// Checks if the memeber has a role, returns true if it does
+/**
+ * Checks if the member has a role, returns true if it does
+ * @param {Discord.GuildMember} member - member to check role
+ * @param {Discord.Snowflake} role - role ID to check for
+ */
 function checkForRole(member, role) {
     return member.roles.cache.has(role);
 }
@@ -269,7 +271,7 @@ module.exports.addRoleToMember = addRoleToMember;
 /**
  * Remove a role to a member
  * @param {Discord.GuildMember} member - the guild member to give a role to
- * @param {String | Discord.Role} removeRole - the role to add to the member
+ * @param {Discord.RoleResolvable} removeRole - the role to add to the member
  */
 function removeRolToMember(member, removeRole) {
     member.roles.remove(removeRole).catch(error => {
@@ -282,27 +284,44 @@ function removeRolToMember(member, removeRole) {
 }
 module.exports.removeRolToMember = removeRolToMember;
 
-// Replaces one role for the other
+/**
+ * Replaces one role for the other
+ * @param {Discord.GuildMember} member - member to change roles to
+ * @param {Discord.RoleResolvable} removeRole - role to remove
+ * @param {Discord.RoleResolvable} addRole - role to add
+ */
 function replaceRoleToMember(member, removeRole, addRole) {
     addRoleToMember(member, addRole);
     removeRolToMember(member, removeRole);
 }
 module.exports.replaceRoleToMember = replaceRoleToMember;
 
-// Log a message on the log channel
+/**
+ * Log a message on the log channel
+ * @param {Discord.Guild} guild - the guild being used
+ * @param {String | Discord.MessageEmbed} message - message to send to the log channel
+ */
 function discordLog(guild, message) {
     guild.channels.cache.get(adminLogChannel).send(message);
 }
 module.exports.discordLog = discordLog;
 
-// reply to message and delete 5 seconds later
+/**
+ * Reply to message and delete 5 seconds later
+ * @param {Discord.Message} message - the message to reply to
+ * @param {String} reply - the string to reply
+ */
 async function replyAndDelete(message, reply) {
     var msg = await message.reply(reply);
     msg.delete({timeout: 5000});
 }
 module.exports.replyAndDelete = replyAndDelete;
 
-// true if channel is admin console channel
+/**
+ * True if channel is admin console channel
+ * @param {Discord.Channel} channel - channel to check
+ * @returns {Boolean}
+ */
 function isAdminConsole(channel) {
     return channel.id === adminConsolChannel;
 }
