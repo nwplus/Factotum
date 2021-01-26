@@ -477,7 +477,6 @@ class Cave {
                                 categoryMentions.push('Ticket - ' + substring);
                             }
                         });
-                        console.log(categoryMentions);
 
                         if (exclude) {
                             adminConsole.guild.channels.cache.forEach(async channel => {
