@@ -6,14 +6,14 @@ const Discord = require('discord.js');
  * All the available roles from server creation.
  */
 module.exports.roleIDs = {
-    guestRole = '778651193362481213',
-    hackerRole = '738519785028976741',
-    attendeeRole = '742896999556448357',
-    mentorRole = '747527454200955051',
-    sponsorRole = '738519983981723748',
-    staffRole = '738519363904077916',
-    adminRole = '738491577596641311',
-    everyoneRole = '738475671977722058',
+    guestRole : '778651193362481213',
+    hackerRole : '738519785028976741',
+    attendeeRole : '742896999556448357',
+    mentorRole : '747527454200955051',
+    sponsorRole : '738519983981723748',
+    staffRole : '738519363904077916',
+    adminRole : '738491577596641311',
+    everyoneRole : '738475671977722058',
 }
 
 var stamp0Role = '776690929557831680';
@@ -59,12 +59,12 @@ module.exports.stampRoles = stampRoles;
  * @type {Object}
  */
 module.exports.colors = {
-    embedColor = '#26fff4',
-    questionEmbedColor = '#f4ff26',
-    announcementEmbedColor = '#9352d9',
-    tfTeamEmbedColor = '#60c2e6',
-    tfHackerEmbedColor = '#d470cd',
-    specialDMEmbedColor = '#fc6b03',
+    embedColor : '#26fff4',
+    questionEmbedColor : '#f4ff26',
+    announcementEmbedColor : '#9352d9',
+    tfTeamEmbedColor : '#60c2e6',
+    tfHackerEmbedColor : '#d470cd',
+    specialDMEmbedColor : '#fc6b03',
 }
 
 /**
@@ -83,9 +83,43 @@ module.exports.stampCollectTime = stampCollectTime;
 
 // Common channels
 
-// announcement channel
-var announcementChannel = '784254136040161310';
-module.exports.announcementChannel = announcementChannel;
+module.exports.channelIDs = {
+    /**
+     * Where announcements should be sent.
+     */
+    announcementChannel : '784254136040161310',
+
+    /**
+     * The admin console where admins can run commands.
+     */
+    adminConsolChannel : '748955441484005488',
+
+    /**
+     * The channel where the bot will log things.
+     */
+    adminLogChannel : '743197503884755045',
+
+    /**
+     * Where the bot can send messages to users when DM is not available.
+     */
+    botSupportChannel : '784910416224583751',
+
+    /**
+     * Where the bot will send reports.
+     */
+    incomingReportChannel : '782683901998137355',
+
+    /**
+     * The first channel users have access to, where the verify command is used.
+     */
+    welcomeChannel : '743192401434378271',
+
+    /**
+     * Support channel available to new users.
+     */
+    welcomeSupport : '742896827082211419',
+}
+
 
 // where hackers join the wait list to talk to a sponsor
 // at the moment its only one, planned to extend to multiple
@@ -100,23 +134,6 @@ module.exports.sponsorConsoleChannel = sponsorConsoleChannel;
 var sponsorCategory = '738528333935018034';
 module.exports.sponsorCategory = sponsorCategory;
 
-// console where most commands are accessible, only staff
-// should have access to this
-var adminConsolChannel = '748955441484005488';
-module.exports.adminConsoleChannel = adminConsolChannel;
-// channel where the bot can log important things like verifications, 
-// clear chat calls, etc
-var adminLogChannel = '743197503884755045';
-// channel where the bot can ping members with DM off
-var botSupportChannel = '784910416224583751';
-
-// channel where guests will use the !verify command,
-// usualy the welcome channel
-var welcomeChannel = '743192401434378271';
-module.exports.welcomeChannel = welcomeChannel;
-var welcomeSupport = '742896827082211419';
-module.exports.welcomeSupport = welcomeSupport;
-
 // where hackers can emoji to let the bot know if they are looking
 // for a team or a hacker(s)
 var teamformationChannel = '770354140961570857';
@@ -128,22 +145,10 @@ module.exports.recruitingChannel = recruitingChannel;
 var lookingforteamChannel = '770354521733857320';
 module.exports.lookingforteamChannel = lookingforteamChannel;
 
-/**
- * The team roulette channel.
- * @type {String} - channel snowflake
- */
-var teamRouletteChannel = '794727255166681118';
-module.exports.teamRouletteChannel = teamRouletteChannel;
-
 // where hackers and other users can call the !createchannel command
 // to create new private channels for them and their team
 var channelcreationChannel = '754396445494214789';
 module.exports.channelcreationChannel = channelcreationChannel;
-
-// where the bot will send reports to
-// should be a admin or mod only channel
-var incomingReportChannel = '782683901998137355';
-module.exports.incomingReportChannel = incomingReportChannel;
 
 /**
  * Checks if the member has a role, returns true if it does
@@ -171,7 +176,7 @@ async function sendMessageToMember(member, message, isDelete = false) {
         return msg;
     }).catch(error => {
         if (error.code === 50007) {
-            member.guild.channels.resolve(botSupportChannel).send('<@' + member.id + '> I couldn\'t reach you :(. Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-');
+            member.guild.channels.resolve(channelIDs.botSupportChannel).send('<@' + member.id + '> I couldn\'t reach you :(. Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-');
         } else {
             throw error;
         }
@@ -270,7 +275,7 @@ module.exports.replaceRoleToMember = replaceRoleToMember;
  * @param {String | Discord.MessageEmbed} message - message to send to the log channel
  */
 function discordLog(guild, message) {
-    guild.channels.cache.get(adminLogChannel).send(message);
+    guild.channels.cache.get(channelIDs.adminLogChannel).send(message);
 }
 module.exports.discordLog = discordLog;
 
@@ -291,7 +296,7 @@ module.exports.replyAndDelete = replyAndDelete;
  * @returns {Boolean}
  */
 function isAdminConsole(channel) {
-    return channel.id === adminConsolChannel;
+    return channel.id === channelIDs.adminConsolChannel;
 }
 module.exports.isAdminConsole = isAdminConsole;
 

@@ -66,7 +66,7 @@ bot.once('ready', async () => {
     bot.user.setActivity('Ready to hack!');
 
     // add verify and attend channels to the black list
-    discordServices.blackList.set(discordServices.welcomeChannel, 3000);
+    discordServices.blackList.set(discordServices.channelIDs.welcomeChannel, 3000);
 
     // check roles
     // we asume the bot is only in one guild!
@@ -134,7 +134,7 @@ bot.once('ready', async () => {
                     .setTitle('Announcement')
                     .setDescription(change.doc.data()['content']);
                 
-                guild.channels.resolve(discordServices.announcementChannel).send('<@&' + discordServices.roleIDs.attendeeRole + '>', {embed: embed});
+                guild.channels.resolve(discordServices.channelIDs.announcementChannel).send('<@&' + discordServices.roleIDs.attendeeRole + '>', {embed: embed});
             }
         })
     })
@@ -251,7 +251,7 @@ bot.on('guildMemberAdd', member => {
         discordServices.addRoleToMember(member, discordServices.roleIDs.guestRole);
     }).catch((error) => {
         if (error.code === 50007) {
-            member.guild.channels.resolve(discordServices.welcomeSupport).send('<@' + member.id + '> I couldn\'t reach you :(.' + 
+            member.guild.channels.resolve(discordServices.channelIDs.welcomeSupport).send('<@' + member.id + '> I couldn\'t reach you :(.' + 
                 '\n* Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-' + 
                 '\n* Once this is done, please react to this message with 🤖 to let me know!').then(msg => {
                     msg.react('🤖');
@@ -263,7 +263,7 @@ bot.on('guildMemberAdd', member => {
                             discordServices.addRoleToMember(member, discordServices.roleIDs.guestRole);
                             collector.stop();
                         }).catch(error => {
-                            member.guild.channels.resolve(discordServices.welcomeSupport).send('<@' + member.id + '> Are you sure you made the changes? I couldnt reach you again :( !').then(msg => msg.delete({timeout: 8000}));
+                            member.guild.channels.resolve(discordServices.channelIDs.welcomeSupport).send('<@' + member.id + '> Are you sure you made the changes? I couldnt reach you again :( !').then(msg => msg.delete({timeout: 8000}));
                         });
                     });
                 });

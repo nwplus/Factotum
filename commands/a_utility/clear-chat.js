@@ -53,7 +53,7 @@ module.exports = class ClearChat extends PermissionCommand {
         // only proceed if we want the commands
         if (isCommands) {
             // if in the verify channel <welcome>
-            if (message.channel.id === discordServices.welcomeChannel) {
+            if (message.channel.id === discordServices.channelIDs.welcomeChannel) {
                 commands = this.client.registry.findCommands('verify');
             } 
             // admin console

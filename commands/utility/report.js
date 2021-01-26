@@ -41,7 +41,7 @@ module.exports = class Report extends Command {
             message.author.send('Thank you for the report! Our admin team will look at it ASAP!');
 
             // send the report content to the admin report channel!
-            var incomingReportChn = message.guild.channels.resolve(discordServices.incomingReportChannel);
+            var incomingReportChn = message.guild.channels.resolve(discordServices.channelIDs.incomingReportChannel);
 
             const adminMsgEmbed = new Discord.MessageEmbed()
                 .setColor(discordServices.colors.embedColor)
