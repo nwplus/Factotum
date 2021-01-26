@@ -71,24 +71,18 @@ let listOfStampRoles = [stamp0Role, stamp1Role, stamp2Role, stamp3Role, stamp4Ro
 listOfStampRoles.forEach((value, index) => stampRoles.set(index, value));
 module.exports.stampRoles = stampRoles;
 
-
-var embedColor = '#26fff4';
-module.exports.embedColor = embedColor;
-
-var questionEmbedColor = '#f4ff26';
-module.exports.questionEmbedColor = questionEmbedColor;
-
-var announcementEmbedColor = '#9352d9';
-module.exports.announcementEmbedColor = announcementEmbedColor;
-
-var tfTeamEmbedColor = '#60c2e6';
-module.exports.tfTeamEmbedColor = tfTeamEmbedColor;
-
-var tfHackerEmbedColor = '#d470cd';
-module.exports.tfHackerEmbedColor = tfHackerEmbedColor;
-
-var specialDMEmbedColor = '#fc6b03';
-module.exports.specialDMEmbedColor = specialDMEmbedColor;
+/**
+ * All the custom colors available to the bot.
+ * @type {Object}
+ */
+module.exports.colors = {
+    embedColor = '#26fff4',
+    questionEmbedColor = '#f4ff26',
+    announcementEmbedColor = '#9352d9',
+    tfTeamEmbedColor = '#60c2e6',
+    tfHackerEmbedColor = '#d470cd',
+    specialDMEmbedColor = '#fc6b03',
+}
 
 /**
  * A list of channels where messages will get deleted after x amount of tipe
