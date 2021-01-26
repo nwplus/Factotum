@@ -358,6 +358,10 @@ function deleteMessage(message, timeout = 0) {
 }
 module.exports.deleteMessage = deleteMessage;
 
+/**
+ * Delete the given channel if it is not deleted already
+ * @param {Discord.Channel} channel 
+ */
 async function deleteChannel(channel) {
     if (!channel.deleted) {
         await channel.delete().catch(console.error);
