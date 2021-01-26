@@ -103,7 +103,7 @@ class ActivityManager {
         let seenUsers = new Discord.Collection();
 
         const promptEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle('React within ' + time + ' seconds of the posting of this message to get a stamp for ' + activity.name + '!');
         
         let promptMsg = await activity.generalText.send(promptEmbed);
@@ -169,7 +169,7 @@ class ActivityManager {
         }
 
         let qEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle(title)
             .setDescription(description);
 

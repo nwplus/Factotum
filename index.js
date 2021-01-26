@@ -130,7 +130,7 @@ bot.once('ready', async () => {
         querySnapshot.docChanges().forEach(change => {
             if (change.type === 'added') {
                 const embed = new Discord.MessageEmbed()
-                    .setColor(discordServices.announcementEmbedColor)
+                    .setColor(discordServices.colors.announcementEmbedColor)
                     .setTitle('Announcement')
                     .setDescription(change.doc.data()['content']);
                 
@@ -243,7 +243,7 @@ bot.on('guildMemberAdd', member => {
         .addField('Gain more access by verifying yourself!', 'Go back to the welcome channel and use the !verify command. More info there!')
         .addField('Have a question?', 'Go to the welcome-assistance channel to talk with our staff!')
         .addField('Want to learn more about what I can do?', 'Use the !help command anywhere and I will send you a message!')
-        .setColor(discordServices.embedColor);
+        .setColor(discordServices.colors.embedColor);
 
     // found a bug where if poeple have DMs turned off, this send embed will fail and can make the role setup fail as well
     // we will add a .then where the user will get pinged on welcome-support to let him know to turn on DM from server

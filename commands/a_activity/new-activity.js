@@ -40,7 +40,7 @@ module.exports = class NewActivity extends PermissionCommand {
         // send message to console with emoji commands
         // message embed
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle('Activity: ' + activity.name + ' console.')
             .setDescription('This activity\'s information is below. For any changes you can use the emojis or direct commands.\n' + 
                 '🧑🏽‍💼 Will make this activity a workshop.\n' + 

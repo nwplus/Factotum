@@ -303,7 +303,7 @@ class Cave {
     async sendRequestConsole() {
         // cave request ticket embed
         const requestTicketEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle('Ticket Request System')
             .setDescription('If you or your team want to talk with a ' + this.caveOptions.name + ' follow the instructions below:' + 
             '\n* React to this message with the correct emoji and follow instructions' + 
@@ -359,7 +359,7 @@ class Cave {
 
             // the embed used to inform hackers and users of the open ticket, sent to the ticket text channel
             const openTicketEmbed = new Discord.MessageEmbed()
-                .setColor(discordServices.embedColor)
+                .setColor(discordServices.colors.embedColor)
                 .setTitle('Original Question')
                 .setDescription('<@' + user.id + '> has the question: ' + promptMsg.content);
 
@@ -565,7 +565,7 @@ class Cave {
     async sendAdminConsole(adminConsole) {
         // admin console embed
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle(this.caveOptions.name + ' Cave Console')
             .setDescription(this.caveOptions.name + ' cave options are found below.')
             .addField('Add a role', 'To add a role please click the ' + this.adminEmojis.first().toString() + ' emoji.');

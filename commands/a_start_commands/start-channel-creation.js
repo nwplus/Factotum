@@ -31,7 +31,7 @@ module.exports = class StartChannelCreation extends PermissionCommand {
         
         // create and send embed message to channel with emoji collector
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle('Private Channel Creation')
             .setDescription('Do you need a private channel to work with your friends? Or a voice channel to get to know a mentor, here you can create privte text or voice channels.' +
                 ' However do know that server admins will have access to these channels, and the bot will continue to monitor for bad language, so please follow the rules!')

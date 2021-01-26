@@ -43,7 +43,7 @@ module.exports = class AskQuestion extends PermissionCommand {
 
         // message embed to be used for question
         const qEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.questionEmbedColor)
+            .setColor(discordServices.colors.questionEmbedColor)
             .setTitle('Question from ' + message.author.username)
             .setDescription(question);
         

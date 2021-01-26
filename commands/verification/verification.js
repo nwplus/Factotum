@@ -63,7 +63,7 @@ module.exports = class Verificaiton extends PermissionCommand {
         // embed to send
         const embed = new Discord.MessageEmbed()
             .setTitle('Verification Process')
-            .setColor(discordServices.specialDMEmbedColor);
+            .setColor(discordServices.colors.specialDMEmbedColor);
     
         switch(status) {
             case firebaseServices.status.HACKER_SUCCESS:

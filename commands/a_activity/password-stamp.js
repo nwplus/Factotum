@@ -58,7 +58,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
         var targetChannel = await Prompt.channelPrompt('What channel do you want to send the stamp collector to? Users should have access to this channel!', message.channel, message.author.id);
 
         const qEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle('React with anything to claim a stamp for attending ' + activityName)
             .setDescription('Once you react to this message, check for a DM from this bot. **You can only emoji this message once!**')
             .addField('A Password Is Required!', 'Through the Bot\'s DM, you will have 3 attempts in the first 60 seconds to enter the correct password.');

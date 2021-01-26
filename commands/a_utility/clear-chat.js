@@ -79,7 +79,7 @@ module.exports = class ClearChat extends PermissionCommand {
             var length = commands.length;
 
             const textEmbed = new Discord.MessageEmbed()
-                .setColor(discordServices.embedColor)
+                .setColor(discordServices.colors.embedColor)
                 .setTitle('Commands Available in this Channel')
                 .setDescription('The following are all the available commands in this channel, for more information about a specific command please call !help <command_name>.')
                 .setTimestamp();

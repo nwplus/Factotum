@@ -64,7 +64,7 @@ module.exports = class StartAttend extends PermissionCommand {
         let attendEmoji = '🔋';
 
         const embed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle('Hey there!')
             .setDescription('In order to indicate that you are participating, please react to this message with ' + attendEmoji)
             .addField('Do you need assistance?', 'Head over to the support channel and ping the admins!')

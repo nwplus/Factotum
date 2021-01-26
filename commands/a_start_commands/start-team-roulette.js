@@ -66,7 +66,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 
         // create and send embed message to channel with emoji collector
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle('Team Roulette Information')
             .setDescription('Welcome to the team rulette section! If you are looking to join a random team, you are in the right place!')
             .addField('How does this work?', 'Reacting to this message will get you or your team on a list. I will try to assing you a team of 4 as fast as possible. When I do I will notify you on a private text channel with your new team!')
@@ -245,7 +245,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         // let user know everything is good to go
         let listEmoji = '📰';
 
-        const adminEmbed = new Discord.MessageEmbed().setColor(discordServices.embedColor)
+        const adminEmbed = new Discord.MessageEmbed().setColor(discordServices.colors.embedColor)
                                     .setTitle('Team Roulette Console')
                                     .setDescription('Team roulette is ready and operational! <#' + channel.id + '>.')
                                     .addField('Check the list!', 'React with ' + listEmoji + ' to get a message with tea roulette team lists.');
@@ -256,7 +256,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         // emoji reaction to send team roulette information
         let adminEmbedMsgCollector = adminEmbedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === listEmoji);
         adminEmbedMsgCollector.on('collect', (reaction, user) => {
-            let infoEmbed = new Discord.MessageEmbed().setColor(discordServices.embedColor)
+            let infoEmbed = new Discord.MessageEmbed().setColor(discordServices.colors.embedColor)
                                         .setTitle('Team Roulette Information')
                                         .setDescription('These are all the teams that are still waiting.');
 
@@ -323,7 +323,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
             let leaveEmoji = '👋';
 
             const infoEmbed = new Discord.MessageEmbed()
-                .setColor(discordServices.embedColor)
+                .setColor(discordServices.colors.embedColor)
                 .setTitle('WELCOME TO YOUR NEW TEAM!!!')
                 .setDescription('This is your new team, please get to know each other by creating a voice channel in a new Discord server or via this text channel. Best of luck!')
                 .addField('Leav the Team', 'If you would like to leave this team react to this message with ' + leaveEmoji);

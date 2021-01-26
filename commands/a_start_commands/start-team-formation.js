@@ -62,14 +62,14 @@ module.exports = class StartTeamFormation extends PermissionCommand {
             this.lookingForTeamRole = await message.guild.roles.create({
                 data: {
                     name: 'looking for team',
-                    color: discordServices.tfHackerEmbedColor,
+                    color: discordServices.colors.tfHackerEmbedColor,
                 }
             });
 
             this.lookingForMembersRole = await message.guild.roles.create({
                 data: {
                     name: 'looking for members',
-                    color: discordServices.tfTeamEmbedColor,
+                    color: discordServices.colors.tfTeamEmbedColor,
                 }
             });
         }
@@ -79,7 +79,7 @@ module.exports = class StartTeamFormation extends PermissionCommand {
                 
         // create and send embed message to channel with emoji collector
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle('Team Formation Information')
             .setDescription('Welcome to the team formation section! If you are looking for a team or need a few more members to complete your ultimate group, you are in the right place!')
             .addField('How does this work?', '* Once you react to this message, I will send you a template you need to fill out and send back to me via DM. \n* Then I will post your information in recruiting or looking-for-team channel. \n* Then, other hackers, teams, or yourself can browse these channels and reach out via DM!')
@@ -166,7 +166,7 @@ module.exports = class StartTeamFormation extends PermissionCommand {
         const publicEmbed = new Discord.MessageEmbed()
                 .setTitle('Information about them can be found below:')
                 .setDescription(formMsg.content + '\nDM me to talk -> <@' + user.id + '>')
-                .setColor(isTeam ? discordServices.tfTeamEmbedColor : discordServices.tfHackerEmbedColor);
+                .setColor(isTeam ? discordServices.colors.tfTeamEmbedColor : discordServices.colors.tfHackerEmbedColor);
 
         let channel = guild.channels.cache.get(isTeam ? discordServices.recruitingChannel : discordServices.lookingforteamChannel);
 

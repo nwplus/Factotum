@@ -63,7 +63,7 @@ module.exports = class Attendace extends PermissionCommand {
 
         // embed to use
         const embed = new Discord.MessageEmbed()
-            .setColor(discordServices.specialDMEmbedColor)
+            .setColor(discordServices.colors.specialDMEmbedColor)
             .setTitle('Attendance Process');
 
         // Check the returned status and act accordingly!

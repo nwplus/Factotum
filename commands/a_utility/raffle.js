@@ -70,7 +70,7 @@ module.exports = class Raffle extends PermissionCommand {
         }
         winners = Array.from(winners);
         const embed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle('The winners of the raffle draw are:')
             .setDescription('<@' + winners.join('><@') + '>');
         await message.channel.send(embed);
