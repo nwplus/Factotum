@@ -1,7 +1,4 @@
-
-const firebaseActivity = require('./firebase-services/firebase-services-activities');
 const Discord = require('discord.js');
-const Activity = require('./classes/activity');
 
 // Available Roles
 var guestRole = '778651193362481213';
@@ -100,6 +97,10 @@ module.exports.specialDMEmbedColor = specialDMEmbedColor;
 const blackList = new Map();
 module.exports.blackList = blackList;
 
+/**
+ * The time given to users to send password to the stamp collector
+ * @type {Number}
+ */
 var stampCollectTime = 60;
 module.exports.stampCollectTime = stampCollectTime;
 
