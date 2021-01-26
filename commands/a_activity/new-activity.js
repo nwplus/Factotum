@@ -132,7 +132,7 @@ module.exports = class NewActivity extends PermissionCommand {
                 commandRegistry.findCommands('workshop-polls',true)[0].runActivityCommand(message, activity, { question: 'explanations' });
             } else if (emojiName === emojis[13] && activity.isRegularActivity()) {
                 activity.state.isAmongUs = true;
-                await discordServices.addLimitToVoiceChannels(activity.name, activity.category, 12);
+                await activity.addLimitToVoiceChannels(12);
                 commandRegistry.findCommands('initau', true)[0].runActivityCommand(message, activity, { numOfChannels: 3 });
                 discordServices.changeVoiceChannelPermissions(activity.name, activity.category, true);
             } else if (emojiName === emojis[14]) {

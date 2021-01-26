@@ -1,6 +1,7 @@
 
 const firebaseActivity = require('./firebase-services/firebase-services-activities');
 const Discord = require('discord.js');
+const Activity = require('./classes/activity');
 
 // Available Roles
 var guestRole = '778651193362481213';
@@ -325,24 +326,6 @@ async function changeVoiceChannelPermissions(activityName, category, toHide) {
     }
 }
 module.exports.changeVoiceChannelPermissions = changeVoiceChannelPermissions;
-
-// will add a max amount of users to the activity voice channels
-async function addLimitToVoiceChannels(activityName, category, limit) {
-    // udpate db and get total number of channels
-    var total = await firebaseActivity.numOfVoiceChannels(activityName);
-
-    // grab index where channel naming should stampt, in case there are already channels made
-    // we remove one because we are counting from 0
-    // remove voice channels
-    for (var index = total - 1; index >= 0; index--) {
-        var channelName = '🔊Room' + '-' + index;
-        var channel = await category.children.find(channel => channel.name.endsWith(channelName));
-        if (channel != undefined) {
-            await channel.edit({userLimit: limit});
-        }
-    }
-}
-module.exports.addLimitToVoiceChannels = addLimitToVoiceChannels;
 
 /**
  * Deletes a message if the message hasn't been deleted already

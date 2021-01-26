@@ -401,6 +401,18 @@ class Activity {
 
         firebaseActivity.remove(this.name);
     }
+
+    /**
+     * will add a max amount of users to the activity voice channels 
+     * @param {Number} limit - the user limit
+     * @async
+     * @returns {Promise<null>} 
+     */
+    async addLimitToVoiceChannels(limit) {
+        this.voiceChannels.forEach((channel) => {
+            await channel.edit({userLimit: limit});
+        });
+    }
 }
 
 module.exports = Activity;
