@@ -59,22 +59,28 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
          */
         this.participants = new Discord.Collection();
 
+        /**
+         * Channel used to send information about team roulette.
+         * @type {Discord.TextChannel}
+         */
+        this.textChannel;
+
         this.initList();
 
         // ask for channel to use, this will also give us the category to use
-        let channel = await this.getOrCreateChannel(message.channel, message.author.id, message.guild.channels);
+        this.textChannel = await this.getOrCreateChannel(message.channel, message.author.id, message.guild.channels);
                 
         // create and send embed message to channel with emoji collector
         const msgEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.colors.embedColor)
             .setTitle('Team Roulette Information')
-            .setDescription('Welcome to the team rulette section! If you are looking to join a random team, you are in the right place!')
-            .addField('How does this work?', 'Reacting to this message will get you or your team on a list. I will try to assing you a team of 4 as fast as possible. When I do I will notify you on a private text channel with your new team!')
+            .setDescription('Welcome to the team roulette section! If you are looking to join a random team, you are in the right place!')
+            .addField('How does this work?', 'Reacting to this message will get you or your team on a list. I will try to assign you a team of 4 as fast as possible. When I do I will notify you on a private text channel with your new team!')
             .addField('Disclaimer!!', 'By participating in this activity, you will be assigned a random team with random hackers! You can only use this activity once!')
             .addField('If you are solo', 'React with ' + this.soloEmoji + ' and I will send you instructions.')
             .addField('If you are in a team of two or three', 'React with ' + this.teamEmoji + ' and I will send you instructions.');
         
-        var cardMessage = await channel.send(msgEmbed);
+        var cardMessage = await this.textChannel.send(msgEmbed);
         cardMessage.react(this.soloEmoji);
         cardMessage.react(this.teamEmoji);
 
@@ -105,7 +111,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
             let destroyTeamEmoji = '🛑';
 
             if (reaction.emoji.name === this.teamEmoji) {
-                let groupMsg = await Prompt.messagePrompt('Please mention all your current team members in one message. You mention by typing @friendName .', 'string', message.channel, teamLeaderUser.id, 30);
+                let groupMsg = await Prompt.messagePrompt('Please mention all your current team members in one message. You mention by typing @friendName .', 'string', this.textChannel, teamLeaderUser.id, 30);
 
                 if (groupMsg === null) {
                     reaction.users.remove(newTeam.leader);
@@ -191,7 +197,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 return !user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === destroyTeamEmoji;
             }, {max: 1}).then(reactions => {
                 console.log('inside await reactions');
-                // remove the team from the list, remove the team leader mssg and send a confirmation message
+                // remove the team from the list, remove the team leader msg and send a confirmation message
                 this.teamList.get(newTeam.size()).splice(this.teamList.get(newTeam.size()).indexOf(newTeam), 1);
                 leaderDM.delete();
                 discordServices.sendEmbedToMember(teamLeaderUser, {
@@ -316,7 +322,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
         // if team does NOT have a text channel
         if (!team?.textChannel) {
-            let privateChannelCategory = channelManager.resolve(discordServices.channelcreationChannel).parent;
+            let privateChannelCategory = this.textChannel.parent;
 
             await team.createTextChannel(channelManager, privateChannelCategory);
 
@@ -326,7 +332,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 .setColor(discordServices.colors.embedColor)
                 .setTitle('WELCOME TO YOUR NEW TEAM!!!')
                 .setDescription('This is your new team, please get to know each other by creating a voice channel in a new Discord server or via this text channel. Best of luck!')
-                .addField('Leav the Team', 'If you would like to leave this team react to this message with ' + leaveEmoji);
+                .addField('Leave the Team', 'If you would like to leave this team react to this message with ' + leaveEmoji);
 
             let teamCard = await team.textChannel.send(infoEmbed);
 
@@ -413,9 +419,9 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
     /**
      * Initializes the team list by creating three key value pairs.
-     * 1 -> empy array
-     * 2 -> empy array
-     * 3 -> empy array
+     * 1 -> empty array
+     * 2 -> empty array
+     * 3 -> empty array
      * @private
      */
     initList() {
