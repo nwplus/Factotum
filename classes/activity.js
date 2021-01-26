@@ -413,6 +413,17 @@ class Activity {
             await channel.edit({userLimit: limit});
         });
     }
+
+    /**
+     * Will make all voice channels except the general one private to attendees and sponsors
+     * @param {Boolean} toHide - true if you want to hide the channels from attendees and sponsors, false otherwise
+     */
+    async changeVoiceChannelPermissions(toHide) {
+        this.voiceChannels.forEach((channel) => {
+            channel.updateOverwrite(attendeeRole, {VIEW_CHANNEL: toHide ? false : true});
+            channel.updateOverwrite(sponsorRole, {VIEW_CHANNEL: toHide ? false : true});
+        })
+    }
 }
 
 module.exports = Activity;

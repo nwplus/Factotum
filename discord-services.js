@@ -308,25 +308,6 @@ function isAdminConsole(channel) {
 }
 module.exports.isAdminConsole = isAdminConsole;
 
-// will make all voice channels except the general one private to attendees and sponsors
-async function changeVoiceChannelPermissions(activityName, category, toHide) {
-    // udpate db and get total number of channels
-    var total = await firebaseActivity.numOfVoiceChannels(activityName);
-
-    // grab index where channel naming should stampt, in case there are already channels made
-    // we remove one because we are counting from 0
-    // remove voice channels
-    for (var index = total - 1; index >= 0; index--) {
-        var channelName = 'Room' + '-' + index;
-        var channel = await category.children.find(channel => channel.name.endsWith(channelName));
-        if (channel != undefined) {
-            channel.updateOverwrite(attendeeRole, {VIEW_CHANNEL: toHide ? false : true});
-            channel.updateOverwrite(sponsorRole, {VIEW_CHANNEL: toHide ? false : true});
-        }
-    }
-}
-module.exports.changeVoiceChannelPermissions = changeVoiceChannelPermissions;
-
 /**
  * Deletes a message if the message hasn't been deleted already
  * @param {Discord.Message} message - the message to delete

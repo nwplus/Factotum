@@ -92,7 +92,7 @@ module.exports = class NewActivity extends PermissionCommand {
 
                 // init workshop command
                 commandRegistry.findCommands('initw', true)[0].runActivityCommand(message, activity);
-                discordServices.changeVoiceChannelPermissions(activity.name, activity.category, true); // TODO check if this is necessary
+                activity.changeVoiceChannelPermissions(true); // TODO check if this is necessary
                 
                 // update embed
                 msgConsole.edit(msgConsole.embeds[0].addField('Update', 'The activity is now a Workshop!'));
@@ -102,7 +102,7 @@ module.exports = class NewActivity extends PermissionCommand {
                 let numOfGroups = await numberPrompt('How many groups do you want?', message.channel, user.id);
 
                 commandRegistry.findCommands('initcc', true)[0].runActivityCommand(message, activity, { numOfGroups: numOfGroups });
-                discordServices.changeVoiceChannelPermissions(activity.name, category, true); // TODO check if this is necessary
+                activity.changeVoiceChannelPermissions(true); // TODO check if this is necessary
 
                 // update embed
                 msgEmbed.addField('Update', 'The activity is now a Coffee Chat!');
@@ -134,7 +134,7 @@ module.exports = class NewActivity extends PermissionCommand {
                 activity.state.isAmongUs = true;
                 await activity.addLimitToVoiceChannels(12);
                 commandRegistry.findCommands('initau', true)[0].runActivityCommand(message, activity, { numOfChannels: 3 });
-                discordServices.changeVoiceChannelPermissions(activity.name, activity.category, true);
+                activity.changeVoiceChannelPermissions(true);
             } else if (emojiName === emojis[14]) {
                 commandRegistry.findCommands('archive', true)[0].runActivityCommand(message, activity);
                 msgConsole.delete({timeout: 3000});
