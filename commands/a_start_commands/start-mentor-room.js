@@ -30,24 +30,34 @@ module.exports = class StartMentors extends PermissionCommand {
      */
     async runCommand(message) {
 
-        let cave = new Cave({
-            name: 'Mentor',
-            preEmojis: '🧑🏽🎓',
-            preRoleText: 'M',
-            color: 'ORANGE',
-            role: message.guild.roles.resolve(discordServices.mentorRole),
-            joinTicketEmoji: await Prompt.reactionPrompt('What is the join ticket emoji?', message.channel, message.author.id),
-            giveHelpEmoji: await Prompt.reactionPrompt('What is the give help emoji?', message.channel, message.author.id),
-            requestTicketEmoji: await Prompt.reactionPrompt('What is the request ticket emoji?', message.channel, message.author.id),
-            addRoleEmoji: await Prompt.reactionPrompt('What is the add role emoji?', message.channel, message.author.id),
-        });
+        try {
+            var cave = new Cave({
+                name: 'Mentor',
+                preEmojis: '🧑🏽🎓',
+                preRoleText: 'M',
+                color: 'ORANGE',
+                role: message.guild.roles.resolve(discordServices.mentorRole),
+                joinTicketEmoji: await Prompt.reactionPrompt('What is the join ticket emoji?', message.channel, message.author.id),
+                giveHelpEmoji: await Prompt.reactionPrompt('What is the give help emoji?', message.channel, message.author.id),
+                requestTicketEmoji: await Prompt.reactionPrompt('What is the request ticket emoji?', message.channel, message.author.id),
+                addRoleEmoji: await Prompt.reactionPrompt('What is the add role emoji?', message.channel, message.author.id),
+            });
+        } catch (error) {
+            message.channel.send('<@' + message.author.id + '> The command has been canceled due to a canceled Prompt.').then(msg => msg.delete({timeout: 5000}));
+            return;
+        }
 
         let adminConsole = message.guild.channels.resolve(discordServices.adminConsoleChannel);
 
-        let isCreated = await Prompt.yesNoPrompt('Are the categories and channels already created?', message.channel, message.author.id);
+        try {
+            let isCreated = await Prompt.yesNoPrompt('Are the categories and channels already created?', message.channel, message.author.id);
 
-        if (isCreated) await cave.find(message.channel, message.author.id);
-        else await cave.init(message.guild.channels);
+            if (isCreated) await cave.find(message.channel, message.author.id);
+            else await cave.init(message.guild.channels);
+        } catch (error) {
+            // if prompt canceled then init then take it as false
+            await cave.init(message.guild.channels);
+        }
 
         await cave.sendConsoleEmbeds(adminConsole);
 
