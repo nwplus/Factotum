@@ -2,7 +2,7 @@ const Discord = require("discord.js");
 const discordServices = require('../discord-services');
 
 /**
- * The Prompt class has usefull static functions to prompt the user for information.
+ * The Prompt class has useful static functions to prompt the user for information.
  */
 class Prompt {
 
@@ -51,7 +51,7 @@ class Prompt {
      * @param {Discord.TextChannel} channel - the channel to send the prompt to
      * @param {String} userID - the ID of the user to prompt
      * @async
-     * @returns {Promise<Number>} - the number gotten from the prompt
+     * @returns {Promise<Number | null>} - the number gotten from the prompt or null if canceled
      */
     static async numberPrompt(prompt, channel, userID) {
         let promptMsg = await Prompt.messagePrompt(prompt, 'number', channel, userID);
@@ -85,7 +85,7 @@ class Prompt {
      * @param {Discord.TextChannel} channel - the channel to send the prompt to
      * @param {String} userID - the ID of the user to prompt
      * @async
-     * @returns {Promise<Boolean>} - yes == true, no == false
+     * @returns {Promise<Boolean | null>} - yes == true, no == false or null if canceled
      */
     static async yesNoPrompt(prompt, channel, userID) {
         let promptMsg = await Prompt.messagePrompt(prompt, 'boolean', channel, userID);
@@ -102,7 +102,7 @@ class Prompt {
      * @param {Discord.TextChannel} promptChannel - the channel to send the prompt to
      * @param {String} userID - the ID of the user to prompt
      * @async
-     * @returns {Promise<Discord.TextChannel>} - the text channel prompted
+     * @returns {Promise<Discord.TextChannel | null>} - the text channel prompted or null if canceled
      */
     static async channelPrompt(prompt, promptChannel, userID) {
         let promptMsg = await Prompt.messagePrompt(prompt, 'mention', promptChannel, userID);
@@ -122,7 +122,7 @@ class Prompt {
      * @param {Discord.TextChannel} promptChannel - the channel to send the prompt to
      * @param {String} userID - the ID of the user to prompt
      * @async
-     * @returns {Promise<Discord.Role>} - the role prompted
+     * @returns {Promise<Discord.Role | null>} - the role prompted or null if canceled
      */
     static async rolePrompt(prompt, promptChannel, userID) {
         let promptMsg = await Prompt.messagePrompt(prompt, 'mention', promptChannel, userID);
@@ -141,7 +141,7 @@ class Prompt {
      * @param {Discord.TextChannel} promptChannel - the channel to send the prompt to
      * @param {String} userID - the ID of the user to prompt
      * @async
-     * @returns {Promise<Discord.GuildMember>} - the member prompted
+     * @returns {Promise<Discord.GuildMember | null>} - the member prompted or null if canceled
      */
     static async memberPrompt(prompt, promptChannel, userID) {
         let promptMsg = await Prompt.messagePrompt(prompt, 'mention', promptChannel, userID);
