@@ -13,7 +13,7 @@ class Prompt {
      * @param {Discord.TextChannel} channel - the channel to send the prompt to
      * @param {String} userID - the ID of the user to prompt
      * @param {Number} time - the time in seconds to wait for the response, if 0 then wait forever
-     * @returns {Promise<Discord.Message | Error>} - the message response to the prompt or false if it timed out!
+     * @returns {Promise<Discord.Message>} - the message response to the prompt or false if it timed out!
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      * @async
      */
