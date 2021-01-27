@@ -99,7 +99,11 @@ module.exports = class NewActivity extends PermissionCommand {
             } else if (emojiName === emojis[1] && activity.isRegularActivity()) {
                 activity.state.isCoffeeChats = true;
 
-                let numOfGroups = await numberPrompt('How many groups do you want?', message.channel, user.id);
+                try {
+                    var numOfGroups = await numberPrompt('How many groups do you want?', message.channel, user.id);
+                } catch (error) {
+                    var numOfGroups = 0;
+                }
 
                 commandRegistry.findCommands('initcc', true)[0].runActivityCommand(message, activity, { numOfGroups: numOfGroups });
                 discordServices.changeVoiceChannelPermissions(activity.name, category, true); // TODO check if this is necessary
