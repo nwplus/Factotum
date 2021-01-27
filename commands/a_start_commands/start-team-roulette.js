@@ -61,8 +61,13 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
         this.initList();
 
-        // ask for channel to use, this will also give us the category to use
-        let channel = await this.getOrCreateChannel(message.channel, message.author.id, message.guild.channels);
+        try {
+            // ask for channel to use, this will also give us the category to use
+            var channel = await this.getOrCreateChannel(message.channel, message.author.id, message.guild.channels);
+        } catch (error) {
+            message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
+            return;
+        }
                 
         // create and send embed message to channel with emoji collector
         const msgEmbed = new Discord.MessageEmbed()
@@ -105,9 +110,10 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
             let destroyTeamEmoji = '🛑';
 
             if (reaction.emoji.name === this.teamEmoji) {
-                let groupMsg = await Prompt.messagePrompt('Please mention all your current team members in one message. You mention by typing @friendName .', 'string', message.channel, teamLeaderUser.id, 30);
-
-                if (groupMsg === null) {
+                
+                try {
+                    var groupMsg = await Prompt.messagePrompt('Please mention all your current team members in one message. You mention by typing @friendName .', 'string', message.channel, teamLeaderUser.id, 30);
+                } catch (error) {
                     reaction.users.remove(newTeam.leader);
                     return;
                 }
@@ -221,6 +227,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
      * @param {Discord.GuildChannelManager} guildChannelManager - manager to create channels
      * @async
      * @returns {Promise<Discord.TextChannel>}
+     * @throws Throws an error if the user cancels either of the two Prompts, the command should quit!
      */
     async getOrCreateChannel(promptChannel, promptId, guildChannelManager) {
         let needChannel = await Prompt.yesNoPrompt('Do you need a new channel and category or have you created one already?', promptChannel, promptId);
