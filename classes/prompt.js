@@ -68,7 +68,7 @@ class Prompt {
      * @param {String} prompt - the text prompt to send to user
      * @param {Discord.TextChannel} channel - the channel to send the prompt to
      * @param {String} userID - the ID of the user to prompt
-     * @param {Discord.Collection<String, Discord.Emoji>} - <emoji name, emoji>, the emojis the user can't select, re-prompt if necessary
+     * @param {Discord.Collection<String, Discord.Emoji>} unavailableEmojis - <emoji name, emoji>, the emojis the user can't select, re-prompt if necessary
      * @async
      * @returns {Promise<Discord.GuildEmoji | Discord.ReactionEmoji>} - the message reaction
      */
