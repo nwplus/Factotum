@@ -13,12 +13,17 @@ class Cave {
      * @property {String} preRoleText - the text to add before every role name, not including '-'
      * @property {String} color - the role color to use for this cave
      * @property {Discord.Role} role - the role associated with this cave
-     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} joinTicketEmoji - the join ticket emoji
-     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} giveHelpEmoji - the give help to ticket emoji
-     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} requestTicketEmoji - the request ticket emoji
-     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} addRoleEmoji - emoji to add role
-     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} deleteChannelsEmoji - emoji to delete channels
-     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} excludeFromAutodeleteEmoji - emoji to exclude a ticket from garbage collector
+     * @property {Emojis} emojis - object holding emojis to use in this cave
+     */
+
+    /**
+     * @typedef Emojis
+     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} joinTicketEmoji - emoji for mentors to accept a ticket
+     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} giveHelpEmoji - emoji for mentors to join an ongoing ticket
+     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} requestTicketEmoji - emoji for hackers to request a ticket
+     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} addRoleEmoji - emoji for Admins to add a mentor role
+     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} deleteChannelsEmoji - emoji for Admins to force delete ticket channels
+     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} excludeFromAutodeleteEmoji - emoji for Admins to opt tickets in/out of garbage collector
      */
 
     /**
@@ -84,9 +89,9 @@ class Cave {
          * @type {Discord.Collection<String, Discord.GuildEmoji | Discord.ReactionEmoji>}
          */
         this.adminEmojis = new Discord.Collection();
-        this.adminEmojis.set(this.caveOptions.addRoleEmoji.name, this.caveOptions.addRoleEmoji);
-        this.adminEmojis.set(this.caveOptions.deleteChannelsEmoji.name, this.caveOptions.deleteChannelsEmoji);
-        this.adminEmojis.set(this.caveOptions.excludeFromAutodeleteEmoji.name, this.caveOptions.excludeFromAutodeleteEmoji);
+        this.adminEmojis.set(this.caveOptions.emojis.addRoleEmoji.name, this.caveOptions.emojis.addRoleEmoji);
+        this.adminEmojis.set(this.caveOptions.emojis.deleteChannelsEmoji.name, this.caveOptions.emojis.deleteChannelsEmoji);
+        this.adminEmojis.set(this.caveOptions.emojis.excludeFromAutodeleteEmoji.name, this.caveOptions.emojis.excludeFromAutodeleteEmoji);
 
         /**
          * The emojis to use for roles.
@@ -108,7 +113,7 @@ class Cave {
          */
         this.ticketCount = 0;
 
-        this.tickets = new Map();
+        this.tickets = new Discord.Collection();
         this.inactivePeriod;
         this.bufferTime;
     }
@@ -172,12 +177,9 @@ class Cave {
         if (typeof caveOptions.preRoleText != 'string' && caveOptions.preRoleText.length === 0) throw new Error('The caveOptions.preRoleText must be a non empty string!');
         if (typeof caveOptions.color != 'string' && caveOptions.color.length === 0) throw new Error('The caveOptions.color must be a non empty string!');
         if (!caveOptions.role instanceof Discord.Role) throw new Error('The caveOptions.role must be Role object!');
-        if (!caveOptions.giveHelpEmoji instanceof Discord.GuildEmoji) throw new Error('The caveOptions.giveHelpEmoji must be GuildEmoji or ReactionEmoji object!');
-        if (!caveOptions.joinTicketEmoji instanceof Discord.GuildEmoji) throw new Error('The caveOptions.joinTicketEmoji must be GuildEmoji or ReactionEmoji object!');
-        if (!caveOptions.requestTicketEmoji instanceof Discord.GuildEmoji) throw new Error('The caveOptions.requestTicketEmoji must be GuildEmoji or ReactionEmoji object!');
-        if (!caveOptions.addRoleEmoji instanceof Discord.GuildEmoji) throw new Error('The caveOptions.addRoleEmoji must be GuildEmoji or ReactionEmoji object!');
-        if (!caveOptions.deleteChannelsEmoji instanceof Discord.GuildEmoji) throw new Error('The caveOptions.deleteChannelsEmoji must be GuildEmoji or ReactionEmoji object!');
-        if (!caveOptions.excludeFromAutodeleteEmoji instanceof Discord.GuildEmoji) throw new Error('The caveOptions.excludeFromAutodeleteEmoji must be GuildEmoji or ReactionEmoji object!');
+        for (const emoji in caveOptions.emojis) {
+            if (!emoji instanceof Discord.GuildEmoji && !emoji instanceof Discord.ReactionEmoji) throw new Error('The ' + emoji + 'must be a GuildEmoji or ReactionEmoji!');
+        }
         this.caveOptions = caveOptions;
     }
 
@@ -324,11 +326,11 @@ class Cave {
             .setDescription('If you or your team want to talk with a ' + this.caveOptions.name + ' follow the instructions below:' +
                 '\n* React to this message with the correct emoji and follow instructions' +
                 '\n* Once done, wait for someone to accept your ticket!')
-            .addField('For a general ticket:', 'React with ' + this.caveOptions.requestTicketEmoji.toString());
+            .addField('For a general ticket:', 'React with ' + this.caveOptions.emojis.requestTicketEmoji.toString());
         this.embedMessages.request = await (await this.publicChannels.outgoingTickets.send(requestTicketEmbed)).pin();
-        this.embedMessages.request.react(this.caveOptions.requestTicketEmoji);
+        this.embedMessages.request.react(this.caveOptions.emojis.requestTicketEmoji);
 
-        const collector = this.embedMessages.request.createReactionCollector((reaction, user) => !user.bot && (this.emojis.has(reaction.emoji.name) || reaction.emoji.name === this.caveOptions.requestTicketEmoji.name));
+        const collector = this.embedMessages.request.createReactionCollector((reaction, user) => !user.bot && (this.emojis.has(reaction.emoji.name) || reaction.emoji.name === this.caveOptions.emojis.requestTicketEmoji.name));
 
         collector.on('collect', async (reaction, user) => {
             // check if role they request has users in it
@@ -354,14 +356,15 @@ class Cave {
                 .setTitle('New Ticket! - ' + this.ticketCount)
                 .setDescription('<@' + user.id + '> has the question: ' + promptMsg.content)
                 .addField('They are requesting:', '<@&' + roleId + '>')
-                .addField('Can you help them?', 'If so, react to this message with ' + this.caveOptions.giveHelpEmoji.toString() + '.');
+                .addField('Can you help them?', 'If so, react to this message with ' + this.caveOptions.emojis.giveHelpEmoji.toString() + '.');
 
 
             let ticketMsg = await this.privateChannels.incomingTickets.send('<@&' + roleId + '>', incomingTicketEmbed);
-            ticketMsg.react(this.caveOptions.giveHelpEmoji);
+            ticketMsg.react(this.caveOptions.emojis.giveHelpEmoji);
 
-            let ticket = new Ticket(promptMsg.guild, promptMsg.content, this.caveOptions, user, promptMsg.mentions.users,
-                this.ticketCount, ticketMsg, this.inactivePeriod, this.bufferTime);
+            // initialize a ticket and add it to the Collection of active tickets
+            var hackers = Array.from(promptMsg.mentions.users.values());
+            let ticket = new Ticket(promptMsg.guild, promptMsg.content, this, user, hackers, this.ticketCount, ticketMsg, this.inactivePeriod, this.bufferTime);
             this.tickets.set(this.ticketCount, ticket);
         });
     }
@@ -421,11 +424,11 @@ class Cave {
             .setColor(discordServices.embedColor)
             .setTitle(this.caveOptions.name + ' Cave Console')
             .setDescription(this.caveOptions.name + ' cave options are found below.')
-            .addField('Add a role', 'To add a role please click the ' + this.adminEmojis.first().toString() + ' emoji.')
-            .addField('Delete ticket channels', 'Click the ' + Array.from(this.adminEmojis.values())[1].toString() + ' emoji to delete some or all mentor ticket channels.\n' +
+            .addField('Add a role', 'To add a role please click the ' + this.caveOptions.emojis.addRoleEmoji.toString() + ' emoji.')
+            .addField('Delete ticket channels', 'Click the ' + this.caveOptions.emojis.deleteChannelsEmoji.toString() + ' emoji to delete some or all mentor ticket channels.\n' +
                 'Note that if some of a ticket\'s channels are deleted, it will be automatically excluded from the garbage collector.')
-            .addField('Include/Exclude tickets from garbage collector', 'Click the ' + Array.from(this.adminEmojis.values())[2].toString() +
-                ' emoji to include/exclude a ticket from being automatically deleted for inactivity or mentors leaving. (All tickets are included by default, and partially deleted tickets cannot be re-included)');
+            .addField('Include/Exclude tickets from garbage collector', 'Click the ' + this.caveOptions.emojis.excludeFromAutodeleteEmoji.toString() +
+                ' emoji to include/exclude a ticket from being automatically deleted for inactivity or mentors leaving. (All tickets are included by default, and the status of partially deleted tickets cannot be changed)');
         this.embedMessages.adminConsole = await adminConsole.send(msgEmbed);
         this.adminEmojis.forEach(emoji => this.embedMessages.adminConsole.react(emoji));
         this.inactivePeriod = await Prompt.numberPrompt('How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
@@ -446,69 +449,96 @@ class Cave {
 
                 // let admin know the action was succesfull
                 adminConsole.send('<@' + promptUserId + '> The role has been added!').then(msg => msg.delete({ timeout: 8000 }));
-            } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[1]) {
-                let all = await Prompt.yesNoPrompt('Type "yes" if you would like to delete all mentor channels, "no" if you would like to only delete some.', adminConsole, promptUserId);
+            } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[1]) { // check if the delete channels emoji was selected
+                // ask user whether they want to delete all channels / all channels older than an age that they specify, or specific channels
+                let all = await Prompt.yesNoPrompt('Type "yes" if you would like to delete all ticket channels (you can also specify to delete all channels older than a certain age if you choose this option),\n' +
+                    '"no" if you would like to only delete some.', adminConsole, promptUserId);
                 if (all) {
-                    let deleteNow = await Prompt.yesNoPrompt('All ticket categories older than a minute will be deleted. Type "yes" to confirm or "no" to set a different timeframe. Careful - this cannot be undone!', adminConsole, promptUserId);
+                    // if user chose to delete all ticket channels, ask if they would like to delete all channels or all channels over
+                    // a certain age
+                    let deleteNow = await Prompt.yesNoPrompt('All ticket categories older than a minute will be deleted. ' +
+                        'Type "yes" to confirm or "no" to set a different timeframe. Careful - this cannot be undone!', adminConsole, promptUserId);
+                    // get the age in minutes of the channels to delete if they wanted to specify an age
                     var age;
-                    adminConsole.guild.channels.cache.forEach(async channel => {
-                        (deleteNow) ? age = 1 : age = await Prompt.numberPrompt('Enter the number of minutes. All ticket channels older than this time will be deleted. Careful - this cannot be undone!', adminConsole, promptUserId);
-                        if (channel.type === 'category' && channel.name.startsWith('Ticket -') && (Date.now() - channel.createdTimestamp > age * 60)) {
-                            await channel.children.forEach(async child => await discordServices.deleteChannel(child));
-                            await discordServices.deleteChannel(channel);
+                    (deleteNow) ? age = 1 : age = await Prompt.numberPrompt('Enter the number of minutes. ' +
+                        'All ticket channels older than this time will be deleted. Careful - this cannot be undone!', adminConsole, promptUserId);
+
+                    // delete all active tickets fitting the given age criteria
+                    this.tickets.forEach(async ticket => {
+                        var timeNow = Date.now();
+                        if ((timeNow - ticket.category.createdTimestamp) > (age * 60 * 1000)) { // check if ticket is over the given number of minutes old
+                            if (!ticket.category.deleted) {
+                                await ticket.category.children.forEach(async child => await discordServices.deleteChannel(child));
+                                await discordServices.deleteChannel(ticket.category);
+                                this.tickets.delete(ticket.ticketNumber); // remove ticket from the tickets Collection
+                            }
                         }
                     });
+                    adminConsole.send('<@' + promptUserId + '> All tickets over ' + age + ' minutes old have been deleted!').then(msg => msg.delete({ timeout: 8000 }));
                 } else {
-                    var exclude = await Prompt.yesNoPrompt('Type "yes" if you would like to delete all ticket channels **except** for the ones you mention, "no" if you would like for the channels you mention to be deleted.', adminConsole, promptUserId);
+                    // ask user if they want to name the tickets to not delete, or name the tickets to delete
+                    var exclude = await Prompt.yesNoPrompt('Type "yes" if you would like to delete all ticket channels **except** for the ones you mention, ' +
+                        '"no" if you would like for the tickets you mention to be deleted.', adminConsole, promptUserId);
                     var prompt;
                     if (exclude) {
-                        prompt = 'In **one** message, send all the ticket numbers to be excluded, separated by spaces.\n' +
-                            'To save a specific channel, mention that channel in the same message. Careful - this cannot be undone!';
+                        prompt = 'In **one** message, send all the ticket numbers to be excluded, separated by spaces. Careful - this cannot be undone!';
                     } else {
-                        prompt = 'In **one** message, send all the ticket numbers to be deleted, separated by spaces.\n' +
-                            'To delete a specific channel, mention that channel in the same message. Careful - this cannot be undone!';
+                        prompt = 'In **one** message, send all the ticket numbers to be deleted, separated by spaces. Careful - this cannot be undone!';
                     }
+
                     var response = await Prompt.messagePrompt(prompt, 'string', adminConsole, admin.id, 30);
-                    var categoryMentions = [];
+                    var ticketMentions = []; //int array to store ticket numbers to include/exclude
+                    // do nothing if no response given
                     if (response != null) {
-                        var channelMentions = Array.from(response.mentions.channels.values());
+                        // add all the words from the user's response into an array and parse for the integers
                         response.content.split(" ").forEach(substring => {
                             if (!isNaN(substring)) {
-                                categoryMentions.push('Ticket - ' + substring);
+                                ticketMentions.push(parseInt(substring));
                             }
                         });
-
-                        if (exclude) {
-                            adminConsole.guild.channels.cache.forEach(async channel => {
-                                if (channel.type === 'category' && !categoryMentions.includes(channel.name) && channel.name.startsWith('Ticket')) {
-                                    await channel.children.forEach(async child => {
-                                        if (!channelMentions.includes(child)) {
-                                            await discordServices.deleteChannel(child);
-                                        }
-                                    });
-                                    await discordServices.deleteChannel(channel);
-                                } else if (!channelMentions.includes(channel) && (channel.type === 'text' || channel.type === 'voice') && channel.parent.name != null && channel.parent.name.startsWith('Ticket') && !categoryMentions.includes(channel.parent.name)) {
-                                    await discordServices.deleteChannel(channel);
+                        
+                        var ticketsToDelete; // will be initialized as a Map/Collection to keep track of tickets that the user chose to delete
+                        if (exclude) { // check if user specified to exclude certain channels from being deleted
+                            // start with ticketsToDelete being a Collection of all active tickets, and delete the excluded tickets from the 
+                            // Collection as long as their CategoryChannels have not been deleted 
+                            ticketsToDelete = this.tickets;
+                            ticketMentions.forEach(ticketNumber => {
+                                // check if the number provided by the user is an active ticket and that this ticket's category is still there
+                                if (ticketsToDelete.has(ticketNumber) && !ticketsToDelete.get(ticketNumber).category.deleted) {
+                                    ticketsToDelete.delete(ticketNumber);
                                 }
                             });
                         } else {
-                            adminConsole.guild.channels.cache.forEach(async channel => {
-                                if (channel.type === 'category' && categoryMentions.includes(channel.name) && channel.name.startsWith('Ticket')) {
-                                    await channel.children.forEach(async child => await discordServices.deleteChannel(child));
-                                    await discordServices.deleteChannel(channel);
-                                } else if (channelMentions.includes(channel) && (channel.type === 'text' || channel.type === 'voice') && channel.parent.name != null && channel.parent.name.startsWith('Ticket -')) {
-                                    await discordServices.deleteChannel(channel);
+                            // if user is listing tickets to delete, start with empty map and add each ticket
+                            ticketsToDelete = new Map();
+                            ticketMentions.forEach(ticketNumber => {
+                                // check if the number provided by the user is an active ticket and that this ticket's category is still there
+                                if (this.tickets.has(ticketNumber) && !this.tickets.get(ticketNumber).category.deleted) {
+                                    ticketsToDelete.set(ticketNumber, this.tickets.get(ticketNumber));
                                 }
                             });
-
                         }
+
+                        // iterate through each ticket object on the list of tickets to delete
+                        Array.from(ticketsToDelete.values()).forEach(async ticket => {
+                            if (!ticket.category.deleted) {
+                                // delete the category's channels, then category, then delete from the tickets Collection
+                                await ticket.category.children.forEach(async child => await discordServices.deleteChannel(child));
+                                await discordServices.deleteChannel(ticket.category);
+                                this.tickets.delete(ticket.ticketNumber);
+                            }
+                        });
+                        adminConsole.send('<@' + promptUserId + '> The following tickets have been deleted: ' + Array.from(ticketsToDelete.keys()).join(', '))
+                            .then(msg => msg.delete({ timeout: 8000 }));
                     }
                 }
-            } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[2]) {
+            } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[2]) { // check if Admin selected to include/exclude tickets from garbage collection
+                console.log(this.tickets.keys());
                 var response = await Prompt.messagePrompt('**In one message separated by spaces**, ' +
                     'type whether you want to "include" or "exclude" tickets along with the ticket numbers to operate on.', 'string', adminConsole, promptUserId, 30);
                 if (response != null) {
-                    var words = response.content.split(" ");
+                    var words = response.content.split(" "); // array to store each word in user's response
+                    // use variable exclude to flag whether user wants to do an include or exclude operation
                     var exclude;
                     if (words.includes('include')) {
                         exclude = false;
@@ -518,17 +548,22 @@ class Cave {
                         adminConsole.send('<@' + promptUserId + '> You did not specify "include" or "exclude"! Please try again.')
                             .then(message => message.delete({ timeout: 5000 }));
                     }
+
+                    // for each ticket the user mentioned, check that it is a valid active ticket then toggle the exclude property of 
+                    // the Ticket object correspondingly and store the list of tickets that were updated in validNumbers
                     var validNumbers = [];
                     words.forEach(word => {
                         if (!isNaN(word) && this.tickets.has(parseInt(word))) {
                             var ticket = this.tickets.get(parseInt(word));
-                            if (!ticket.category.deleted && !ticket.text.deleted && !ticket.voice.deleted) {
+                            if (!ticket.category.deleted && !ticket.text.deleted && !ticket.voice.deleted) { // checks that the ticket has all 3 channels
                                 ticket.includeExclude(exclude);
                                 validNumbers.push(word);
                             }
                         }
                     });
-                    (exclude) ? exclude = 'exclude' : exclude = 'include';
+
+                    // print the changes in Admin Console 
+                    (exclude) ? exclude = '"exclude"' : exclude = '"include"';
                     if (validNumbers.length > 0) {
                         adminConsole.send('Status updated to ' + exclude + ' for tickets: ' + validNumbers.join(', '));
                     }
