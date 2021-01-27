@@ -44,28 +44,18 @@ module.exports = class DistributeStamp extends PermissionCommand {
      * @param {Discord.Message} message
      */
     async run(message, {activityName, password, stopTime}) {
-        // check if arguments have been given
-        if (activityName === '') {
-            try {
+        // check if arguments have been given and prompt for the channel to use
+        try {
+            if (activityName === '') {
                 var prompt = await Prompt.messagePrompt('Please respond with the workshop/activity name.', 'string', message.channel, message.author.id);
                 activityName = prompt.content;
-            } catch (error) {
-                message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
-                return;
             }
-        }
-        if(password === '') {
-            try {
-                var prompt = await Prompt.messagePrompt('Please respond with the password for hackers to use to get stamp.', 'string', message.channel, message.author.id);
-                password = prompt.content;  
-            } catch (error) {
-                message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
-                return;
-            }
-        }
 
-        // target channel is where the collector will be sent
-        try {
+            if(password === '') {
+                var prompt = await Prompt.messagePrompt('Please respond with the password for hackers to use to get stamp.', 'string', message.channel, message.author.id);
+                password = prompt.content;
+            }
+
             var targetChannel = await Prompt.channelPrompt('What channel do you want to send the stamp collector to? Users should have access to this channel!', message.channel, message.author.id);
         } catch (error) {
             message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
