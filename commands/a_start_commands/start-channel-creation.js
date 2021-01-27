@@ -2,6 +2,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
+const Prompt = require('../../classes/prompt');
 
 // Command export
 module.exports = class StartChannelCreation extends PermissionCommand {
@@ -16,18 +17,27 @@ module.exports = class StartChannelCreation extends PermissionCommand {
         {
             roleID: discordServices.staffRole,
             roleMessage: 'Hey there, the !startcc command is only for staff!',
-            channelID: discordServices.channelcreationChannel,
-            channelMessage: 'Hey there, the !startcc command is only available in the create-channel channel.',
+            channelID: discordServices.adminConsoleChannel,
+            channelMessage: 'Hey there, the !startcc command is only available in the admin console channel.',
         });
     }
 
+    /**
+     *  
+     * @param {Discord.Message} message 
+     */
     async runCommand(message) {
 
-        // grab current channel
-        var channel = message.channel;
+        try {
+            // grab current channel
+            var channel = await Prompt.channelPrompt('What channel do you want to use? The channel\'s category will be used to create the new channels.', message.channel, message.author.id);
+        } catch (error) {
+            message.channel.send('<@' + message.author.id + '> The command has been canceled due to the prompt cancel.').then(msg => msg.delete({timeout: 5000}));
+            return;
+        }
 
         // grab channel creation category
-        var category = await message.channel.parent;
+        var category = channel.parent;
         
         // create and send embed message to channel with emoji collector
         const msgEmbed = new Discord.MessageEmbed()
@@ -41,7 +51,7 @@ module.exports = class StartChannelCreation extends PermissionCommand {
         cardMessage.pin();
 
         // main collector works with any emoji
-        var mainCollector = await cardMessage.createReactionCollector(m => true);
+        var mainCollector = cardMessage.createReactionCollector(m => true);
 
         mainCollector.on('collect', (reaction, user) => {
             
@@ -52,7 +62,7 @@ module.exports = class StartChannelCreation extends PermissionCommand {
             channel.send('<@'+ user.id + '> Do you want a "voice" or "text" channel? Please respond within 10 seconds.').then(async msg => {
                 channel.awaitMessages(filter, {max: 1, timout: 10000}).then(async msgsChannelTypes => {
 
-                    var msgChannelType = await msgsChannelTypes.first();
+                    var msgChannelType = msgsChannelTypes.first();
                     var channelType = msgChannelType.content;
 
                     // remove promt and user message
