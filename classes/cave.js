@@ -14,6 +14,7 @@ class Cave {
      * @property {String} color - the role color to use for this cave
      * @property {Discord.Role} role - the role associated with this cave
      * @property {Emojis} emojis - object holding emojis to use in this cave
+     * @property {Times} times - object holding times to use in this cave
      */
 
     /**
@@ -25,6 +26,12 @@ class Cave {
      * @property {Discord.GuildEmoji | Discord.ReactionEmoji} deleteChannelsEmoji - emoji for Admins to force delete ticket channels
      * @property {Discord.GuildEmoji | Discord.ReactionEmoji} excludeFromAutodeleteEmoji - emoji for Admins to opt tickets in/out of garbage collector
      */
+
+     /**
+      * @typedef Times
+      * @property {Number} inactivePeriod - number of minutes a ticket channel will be inactive before bot starts to delete it
+      * @property {Number} bufferTime - number of minutes the bot will wait for a response before deleting ticket
+      */
 
     /**
      * @typedef RoleInfo
@@ -114,8 +121,6 @@ class Cave {
         this.ticketCount = 0;
 
         this.tickets = new Discord.Collection();
-        this.inactivePeriod;
-        this.bufferTime;
     }
 
 
@@ -303,16 +308,6 @@ class Cave {
         await this.sendRequestConsole();
     }
 
-
-    /**
-     * @typedef TicketInfo
-     * @property {Discord.CategoryChannel} category - the ticket category
-     * @property {Discord.TextChannel} textChannel - the text channel
-     * @property {Discord.VoiceChannel} voiceChannel - the voice channel
-     * @property {Number} userCount - the reactions needed to remove the ticket
-     * @property {Number} id - the id of this ticket (ticket number)
-     */
-
     /**
      * Send the requst ticket console and creates the reaction collector.
      * @async
@@ -336,7 +331,7 @@ class Cave {
          */
         const usersSubmittingTicket = new Discord.Collection();
 
-        const collector = this.embedMessages.request.createReactionCollector((reaction, user) => !user.bot && !usersSubmittingTicket.has(user.id) && (this.emojis.has(reaction.emoji.name) || reaction.emoji.name === this.caveOptions.requestTicketEmoji.name));
+        const collector = this.embedMessages.request.createReactionCollector((reaction, user) => !user.bot && !usersSubmittingTicket.has(user.id) && (this.emojis.has(reaction.emoji.name) || reaction.emoji.name === this.caveOptions.emojis.requestTicketEmoji.name));
 
         collector.on('collect', async (reaction, user) => {
             // currently submitting a ticket
@@ -363,7 +358,7 @@ class Cave {
             // the embed used in the incoming tickets channel to let mentors know about the question
             const incomingTicketEmbed = new Discord.MessageEmbed()
                 .setColor(this.caveOptions.color)
-                .setTitle('New Ticket! - ' + ticketInfo.id)
+                .setTitle('New Ticket! - ' + this.ticketCount)
                 .setDescription('<@' + user.id + '> has the question: ' + promptMsg.content)
                 .addField('They are requesting:', '<@&' + roleId + '>')
                 .addField('Can you help them?', 'If so, react to this message with ' + this.caveOptions.emojis.giveHelpEmoji.toString() + '.');
@@ -375,38 +370,10 @@ class Cave {
 
             // initialize a ticket and add it to the Collection of active tickets
             var hackers = Array.from(promptMsg.mentions.users.values());
-            let ticket = new Ticket(promptMsg.guild, promptMsg.content, this, user, hackers, this.ticketCount, ticketMsg, this.inactivePeriod, this.bufferTime);
+            hackers.push(user.id);
+            let ticket = new Ticket(promptMsg.guild, promptMsg.content, this, user, hackers, this.ticketCount, ticketMsg, 
+                this.caveOptions.times.inactivePeriod, this.caveOptions.times.bufferTime);
             this.tickets.set(this.ticketCount, ticket);
-
-            // let user know that ticket was submitted and give option to remove ticket
-            let removeTicketEmoji = '⚔️';
-
-            let reqTicketUserEmbedMsg = await discordServices.sendEmbedToMember(user, {
-                title: 'Ticket was Successful!',
-                description: 'Your ticket to the ' + this.caveOptions.name + ' group was succesful!',
-                fields: [{
-                    title: 'Remove the ticket',
-                    description: 'If you don\'t need help anymore, react to this message with ' + removeTicketEmoji,
-                },
-            {
-                title: 'Ticket Description:',
-                description: promptMsg.content,
-            }]
-            });
-
-            let reqTicketUserEmbedMsgcollector = reqTicketUserEmbedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === removeTicketEmoji, {max: 1});
-            reqTicketUserEmbedMsgcollector.on('collect', (reaction, user) => {
-                ticketCollector.stop();
-                ticketMsg.edit(ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed by the user!'));
-                reqTicketUserEmbedMsg.delete({timeout: 3000});
-                discordServices.sendEmbedToMember(user, {
-                    title: 'Ticket Closed!',
-                    description: 'Your ticket has been closed!',
-                }, true);
-            });
-            reqTicketUserEmbedMsgcollector.on('end', (collected) => {
-                reqTicketUserEmbedMsg.edit(reqTicketUserEmbedMsg.embeds[0].addField('Ticket Open!', 'Your ticket has been opened! Good luck!'));
-            });
         });
     }
 
@@ -471,10 +438,6 @@ class Cave {
                 ' emoji to include/exclude a ticket from being automatically deleted for inactivity or mentors leaving. (All tickets are included by default, and the status of partially deleted tickets cannot be changed)');
         this.embedMessages.adminConsole = await adminConsole.send(msgEmbed);
         this.adminEmojis.forEach(emoji => this.embedMessages.adminConsole.react(emoji));
-        this.inactivePeriod = await Prompt.numberPrompt('How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
-            adminConsole, promptUserId);
-        this.bufferTime = await Prompt.numberPrompt('How long, in minutes, will the bot wait for a response to its request to delete a ticket?',
-            adminConsole, promptUserId);
 
         // create collector
         const collector = this.embedMessages.adminConsole.createReactionCollector((reaction, user) => !user.bot && this.adminEmojis.has(reaction.emoji.name));
@@ -485,23 +448,23 @@ class Cave {
             reaction.users.remove(admin.id);
 
             if (reaction.emoji.name === this.adminEmojis.first().name) {
-                await this.newRole(adminConsole, promptUserId);
+                await this.newRole(adminConsole, admin.id);
 
                 // let admin know the action was succesfull
-                adminConsole.send('<@' + promptUserId + '> The role has been added!').then(msg => msg.delete({ timeout: 8000 }));
+                adminConsole.send('<@' + admin.id + '> The role has been added!').then(msg => msg.delete({ timeout: 8000 }));
             } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[1]) { // check if the delete channels emoji was selected
                 // ask user whether they want to delete all channels / all channels older than an age that they specify, or specific channels
                 let all = await Prompt.yesNoPrompt('Type "yes" if you would like to delete all ticket channels (you can also specify to delete all channels older than a certain age if you choose this option),\n' +
-                    '"no" if you would like to only delete some.', adminConsole, promptUserId);
+                    '"no" if you would like to only delete some.', adminConsole, admin.id);
                 if (all) {
                     // if user chose to delete all ticket channels, ask if they would like to delete all channels or all channels over
                     // a certain age
                     let deleteNow = await Prompt.yesNoPrompt('All ticket categories older than a minute will be deleted. ' +
-                        'Type "yes" to confirm or "no" to set a different timeframe. Careful - this cannot be undone!', adminConsole, promptUserId);
+                        'Type "yes" to confirm or "no" to set a different timeframe. Careful - this cannot be undone!', adminConsole, admin.id);
                     // get the age in minutes of the channels to delete if they wanted to specify an age
                     var age;
                     (deleteNow) ? age = 1 : age = await Prompt.numberPrompt('Enter the number of minutes. ' +
-                        'All ticket channels older than this time will be deleted. Careful - this cannot be undone!', adminConsole, promptUserId);
+                        'All ticket channels older than this time will be deleted. Careful - this cannot be undone!', adminConsole, admin.id);
 
                     // delete all active tickets fitting the given age criteria
                     this.tickets.forEach(async ticket => {
@@ -514,11 +477,11 @@ class Cave {
                             }
                         }
                     });
-                    adminConsole.send('<@' + promptUserId + '> All tickets over ' + age + ' minutes old have been deleted!').then(msg => msg.delete({ timeout: 8000 }));
+                    adminConsole.send('<@' + admin.id + '> All tickets over ' + age + ' minutes old have been deleted!').then(msg => msg.delete({ timeout: 8000 }));
                 } else {
                     // ask user if they want to name the tickets to not delete, or name the tickets to delete
                     var exclude = await Prompt.yesNoPrompt('Type "yes" if you would like to delete all ticket channels **except** for the ones you mention, ' +
-                        '"no" if you would like for the tickets you mention to be deleted.', adminConsole, promptUserId);
+                        '"no" if you would like for the tickets you mention to be deleted.', adminConsole, admin.id);
                     var prompt;
                     if (exclude) {
                         prompt = 'In **one** message, send all the ticket numbers to be excluded, separated by spaces. Careful - this cannot be undone!';
@@ -568,14 +531,14 @@ class Cave {
                                 this.tickets.delete(ticket.ticketNumber);
                             }
                         });
-                        adminConsole.send('<@' + promptUserId + '> The following tickets have been deleted: ' + Array.from(ticketsToDelete.keys()).join(', '))
+                        adminConsole.send('<@' + admin.id + '> The following tickets have been deleted: ' + Array.from(ticketsToDelete.keys()).join(', '))
                             .then(msg => msg.delete({ timeout: 8000 }));
                     }
                 }
             } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[2]) { // check if Admin selected to include/exclude tickets from garbage collection
                 console.log(this.tickets.keys());
                 var response = await Prompt.messagePrompt('**In one message separated by spaces**, ' +
-                    'type whether you want to "include" or "exclude" tickets along with the ticket numbers to operate on.', 'string', adminConsole, promptUserId, 30);
+                    'type whether you want to "include" or "exclude" tickets along with the ticket numbers to operate on.', 'string', adminConsole, admin.id, 30);
                 if (response != null) {
                     var words = response.content.split(" "); // array to store each word in user's response
                     // use variable exclude to flag whether user wants to do an include or exclude operation
@@ -585,7 +548,7 @@ class Cave {
                     } else if (words.includes('exclude')) {
                         exclude = true;
                     } else {
-                        adminConsole.send('<@' + promptUserId + '> You did not specify "include" or "exclude"! Please try again.')
+                        adminConsole.send('<@' + admin.id + '> You did not specify "include" or "exclude"! Please try again.')
                             .then(message => message.delete({ timeout: 5000 }));
                     }
 
