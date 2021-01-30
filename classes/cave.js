@@ -293,11 +293,10 @@ class Cave {
     /**
      * Sends all the necessary embeds to the channels.
      * @param {Discord.TextChannel} adminConsole - the admin console
-     * @param {Discord.Snowflake} promptUserId - the user to prompt
      * @async
      */
-    async sendConsoleEmbeds(adminConsole, promptUserId) {
-        await this.sendAdminConsole(adminConsole, promptUserId);
+    async sendConsoleEmbeds(adminConsole) {
+        await this.sendAdminConsole(adminConsole);
 
         await this.sendCaveConsole();
 
@@ -311,6 +310,7 @@ class Cave {
      * @property {Discord.TextChannel} textChannel - the text channel
      * @property {Discord.VoiceChannel} voiceChannel - the voice channel
      * @property {Number} userCount - the reactions needed to remove the ticket
+     * @property {Number} id - the id of this ticket (ticket number)
      */
 
     /**
@@ -330,9 +330,18 @@ class Cave {
         this.embedMessages.request = await (await this.publicChannels.outgoingTickets.send(requestTicketEmbed)).pin();
         this.embedMessages.request.react(this.caveOptions.emojis.requestTicketEmoji);
 
-        const collector = this.embedMessages.request.createReactionCollector((reaction, user) => !user.bot && (this.emojis.has(reaction.emoji.name) || reaction.emoji.name === this.caveOptions.emojis.requestTicketEmoji.name));
+        /**
+         * collection of users already working on a ticket
+         * @type {Discord.Collection<Discord.Snowflake, Discord.User | Discord.GuildMember>} - <ID, user | member>
+         */
+        const usersSubmittingTicket = new Discord.Collection();
+
+        const collector = this.embedMessages.request.createReactionCollector((reaction, user) => !user.bot && !usersSubmittingTicket.has(user.id) && (this.emojis.has(reaction.emoji.name) || reaction.emoji.name === this.caveOptions.requestTicketEmoji.name));
 
         collector.on('collect', async (reaction, user) => {
+            // currently submitting a ticket
+            usersSubmittingTicket.set(user.id, user);
+
             // check if role they request has users in it
             if (this.emojis.has(reaction.emoji.name) && this.emojis.get(reaction.emoji.name).activeUsers === 0) {
                 this.publicChannels.outgoingTickets.send('<@' + user.id + '> There are no mentors available with that role. Please request another role or the general role!').then(msg => msg.delete({ timeout: 10000 }));
@@ -343,29 +352,61 @@ class Cave {
                 '\n* Mention your team members using @friendName .', 'string', this.publicChannels.outgoingTickets, user.id, 45);
 
             if (promptMsg === null) return;
-
-            this.ticketCount++;
-
+            else usersSubmittingTicket.delete(user.id);
 
             var roleId;
             if (this.emojis.has(reaction.emoji.name)) roleId = this.emojis.get(reaction.emoji.name).id;
             else roleId = this.caveOptions.role.id;
+
+            this.ticketCount ++;
+
             // the embed used in the incoming tickets channel to let mentors know about the question
             const incomingTicketEmbed = new Discord.MessageEmbed()
                 .setColor(this.caveOptions.color)
-                .setTitle('New Ticket! - ' + this.ticketCount)
+                .setTitle('New Ticket! - ' + ticketInfo.id)
                 .setDescription('<@' + user.id + '> has the question: ' + promptMsg.content)
                 .addField('They are requesting:', '<@&' + roleId + '>')
                 .addField('Can you help them?', 'If so, react to this message with ' + this.caveOptions.emojis.giveHelpEmoji.toString() + '.');
 
 
             let ticketMsg = await this.privateChannels.incomingTickets.send('<@&' + roleId + '>', incomingTicketEmbed);
+
             ticketMsg.react(this.caveOptions.emojis.giveHelpEmoji);
 
             // initialize a ticket and add it to the Collection of active tickets
             var hackers = Array.from(promptMsg.mentions.users.values());
             let ticket = new Ticket(promptMsg.guild, promptMsg.content, this, user, hackers, this.ticketCount, ticketMsg, this.inactivePeriod, this.bufferTime);
             this.tickets.set(this.ticketCount, ticket);
+
+            // let user know that ticket was submitted and give option to remove ticket
+            let removeTicketEmoji = '⚔️';
+
+            let reqTicketUserEmbedMsg = await discordServices.sendEmbedToMember(user, {
+                title: 'Ticket was Successful!',
+                description: 'Your ticket to the ' + this.caveOptions.name + ' group was succesful!',
+                fields: [{
+                    title: 'Remove the ticket',
+                    description: 'If you don\'t need help anymore, react to this message with ' + removeTicketEmoji,
+                },
+            {
+                title: 'Ticket Description:',
+                description: promptMsg.content,
+            }]
+            });
+
+            let reqTicketUserEmbedMsgcollector = reqTicketUserEmbedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === removeTicketEmoji, {max: 1});
+            reqTicketUserEmbedMsgcollector.on('collect', (reaction, user) => {
+                ticketCollector.stop();
+                ticketMsg.edit(ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed by the user!'));
+                reqTicketUserEmbedMsg.delete({timeout: 3000});
+                discordServices.sendEmbedToMember(user, {
+                    title: 'Ticket Closed!',
+                    description: 'Your ticket has been closed!',
+                }, true);
+            });
+            reqTicketUserEmbedMsgcollector.on('end', (collected) => {
+                reqTicketUserEmbedMsg.edit(reqTicketUserEmbedMsg.embeds[0].addField('Ticket Open!', 'Your ticket has been opened! Good luck!'));
+            });
         });
     }
 
@@ -414,11 +455,10 @@ class Cave {
     /**
      * Will send the admin console embed and create the collector.
      * @param {Discord.TextChannel} adminConsole - the admin console
-     * @param {Discord.Snowflake} promptUserId - the user to prompt
      * @private
      * @async
      */
-    async sendAdminConsole(adminConsole, promptUserId) {
+    async sendAdminConsole(adminConsole) {
         // admin console embed
         const msgEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.embedColor)
@@ -569,7 +609,6 @@ class Cave {
                     }
                 }
             }
-
         });
     }
 

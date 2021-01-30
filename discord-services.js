@@ -133,7 +133,7 @@ var botSupportChannel = '784910416224583751';
 
 // channel where guests will use the !verify command,
 // usualy the welcome channel
-var welcomeChannel = '773401606120800257';
+var welcomeChannel = '743192401434378271';
 module.exports.welcomeChannel = welcomeChannel;
 var welcomeSupport = '742896827082211419';
 module.exports.welcomeSupport = welcomeSupport;
@@ -185,15 +185,17 @@ function checkForRole(member, role) {
 module.exports.checkForRole = checkForRole;
 
 /**
- * Send a Direct meesage to a member, option to delete after 10 seconds
+ * Send a Direct message to a member, option to delete after 10 seconds
  * @param {Discord.User | Discord.GuildMember} member - the user or member to send a DM to
- * @param {String} message - the message to send
+ * @param {String | Discord.MessageEmbed} message - the message to send
  * @param {Boolean} isDelete - weather to delete message after 10 seconds
+ * @async
+ * @return {Promise<Discord.Message>}
  */
 async function sendMessageToMember(member, message, isDelete = false) {
-    member.send(message).then(msg => {
+    return await member.send(message).then(msg => {
         if (isDelete === true) {
-            msg.delete({timeout: 15000})
+            msg.delete({timeout: 60000})
         }
         return msg;
     }).catch(error => {
@@ -206,6 +208,46 @@ async function sendMessageToMember(member, message, isDelete = false) {
     
 }
 module.exports.sendMessageToMember = sendMessageToMember;
+
+
+/**
+ * @typedef FieldInfo
+ * @property {String} title - field title
+ * @property {String} description - field description
+ */
+
+/**
+ * @typedef EmbedOptions
+ * @property {String} title - embed title
+ * @property {String} description - embed description
+ * @property {String} color - embed color
+ * @property {Array<FieldInfo>} fields - embed fields
+ */
+
+/**
+ * Sends an embed to a user via DM. Title and description are required, color and fields are optional.
+ * @param {Discord.User | Discord.GuildMember} member - member to send embed to
+ * @param {EmbedOptions} embedOptions - embed infomration
+ * @param {Boolean} isDelete - should the message be deleted after some time?
+ * @async
+ * @returns {Promise<Discord.Message>}
+ */
+async function sendEmbedToMember(member, embedOptions, isDelete = false) {
+    // check embedOptions
+    if (embedOptions?.title === undefined || embedOptions?.title === '') throw new Error('A title is needed for the embed!');
+    if (embedOptions?.description === undefined || embedOptions?.description === '') throw new Error('A description is needed for the embed!');
+    if (embedOptions?.color === undefined || embedOptions?.color === '') embedOptions.color === '#ff0000';
+
+    let embed = new Discord.MessageEmbed().setColor(embedOptions.color)
+                        .setTitle(embedOptions.title)
+                        .setDescription(embedOptions.description)
+                        .setTimestamp();
+
+    if (embedOptions?.fields) embedOptions.fields.forEach((fieldInfo, index) => embed.addField(fieldInfo.title, fieldInfo.description));
+
+    return sendMessageToMember(member, embed, isDelete);
+}
+module.exports.sendEmbedToMember = sendEmbedToMember;
 
 /**
  * Add a role to a member
@@ -265,58 +307,6 @@ function isAdminConsole(channel) {
 }
 module.exports.isAdminConsole = isAdminConsole;
 
-// will add given number of voice channels to the given activity, the category object of the activity is necessary
-async function addVoiceChannelsToActivity(activityName, number, category, channelManager, isPrivate, maxUsers = 0) {
-    // udpate db and get total number of channels
-    var total = await firebaseActivity.addVoiceChannels(activityName, number);
-
-    // grab index where channel naming should stampt, in case there are already channels made
-    var index = total - number;
-
-    // create voice channels
-    for (; index < total; index++) {
-        channelManager.create('🔊Room' + '-' + index, {
-            type: 'voice', 
-            parent: category, 
-            userLimit: maxUsers === 0 ? undefined : maxUsers
-        }).then(channel => {
-            channel.updateOverwrite(attendeeRole, {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true});
-            channel.updateOverwrite(sponsorRole, {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true});
-            channel.updateOverwrite(mentorRole, {MOVE_MEMBERS: true, USE_VAD: true});
-        }).catch(console.error);
-    }
-
-    return total;
-}
-module.exports.addVoiceChannelsToActivity = addVoiceChannelsToActivity;
-
-// will remove given number of voice channels from the activity
-// returns the final number of channels in the activity
-async function removeVoiceChannelsToActivity(activityName, number, category){
-    // udpate db and get total number of channels
-    var total = await firebaseActivity.removeVoiceChannels(activityName, number);
-
-    // grab the final number of channels there should be, no less than 0
-    var final = total - number;
-    if (final < 0) {
-        final = 0;
-    }
-
-    // grab index where channel naming should stampt, in case there are already channels made
-    // we remove one because we are counting from 0
-    // remove voice channels
-    for (var index = total - 1; index >= final; index--) {
-        var channelName = '🔊Room' + '-' + index;
-        var channel = await category.children.find(channel => channel.name.endsWith(channelName));
-        if (channel != undefined) {
-            deleteChannel(channel);
-        }
-    }
-
-    return final;
-}
-module.exports.removeVoiceChannelsToActivity = removeVoiceChannelsToActivity;
-
 // will make all voice channels except the general one private to attendees and sponsors
 async function changeVoiceChannelPermissions(activityName, category, toHide) {
     // udpate db and get total number of channels
@@ -360,8 +350,10 @@ module.exports.addLimitToVoiceChannels = addLimitToVoiceChannels;
  * @param {Number} timeout - the time to wait in milliseconds
  */
 function deleteMessage(message, timeout = 0) {
-    if (!message.deleted && message.deletable) {
+    if (!message.deleted && message.deletable &&  message.channel.type != 'dm') {
         message.delete({timeout: timeout});
+    } else if (message.channel.type === 'dm' && message.author.bot) {
+        message.delete({timeout: timeout})
     }
 }
 module.exports.deleteMessage = deleteMessage;

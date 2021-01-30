@@ -80,7 +80,7 @@ module.exports = class StartMentors extends PermissionCommand {
         if (isCreated) await cave.find(message.channel, message.author.id);
         else await cave.init(message.guild.channels);
 
-        await cave.sendConsoleEmbeds(adminConsole, message.author.id);
+        await cave.sendConsoleEmbeds(adminConsole);
 
         cave.checkForExcistingRoles(message.guild.roles, adminConsole, message.author.id);
     }
