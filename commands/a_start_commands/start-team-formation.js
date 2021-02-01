@@ -52,26 +52,31 @@ module.exports = class StartTeamFormation extends PermissionCommand {
          */
         this.lookingForMembersRole;
 
-        // create or find the two roles to be used
-        let areCreated = await Prompt.yesNoPrompt('Are the team formation roles already created?', message.channel, message.author.id);
+        try {
+            // create or find the two roles to be used
+            let areCreated = await Prompt.yesNoPrompt('Are the team formation roles already created?', message.channel, message.author.id);
 
-        if (areCreated) {
-            this.lookingForTeamRole = await Prompt.rolePrompt('Please tag the looking for team role!', message.channel, message.author.id);
-            this.lookingForMembersRole = await Prompt.rolePrompt('Please tag the looking for members role!', message.channel, message.author.id);
-        } else {
-            this.lookingForTeamRole = await message.guild.roles.create({
-                data: {
-                    name: 'looking for team',
-                    color: discordServices.tfHackerEmbedColor,
-                }
-            });
+            if (areCreated) {
+                this.lookingForTeamRole = await Prompt.rolePrompt('Please tag the looking for team role!', message.channel, message.author.id);
+                this.lookingForMembersRole = await Prompt.rolePrompt('Please tag the looking for members role!', message.channel, message.author.id);
+            } else {
+                this.lookingForTeamRole = await message.guild.roles.create({
+                    data: {
+                        name: 'looking for team',
+                        color: discordServices.tfHackerEmbedColor,
+                    }
+                });
 
-            this.lookingForMembersRole = await message.guild.roles.create({
-                data: {
-                    name: 'looking for members',
-                    color: discordServices.tfTeamEmbedColor,
-                }
-            });
+                this.lookingForMembersRole = await message.guild.roles.create({
+                    data: {
+                        name: 'looking for members',
+                        color: discordServices.tfTeamEmbedColor,
+                    }
+                });
+            }
+        } catch (error) {
+            message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
+            return;
         }
 
         // grab current channel
@@ -148,19 +153,18 @@ module.exports = class StartTeamFormation extends PermissionCommand {
      * @param {Discord.Guild} guild - the original command message
      * @param {Discord.Message} dmMsg - the first DM message with instructions
      * @param {Discord.ReactionCollector} collector - the reaction collector
-     * @param {Boolean} isResponging - if the user is already responding
+     * @param {Boolean} isResponding - if the user is already responding
      * @param {Boolean} isTeam - weather or not the user is a team
      */
-    async gatherForm(user, guild, dmMsg, collector, isResponging, isTeam) {
+    async gatherForm(user, guild, dmMsg, collector, isResponding, isTeam) {
 
-        let formMsg = await Prompt.messagePrompt('Please send me your completed form, if you do not follow the form your post will be deleted! You have 10 seconds to send your information.', 
-                                                    'string', user.dmChannel, user.id, 30);
-        
-
-        // check if the prompt timed out, if so, exit
-        if (formMsg === null) {
-            isResponging = !isResponging;
-            return;
+        try {
+            var formMsg = await Prompt.messagePrompt('Please send me your completed form, if you do not follow the form your post will be deleted!', 
+                'string', user.dmChannel, user.id, 30);
+        } catch (error) {
+            user.dmChannel.send('You have canceled the prompt. You can try again at any time!').then(msg => msg.delete({timeout: 10000}));
+            isResponding = !isResponding;
+            return;   
         }
 
         const publicEmbed = new Discord.MessageEmbed()
@@ -182,7 +186,7 @@ module.exports = class StartTeamFormation extends PermissionCommand {
 
         // stop the first collector to add a new one for removal
         collector.stop();
-        isResponging = !isResponging;
+        isResponding = !isResponding;
 
         // add role to the user
         discordServices.addRoleToMember(guild.member(user), isTeam ? this.lookingForMembersRole : this.lookingForTeamRole);

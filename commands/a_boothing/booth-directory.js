@@ -1,6 +1,5 @@
 const PermissionCommand = require('../../classes/permission-command');
 const Discord = require('discord.js');
-const { messagePrompt, rolePrompt } = require('../../classes/prompt');
 const discordServices = require('../../discord-services');
 const Prompt = require('../../classes/prompt');
 
@@ -30,16 +29,19 @@ module.exports = class BoothDirectory extends PermissionCommand {
  */
     async runCommand(message) {
 
-        let sponsorName = await messagePrompt('What is the sponsor name?', 'string', message.channel, message.author.id);
-        if (sponsorName === null) return;
-        else sponsorName = sponsorName.content;
+        try {
+            var sponsorName = await Prompt.messagePrompt('What is the sponsor name?', 'string', message.channel, message.author.id);
+            sponsorName = sponsorName.content;
 
-        let link = await messagePrompt('What is the sponsor link?', 'string', message.channel, message.author.id);
-        if (link === null) return;
-        else link = link.content;
+            var link = await Prompt.messagePrompt('What is the sponsor link?', 'string', message.channel, message.author.id);
+            link = link.content;
 
-        //ask user for role and save its id in the role variable
-        let role = await rolePrompt('What role will get pinged when booths open?', message.channel, message.author.id);
+            //ask user for role and save its id in the role variable
+            var role = await Prompt.rolePrompt('What role will get pinged when booths open?', message.channel, message.author.id);
+        } catch (error) {
+            message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
+            return;
+        }
 
         // prompt user for emoji to use
         let emoji = await Prompt.reactionPrompt('What emoji do you want to use?', message.channel, message.author.id);

@@ -143,31 +143,42 @@ class Cave {
      * @async
      */
     async find(channel, userID) {
-        let console = await Prompt.channelPrompt('What is the cave\'s console channel?', channel, userID);
-        let generalText = await Prompt.channelPrompt('What is the cave\'s general text channel?', channel, userID);
-        let incomingTickets = await Prompt.channelPrompt('What is the cave\'s incoming tickets channel?', channel, userID);
-        let outgoingTickets = await Prompt.channelPrompt('What is the cave\'s outgoing tickets channel?', channel, userID);
+        try {
+            let console = await Prompt.channelPrompt('What is the cave\'s console channel?', channel, userID);
+            let generalText = await Prompt.channelPrompt('What is the cave\'s general text channel?', channel, userID);
+            let incomingTickets = await Prompt.channelPrompt('What is the cave\'s incoming tickets channel?', channel, userID);
+            let outgoingTickets = await Prompt.channelPrompt('What is the cave\'s outgoing tickets channel?', channel, userID);
 
-        this.privateChannels = {
-            console: console,
-            category: console.parent,
-            generalText: generalText,
-            incomingTickets: incomingTickets,
-            voiceChannels: console.parent.children.filter(channel => channel.type === 'voice').array(),
-        };
+            this.privateChannels = {
+                console: console,
+                category: console.parent,
+                generalText: generalText,
+                incomingTickets: incomingTickets,
+                voiceChannels: console.parent.children.filter(channel => channel.type === 'voice').array(),
+            };
+    
+            this.publicChannels = {
+                outgoingTickets: outgoingTickets,
+                category: outgoingTickets.parent,
+            }
+    
+            // add request ticket channel to black list
+            discordServices.blackList.set(this.publicChannels.outgoingTickets.id, 5000);
+            
+            // delete everything from incoming outgoing and console
+            this.publicChannels.outgoingTickets.bulkDelete(100, true);
+            this.privateChannels.console.bulkDelete(100, true);
+            this.privateChannels.incomingTickets.bulkDelete(100, true);
+        } catch (error) {
+            try {
+                var isSure = await Prompt.yesNoPrompt('Are you sure you want to cancel? If you say yes, the channels will be created by me.', channel, userID);
+            } catch (error) {
+                this.init(channel.guild.channels);
+            }
 
-        this.publicChannels = {
-            outgoingTickets: outgoingTickets,
-            category: outgoingTickets.parent,
+            if (isSure) this.init(channel.guild.channels);
+            else this.find(channel, userID);
         }
-
-        // add request ticket channel to black list
-        discordServices.blackList.set(this.publicChannels.outgoingTickets.id, 5000);
-
-        // delete everything from incoming outgoing and console
-        this.publicChannels.outgoingTickets.bulkDelete(100, true);
-        this.privateChannels.console.bulkDelete(100, true);
-        this.privateChannels.incomingTickets.bulkDelete(100, true);
     }
 
     /**
@@ -343,11 +354,15 @@ class Cave {
                 return;
             }
 
-            let promptMsg = await Prompt.messagePrompt('Please send ONE message with: \n* A one liner of your problem ' +
-                '\n* Mention your team members using @friendName .', 'string', this.publicChannels.outgoingTickets, user.id, 45);
-
-            if (promptMsg === null) return;
-            else usersSubmittingTicket.delete(user.id);
+            try {
+                var promptMsg = await Prompt.messagePrompt('Please send ONE message with: \n* A one liner of your problem ' + 
+                                    '\n* Mention your team members using @friendName .', 'string', this.publicChannels.outgoingTickets, user.id, 45);
+            } catch (error) {
+                // prompt was canceled, cancel ticket and return;
+                return;
+            }
+            
+            usersSubmittingTicket.delete(user.id);
 
             var roleId;
             if (this.emojis.has(reaction.emoji.name)) roleId = this.emojis.get(reaction.emoji.name).id;
@@ -448,7 +463,13 @@ class Cave {
             reaction.users.remove(admin.id);
 
             if (reaction.emoji.name === this.adminEmojis.first().name) {
-                await this.newRole(adminConsole, admin.id);
+                try {
+                    await this.newRole(adminConsole, admin.id);
+                } catch (error) {
+                    adminConsole.send('<@' + admin.id + '> The role was not created!').then(msg => msg.delete({timeout: 5000}));
+                    return;
+                }
+            }
 
                 // let admin know the action was succesfull
                 adminConsole.send('<@' + admin.id + '> The role has been added!').then(msg => msg.delete({ timeout: 8000 }));
@@ -642,12 +663,12 @@ class Cave {
      * @param {Discord.TextChannel} channel - channel where to prompt
      * @param {Discord.Snowflake} userId - the user to prompt
      * @async
+     * @throws Throws an error if the prompt is canceled and the new role cant be created.
      */
     async newRole(channel, userId) {
-        let roleName = await Prompt.messagePrompt('What is the name of the new role?', 'string', channel, userId);
+        let roleNameMsg = await Prompt.messagePrompt('What is the name of the new role?', 'string', channel, userId);
 
-        if (roleName === null) return null
-        else roleName = roleName.content;
+        let roleName = roleNameMsg.content;
 
         let emoji = await this.promptAndCheckReaction('What emoji do you want to associate with this new role?', roleName, channel, userId);
 
@@ -666,7 +687,12 @@ class Cave {
 
         this.addRole(role, emoji);
 
-        let addPublic = await Prompt.yesNoPrompt('Do you want me to create a public text channel?', channel, userId);
+        try {
+            var addPublic = await Prompt.yesNoPrompt('Do you want me to create a public text channel?', channel, userId);
+        } catch (error) {
+            // if canceled treat it as a false
+            var addPublic = false;
+        }
 
         if (addPublic) {
             channel.guild.channels.create(roleName, {

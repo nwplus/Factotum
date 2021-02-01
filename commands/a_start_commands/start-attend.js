@@ -1,7 +1,6 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
-const { messagePrompt } = require('../../classes/prompt');
 const Prompt = require('../../classes/prompt');
 
 /**
@@ -35,31 +34,35 @@ module.exports = class StartAttend extends PermissionCommand {
     async runCommand(message) {
         var channel;
 
-        let existsChannel = await Prompt.yesNoPrompt('Is there already a channel that exists that hackers will be using !attend in?', message.channel, message.author.id);
+        try {
+            let existsChannel = await Prompt.yesNoPrompt('Is there already a channel that exists that hackers will be using !attend in?', message.channel, message.author.id);
 
-        if (existsChannel) {
-            //ask user to mention channel to be used for !attend
-            var channel = await Prompt.channelPrompt('Please mention the channel to be used for the !attend command. ', message.channel, message.author.id);
-        } else {
-            //ask user for category to create new attend channel under
-            let categoryReply = await messagePrompt('What category do you want the new attend channel under? ', 'string', message.channel, message.author.id, 20);
-            if (categoryReply == null) {
-                return;
-            }
-            var categoryName = categoryReply.content;
-            //create the channel
-            let newChannel = await message.guild.channels.create('attend')
-            // .then(newChannel => {
-            let category = message.guild.channels.cache.find(c => c.name.toLowerCase() == categoryName.toLowerCase() && c.type == 'category');
-            if (category) {
-                newChannel.setParent(category.id);
+            if (existsChannel) {
+                //ask user to mention channel to be used for !attend
+                channel = await Prompt.channelPrompt('Please mention the channel to be used for the !attend command. ', message.channel, message.author.id);
             } else {
-                message.channel.send('Invalid category name. Please try the command again.')
-                .then((msg) => msg.delete({timeout: 3000}));
-                return;
+                //ask user for category to create new attend channel under
+                let categoryReply = await Prompt.messagePrompt('What category do you want the new attend channel under? ', 'string', message.channel, message.author.id, 20);
+                
+                var categoryName = categoryReply.content;
+                //create the channel
+                let newChannel = await message.guild.channels.create('attend')
+                // .then(newChannel => {
+                let category = message.guild.channels.cache.find(c => c.name.toLowerCase() == categoryName.toLowerCase() && c.type == 'category');
+                if (category) {
+                    newChannel.setParent(category.id);
+                } else {
+                    message.channel.send('Invalid category name. Please try the command again.')
+                    .then((msg) => msg.delete({timeout: 3000}));
+                    return;
+                }
+                channel = newChannel;
             }
-            channel = newChannel;
+        } catch (error) {
+            message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
+            return;
         }
+
         //send embed with information and tagging hackers
         let attendEmoji = '🔋';
 
