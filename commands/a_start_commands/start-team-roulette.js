@@ -254,7 +254,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         const adminEmbed = new Discord.MessageEmbed().setColor(discordServices.colors.embedColor)
                                     .setTitle('Team Roulette Console')
                                     .setDescription('Team roulette is ready and operational! <#' + channel.id + '>.')
-                                    .addField('Check the list!', 'React with ' + listEmoji + ' to get a message with tea roulette team lists.');
+                                    .addField('Check the list!', 'React with ' + listEmoji + ' to get a message with the roulette team lists.');
 
         let adminEmbedMsg = await promptChannel.send(adminEmbed);
         adminEmbedMsg.react(listEmoji);
