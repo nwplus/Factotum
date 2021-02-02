@@ -90,6 +90,7 @@ module.exports = class InitBot extends Command {
                 let role = await guild.roles.create({
                     data: {
                         name: 'Stamp Role #' + i,
+                        hoist: true,
                     }
                 });
                 discordServices.stampRoles.set(i, role.id);
@@ -97,7 +98,50 @@ module.exports = class InitBot extends Command {
 
             channel.send('<@' + userId + '> The stamp roles have been created, you can change their name and/or color, but their stamp number is final!').then(msg => msg.delete({timeout: 60000}));
         }
+
+        // create the admin channel package
+        await this.createAdminChannels(guild, adminRole, staffRole);
+        channel.send('<@' + userId + '> The admin channels have been created successfully!').then(msg => msg.delete({timeout: 60000}));
         
+    }
+
+    /**
+     * Will create the admin channels with the correct roles.
+     * @param {Discord.Guild} guild 
+     * @param {Discord.Role} adminRole 
+     * @param {Discord.Role} staffRole 
+     */
+    async createAdminChannels(guild, adminRole, staffRole) {
+        let adminCategory = await guild.channels.create('Admins', {
+            type: 'category',
+            permissionOverwrites: [
+                {
+                    id: adminRole.id,
+                    allow: 'VIEW_CHANNEL'
+                },
+                {
+                    id: staffRole.id,
+                    deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'CONNECT']
+                },
+                {
+                    id: discordServices.roleIDs.isVerifiedRole,
+                    deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'CONNECT']
+                }
+            ]
+        });
+
+        let adminConsolChannel = await guild.channels.create('console', {
+            type: 'text',
+            parent: adminCategory,
+        });
+
+        let adminLogChannel = await guild.channels.create('logs', {
+            type: 'text',
+            parent: adminCategory,
+        });
+
+        discordServices.channelIDs.adminConsolChannel = adminConsolChannel.id;
+        discordServices.channelIDs.adminLogChannel = adminLogChannel.id;
     }
 
     /**
@@ -166,7 +210,7 @@ module.exports = class InitBot extends Command {
         discordServices.channelIDs.welcomeSupport = welcomeChannelSupport.id;
         discordServices.channelIDs.welcomeChannel = welcomeChannel.id;
         discordServices.roleIDs.guestRole = guestRole.id;
-        // todo add the isVerified role to discord services
+        discordServices.roleIDs.isVerifiedRole = isVerifiedRole.id;
     }
 
     /**
