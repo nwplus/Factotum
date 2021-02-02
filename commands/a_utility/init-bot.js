@@ -57,103 +57,125 @@ module.exports = class InitBot extends Command {
         adminRole.setMentionable(true);
         adminRole.setPermissions(adminRole.permissions.missing(['ADMINISTRATOR']));
 
+        discordServices.roleIDs.hackerRole = memberRole.id;
+        discordServices.roleIDs.staffRole = staffRole.id;
+        discordServices.roleIDs.adminRole = adminRole.id;
+
         // ask if verification will be used
-        let isVerification = await Prompt.yesNoPrompt('Will you be using the verification service?', channel, userId);
-
-        if (isVerification) {
-            this.client.registry.registerCommand(this.client.registry.commands.find('verify'));
-
-            // ask for guest role
-            const guestRole = await this.askOrCreate('guest', channel, userId, guild, '#969C9F');
-            guestRole.setMentionable(false);
-            guestRole.setPermissions(0); // no permissions, that is how it works
-
-            // change the everyone role permissions
-            everyoneRole.setPermissions(0); // no permissions for anything like the guest role
-
-            const isVerifiedRole = await guild.roles.create({
-                data: {
-                    name: 'isVerified',
-                    permissions: ['VIEW_CHANNEL', 'CHANGE_NICKNAME', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY', 
-                    'CONNECT', 'SPEAK', 'STREAM', 'USE_VAD']
-                }
-            });
-
-            let welcomeCategory = await guild.channels.create('Welcome', {
-                type: 'category',
-                permissionOverwrites: [
-                    {
-                        id: everyoneRole.id,
-                        allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
-                    },
-                    {
-                        id: isVerifiedRole.id,
-                        deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
-                    },
-                ],
-            });
-
-            let welcomeChannel = await guild.channels.create('welcome', {
-                type: 'text',
-                parent: welcomeCategory,
-                permissionOverwrites: [
-                    {
-                        id: everyoneRole.id,
-                        deny: ['SEND_MESSAGES']
-                    }
-                ],
-            });
-
-            let welcomeChannelSupport = await guild.channels.create('welcome-support', {
-                type: 'text',
-                parent: welcomeCategory,
-            });
-
-            const embed = new Discord.MessageEmbed.setTitle('Welcome to the ' + guild.name + ' Discord server!')
-                .setDescription('In order to verify that you have registered for ' + guild.name +', please respond to the bot (me) via DM!')
-                .addField('Do you need assistance?', 'Head over to the welcome-support channel and ping the admins!')
-                .setColor(discordServices.colors.embedColor);
-            welcomeChannel.send(embed).then(msg => msg.pin());
-
-            discordServices.channelIDs.welcomeSupport = welcomeChannelSupport.id;
-            discordServices.channelIDs.welcomeChannel = welcomeChannel.id;
-            discordServices.roleIDs.guestRole = guestRole.id;
-            // todo add the isVerified role to discord services
+        if (await Prompt.yesNoPrompt('Will you be using the verification service?', channel, userId)) {
+            await this.setVerification(channel, userId, guild, everyoneRole);
         }
 
-        let isAnnouncementsSet = await Prompt.yesNoPrompt('Have firebase announcements been set code-side? If not say no, or the bot will fail!');
-
-        if (isAnnouncementsSet) {
-            try {
-                let announcementChannel = await Prompt.channelPrompt('What channel should announcements be sent to? If you don\'t have it, create it and come back, do not cancel.');
-
-                // var to mark if gotten documents once
-                var isInitState = true;
-
-                // start query listener for announcements
-                nwFirebase.firestore().collection('Hackathons').doc('nwHacks2021').collection('Announcements').onSnapshot(querySnapshot => {
-                    // exit if we are at the initial state
-                    if (isInitState) {
-                        isInitState = false;
-                        return;
-                    }
-
-                    querySnapshot.docChanges().forEach(change => {
-                        if (change.type === 'added') {
-                            const embed = new Discord.MessageEmbed()
-                                .setColor(discordServices.colors.announcementEmbedColor)
-                                .setTitle('Announcement')
-                                .setDescription(change.doc.data()['content']);
-                            
-                                announcementChannel.send('<@&' + discordServices.roleIDs.attendeeRole + '>', {embed: embed});
-                        }
-                    });
-                });
-            } catch (error) {
-                channel.send('<@' + userId + '> The announcement feature was canceled!').then(msg => msg.delete({timeout: 60000}));
-            }
+        // ask if the announcements will be used
+        if (await Prompt.yesNoPrompt('Have firebase announcements been set code-side? If not say no, or the bot will fail!')) {
+            await this.setAnnouncements(channel, userId);
         }
         
+    }
+
+    /**
+     * Will set the verification process, and prep the server to use it.
+     * @param {Discord.TextChannel} channel 
+     * @param {Discord.Snowflake} userId 
+     * @param {Discord.Guild} guild 
+     * @param {Discord.Role} everyoneRole 
+     */
+    async setVerification(channel, userId, guild, everyoneRole) {
+        this.client.registry.registerCommand(this.client.registry.commands.find('verify'));
+
+        // ask for guest role
+        const guestRole = await this.askOrCreate('guest', channel, userId, guild, '#969C9F');
+        guestRole.setMentionable(false);
+        guestRole.setPermissions(0); // no permissions, that is how it works
+
+
+        // change the everyone role permissions
+        everyoneRole.setPermissions(0); // no permissions for anything like the guest role
+
+        const isVerifiedRole = await guild.roles.create({
+            data: {
+                name: 'isVerified',
+                permissions: ['VIEW_CHANNEL', 'CHANGE_NICKNAME', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY',
+                    'CONNECT', 'SPEAK', 'STREAM', 'USE_VAD']
+            }
+        });
+
+        let welcomeCategory = await guild.channels.create('Welcome', {
+            type: 'category',
+            permissionOverwrites: [
+                {
+                    id: everyoneRole.id,
+                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                },
+                {
+                    id: isVerifiedRole.id,
+                    deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                },
+            ],
+        });
+
+        let welcomeChannel = await guild.channels.create('welcome', {
+            type: 'text',
+            parent: welcomeCategory,
+            permissionOverwrites: [
+                {
+                    id: everyoneRole.id,
+                    deny: ['SEND_MESSAGES']
+                }
+            ],
+        });
+
+        let welcomeChannelSupport = await guild.channels.create('welcome-support', {
+            type: 'text',
+            parent: welcomeCategory,
+        });
+
+        const embed = new Discord.MessageEmbed.setTitle('Welcome to the ' + guild.name + ' Discord server!')
+            .setDescription('In order to verify that you have registered for ' + guild.name + ', please respond to the bot (me) via DM!')
+            .addField('Do you need assistance?', 'Head over to the welcome-support channel and ping the admins!')
+            .setColor(discordServices.colors.embedColor);
+        welcomeChannel.send(embed).then(msg => msg.pin());
+
+        discordServices.channelIDs.welcomeSupport = welcomeChannelSupport.id;
+        discordServices.channelIDs.welcomeChannel = welcomeChannel.id;
+        discordServices.roleIDs.guestRole = guestRole.id;
+        // todo add the isVerified role to discord services
+    }
+
+    /**
+     * Will set the announcements from firebase.
+     * @param {Discord.TextChannel} channel 
+     * @param {Discord.Snowflake} userId 
+     */
+    async setAnnouncements(channel, userId) {
+        try {
+            let announcementChannel = await Prompt.channelPrompt('What channel should announcements be sent to? If you don\'t have it, create it and come back, do not cancel.');
+
+            // var to mark if gotten documents once
+            var isInitState = true;
+
+            // start query listener for announcements
+            nwFirebase.firestore().collection('Hackathons').doc('nwHacks2021').collection('Announcements').onSnapshot(querySnapshot => {
+                // exit if we are at the initial state
+                if (isInitState) {
+                    isInitState = false;
+                    return;
+                }
+
+                querySnapshot.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        const embed = new Discord.MessageEmbed()
+                            .setColor(discordServices.colors.announcementEmbedColor)
+                            .setTitle('Announcement')
+                            .setDescription(change.doc.data()['content']);
+
+                        announcementChannel.send('<@&' + discordServices.roleIDs.attendeeRole + '>', { embed: embed });
+                    }
+                });
+            });
+        } catch (error) {
+            channel.send('<@' + userId + '> The announcement feature was canceled!').then(msg => msg.delete({ timeout: 60000 }));
+        }
     }
 
     /**
