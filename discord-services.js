@@ -6,52 +6,21 @@ const Discord = require('discord.js');
  * All the available roles from server creation.
  */
 module.exports.roleIDs = {
-    guestRole : '778651193362481213',
-    hackerRole : '738519785028976741',
-    attendeeRole : '742896999556448357',
-    mentorRole : '747527454200955051',
-    sponsorRole : '738519983981723748',
-    staffRole : '738519363904077916',
-    adminRole : '738491577596641311',
-    everyoneRole : '738475671977722058',
+    guestRole : null,
+    hackerRole : null,
+    attendeeRole : null,
+    mentorRole : null,
+    sponsorRole : null,
+    staffRole : null,
+    adminRole : null,
+    everyoneRole : null,
 }
-
-var stamp0Role = '776690929557831680';
-var stamp1Role = '776694051482107944';
-var stamp2Role = '777163284679229461';
-var stamp3Role = '777163346456870913';
-var stamp4Role = '777163367814922250';
-var stamp5Role = '777163388631253002';
-var stamp6Role = '777163410269011990';
-var stamp7Role = '777163427328163850';
-var stamp8Role = '777163452560048168';
-var stamp9Role = '777163468053938186';
-var stamp10Role = '777163488019480586';
-var stamp11Role = '777163506902237196';
-var stamp12Role = '777163524568776704';
-var stamp12Role = '777163524568776704';
-var stamp13Role = '784224112909221948';
-var stamp14Role = '784224898230779945';
-var stamp15Role = '784224924633923635';
-var stamp16Role = '784224943730327592';
-var stamp17Role = '781404770803908609';
-var stamp18Role = '781404769133527040';
-var stamp19Role = '784224999698726942';
-var stamp20Role = '784225017172590622';
-
-/**
- * We need this role available for when users verify. The first stamp role.
- */
-module.exports.stamp0Role = stamp0Role;
 
 /**
  * A collection of all the stamp roles.
  * @type {Discord.Collection<Number, String>} - <StampNumber, roleID>
  */
 var stampRoles = new Discord.Collection();
-let listOfStampRoles = [stamp0Role, stamp1Role, stamp2Role, stamp3Role, stamp4Role, stamp5Role, stamp6Role, stamp7Role, stamp8Role, stamp9Role, stamp10Role, stamp11Role,
-    stamp12Role, stamp13Role, stamp14Role, stamp15Role, stamp16Role, stamp17Role, stamp18Role, stamp19Role, stamp20Role];
-listOfStampRoles.forEach((value, index) => stampRoles.set(index, value));
 module.exports.stampRoles = stampRoles;
 
 /**
@@ -107,13 +76,15 @@ module.exports.channelIDs = {
 
     /**
      * The first channel users have access to, where the verify command is used.
+     * @type {String}
      */
-    welcomeChannel : '743192401434378271',
+    welcomeChannel : null,
 
     /**
      * Support channel available to new users.
+     * @type {String}
      */
-    welcomeSupport : '742896827082211419',
+    welcomeSupport : null,
 }
 
 
