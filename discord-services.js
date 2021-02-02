@@ -82,10 +82,6 @@ module.exports.stampCollectTime = stampCollectTime;
 // Common channels
 
 module.exports.channelIDs = {
-    /**
-     * Where announcements should be sent.
-     */
-    announcementChannel : '784254136040161310',
 
     /**
      * The admin console where admins can run commands.
