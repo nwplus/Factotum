@@ -30,7 +30,7 @@ module.exports = class StartMentors extends PermissionCommand {
      */
     async runCommand(message) {
         try {
-            var emojis = []; //array to keep the names of the emojis used so far, used to check for duplicates
+            var emojis = new Collection(); //collection to keep the names of the emojis used so far, used to check for duplicates
 
             //ask user for each emoji
             let joinTicketEmoji = await checkForDuplicateEmojis('What is the join ticket emoji?');
@@ -44,15 +44,11 @@ module.exports = class StartMentors extends PermissionCommand {
              * 
              * @param {String} prompt - message to ask user to choose an emoji for a function
              * 
-             * Gets user's react and compares its name with that of the other emojis already in the array and keeps asking if the given
-             * emoji is a duplicate. Returns the emoji as soon as the user gives a valid one.
+             * Gets user's reaction and adds them to the emoji collection.
              */
             async function checkForDuplicateEmojis(prompt) {
-                var emoji = await Prompt.reactionPrompt(prompt, message.channel, message.author.id);
-                while (emojis.includes(emoji.name)) {
-                    emoji = await Prompt.reactionPrompt('No duplicate emojis allowed! ' + prompt, message.channel, message.author.id);
-                }
-                emojis.push(emoji.name);
+                var emoji = await Prompt.reactionPrompt(prompt, message.channel, message.author.id, emojis);
+                emojis.set(emoji.name, emoji);
                 return emoji;
             }
 
