@@ -64,7 +64,8 @@ bot.registry
         unknownCommand: false,
         help: false,
     })
-    .registerCommandsIn(__dirname + '/commands');
+    .registerCommandsIn(__dirname + '/commands')
+    .registerCommand(bot.registry.findCommands('init-bot', true)[0]);
 
 bot.once('ready', async () => {
     console.log(`Logged in as ${bot.user.tag}!`);
