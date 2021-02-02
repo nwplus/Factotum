@@ -67,10 +67,6 @@ module.exports = class ClearChat extends PermissionCommand {
                     })
                 });
             }
-            // create channel
-            else if (message.channel.id === discordServices.channelcreationChannel) {
-                commands = this.client.registry.findCommands('createchannel');
-            }
             // any other channels will send the hacker commands
             else {
                 commands = this.client.registry.findGroups('utility')[0].commands.array();
