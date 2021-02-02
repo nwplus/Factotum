@@ -81,6 +81,22 @@ module.exports = class InitBot extends Command {
         if (await Prompt.yesNoPrompt('Have firebase announcements been set code-side? If not say no, or the bot will fail!')) {
             await this.setAnnouncements(channel, userId);
         }
+
+        // ask if the stamps will be used
+        if (await Prompt.yesNoPrompt('Will you be using the stamp service?', channel, userId)) {
+            let numberOfStamps = await Prompt.numberPrompt('How many stamps do you want? This number is final!', channel, userId);
+
+            for (let i = 0; i < numberOfStamps; i++) {
+                let role = await guild.roles.create({
+                    data: {
+                        name: 'Stamp Role #' + i,
+                    }
+                });
+                discordServices.stampRoles.set(i, role.id);
+            }
+
+            channel.send('<@' + userId + '> The stamp roles have been created, you can change their name and/or color, but their stamp number is final!').then(msg => msg.delete({timeout: 60000}));
+        }
         
     }
 
