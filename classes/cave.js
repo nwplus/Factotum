@@ -627,11 +627,7 @@ class Cave {
      * @returns {Promise<Discord.GuildEmoji | Discord.ReactionEmoji>}
      */
     async promptAndCheckReaction(prompt, roleName, promptChannel, userId) {
-        let emoji = await Prompt.reactionPrompt(prompt + ' ' + roleName + '.', promptChannel, userId);
-        if (this.emojis.has(emoji.name)) {
-            promptChannel.send('<@' + userId + '> That emoji is already in use! Try again!').then(msg => msg.delete({ timeout: 8000 }));
-            return this.promptAndCheckReaction(prompt, roleName, promptChannel, userId);
-        } else return emoji;
+        return await Prompt.reactionPrompt(prompt + ' ' +  roleName + '.', promptChannel, userId, this.emojis);
     }
 
 

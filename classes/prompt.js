@@ -68,13 +68,20 @@ class Prompt {
      * @param {String} prompt - the text prompt to send to user
      * @param {Discord.TextChannel} channel - the channel to send the prompt to
      * @param {String} userID - the ID of the user to prompt
+     * @param {Discord.Collection<String, Discord.Emoji>} unavailableEmojis - <emoji name, emoji>, the emojis the user can't select, re-prompt if necessary
      * @async
      * @returns {Promise<Discord.GuildEmoji | Discord.ReactionEmoji>} - the message reaction
      */
-    static async reactionPrompt(prompt, channel, userID) {
+    static async reactionPrompt(prompt, channel, userID, unavailableEmojis = new Map()) {
         let reactionMsg = await channel.send('<@' + userID + '> ' + prompt + ' React to this message with the emoji.');
-        let reactions = await reactionMsg.awaitReactions((reaction, user) => !user.bot, {max: 1});
+        let reactions = await reactionMsg.awaitReactions((reaction, user) => !user.bot && user.id === userID, {max: 1});
         discordServices.deleteMessage(reactionMsg);
+
+        if (unavailableEmojis.has(reactions.first().emoji.name)) {
+            channel.send('<@' + userID + '> The emoji you choose is already in use, please try again!').then(msg => msg.delete({timeout: 5000}));
+            return this.reactionPrompt(prompt, channel, userID, unavailableEmojis);
+        }
+
         return reactions.first().emoji;
     }
   
