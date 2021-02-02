@@ -128,6 +128,24 @@ function checkForRole(member, role) {
 module.exports.checkForRole = checkForRole;
 
 /**
+ * Will send a message to a text channel and ping the user, can be deleted after a timeout.
+ * @param {Discord.TextChannel} channel - the channel to send the message to
+ * @param {Discord.Snowflake} userId - the user to tag on the message
+ * @param {String} message - the message to send
+ * @param {Number} timeout - timeout before delete if any, in seconds
+ * @async
+ * @returns {Promise<Discord.Message>}
+ */
+async function sendMsgToChannel(channel, userId, message, timeout = 0) {
+    let msg = await channel.send('<@' + userId + '> ' + message);
+
+    if (timeout) msg.delete({timeout: timeout * 1000}); // convert to milliseconds
+
+    return msg;
+}
+module.exports.sendMsgToChannel = sendMsgToChannel;
+
+/**
  * Send a Direct message to a member, option to delete after 10 seconds
  * @param {Discord.User | Discord.GuildMember} member - the user or member to send a DM to
  * @param {String | Discord.MessageEmbed} message - the message to send
