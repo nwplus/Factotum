@@ -12,7 +12,7 @@ module.exports = class StartAttend extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'startatt',
-            group: 'a_utility',
+            group: 'verification',
             memberName: 'initiate attend process',
             description: 'identifies/makes a channel to be used for !attend and notifies people',
             guildOnly: true,

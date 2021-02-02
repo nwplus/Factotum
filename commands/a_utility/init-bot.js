@@ -66,6 +66,17 @@ module.exports = class InitBot extends Command {
             await this.setVerification(channel, userId, guild, everyoneRole);
         }
 
+        // ask if attendance will be used
+        if (await Prompt.yesNoPrompt('Will you be using the attendance service?', channel, userId)) {
+            this.client.registry.registerCommand(this.client.registry.commands.find('startatt'));
+
+            const attendeeRole = await this.askOrCreate('attendee', channel, userId, guild, '#0099E1');
+            discordServices.roleIDs.attendeeRole = attendeeRole.id;
+        } else {
+            // if attendance will not be used then set it to the same role ID as the regular member
+            discordServices.roleIDs.attendeeRole = discordServices.roleIDs.hackerRole;
+        }
+
         // ask if the announcements will be used
         if (await Prompt.yesNoPrompt('Have firebase announcements been set code-side? If not say no, or the bot will fail!')) {
             await this.setAnnouncements(channel, userId);
