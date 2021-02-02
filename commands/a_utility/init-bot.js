@@ -69,7 +69,7 @@ module.exports = class InitBot extends Command {
 
         // ask if attendance will be used
         if (await Prompt.yesNoPrompt('Will you be using the attendance service?', channel, userId)) {
-            this.client.registry.registerCommand(this.client.registry.commands.find('startatt'));
+            this.client.registry.registerCommand(this.client.registry.findCommands('startatt', true)[0]);
 
             const attendeeRole = await this.askOrCreate('attendee', channel, userId, guild, '#0099E1');
             discordServices.roleIDs.attendeeRole = attendeeRole.id;
@@ -115,13 +115,18 @@ module.exports = class InitBot extends Command {
             let incomingReportChannel = await Prompt.channelPrompt('What channel should prompts be sent to? We recommend this channel be accessible to your staff.');
             discordServices.channelIDs.incomingReportChannel = incomingReportChannel.id;
 
-            this.client.registry.registerCommand(this.client.registry.commands.find('report'));
+            this.client.registry.registerCommand(this.client.registry.findCommands('report', true)[0]);
         }
 
         // ask if the user wants to use the experimental !ask command
         if (await Prompt.yesNoPrompt('Do you want to let users use the experimental !ask command?', channel, userId)) {
-            this.client.registry.registerCommand(this.client.registry.commands.find('ask'));
+            this.client.registry.registerCommand(this.client.registry.findCommands('ask', true)[0]);
         }
+
+        this.client.registry.registerGroup('a_boothing', 'boothing group for admins')
+            .registerGroup('a_activity', 'activity group for admins')
+            .registerGroup('a_start_commands', 'advanced admin commands')
+            .registerGroup('a_utility', 'utility commands for admins');
     }
 
     /**
@@ -171,7 +176,7 @@ module.exports = class InitBot extends Command {
      * @param {Discord.Role} everyoneRole 
      */
     async setVerification(channel, userId, guild, everyoneRole) {
-        this.client.registry.registerCommand(this.client.registry.commands.find('verify'));
+        this.client.registry.registerCommand(this.client.registry.findCommands('verify', true)[0]);
 
         // ask for guest role
         const guestRole = await this.askOrCreate('guest', channel, userId, guild, '#969C9F');
