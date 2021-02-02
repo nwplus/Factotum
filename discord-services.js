@@ -14,6 +14,7 @@ module.exports.roleIDs = {
     staffRole : null,
     adminRole : null,
     everyoneRole : null,
+    isVerifiedRole: null,
 }
 
 /**
@@ -57,12 +58,12 @@ module.exports.channelIDs = {
     /**
      * The admin console where admins can run commands.
      */
-    adminConsolChannel : '748955441484005488',
+    adminConsolChannel : null,
 
     /**
      * The channel where the bot will log things.
      */
-    adminLogChannel : '743197503884755045',
+    adminLogChannel : null,
 
     /**
      * Where the bot can send messages to users when DM is not available.
