@@ -46,7 +46,7 @@ module.exports = class Verificaiton extends PermissionCommand {
         }
 
         // check if the user needs to verify, else warn and return
-        if (!discordServices.checkForRole(member, discordServices.guestRole)) {
+        if (!discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
             discordServices.sendEmbedToMember(member, {
                 title: 'Verify Error',
                 description: 'You do not need to verify, you are already more than a guest!'
@@ -63,29 +63,29 @@ module.exports = class Verificaiton extends PermissionCommand {
         // embed to send
         const embed = new Discord.MessageEmbed()
             .setTitle('Verification Process')
-            .setColor(discordServices.specialDMEmbedColor);
+            .setColor(discordServices.colors.specialDMEmbedColor);
     
         switch(status) {
             case firebaseServices.status.HACKER_SUCCESS:
                 embed.addField('You Have Been Verified!', 'Thank you for verifying your status with us, you now have access to most of the server.')
                     .addField('Don\'t Forget!', 'Remember you need to !attend <your email> in the attend channel that will open a few hours before the hackathon begins.');
-                discordServices.replaceRoleToMember(member, discordServices.guestRole, discordServices.hackerRole);
+                discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.hackerRole);
                 discordServices.addRoleToMember(member,discordServices.stamp0Role);
                 discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a hacker!");
                 break;
             case firebaseServices.status.SPONSOR_SUCCESS:
                 embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of nwhacks 2021 and for joining our discord!');
-                discordServices.replaceRoleToMember(member, discordServices.guestRole, discordServices.sponsorRole);
+                discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.sponsorRole);
                 discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a sponsor!");
                 break;
             case firebaseServices.status.MENTOR_SUCCESS:
                 embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of nwhacks 2021 and for joining our discord!');
-                discordServices.replaceRoleToMember(member, discordServices.guestRole, discordServices.mentorRole);
+                discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.mentorRole);
                 discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and he is now a mentor!");
                 break;
             case firebaseServices.status.STAFF_SUCCESS:
                 embed.addField('Welcome To Your Server!', 'Welcome to your discord server! If you need to know more about what I can do please call !help.');
-                discordServices.replaceRoleToMember(member, discordServices.guestRole, discordServices.staffRole);
+                discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.staffRole);
                 discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and he is now a staff!");
                 break;
             case firebaseServices.status.FAILURE:

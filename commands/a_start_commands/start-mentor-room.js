@@ -16,12 +16,12 @@ module.exports = class StartMentors extends PermissionCommand {
             guildOnly: true,
             args: [],
         },
-            {
-                channelID: discordServices.adminConsoleChannel,
-                channelMessage: 'This command can only be used in the admin console!',
-                roleID: discordServices.adminRole,
-                roleMessage: 'You do not have permision for this command, only admins can use it!',
-            });
+        {
+            channelID: discordServices.adminConsoleChannel,
+            channelMessage: 'This command can only be used in the admin console!',
+            roleID: discordServices.roleIDs.adminRole,
+            roleMessage: 'You do not have permission for this command, only admins can use it!',
+        });
     }
 
     /**

@@ -209,13 +209,14 @@ class Cave {
     async initPrivate(guildChannelManager) {
         // Create category
         this.privateChannels.category = await guildChannelManager.create(this.caveOptions.preEmojis + this.caveOptions.name + ' Cave', {
-            type: 'category', permissionOverwrites: [
+            type: 'category',  
+            permissionOverwrites: [
                 {
-                    id: discordServices.hackerRole,
+                    id: discordServices.roleIDs.hackerRole,
                     deny: ['VIEW_CHANNEL'],
                 },
                 {
-                    id: discordServices.attendeeRole,
+                    id: discordServices.roleIDs.attendeeRole,
                     deny: ['VIEW_CHANNEL'],
                 },
                 {
@@ -224,11 +225,11 @@ class Cave {
                     deny: ['SEND_MESSAGES'],
                 },
                 {
-                    id: discordServices.sponsorRole,
+                    id: discordServices.roleIDs.sponsorRole,
                     deny: ['VIEW_CHANNEL'],
                 },
                 {
-                    id: discordServices.staffRole,
+                    id: discordServices.roleIDs.staffRole,
                     allow: ['VIEW_CHANNEL'],
                 }
             ]
@@ -271,13 +272,14 @@ class Cave {
     async initPublic(guildChannelManager) {
         // create help public channels category
         this.publicChannels.category = await guildChannelManager.create('👉🏽👈🏽' + this.caveOptions.name + ' Help', {
-            type: 'category', permissionOverwrites: [
+            type: 'category', 
+            permissionOverwrites: [
                 {
-                    id: discordServices.hackerRole,
+                    id: discordServices.roleIDs.hackerRole,
                     deny: ['VIEW_CHANNEL'],
                 },
                 {
-                    id: discordServices.attendeeRole,
+                    id: discordServices.roleIDs.attendeeRole,
                     allow: ['VIEW_CHANNEL'],
                 },
                 {
@@ -285,11 +287,11 @@ class Cave {
                     allow: ['VIEW_CHANNEL'],
                 },
                 {
-                    id: discordServices.sponsorRole,
+                    id: discordServices.roleIDs.sponsorRole,
                     allow: ['VIEW_CHANNEL'],
                 },
                 {
-                    id: discordServices.staffRole,
+                    id: discordServices.roleIDs.staffRole,
                     allow: ['VIEW_CHANNEL'],
                 }
             ]
@@ -327,7 +329,7 @@ class Cave {
     async sendRequestConsole() {
         // cave request ticket embed
         const requestTicketEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle('Ticket Request System')
             .setDescription('If you or your team want to talk with a ' + this.caveOptions.name + ' follow the instructions below:' +
                 '\n* React to this message with the correct emoji and follow instructions' +
@@ -377,7 +379,6 @@ class Cave {
                 .setDescription('<@' + user.id + '> has the question: ' + promptMsg.content)
                 .addField('They are requesting:', '<@&' + roleId + '>')
                 .addField('Can you help them?', 'If so, react to this message with ' + this.caveOptions.emojis.giveHelpEmoji.toString() + '.');
-
 
             let ticketMsg = await this.privateChannels.incomingTickets.send('<@&' + roleId + '>', incomingTicketEmbed);
 
@@ -443,7 +444,7 @@ class Cave {
     async sendAdminConsole(adminConsole) {
         // admin console embed
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle(this.caveOptions.name + ' Cave Console')
             .setDescription(this.caveOptions.name + ' cave options are found below.')
             .addField('Add a role', 'To add a role please click the ' + this.caveOptions.emojis.addRoleEmoji.toString() + ' emoji.')
@@ -469,10 +470,10 @@ class Cave {
                     adminConsole.send('<@' + admin.id + '> The role was not created!').then(msg => msg.delete({timeout: 5000}));
                     return;
                 }
-            }
 
                 // let admin know the action was succesfull
                 adminConsole.send('<@' + admin.id + '> The role has been added!').then(msg => msg.delete({ timeout: 8000 }));
+
             } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[1]) { // check if the delete channels emoji was selected
                 // ask user whether they want to delete all channels / all channels older than an age that they specify, or specific channels
                 let all = await Prompt.yesNoPrompt('Type "yes" if you would like to delete all ticket channels (you can also specify to delete all channels older than a certain age if you choose this option),\n' +
@@ -481,7 +482,7 @@ class Cave {
                     // if user chose to delete all ticket channels, ask if they would like to delete all channels or all channels over
                     // a certain age
                     let deleteNow = await Prompt.yesNoPrompt('All ticket categories older than a minute will be deleted. ' +
-                        'Type "yes" to confirm or "no" to set a different timeframe. Careful - this cannot be undone!', adminConsole, admin.id);
+                        'Type "yes" to confirm or "no" to set a different timescale. Careful - this cannot be undone!', adminConsole, admin.id);
                     // get the age in minutes of the channels to delete if they wanted to specify an age
                     var age;
                     (deleteNow) ? age = 1 : age = await Prompt.numberPrompt('Enter the number of minutes. ' +
@@ -642,7 +643,7 @@ class Cave {
      * @private
      */
     addRole(role, emoji, currentActiveUsers = 0) {
-        // add to the emoji collectioin
+        // add to the emoji collection
         this.emojis.set(emoji.name, {
             name: role.name.substring(this.caveOptions.preRoleText.length + 1),
             id: role.id,

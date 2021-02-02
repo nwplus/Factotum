@@ -66,7 +66,7 @@ bot.once('ready', async () => {
     bot.user.setActivity('Ready to hack!');
 
     // add verify and attend channels to the black list
-    discordServices.blackList.set(discordServices.welcomeChannel, 3000);
+    discordServices.blackList.set(discordServices.channelIDs.welcomeChannel, 3000);
 
     // check roles
     // we asume the bot is only in one guild!
@@ -108,13 +108,13 @@ bot.once('ready', async () => {
     }
 
     // update values for discord services role snowflake
-    discordServices.everyoneRole = roleManager.everyone.id;
-    discordServices.hackerRole = foundRoles.get('Hacker')[1];
-    discordServices.guestRole = foundRoles.get('Guest')[1];
-    discordServices.attendeeRole = foundRoles.get('Attendee')[1];
-    discordServices.mentorRole = foundRoles.get('Mentor')[1];
-    discordServices.sponsorRole = foundRoles.get('Sponsor')[1];
-    discordServices.staffRole = foundRoles.get('Staff')[1];
+    discordServices.roleIDs.everyoneRole = roleManager.everyone.id;
+    discordServices.roleIDs.hackerRole = foundRoles.get('Hacker')[1];
+    discordServices.roleIDs.guestRole = foundRoles.get('Guest')[1];
+    discordServices.roleIDs.attendeeRole = foundRoles.get('Attendee')[1];
+    discordServices.roleIDs.mentorRole = foundRoles.get('Mentor')[1];
+    discordServices.roleIDs.sponsorRole = foundRoles.get('Sponsor')[1];
+    discordServices.roleIDs.staffRole = foundRoles.get('Staff')[1];
 
     // var to mark if gotten documents once
     var isInitState = true;
@@ -130,11 +130,11 @@ bot.once('ready', async () => {
         querySnapshot.docChanges().forEach(change => {
             if (change.type === 'added') {
                 const embed = new Discord.MessageEmbed()
-                    .setColor(discordServices.announcementEmbedColor)
+                    .setColor(discordServices.colors.announcementEmbedColor)
                     .setTitle('Announcement')
                     .setDescription(change.doc.data()['content']);
                 
-                guild.channels.resolve(discordServices.announcementChannel).send('<@&' + discordServices.attendeeRole + '>', {embed: embed});
+                guild.channels.resolve(discordServices.channelIDs.announcementChannel).send('<@&' + discordServices.roleIDs.attendeeRole + '>', {embed: embed});
             }
         })
     })
@@ -227,7 +227,7 @@ bot.on('message', async message => {
     // this is to make sure that if the message is for the bot, it is able to get it
     // bot and staff messeges are not deleted
     if (discordServices.blackList.has(message.channel.id)) {
-        if (!message.author.bot && !discordServices.checkForRole(message.member, discordServices.staffRole)) {
+        if (!message.author.bot && !discordServices.checkForRole(message.member, discordServices.roleIDs.staffRole)) {
             (new Promise(res => setTimeout(res, discordServices.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
         }
     }
@@ -243,15 +243,15 @@ bot.on('guildMemberAdd', member => {
         .addField('Gain more access by verifying yourself!', 'Go back to the welcome channel and use the !verify command. More info there!')
         .addField('Have a question?', 'Go to the welcome-assistance channel to talk with our staff!')
         .addField('Want to learn more about what I can do?', 'Use the !help command anywhere and I will send you a message!')
-        .setColor(discordServices.embedColor);
+        .setColor(discordServices.colors.embedColor);
 
     // found a bug where if poeple have DMs turned off, this send embed will fail and can make the role setup fail as well
     // we will add a .then where the user will get pinged on welcome-support to let him know to turn on DM from server
     member.send(embed).then(() => {
-        discordServices.addRoleToMember(member, discordServices.guestRole);
+        discordServices.addRoleToMember(member, discordServices.roleIDs.guestRole);
     }).catch((error) => {
         if (error.code === 50007) {
-            member.guild.channels.resolve(discordServices.welcomeSupport).send('<@' + member.id + '> I couldn\'t reach you :(.' + 
+            member.guild.channels.resolve(discordServices.channelIDs.welcomeSupport).send('<@' + member.id + '> I couldn\'t reach you :(.' + 
                 '\n* Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-' + 
                 '\n* Once this is done, please react to this message with 🤖 to let me know!').then(msg => {
                     msg.react('🤖');
@@ -260,10 +260,10 @@ bot.on('guildMemberAdd', member => {
                     collector.on('collect', (reaction, user) => {
                         reaction.users.remove(user.id);
                         member.send(embed).then(msg => {
-                            discordServices.addRoleToMember(member, discordServices.guestRole);
+                            discordServices.addRoleToMember(member, discordServices.roleIDs.guestRole);
                             collector.stop();
                         }).catch(error => {
-                            member.guild.channels.resolve(discordServices.welcomeSupport).send('<@' + member.id + '> Are you sure you made the changes? I couldnt reach you again :( !').then(msg => msg.delete({timeout: 8000}));
+                            member.guild.channels.resolve(discordServices.channelIDs.welcomeSupport).send('<@' + member.id + '> Are you sure you made the changes? I couldnt reach you again :( !').then(msg => msg.delete({timeout: 8000}));
                         });
                     });
                 });

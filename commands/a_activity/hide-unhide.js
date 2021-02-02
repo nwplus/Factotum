@@ -42,7 +42,7 @@ module.exports = class HideUnhide extends Command {
             return;   
         }
         // only memebers with the staff tag can run this command!
-        if (!(discordServices.checkForRole(message.member, discordServices.staffRole))) {
+        if (!(discordServices.checkForRole(message.member, discordServices.roleIDs.staffRole))) {
             discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
             return;             
         }
@@ -73,14 +73,14 @@ module.exports = class HideUnhide extends Command {
         // update overwrites
         if (toHide) {
             // category = await category.setName('HIDDEN-' + category.name);
-            category.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
-            category.updateOverwrite(discordServices.mentorRole, {VIEW_CHANNEL: false});
-            category.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false});
+            category.updateOverwrite(discordServices.roleIDs.attendeeRole, {VIEW_CHANNEL: false});
+            category.updateOverwrite(discordServices.roleIDs.mentorRole, {VIEW_CHANNEL: false});
+            category.updateOverwrite(discordServices.roleIDs.sponsorRole, {VIEW_CHANNEL: false});
         } else {
             // category = await category.setName(category.name.replace('HIDDEN-', ''));
-            category.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: true});
-            category.updateOverwrite(discordServices.mentorRole, {VIEW_CHANNEL: true});
-            category.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: true});
+            category.updateOverwrite(discordServices.roleIDs.attendeeRole, {VIEW_CHANNEL: true});
+            category.updateOverwrite(discordServices.roleIDs.mentorRole, {VIEW_CHANNEL: true});
+            category.updateOverwrite(discordServices.roleIDs.sponsorRole, {VIEW_CHANNEL: true});
         }
 
         // report success of channel deletions

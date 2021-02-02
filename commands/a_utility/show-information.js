@@ -20,7 +20,7 @@ module.exports = class ShowInformation extends PermissionCommand {
             ],
         },
         {
-            roleID: discordServices.adminRole,
+            roleID: discordServices.roleIDs.adminRole,
             roleMessage: 'Hey there, the command !showi is only available to Admins!',
         });
     }
@@ -28,7 +28,7 @@ module.exports = class ShowInformation extends PermissionCommand {
  
   async runCommand(message, {command}) {
         const embed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor);
+            .setColor(discordServices.colors.embedColor);
 
         if (command === 'verify') {
             embed.setTitle('Welcome to the nwHacks 2021 Discord server!')

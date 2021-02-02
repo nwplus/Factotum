@@ -20,7 +20,7 @@ module.exports = class CreatePrivates extends PermissionCommand {
             ],
         },
         {
-            roleID: discordServices.staffRole,
+            roleID: discordServices.roleIDs.staffRole,
             roleMessage: 'This command can only be ran by staff!',
         });
     }
@@ -54,8 +54,8 @@ module.exports = class CreatePrivates extends PermissionCommand {
         // create voice channels
         for (var index = amount + 1; index <= total; index++) {
             var channel = await message.guild.channels.create('Private-' + index, {type: 'voice', parent: category});
-            await channel.createOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false, SPEAK: true, VIDEO: true, USE_VAD: true});
-            await channel.createOverwrite(discordServices.mentorRole, {VIEW_CHANNEL: false, SPEAK: true, VIDEO: true, USE_VAD: true});
+            await channel.createOverwrite(discordServices.roleIDs.attendeeRole, {VIEW_CHANNEL: false, SPEAK: true, VIDEO: true, USE_VAD: true});
+            await channel.createOverwrite(discordServices.roleIDs.mentorRole, {VIEW_CHANNEL: false, SPEAK: true, VIDEO: true, USE_VAD: true});
         }
 
         // report success of workshop creation

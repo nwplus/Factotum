@@ -34,7 +34,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
         {
             channelID: discordServices.adminConsoleChannel,
             channelMessage: 'This command is only available on the admin console!',
-            roleID: discordServices.staffRole,
+            roleID: discordServices.roleIDs.staffRole,
             roleMessage: 'This command can only available to staff!',
         });
     }
@@ -63,7 +63,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
         }
 
         const qEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle('React with anything to claim a stamp for attending ' + activityName)
             .setDescription('Once you react to this message, check for a DM from this bot. **You can only emoji this message once!**')
             .addField('A Password Is Required!', 'Through the Bot\'s DM, you will have 3 attempts in the first 60 seconds to enter the correct password.');

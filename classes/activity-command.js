@@ -20,7 +20,7 @@ class ActivityCommand extends PermissionCommand {
     constructor(client, info){
         super(client, info, 
             {
-                roleID: discordServices.staffRole,
+                roleID: discordServices.roleIDs.staffRole,
                 roleMessage: 'You do not have permision for this command, only staff can use it!',
                 channelID: discordServices.adminConsoleChannel,
                 channelMessage: 'This command can only be used in the admin console!',

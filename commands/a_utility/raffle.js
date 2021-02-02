@@ -27,7 +27,7 @@ module.exports = class Raffle extends PermissionCommand {
         {
             channelID: discordServices.adminConsoleChannel,
             channelMessage: 'This command can only be used in the admin console!',
-            roleID: discordServices.adminRole,
+            roleID: discordServices.roleIDs.adminRole,
             roleMessage: 'You do not have permision for this command, only admins can use it!',
         });
     }
@@ -42,7 +42,7 @@ module.exports = class Raffle extends PermissionCommand {
      */
     async runCommand(message, {numberOfWinners}) {
         //check that numberOfWinners is less than the number of people with stamp roles or it will infinite loop
-        var memberCount = message.guild.members.cache.filter(member => member.roles.cache.has(discordServices.attendeeRole)).size;
+        var memberCount = message.guild.members.cache.filter(member => member.roles.cache.has(discordServices.roleIDs.attendeeRole)).size;
         if (memberCount <= numberOfWinners) {
             message.channel.send("Whoa there, you have more winners than hackers!").then((msg) => {
                 msg.delete({ timeout: 5000 })
@@ -70,7 +70,7 @@ module.exports = class Raffle extends PermissionCommand {
         }
         winners = Array.from(winners);
         const embed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle('The winners of the raffle draw are:')
             .setDescription('<@' + winners.join('><@') + '>');
         await message.channel.send(embed);

@@ -29,7 +29,7 @@ module.exports = class ClearChat extends PermissionCommand {
             ],
         },
         {
-            roleID: discordServices.adminRole,
+            roleID: discordServices.roleIDs.adminRole,
             roleMessage: 'Hey there, the command !clearchat is only available to Admins!',
         });
     }
@@ -53,11 +53,11 @@ module.exports = class ClearChat extends PermissionCommand {
         // only proceed if we want the commands
         if (isCommands) {
             // if in the verify channel <welcome>
-            if (message.channel.id === discordServices.welcomeChannel) {
+            if (message.channel.id === discordServices.channelIDs.welcomeChannel) {
                 commands = this.client.registry.findCommands('verify');
             } 
             // admin console
-            else if (discordServices.isAdminConsole(message.channel) === true) {
+            else if (discordServices.isAdminConsole(message.channel)) {
                 // grab all the admin command groups
                 var commandGroups = this.client.registry.findGroups('a_');
                 // add all the commands from the command groups
@@ -79,7 +79,7 @@ module.exports = class ClearChat extends PermissionCommand {
             var length = commands.length;
 
             const textEmbed = new Discord.MessageEmbed()
-                .setColor(discordServices.embedColor)
+                .setColor(discordServices.colors.embedColor)
                 .setTitle('Commands Available in this Channel')
                 .setDescription('The following are all the available commands in this channel, for more information about a specific command please call !help <command_name>.')
                 .setTimestamp();

@@ -47,7 +47,7 @@ module.exports = class Attendace extends PermissionCommand {
         }
 
         // check if the user needs to attend, else warn and return
-        if (discordServices.checkForRole(member, discordServices.attendeeRole)) {
+        if (discordServices.checkForRole(member, discordServices.roleIDs.attendeeRole)) {
             discordServices.sendEmbedToMember(member, {
                 title: 'Attend Error',
                 description: 'You do not need to attend! Happy hacking!!!'
@@ -63,14 +63,14 @@ module.exports = class Attendace extends PermissionCommand {
 
         // embed to use
         const embed = new Discord.MessageEmbed()
-            .setColor(discordServices.specialDMEmbedColor)
+            .setColor(discordServices.colors.specialDMEmbedColor)
             .setTitle('Attendance Process');
 
         // Check the returned status and act accordingly!
         switch(status) {
             case firebaseServices.status.HACKER_SUCCESS:
                 embed.addField('Thank you for attending nwHacks 2021', 'Happy hacking!!!');
-                discordServices.addRoleToMember(member, discordServices.attendeeRole);
+                discordServices.addRoleToMember(member, discordServices.roleIDs.attendeeRole);
                 discordServices.discordLog(guild, "ATTEND SUCCESS : <@" + message.author.id + "> with email: " + email + " is attending nwHacks 2021!");
                 break;
             case firebaseServices.status.HACKER_IN_USE:

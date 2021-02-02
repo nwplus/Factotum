@@ -15,7 +15,7 @@ module.exports = class RoleSelector extends PermissionCommand {
             guildOnly: true,
         },
         {
-            roleID: discordServices.staffRole,
+            roleID: discordServices.roleIDs.staffRole,
             roleMessage: 'Hey there, the command !roletransfer is only available to staff!',
         });
     }
@@ -43,7 +43,7 @@ module.exports = class RoleSelector extends PermissionCommand {
          */
         let transfers = new Discord.Collection();
 
-        const cardEmbed = new Discord.MessageEmbed().setColor(discordServices.embedColor)
+        const cardEmbed = new Discord.MessageEmbed().setColor(discordServices.colors.embedColor)
             .setTitle('Role Selector!')
             .setDescription('React to the specified emoji to get the role, un-react to remove the role.');
 

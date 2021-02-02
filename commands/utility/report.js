@@ -20,7 +20,7 @@ module.exports = class Report extends Command {
         discordServices.deleteMessage(message);
 
         const embed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle('Thank you for taking the time to report users who are not following server or MLH rules. You help makes our community safer!')
             .setDescription('Please use the format below, be as precise and accurate as possible. \n ' + 
                             'Everything you say will be 100% anonymus. We have no way of reaching back to you so agian, be as detailed as possible!\n' + 
@@ -41,15 +41,15 @@ module.exports = class Report extends Command {
             message.author.send('Thank you for the report! Our admin team will look at it ASAP!');
 
             // send the report content to the admin report channel!
-            var incomingReportChn = message.guild.channels.resolve(discordServices.incomingReportChannel);
+            var incomingReportChn = message.guild.channels.resolve(discordServices.channelIDs.incomingReportChannel);
 
             const adminMsgEmbed = new Discord.MessageEmbed()
-                .setColor(discordServices.embedColor)
+                .setColor(discordServices.colors.embedColor)
                 .setTitle('There is a new report that needs your attention!')
                 .setDescription(msg.content);
 
             // send embed with text message to ping admin
-            incomingReportChn.send('<@&' + discordServices.adminRole + '> Incoming Report', {embed: adminMsgEmbed});
+            incomingReportChn.send('<@&' + discordServices.roleIDs.adminRole + '> Incoming Report', {embed: adminMsgEmbed});
         })
         
     }

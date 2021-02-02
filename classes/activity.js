@@ -150,23 +150,23 @@ class Activity {
             position: position >= 0 ? position : 0,
             permissionOverwrites: [
             {
-                id: discordServices.hackerRole,
+                id: discordServices.roleIDs.hackerRole,
                 deny: ['VIEW_CHANNEL'],
             },
             {
-                id: discordServices.attendeeRole,
+                id: discordServices.roleIDs.attendeeRole,
                 allow: ['VIEW_CHANNEL'],
             },
             {
-                id: discordServices.mentorRole,
+                id: discordServices.roleIDs.mentorRole,
                 allow: ['VIEW_CHANNEL'],
             },
             {
-                id: discordServices.sponsorRole,
+                id: discordServices.roleIDs.sponsorRole,
                 allow: ['VIEW_CHANNEL'],
             },
             {
-                id: discordServices.staffRole,
+                id: discordServices.roleIDs.staffRole,
                 allow: ['VIEW_CHANNEL'],
             }
         ]});
@@ -234,15 +234,15 @@ class Activity {
             }, 
             [
                 {
-                    roleID: discordServices.attendeeRole,
+                    roleID: discordServices.roleIDs.attendeeRole,
                     permissions: {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true},
                 },
                 {
-                    roleID: discordServices.sponsorRole,
+                    roleID: discordServices.roleIDs.sponsorRole,
                     permissions: {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true},
                 },
                 {
-                    roleID: discordServices.mentorRole,
+                    roleID: discordServices.roleIDs.mentorRole,
                     permissions: {MOVE_MEMBERS: true, USE_VAD: true},
                 }
             ]);
@@ -291,7 +291,7 @@ class Activity {
         this.addChannel('🎮' + 'game-codes', {
             type: 'text',
             topic: 'This channel is only intended to send game codes for others to join!',
-        }, [{roleID: discordServices.attendeeRole, permissions: {VIEW_CHANNEL: false}}]);
+        }, [{roleID: discordServices.roleIDs.attendeeRole, permissions: {VIEW_CHANNEL: false}}]);
 
         this.addVoiceChannels(numOfChannels, true, 12);
 
@@ -332,14 +332,14 @@ class Activity {
      */
     async makeWorkshop() {
         // udpate the voice channel permission to no speaking for attendees
-        this.generalVoice.updateOverwrite(discordServices.attendeeRole, {
+        this.generalVoice.updateOverwrite(discordServices.roleIDs.attendeeRole, {
             SPEAK: false
         });
-        this.generalVoice.updateOverwrite(discordServices.mentorRole, {
+        this.generalVoice.updateOverwrite(discordServices.roleIDs.mentorRole, {
             SPEAK: true,
             MOVE_MEMBERS: true,
         });
-        this.generalVoice.updateOverwrite(discordServices.staffRole, {
+        this.generalVoice.updateOverwrite(discordServices.roleIDs.staffRole, {
             SPEAK: true,
             MOVE_MEMBERS: true,
         });
@@ -349,8 +349,8 @@ class Activity {
             type: 'text', 
             topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
         },[
-            { roleID: discordServices.attendeeRole, permissions: {VIEW_CHANNEL: false} },
-            { roleID: discordServices.sponsorRole, permissions: {VIEW_CHANNEL: false} }
+            { roleID: discordServices.roleIDs.attendeeRole, permissions: {VIEW_CHANNEL: false} },
+            { roleID: discordServices.roleIDs.sponsorRole, permissions: {VIEW_CHANNEL: false} }
         ]);
 
         // create and blacklist an assistance channel
@@ -400,6 +400,29 @@ class Activity {
         await this.category.delete();
 
         firebaseActivity.remove(this.name);
+    }
+
+    /**
+     * will add a max amount of users to the activity voice channels 
+     * @param {Number} limit - the user limit
+     * @async
+     * @returns {Promise<null>} 
+     */
+    async addLimitToVoiceChannels(limit) {
+        this.voiceChannels.forEach(async (channel) => {
+            await channel.edit({userLimit: limit});
+        });
+    }
+
+    /**
+     * Will make all voice channels except the general one private to attendees and sponsors
+     * @param {Boolean} toHide - true if you want to hide the channels from attendees and sponsors, false otherwise
+     */
+    async changeVoiceChannelPermissions(toHide) {
+        this.voiceChannels.forEach((channel) => {
+            channel.updateOverwrite(roleIDs.attendeeRole, {VIEW_CHANNEL: toHide ? false : true});
+            channel.updateOverwrite(roleIDs.sponsorRole, {VIEW_CHANNEL: toHide ? false : true});
+        })
     }
 }
 

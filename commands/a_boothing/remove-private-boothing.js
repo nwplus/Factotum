@@ -20,7 +20,7 @@ module.exports = class RemovePrivates extends PermissionCommand {
             ],
         },
         {
-            roleID: discordServices.staffRole,
+            roleID: discordServices.roleIDs.staffRole,
             roleMessage: 'This command can only be ran by staff!',
         });
     }

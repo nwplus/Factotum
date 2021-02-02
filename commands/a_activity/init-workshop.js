@@ -34,7 +34,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
 
         ////// TA Side
         // embed color for mentors
-        var mentorColor = (await message.guild.roles.fetch(discordServices.mentorRole)).color;
+        var mentorColor = (await message.guild.roles.fetch(discordServices.roleIDs.mentorRole)).color;
 
         const taInfoEmbed = new Discord.MessageEmbed()
             .setTitle('TA Information')
@@ -53,8 +53,8 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 // hide general voice channel
                 var name = generalVoice.name;
                 generalVoice.setName('HIDDEN-' + name).catch(console.error);
-                generalVoice.updateOverwrite(discordServices.attendeeRole, {VIEW_CHANNEL: false});
-                generalVoice.updateOverwrite(discordServices.sponsorRole, {VIEW_CHANNEL: false});
+                generalVoice.updateOverwrite(discordServices.roleIDs.attendeeRole, {VIEW_CHANNEL: false});
+                generalVoice.updateOverwrite(discordServices.roleIDs.sponsorRole, {VIEW_CHANNEL: false});
 
                 // disable pull in functionality
                 pullInFunctonality = false;
@@ -62,7 +62,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 // let TAs know about the change!
                 taChannel.send('Low tech solution has been turned on!').then(msg => msg.delete({timeout: 5000}));
                 msg.edit(msg.embeds[0].addField('Low Tech Solution Is On', 'To give assistance: \n* Send a DM to the highers member on the wait list \n* Then click on the emoji to remove them from the list!'));
-                helpChannel.send(new Discord.MessageEmbed().setColor(discordServices.embedColor).setTitle('Quick Update!').setDescription('You do not need to join the ' +  discordServices.activityVoiceChannelName + ' voice channel. TAs will send you a DM when they are ready to assist you!'));
+                helpChannel.send(new Discord.MessageEmbed().setColor(discordServices.colors.embedColor).setTitle('Quick Update!').setDescription('You do not need to join the ' +  activity.activityInfo.generalVoiceChannelName + ' voice channel. TAs will send you a DM when they are ready to assist you!'));
             });
         });
         
@@ -120,11 +120,11 @@ module.exports = class InitWorkshop extends ActivityCommand {
     // Hacker Side
         // message embed for helpChannel
         const helpEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle(activity.name + ' Help Desk')
             .setDescription('Welcome to the ' + activity.name + ' help desk. There are two ways to get help explained below:')
             .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, use the !ask command on the text channel ' + '<#' + activity.generalText.id + '>' + '!')
-            .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the ' +  discordServices.activityVoiceChannelName + ' voice channel if not already there!');
+            .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the ' +  activity.activityInfo.generalVoiceChannelName + ' voice channel if not already there!');
 
         // send message with embed and react with emoji
         var helpMessage = await assistanceChannel.send(helpEmbed);
@@ -161,7 +161,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 var question = msgs.first().content;
 
                 const hackerEmbed = new Discord.MessageEmbed()
-                    .setColor(discordServices.embedColor)
+                    .setColor(discordServices.colors.embedColor)
                     .setTitle('Hey there! We got you signed up to talk to a TA!')
                     .setDescription('You are number: ' + position + ' in the wait list.')
                     .addField(pullInFunctonality ? 'JOIN THE VOICE CHANNEL!' : 'KEEP AN EYE ON YOUR DMs', 

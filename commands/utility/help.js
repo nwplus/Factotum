@@ -25,7 +25,7 @@ module.exports = class ClearChat extends Command {
         } else {
             discordServices.deleteMessage(message);
 
-            if ((discordServices.checkForRole(message.member, discordServices.staffRole))) {
+            if ((discordServices.checkForRole(message.member, discordServices.roleIDs.staffRole))) {
                 var commandGroups = this.client.registry.findGroups('a_');
             } else {
                 var commandGroups = this.client.registry.findGroups('utility');
@@ -42,7 +42,7 @@ module.exports = class ClearChat extends Command {
         var length = commands.length;
 
         const textEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle('Commands Available for you')
             .setDescription('All other interactions with me will be via emoji reactions!')
             .setTimestamp();

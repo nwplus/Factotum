@@ -45,7 +45,7 @@ class ActivityManager {
      * @param {Activity} activity - the activity to use
      */
     static async mentorShuffle(activity) {
-        let mentors = activity.generalVoice.members.filter(member => discordServices.checkForRole(member, discordServices.mentorRole));
+        let mentors = activity.generalVoice.members.filter(member => discordServices.checkForRole(member, discordServices.roleIDs.mentorRole));
 
         let channels = activity.category.children.filter(channel => channel.type === 'voice' && channel.id != activity.generalVoice.id);
 
@@ -103,7 +103,7 @@ class ActivityManager {
         let seenUsers = new Discord.Collection();
 
         const promptEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle('React within ' + time + ' seconds of the posting of this message to get a stamp for ' + activity.name + '!');
         
         let promptMsg = await activity.generalText.send(promptEmbed);
@@ -169,7 +169,7 @@ class ActivityManager {
         }
 
         let qEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(discordServices.colors.embedColor)
             .setTitle(title)
             .setDescription(description);
 
