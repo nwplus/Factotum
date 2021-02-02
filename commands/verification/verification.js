@@ -70,7 +70,7 @@ module.exports = class Verificaiton extends PermissionCommand {
                 embed.addField('You Have Been Verified!', 'Thank you for verifying your status with us, you now have access to most of the server.')
                     .addField('Don\'t Forget!', 'Remember you need to !attend <your email> in the attend channel that will open a few hours before the hackathon begins.');
                 discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.hackerRole);
-                discordServices.addRoleToMember(member,discordServices.stampRoles.stamp0Role);
+                discordServices.addRoleToMember(member,discordServices.stampRoles.get(0));
                 discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a hacker!");
                 break;
             case firebaseServices.status.SPONSOR_SUCCESS:
