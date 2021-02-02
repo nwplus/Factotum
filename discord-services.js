@@ -113,11 +113,6 @@ module.exports.recruitingChannel = recruitingChannel;
 var lookingforteamChannel = '770354521733857320';
 module.exports.lookingforteamChannel = lookingforteamChannel;
 
-// where hackers and other users can call the !createchannel command
-// to create new private channels for them and their team
-var channelcreationChannel = '754396445494214789';
-module.exports.channelcreationChannel = channelcreationChannel;
-
 /**
  * Checks if the member has a role, returns true if it does
  * @param {Discord.GuildMember} member - member to check role
