@@ -57,21 +57,25 @@ module.exports.channelIDs = {
 
     /**
      * The admin console where admins can run commands.
+     * @type {String}
      */
     adminConsolChannel : null,
 
     /**
      * The channel where the bot will log things.
+     * @type {String}
      */
     adminLogChannel : null,
 
     /**
      * Where the bot can send messages to users when DM is not available.
+     * @type {String}
      */
     botSupportChannel : null,
 
     /**
      * Where the bot will send reports.
+     * @type {String}
      */
     incomingReportChannel : null,
 
