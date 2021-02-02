@@ -64,6 +64,7 @@ module.exports = class InitBot extends Command {
         // ask if verification will be used
         if (await Prompt.yesNoPrompt('Will you be using the verification service?', channel, userId)) {
             await this.setVerification(channel, userId, guild, everyoneRole);
+            channel.send('<@' + userId + '> The verification service has been set up correctly!').then(msg => msg.delete({timeout: 60000}));
         }
 
         // ask if attendance will be used
@@ -72,14 +73,16 @@ module.exports = class InitBot extends Command {
 
             const attendeeRole = await this.askOrCreate('attendee', channel, userId, guild, '#0099E1');
             discordServices.roleIDs.attendeeRole = attendeeRole.id;
+            channel.send('<@' + userId + '> The attendance service has been set up correctly!').then(msg => msg.delete({timeout: 60000}));
         } else {
             // if attendance will not be used then set it to the same role ID as the regular member
             discordServices.roleIDs.attendeeRole = discordServices.roleIDs.hackerRole;
         }
 
         // ask if the announcements will be used
-        if (await Prompt.yesNoPrompt('Have firebase announcements been set code-side? If not say no, or the bot will fail!')) {
+        if (await Prompt.yesNoPrompt('Have firebase announcements been set up code-side? If not say no, or the bot will fail!')) {
             await this.setAnnouncements(channel, userId);
+            channel.send('<@' + userId + '> The announcements have been set up correctly!').then(msg => msg.delete({timeout: 60000}));
         }
 
         // ask if the stamps will be used
@@ -101,8 +104,24 @@ module.exports = class InitBot extends Command {
 
         // create the admin channel package
         await this.createAdminChannels(guild, adminRole, staffRole);
-        channel.send('<@' + userId + '> The admin channels have been created successfully!').then(msg => msg.delete({timeout: 60000}));
+        channel.send('<@' + userId + '> The admin channels have been created successfully! <#' + discordServices.channelIDs.adminConsolChannel + '>').then(msg => msg.delete({timeout: 60000}));
         
+        // bot support channel prompt
+        let botSupportChannel = await Prompt.channelPrompt('What channel can the bot use to contact users when DMs are not available?', channel, userId);
+        discordServices.channelIDs.botSupportChannel = botSupportChannel.id;
+
+        // ask if the user will use the report functionality
+        if (await Prompt.yesNoPrompt('Will you be using the report functionality?', channel, userId)) {
+            let incomingReportChannel = await Prompt.channelPrompt('What channel should prompts be sent to? We recommend this channel be accessible to your staff.');
+            discordServices.channelIDs.incomingReportChannel = incomingReportChannel.id;
+
+            this.client.registry.registerCommand(this.client.registry.commands.find('report'));
+        }
+
+        // ask if the user wants to use the experimental !ask command
+        if (await Prompt.yesNoPrompt('Do you want to let users use the experimental !ask command?', channel, userId)) {
+            this.client.registry.registerCommand(this.client.registry.commands.find('ask'));
+        }
     }
 
     /**

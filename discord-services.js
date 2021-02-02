@@ -66,12 +66,12 @@ module.exports.channelIDs = {
     /**
      * Where the bot can send messages to users when DM is not available.
      */
-    botSupportChannel : '784910416224583751',
+    botSupportChannel : null,
 
     /**
      * Where the bot will send reports.
      */
-    incomingReportChannel : '782683901998137355',
+    incomingReportChannel : null,
 
     /**
      * The first channel users have access to, where the verify command is used.
