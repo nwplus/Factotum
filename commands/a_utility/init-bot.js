@@ -1,5 +1,5 @@
 // Discord.js commando requirements
-const { Command } = require('discord.js-commando');
+const { Command, CommandoGuild } = require('discord.js-commando');
 const Discord = require('discord.js');
 const discordServices = require('../../discord-services');
 const Prompt = require('../../classes/prompt');
@@ -8,8 +8,8 @@ const Prompt = require('../../classes/prompt');
 module.exports = class InitBot extends Command {
     constructor(client) {
         super(client, {
-            name: 'unknown-command',
-            group: 'init-bot',
+            name: 'init-bot',
+            group: 'a_utility',
             memberName: 'initialize the bot',
             description: 'Will start the bot given some information.',
             hidden: true,
@@ -31,13 +31,14 @@ module.exports = class InitBot extends Command {
         let embedInfo = new Discord.MessageEmbed().setColor(discordServices.colors.embedColor)
             .setTitle('Hackabot Setup')
             .setTimestamp()
-            .setDescription('Please follow the following simple instructions!');
+            .setDescription('Please follow the following simple instructions!\n If you cancel any of the prompts, the selected functionality will not be used, however, try not to cancel any prompts.');
         
         message.channel.send(embedInfo);
 
         // easy constants to use
         const channel = message.channel;
         const userId = message.author.id;
+        /** @type {CommandoGuild} */
         const guild = message.guild;
         const everyoneRole = message.guild.roles.everyone;
 
@@ -62,71 +63,118 @@ module.exports = class InitBot extends Command {
         discordServices.roleIDs.adminRole = adminRole.id;
 
         // ask if verification will be used
-        if (await Prompt.yesNoPrompt('Will you be using the verification service?', channel, userId)) {
-            await this.setVerification(channel, userId, guild, everyoneRole);
-            channel.send('<@' + userId + '> The verification service has been set up correctly!').then(msg => msg.delete({timeout: 60000}));
+        try {
+            if (await Prompt.yesNoPrompt('Will you be using the verification service?', channel, userId)) {
+                await this.setVerification(channel, userId, guild, everyoneRole);
+                discordServices.sendMsgToChannel(channel, userId, 'The verification service has been set up correctly!', 60);
+            }
+        } catch (error) {
+            discordServices.sendMsgToChannel(channel, userId, 'Verification service was not set due to Prompt cancellation.', 10);
         }
 
         // ask if attendance will be used
-        if (await Prompt.yesNoPrompt('Will you be using the attendance service?', channel, userId)) {
-            this.client.registry.registerCommand(this.client.registry.findCommands('startatt', true)[0]);
-
-            const attendeeRole = await this.askOrCreate('attendee', channel, userId, guild, '#0099E1');
-            discordServices.roleIDs.attendeeRole = attendeeRole.id;
-            channel.send('<@' + userId + '> The attendance service has been set up correctly!').then(msg => msg.delete({timeout: 60000}));
-        } else {
-            // if attendance will not be used then set it to the same role ID as the regular member
+        try {
+            if (await Prompt.yesNoPrompt('Will you be using the attendance service?', channel, userId)) {
+                guild.setCommandEnabled('startatt', true);
+    
+                const attendeeRole = await this.askOrCreate('attendee', channel, userId, guild, '#0099E1');
+                discordServices.roleIDs.attendeeRole = attendeeRole.id;
+                discordServices.sendMsgToChannel(channel, userId, 'The attendance service has been set up correctly!', 60);
+            } else {
+                // if attendance will not be used then set it to the same role ID as the regular member
+                discordServices.roleIDs.attendeeRole = discordServices.roleIDs.hackerRole;
+                discordServices.sendMsgToChannel(channel, userId, 'Attendance was not set up!', 60);
+            }
+        } catch (error) {
             discordServices.roleIDs.attendeeRole = discordServices.roleIDs.hackerRole;
+            discordServices.sendMsgToChannel(channel, userId, 'Attendance was not set up due to Prompt cancellation.', 10);
         }
 
         // ask if the announcements will be used
-        if (await Prompt.yesNoPrompt('Have firebase announcements been set up code-side? If not say no, or the bot will fail!')) {
-            await this.setAnnouncements(channel, userId);
-            channel.send('<@' + userId + '> The announcements have been set up correctly!').then(msg => msg.delete({timeout: 60000}));
+        try {
+            if (await Prompt.yesNoPrompt('Have firebase announcements been set up code-side? If not say no, or the bot will fail!')) {
+                await this.setAnnouncements(channel, userId);
+                discordServices.sendMsgToChannel(channel, userId, 'The announcements have been set up correctly!', 60);
+            }
+        } catch (error) {
+            discordServices.sendMsgToChannel(channel, userId, 'Announcements functionality is not set up due to a Prompt cancellation.', 10);
         }
 
         // ask if the stamps will be used
-        if (await Prompt.yesNoPrompt('Will you be using the stamp service?', channel, userId)) {
-            let numberOfStamps = await Prompt.numberPrompt('How many stamps do you want? This number is final!', channel, userId);
+        try {
+            if (await Prompt.yesNoPrompt('Will you be using the stamp service?', channel, userId)) {
+                let numberOfStamps = await Prompt.numberPrompt('How many stamps do you want? This number is final!', channel, userId);
 
-            for (let i = 0; i < numberOfStamps; i++) {
-                let role = await guild.roles.create({
-                    data: {
-                        name: 'Stamp Role #' + i,
-                        hoist: true,
-                    }
-                });
-                discordServices.stampRoles.set(i, role.id);
+                for (let i = 0; i < numberOfStamps; i++) {
+                    let role = await guild.roles.create({
+                        data: {
+                            name: 'Stamp Role #' + i,
+                            hoist: true,
+                        }
+                    });
+                    discordServices.stampRoles.set(i, role.id);
+                }
+
+                discordServices.sendMsgToChannel(channel, userId, 'The stamp roles have been created, you can change their name and/or color, but their stamp number is final!', 60);
             }
-
-            channel.send('<@' + userId + '> The stamp roles have been created, you can change their name and/or color, but their stamp number is final!').then(msg => msg.delete({timeout: 60000}));
+        } catch (error) {
+            discordServices.sendMsgToChannel(channel, userId, 'The stamp functionality will not be used due to prompt cancellation.', 10);
         }
+
 
         // create the admin channel package
         await this.createAdminChannels(guild, adminRole, staffRole);
-        channel.send('<@' + userId + '> The admin channels have been created successfully! <#' + discordServices.channelIDs.adminConsolChannel + '>').then(msg => msg.delete({timeout: 60000}));
+        discordServices.sendMsgToChannel(channel, userId, 'The admin channels have been created successfully! <#' + discordServices.channelIDs.adminConsolChannel + '>', 60);
         
+
         // bot support channel prompt
-        let botSupportChannel = await Prompt.channelPrompt('What channel can the bot use to contact users when DMs are not available?', channel, userId);
-        discordServices.channelIDs.botSupportChannel = botSupportChannel.id;
+        await this.askForBotSupportChannel(channel, userId);
+
 
         // ask if the user will use the report functionality
-        if (await Prompt.yesNoPrompt('Will you be using the report functionality?', channel, userId)) {
-            let incomingReportChannel = await Prompt.channelPrompt('What channel should prompts be sent to? We recommend this channel be accessible to your staff.');
-            discordServices.channelIDs.incomingReportChannel = incomingReportChannel.id;
+        try {
+            if (await Prompt.yesNoPrompt('Will you be using the report functionality?', channel, userId)) {
+                let incomingReportChannel = await Prompt.channelPrompt('What channel should prompts be sent to? We recommend this channel be accessible to your staff.');
+                discordServices.channelIDs.incomingReportChannel = incomingReportChannel.id;
 
-            this.client.registry.registerCommand(this.client.registry.findCommands('report', true)[0]);
+                guild.setCommandEnabled('report', true);
+                discordServices.sendMsgToChannel(channel, userId, 'The report command is available and reports will be sent to: <#' + incomingReportChannel.id + '>', 60);
+            }
+        } catch (error) {
+            discordServices.sendMsgToChannel(channel, userId, 'Report command will not be loaded due to prompt cancel.', 10);
         }
+
 
         // ask if the user wants to use the experimental !ask command
-        if (await Prompt.yesNoPrompt('Do you want to let users use the experimental !ask command?', channel, userId)) {
-            this.client.registry.registerCommand(this.client.registry.findCommands('ask', true)[0]);
+        try {
+            if (await Prompt.yesNoPrompt('Do you want to let users use the experimental !ask command?', channel, userId)) {
+                guild.setCommandEnabled('ask', true);
+                discordServices.sendMsgToChannel(channel, userId, 'The ask command is now available to the server users.', 60);
+            }
+        } catch (error) {
+            discordServices.sendMsgToChannel(channel, userId, 'Ask command will not be loaded due to prompt cancel.', 10);
         }
 
-        this.client.registry.registerGroup('a_boothing', 'boothing group for admins')
-            .registerGroup('a_activity', 'activity group for admins')
-            .registerGroup('a_start_commands', 'advanced admin commands')
-            .registerGroup('a_utility', 'utility commands for admins');
+
+        this.client.registry.groups.forEach((group, key, map) => {
+            if (group.name.startsWith('a_')) guild.setGroupEnabled(group, true);
+        });
+    }
+
+    /**
+     * Will ask the user for a channel to be used for the bot, cancellations are not allowed.
+     * @param {Discord.TextChannel} channel 
+     * @param {Discord.Snowflake} userId 
+     * @async
+     */
+    async askForBotSupportChannel(channel, userId) {
+        try {
+            let botSupportChannel = await Prompt.channelPrompt('What channel can the bot use to contact users when DMs are not available?', channel, userId);
+            discordServices.channelIDs.botSupportChannel = botSupportChannel.id;
+        } catch (error) {
+            channel.send('<@' + userId + '> You can not cancel this command, please try again!').then(msg => msg.delete({timeout: 15000}));
+            await this.askForBotSupportChannel(channel, userId);
+        }
     }
 
     /**
@@ -172,11 +220,11 @@ module.exports = class InitBot extends Command {
      * Will set the verification process, and prep the server to use it.
      * @param {Discord.TextChannel} channel 
      * @param {Discord.Snowflake} userId 
-     * @param {Discord.Guild} guild 
+     * @param {CommandoGuild} guild 
      * @param {Discord.Role} everyoneRole 
      */
     async setVerification(channel, userId, guild, everyoneRole) {
-        this.client.registry.registerCommand(this.client.registry.findCommands('verify', true)[0]);
+        guild.setCommandEnabled('verify', true);
 
         // ask for guest role
         const guestRole = await this.askOrCreate('guest', channel, userId, guild, '#969C9F');
