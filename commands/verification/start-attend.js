@@ -35,7 +35,7 @@ module.exports = class StartAttend extends PermissionCommand {
         var channel;
 
         // register the attend command just in case its needed
-        this.client.registry.registerCommand(this.client.registry.commands.find('attend'));
+        message.guild.setCommandEnabled('attend', true);
 
         try {
             let existsChannel = await Prompt.yesNoPrompt('Is there already a channel that exists that hackers will be using !attend in?', message.channel, message.author.id);
