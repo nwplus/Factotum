@@ -1,4 +1,4 @@
-const commando = require('discord.js-commando');
+const Commando = require('discord.js-commando');
 const Discord = require('discord.js');
 
 
@@ -45,7 +45,7 @@ const config = {
     token: process.env.TOKEN,
     owner: process.env.OWNER,
 }
-const bot = new commando.Client({
+const bot = new Commando.Client({
     commandPrefix: '!',
     owner: config.owner,
 });
@@ -57,13 +57,29 @@ bot.registry
         unknownCommand: false,
         help: false,
     })
-    .registerCommandsIn(__dirname + '/commands')
-    .registerCommand(bot.registry.findCommands('init-bot', true)[0]);
+    .registerGroup('a_boothing', 'boothing group for admins')
+    .registerGroup('a_activity', 'activity group for admins')
+    .registerGroup('a_start_commands', 'advanced admin commands')
+    .registerGroup('a_utility', 'utility commands for admins')
+    .registerGroup('utility', 'utility commands for users')
+    .registerGroup('verification', 'verification commands')
+    .registerCommandsIn(__dirname + '/commands/a_utility');
 
 bot.once('ready', async () => {
     console.log(`Logged in as ${bot.user.tag}!`);
     bot.user.setActivity('Ready to hack!');
-    
+});
+
+bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */ (guild) => {
+    bot.registry.groups.forEach((group, key, map) => {
+        guild.setGroupEnabled(group, false);
+    });
+
+    guild.setCommandEnabled('init-bot', true);
+    guild.setCommandEnabled('help', true);
+    guild.setCommandEnabled('unknown-command', true);
+
+    console.log('inside guild create!');
 });
 
 // Listeners for the bot
