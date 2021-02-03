@@ -51,7 +51,7 @@ module.exports.stampCollectTime = stampCollectTime;
 
 // Common channels
 
-module.exports.channelIDs = {
+const channelIDs = {
 
     /**
      * The admin console where admins can run commands.
@@ -89,6 +89,7 @@ module.exports.channelIDs = {
      */
     welcomeSupport : null,
 }
+module.exports.channelIDs = channelIDs;
 
 
 // where hackers join the wait list to talk to a sponsor
@@ -247,7 +248,7 @@ module.exports.replaceRoleToMember = replaceRoleToMember;
  * @param {String | Discord.MessageEmbed} message - message to send to the log channel
  */
 function discordLog(guild, message) {
-    guild.channels.cache.get(this.channelIDs.adminLogChannel).send(message);
+    if (channelIDs?.adminLogChannel) guild.channels.cache.get(channelIDs.adminLogChannel).send(message);
 }
 module.exports.discordLog = discordLog;
 
