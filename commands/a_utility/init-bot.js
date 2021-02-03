@@ -33,7 +33,11 @@ module.exports = class InitBot extends Command {
             .setTimestamp()
             .setDescription('Please follow the following simple instructions!\n If you cancel any of the prompts, the selected functionality will not be used, however, try not to cancel any prompts.');
         
-        message.channel.send(embedInfo);
+        const mainConsoleMsg = await message.channel.send(embedInfo);
+
+        // create the admin channel package
+        await this.createAdminChannels(guild, adminRole, staffRole);
+        discordServices.sendMsgToChannel(channel, userId, 'The admin channels have been created successfully! <#' + discordServices.channelIDs.adminConsolChannel + '>', 60);
 
         // easy constants to use
         const channel = message.channel;
@@ -42,8 +46,7 @@ module.exports = class InitBot extends Command {
         const guild = message.guild;
         const everyoneRole = message.guild.roles.everyone;
 
-        // get the regular member, staff and admin role
-
+        // get the regular member, staff and admin role and assign the correct permissions
         const memberRole = await this.askOrCreate('member', channel, userId, guild, '#006798');
         memberRole.setMentionable(false);
         
@@ -56,12 +59,17 @@ module.exports = class InitBot extends Command {
 
         const adminRole = await this.askOrCreate('admin', channel, userId, guild, '#008369');
         adminRole.setMentionable(true);
-        adminRole.setPermissions(adminRole.permissions.missing(['ADMINISTRATOR']));
+        try {
+            if (!adminRole.permissions.has('ADMINISTRATOR')) adminRole.setPermissions(adminRole.permissions.missing(['ADMINISTRATOR']));
+        } catch {
+            discordServices.discordLog(guild, 'Was not able to give administrator privileges to the role <@&' + adminRole.id + '>. Please help me!')
+        }
 
         discordServices.roleIDs.hackerRole = memberRole.id;
         discordServices.roleIDs.staffRole = staffRole.id;
         discordServices.roleIDs.adminRole = adminRole.id;
 
+        
         // ask if verification will be used
         try {
             if (await Prompt.yesNoPrompt('Will you be using the verification service?', channel, userId)) {
@@ -71,6 +79,7 @@ module.exports = class InitBot extends Command {
         } catch (error) {
             discordServices.sendMsgToChannel(channel, userId, 'Verification service was not set due to Prompt cancellation.', 10);
         }
+        
 
         // ask if attendance will be used
         try {
@@ -90,15 +99,19 @@ module.exports = class InitBot extends Command {
             discordServices.sendMsgToChannel(channel, userId, 'Attendance was not set up due to Prompt cancellation.', 10);
         }
 
+
         // ask if the announcements will be used
         try {
-            if (await Prompt.yesNoPrompt('Have firebase announcements been set up code-side? If not say no, or the bot will fail!')) {
+            if (await Prompt.yesNoPrompt('Have firebase announcements been set up code-side? If not say no, or the bot will fail!', channel, userId)) {
                 await this.setAnnouncements(channel, userId);
                 discordServices.sendMsgToChannel(channel, userId, 'The announcements have been set up correctly!', 60);
+            } else {
+                discordServices.sendMsgToChannel(channel, userId, 'Announcements functionality was not set up.', 10);
             }
         } catch (error) {
-            discordServices.sendMsgToChannel(channel, userId, 'Announcements functionality is not set up due to a Prompt cancellation.', 10);
+            discordServices.sendMsgToChannel(channel, userId, 'Announcements functionality was not set up due to a Prompt cancellation.', 10);
         }
+
 
         // ask if the stamps will be used
         try {
@@ -116,16 +129,13 @@ module.exports = class InitBot extends Command {
                 }
 
                 discordServices.sendMsgToChannel(channel, userId, 'The stamp roles have been created, you can change their name and/or color, but their stamp number is final!', 60);
+            } else {
+                discordServices.sendMsgToChannel(channel, userId, 'The stamp functionality was not set up.', 10);
             }
         } catch (error) {
             discordServices.sendMsgToChannel(channel, userId, 'The stamp functionality will not be used due to prompt cancellation.', 10);
         }
 
-
-        // create the admin channel package
-        await this.createAdminChannels(guild, adminRole, staffRole);
-        discordServices.sendMsgToChannel(channel, userId, 'The admin channels have been created successfully! <#' + discordServices.channelIDs.adminConsolChannel + '>', 60);
-        
 
         // bot support channel prompt
         await this.askForBotSupportChannel(channel, userId);
@@ -159,6 +169,8 @@ module.exports = class InitBot extends Command {
         this.client.registry.groups.forEach((group, key, map) => {
             if (group.name.startsWith('a_')) guild.setGroupEnabled(group, true);
         });
+
+        discordServices.sendMsgToChannel(channel, userId, 'The bot is set and ready to hack!', 10);
     }
 
     /**
@@ -225,11 +237,16 @@ module.exports = class InitBot extends Command {
      */
     async setVerification(channel, userId, guild, everyoneRole) {
         guild.setCommandEnabled('verify', true);
-
-        // ask for guest role
-        const guestRole = await this.askOrCreate('guest', channel, userId, guild, '#969C9F');
-        guestRole.setMentionable(false);
-        guestRole.setPermissions(0); // no permissions, that is how it works
+        var guestRole;
+        try {
+            // ask for guest role
+            guestRole = await this.askOrCreate('guest', channel, userId, guild, '#969C9F');
+            guestRole.setMentionable(false);
+            guestRole.setPermissions(0); // no permissions, that is how it works
+        } catch (error) {
+            discordServices.sendMsgToChannel(channel, userId, 'You need to give a guest role! Please try again', 10);
+            return this.setVerification(channel, userId, guild, everyoneRole);
+        }
 
 
         // change the everyone role permissions
@@ -273,7 +290,7 @@ module.exports = class InitBot extends Command {
             parent: welcomeCategory,
         });
 
-        const embed = new Discord.MessageEmbed.setTitle('Welcome to the ' + guild.name + ' Discord server!')
+        const embed = new Discord.MessageEmbed().setTitle('Welcome to the ' + guild.name + ' Discord server!')
             .setDescription('In order to verify that you have registered for ' + guild.name + ', please respond to the bot (me) via DM!')
             .addField('Do you need assistance?', 'Head over to the welcome-support channel and ping the admins!')
             .setColor(discordServices.colors.embedColor);
@@ -330,6 +347,7 @@ module.exports = class InitBot extends Command {
      * @param {Discord.ColorResolvable} - the role color
      * @async
      * @returns {Promise<Discord.Role>}
+     * @throws Error from Prompt if canceled
      */
     async askOrCreate(roleName, channel, userId, guild, color) {
         let hasRole = await Prompt.yesNoPrompt('Have you created the ' + roleName + ' role? You can go ahead and create it if you wish, or let me do the hard work.', channel, userId);
