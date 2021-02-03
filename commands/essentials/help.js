@@ -8,7 +8,7 @@ module.exports = class ClearChat extends Command {
     constructor(client) {
         super(client, {
             name: 'help',
-            group: 'utility',
+            group: 'essentials',
             memberName: 'help user',
             description: 'Will send available commands depending on role!',
             hidden: true,

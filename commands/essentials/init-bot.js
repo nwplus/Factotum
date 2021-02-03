@@ -9,7 +9,7 @@ module.exports = class InitBot extends Command {
     constructor(client) {
         super(client, {
             name: 'init-bot',
-            group: 'a_utility',
+            group: 'essentials',
             memberName: 'initialize the bot',
             description: 'Will start the bot given some information.',
             hidden: true,
@@ -28,28 +28,25 @@ module.exports = class InitBot extends Command {
             message.reply('Only admins can use this command!').then(msg => msg.delete({timeout: 5000}));
         }
 
-        let embedInfo = new Discord.MessageEmbed().setColor(discordServices.colors.embedColor)
-            .setTitle('Hackabot Setup')
+        const embedInfo = new Discord.MessageEmbed().setColor(discordServices.colors.embedColor)
+            .setTitle('Hackabot Console')
             .setTimestamp()
-            .setDescription('Please follow the following simple instructions!\n If you cancel any of the prompts, the selected functionality will not be used, however, try not to cancel any prompts.');
-        
-        const mainConsoleMsg = await message.channel.send(embedInfo);
-
-        // create the admin channel package
-        await this.createAdminChannels(guild, adminRole, staffRole);
-        discordServices.sendMsgToChannel(channel, userId, 'The admin channels have been created successfully! <#' + discordServices.channelIDs.adminConsolChannel + '>', 60);
+            .setDescription('Bot information will be added here! You can make changes here as well!');
 
         // easy constants to use
-        const channel = message.channel;
+        var channel = message.channel;
         const userId = message.author.id;
         /** @type {CommandoGuild} */
         const guild = message.guild;
         const everyoneRole = message.guild.roles.everyone;
 
-        // get the regular member, staff and admin role and assign the correct permissions
-        const memberRole = await this.askOrCreate('member', channel, userId, guild, '#006798');
-        memberRole.setMentionable(false);
-        
+        discordServices.sendMsgToChannel(channel, userId, 'Please follow the following simple instructions!\n If you cancel any of the prompts, the selected functionality will not be used, however, try not to cancel any prompts.', 60);
+
+        // grab the admin role
+        const adminRole = await this.askOrCreate('admin', channel, userId, guild, '#008369');
+        await adminRole.setMentionable(true);
+
+        // grab the staff role
         const staffRole = await this.askOrCreate('staff', channel, userId, guild, '#00D166');
         staffRole.setMentionable(true);
         staffRole.setHoist(true);
@@ -57,14 +54,27 @@ module.exports = class InitBot extends Command {
             'KICK_MEMBERS', 'BAN_MEMBERS', 'SEND_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES', 'ADD_REACTIONS', 'USE_EXTERNAL_EMOJIS', 'MANAGE_MESSAGES', 
             'READ_MESSAGE_HISTORY', 'CONNECT', 'STREAM', 'SPEAK', 'PRIORITY_SPEAKER', 'USE_VAD', 'MUTE_MEMBERS', 'DEAFEN_MEMBERS', 'MOVE_MEMBERS']));
 
-        const adminRole = await this.askOrCreate('admin', channel, userId, guild, '#008369');
-        adminRole.setMentionable(true);
+        // create the admin channel package
+        let adminConsole = await this.createAdminChannels(guild, adminRole, staffRole);
+        await discordServices.sendMsgToChannel(channel, userId, 'The admin channels have been created successfully! <#' + discordServices.channelIDs.adminConsolChannel + '>. Lets jump over there and continue yes?!', 60);
+        
+        // try giving the admins administrator perms
         try {
             if (!adminRole.permissions.has('ADMINISTRATOR')) adminRole.setPermissions(adminRole.permissions.missing(['ADMINISTRATOR']));
         } catch {
             discordServices.discordLog(guild, 'Was not able to give administrator privileges to the role <@&' + adminRole.id + '>. Please help me!')
         }
 
+        // transition to the admin console
+        var channel = adminConsole;
+        await discordServices.sendMsgToChannel(channel, userId, 'I am over here!!! Lets continue!');
+        const mainConsoleMsg = await channel.send(embedInfo);
+
+        // get the regular member, staff and admin role and assign the correct permissions
+        const memberRole = await this.askOrCreate('member', channel, userId, guild, '#006798');
+        memberRole.setMentionable(false);
+
+        // set discordServices roles
         discordServices.roleIDs.hackerRole = memberRole.id;
         discordServices.roleIDs.staffRole = staffRole.id;
         discordServices.roleIDs.adminRole = adminRole.id;
@@ -194,6 +204,7 @@ module.exports = class InitBot extends Command {
      * @param {Discord.Guild} guild 
      * @param {Discord.Role} adminRole 
      * @param {Discord.Role} staffRole 
+     * @returns {Promise<Discord.TextChannel>} - the admin console channel
      */
     async createAdminChannels(guild, adminRole, staffRole) {
         let adminCategory = await guild.channels.create('Admins', {
@@ -226,6 +237,8 @@ module.exports = class InitBot extends Command {
 
         discordServices.channelIDs.adminConsolChannel = adminConsolChannel.id;
         discordServices.channelIDs.adminLogChannel = adminLogChannel.id;
+
+        return adminConsolChannel;
     }
 
     /**

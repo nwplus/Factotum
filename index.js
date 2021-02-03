@@ -54,6 +54,7 @@ bot.registry
     .registerGroup('a_utility', 'utility commands for admins')
     .registerGroup('utility', 'utility commands for users')
     .registerGroup('verification', 'verification commands')
+    .registerGroup('essentials', 'essential commands for any guild', true)
     .registerDefaultGroups()
     .registerDefaultCommands({
         unknownCommand: false,
@@ -68,12 +69,8 @@ bot.once('ready', async () => {
 
 bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */ (guild) => {
     bot.registry.groups.forEach((group, key, map) => {
-        guild.setGroupEnabled(group, false);
+        if (!group.guarded) guild.setGroupEnabled(group, false);
     });
-
-    guild.setCommandEnabled('init-bot', true);
-    guild.setCommandEnabled('help', true);
-    guild.setCommandEnabled('unknown-command', true);
 
     console.log('inside guild create!');
 });
