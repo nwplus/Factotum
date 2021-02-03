@@ -48,18 +48,18 @@ const bot = new Commando.Client({
 
 bot.registry
     .registerDefaultTypes()
-    .registerDefaultGroups()
-    .registerDefaultCommands({
-        unknownCommand: false,
-        help: false,
-    })
     .registerGroup('a_boothing', 'boothing group for admins')
     .registerGroup('a_activity', 'activity group for admins')
     .registerGroup('a_start_commands', 'advanced admin commands')
     .registerGroup('a_utility', 'utility commands for admins')
     .registerGroup('utility', 'utility commands for users')
     .registerGroup('verification', 'verification commands')
-    .registerCommandsIn(__dirname + '/commands/a_utility');
+    .registerDefaultGroups()
+    .registerDefaultCommands({
+        unknownCommand: false,
+        help: false,
+    })
+    .registerCommandsIn(__dirname + '/commands');
 
 bot.once('ready', async () => {
     console.log(`Logged in as ${bot.user.tag}!`);
@@ -104,8 +104,7 @@ bot.on('commandError', (command, error) => {
             '\nmessage: ' + error.message +
             '\nfile: ' + error.fileName + 
             '\nline number: ' + error.lineNumber +
-            '\nstack: ' + error.stack + 
-            `\nException origin: ${origin}`)
+            '\nstack: ' + error.stack)
             .setTimestamp()
     );
 });
