@@ -5,12 +5,12 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
 // Command export
-module.exports = class Verificaiton extends PermissionCommand {
+module.exports = class Verification extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'verify',
             group: 'verification',
-            memberName: 'hacker verificaiton',
+            memberName: 'hacker verification',
             description: 'Will verify a guest to its correct role if their email is in our database.',
             args: [
                 {
@@ -70,17 +70,20 @@ module.exports = class Verificaiton extends PermissionCommand {
                 embed.addField('You Have Been Verified!', 'Thank you for verifying your status with us, you now have access to most of the server.')
                     .addField('Don\'t Forget!', 'Remember you need to !attend <your email> in the attend channel that will open a few hours before the hackathon begins.');
                 discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.hackerRole);
-                discordServices.addRoleToMember(member,discordServices.stampRoles.get(0));
+                discordServices.addRoleToMember(member, discordServices.roleIDs.isVerifiedRole);
+                if (discordServices.stampRoles.has(0)) discordServices.addRoleToMember(member,discordServices.stampRoles.get(0));
                 discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a hacker!");
                 break;
             case firebaseServices.status.SPONSOR_SUCCESS:
                 embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of nwhacks 2021 and for joining our discord!');
                 discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.sponsorRole);
+                discordServices.addRoleToMember(member, discordServices.roleIDs.isVerifiedRole);
                 discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a sponsor!");
                 break;
             case firebaseServices.status.MENTOR_SUCCESS:
                 embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of nwhacks 2021 and for joining our discord!');
                 discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.mentorRole);
+                discordServices.addRoleToMember(member, discordServices.roleIDs.isVerifiedRole);
                 discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and he is now a mentor!");
                 break;
             case firebaseServices.status.STAFF_SUCCESS:
@@ -93,13 +96,13 @@ module.exports = class Verificaiton extends PermissionCommand {
                 ' in our system, please make sure your email is well typed. If you think this is an error' +
                 ' please contact us in the welcome-support channel.')
                     .setColor('#fc1403');
-                discordServices.discordLog(guild, 'VERIFY ERROR : <@' + message.author.id + '> Tried to verify email: ' + email + ' and faild! I couldnt find that email!');
+                discordServices.discordLog(guild, 'VERIFY ERROR : <@' + message.author.id + '> Tried to verify email: ' + email + ' and failed! I couldn\'t find that email!');
                 break;
             default:
                 embed.addField('ERROR 401', 'Hi there, it seems the email you tried to verify with is already in use or you were not accepted! Please make ' +
-                    'sure that you have the correct email. If you think this is an error please contact us in the welome-support channel.')
+                    'sure that you have the correct email. If you think this is an error please contact us in the welcome-support channel.')
                     .setColor('#fc1403');
-                    discordServices.discordLog(guild, 'VERIFY WARNING : <@' + message.author.id + '> Tried to verify email: ' + email + ' and faild! He already verified or was not accepted!');
+                    discordServices.discordLog(guild, 'VERIFY WARNING : <@' + message.author.id + '> Tried to verify email: ' + email + ' and failed! He already verified or was not accepted!');
                 break;
         }
         discordServices.sendMessageToMember(member, embed);
