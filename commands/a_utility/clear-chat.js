@@ -2,7 +2,6 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
-const StartAttend = require('../a_start_commands/start-attend');
 
 // Command export
 module.exports = class ClearChat extends PermissionCommand {
