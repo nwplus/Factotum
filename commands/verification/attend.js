@@ -3,7 +3,6 @@ const PermissionCommand = require('../../classes/permission-command');
 const firebaseServices = require('../../firebase-services/firebase-services');
 const Discord = require('discord.js');
 const discordServices = require('../../discord-services');
-const StartAttend = require('../a_start_commands/start-attend');
 
 // Command export
 module.exports = class Attend extends PermissionCommand {
