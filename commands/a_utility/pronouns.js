@@ -19,7 +19,6 @@ module.exports = class RoleSelector extends PermissionCommand {
             });
     }
 
-
     /**
      * 
      * @param {Discord.Message} message - the command message
@@ -33,7 +32,7 @@ module.exports = class RoleSelector extends PermissionCommand {
         var emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'];
 
         let embed = new Discord.MessageEmbed()
-            .setColor('#e42643')
+            .setColor('#0DEFE1')
             .setTitle('Set your pronouns by reacting to one of the emojis!')
             .setDescription(
                 `${emojis[0]} she/her\n`
@@ -42,10 +41,6 @@ module.exports = class RoleSelector extends PermissionCommand {
                 + `${emojis[3]} other pronouns\n`);
 
         let messageEmbed = await message.channel.send(embed);
-        // messageEmbed.react(emojis[0]);
-        // messageEmbed.react(emojis[1]);
-        // messageEmbed.react(emojis[2]);
-        // messageEmbed.react(emojis[3]);
         emojis.forEach(emoji => messageEmbed.react(emoji));
 
         // create collector
@@ -53,11 +48,6 @@ module.exports = class RoleSelector extends PermissionCommand {
 
         // on emoji reaction
         reactionCollector.on('collect', async (reaction, user) => {
-            // if (reaction.message.partial) await reaction.message.fetch();
-            // if (reaction.partial) await reaction.fetch();
-            // if (user.bot) return;
-            // if (!reaction.message.guild) return;
-
             if (reaction.emoji.name === emojis[0]) {
                 await discordServices.addRoleToMember(message.guild.member(user), sheRole);
             } if (reaction.emoji.name === emojis[1]) {
@@ -70,11 +60,6 @@ module.exports = class RoleSelector extends PermissionCommand {
         });
 
         reactionCollector.on('remove', async (reaction, user) => {
-            // if (reaction.message.partial) await reaction.message.fetch();
-            // if (reaction.partial) await reaction.fetch();
-            // if (user.bot) return;
-            // if (!reaction.message.guild) return;
-
             if (reaction.emoji.name === emojis[0]) {
                 await discordServices.removeRolToMember(message.guild.member(user), sheRole);
             } if (reaction.emoji.name === emojis[1]) {
