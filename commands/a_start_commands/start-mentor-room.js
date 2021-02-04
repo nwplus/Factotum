@@ -17,7 +17,7 @@ module.exports = class StartMentors extends PermissionCommand {
             args: [],
         },
         {
-            channelID: discordServices.adminConsoleChannel,
+            channelID: discordServices.channelIDs.adminConsoleChannel,
             channelMessage: 'This command can only be used in the admin console!',
             roleID: discordServices.roleIDs.adminRole,
             roleMessage: 'You do not have permission for this command, only admins can use it!',
@@ -57,7 +57,7 @@ module.exports = class StartMentors extends PermissionCommand {
                 preEmojis: '🧑🏽🎓',
                 preRoleText: 'M',
                 color: 'ORANGE',
-                role: message.guild.roles.resolve(discordServices.mentorRole),
+                role: message.guild.roles.resolve(discordServices.roleIDs.mentorRole),
                 emojis: {
                     joinTicketEmoji: joinTicketEmoji,
                     giveHelpEmoji: giveHelpEmoji,
@@ -75,7 +75,7 @@ module.exports = class StartMentors extends PermissionCommand {
             });
 
 
-            let adminConsole = message.guild.channels.resolve(discordServices.adminConsoleChannel);
+            let adminConsole = message.guild.channels.resolve(discordServices.channelIDs.adminConsoleChannel);
 
             try {
                 let isCreated = await Prompt.yesNoPrompt('Are the categories and channels already created?', message.channel, message.author.id);

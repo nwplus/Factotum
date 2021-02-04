@@ -17,7 +17,7 @@ module.exports = class StartChannelCreation extends PermissionCommand {
         {
             roleID: discordServices.roleIDs.staffRole,
             roleMessage: 'Hey there, the !startcc command is only for staff!',
-            channelID: discordServices.adminConsoleChannel,
+            channelID: discordServices.channelIDs.adminConsoleChannel,
             channelMessage: 'Hey there, the !startcc command is only available in the admin console channel.',
         });
     }

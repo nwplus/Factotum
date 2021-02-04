@@ -32,7 +32,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
             ],
         }, 
         {
-            channelID: discordServices.adminConsoleChannel,
+            channelID: discordServices.channelIDs.adminConsoleChannel,
             channelMessage: 'This command is only available on the admin console!',
             roleID: discordServices.roleIDs.staffRole,
             roleMessage: 'This command can only available to staff!',
@@ -160,7 +160,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
             
             if (stampNumber === 6) {
                 //manually set newRole to Stamp - 6 if stampNumber = 6 because otherwise it will end up being MEE6
-                newRole = message.guild.roles.cache.find(role => role.id === discordServices.stamp6Role);
+                newRole = message.guild.roles.cache.find(role => role.id === discordServices.stampRoles.stamp6Role);
             }
             newRole = message.guild.roles.cache.find(role => 
                 !isNaN(role.name.substring(role.name.length - 2)) &&

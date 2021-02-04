@@ -18,7 +18,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         {
             roleID: discordServices.roleIDs.staffRole,
             roleMessage: 'Hey there, the !starttr command is only for staff!',
-            channelID: discordServices.adminConsoleChannel,
+            channelID: discordServices.channelIDs.adminConsoleChannel,
             channelMessage: 'Hey there, th !starttr command is only available on the admin console.',
         });
     }

@@ -176,7 +176,7 @@ async function sendMessageToMember(member, message, isDelete = false) {
         return msg;
     }).catch(error => {
         if (error.code === 50007) {
-            member.guild.channels.resolve(channelIDs.botSupportChannel).send('<@' + member.id + '> I couldn\'t reach you :(. Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-');
+            member.guild.channels.resolve(this.channelIDs.botSupportChannel).send('<@' + member.id + '> I couldn\'t reach you :(. Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-');
         } else {
             throw error;
         }
@@ -275,7 +275,7 @@ module.exports.replaceRoleToMember = replaceRoleToMember;
  * @param {String | Discord.MessageEmbed} message - message to send to the log channel
  */
 function discordLog(guild, message) {
-    guild.channels.cache.get(channelIDs.adminLogChannel).send(message);
+    guild.channels.cache.get(this.channelIDs.adminLogChannel).send(message);
 }
 module.exports.discordLog = discordLog;
 
@@ -296,7 +296,7 @@ module.exports.replyAndDelete = replyAndDelete;
  * @returns {Boolean}
  */
 function isAdminConsole(channel) {
-    return channel.id === channelIDs.adminConsolChannel;
+    return channel.id === this.channelIDs.adminConsolChannel;
 }
 module.exports.isAdminConsole = isAdminConsole;
 

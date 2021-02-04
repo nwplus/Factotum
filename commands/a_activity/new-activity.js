@@ -23,7 +23,7 @@ module.exports = class NewActivity extends PermissionCommand {
             ],
         },
         {
-            channelID: discordServices.adminConsoleChannel,
+            channelID: discordServices.channelIDs.adminConsoleChannel,
             channelMessage: 'This command can only be used in the admin console!',
             roleID: discordServices.roleIDs.adminRole,
             roleMessage: 'You do not have permision for this command, only admins can use it!',
