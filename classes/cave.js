@@ -378,7 +378,7 @@ class Cave {
                 .setTitle('New Ticket! - ' + this.ticketCount)
                 .setDescription('<@' + user.id + '> has the question: ' + promptMsg.content)
                 .addField('They are requesting:', '<@&' + roleId + '>')
-                .addField('Can you help them?', 'If so, react to this message with ' + this.caveOptions.emojis.giveHelpEmoji.toString() + '.');
+                .addField('Can you help them?', 'If so, react to this message with ' + this.caveOptions.emojis.giveHelpEmoji.name + '.');
 
             let ticketMsg = await this.privateChannels.incomingTickets.send('<@&' + roleId + '>', incomingTicketEmbed);
 

@@ -92,7 +92,7 @@ module.exports.channelIDs = {
     /**
      * The admin console where admins can run commands.
      */
-    adminConsolChannel : '748955441484005488',
+    adminConsoleChannel : '803242206814011433',
 
     /**
      * The channel where the bot will log things.
@@ -296,7 +296,7 @@ module.exports.replyAndDelete = replyAndDelete;
  * @returns {Boolean}
  */
 function isAdminConsole(channel) {
-    return channel.id === this.channelIDs.adminConsolChannel;
+    return channel.id === this.channelIDs.adminConsoleChannel;
 }
 module.exports.isAdminConsole = isAdminConsole;
 
