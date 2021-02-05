@@ -62,8 +62,6 @@ module.exports.colors = {
     embedColor : '#26fff4',
     questionEmbedColor : '#f4ff26',
     announcementEmbedColor : '#9352d9',
-    tfTeamEmbedColor : '#60c2e6',
-    tfHackerEmbedColor : '#d470cd',
     specialDMEmbedColor : '#fc6b03',
 }
 
@@ -92,7 +90,7 @@ module.exports.channelIDs = {
     /**
      * The admin console where admins can run commands.
      */
-    adminConsolChannel : '748955441484005488',
+    adminConsolChannel : '803242206814011433',
 
     /**
      * The channel where the bot will log things.
