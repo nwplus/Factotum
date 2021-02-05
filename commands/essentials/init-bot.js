@@ -47,14 +47,6 @@ module.exports = class InitBot extends Command {
         const adminRole = await this.askOrCreate('admin', channel, userId, guild, '#008369');
         await adminRole.setMentionable(true);
 
-        // grab the staff role
-        const staffRole = await this.askOrCreate('staff', channel, userId, guild, '#00D166');
-        staffRole.setMentionable(true);
-        staffRole.setHoist(true);
-        staffRole.setPermissions(staffRole.permissions.missing(['VIEW_CHANNEL', 'MANAGE_EMOJIS', 'CHANGE_NICKNAME', 'MANAGE_NICKNAMES', 
-            'KICK_MEMBERS', 'BAN_MEMBERS', 'SEND_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES', 'ADD_REACTIONS', 'USE_EXTERNAL_EMOJIS', 'MANAGE_MESSAGES', 
-            'READ_MESSAGE_HISTORY', 'CONNECT', 'STREAM', 'SPEAK', 'PRIORITY_SPEAKER', 'USE_VAD', 'MUTE_MEMBERS', 'DEAFEN_MEMBERS', 'MOVE_MEMBERS']));
-
         // create the admin channel package
         let adminConsole = await this.createAdminChannels(guild, adminRole, everyoneRole);
         await discordServices.sendMsgToChannel(channel, userId, 'The admin channels have been created successfully! <#' + discordServices.channelIDs.adminConsoleChannel + '>. Lets jump over there and continue yes?!', 60);
@@ -71,6 +63,14 @@ module.exports = class InitBot extends Command {
         await discordServices.sendMsgToChannel(channel, userId, 'I am over here!!! Lets continue!');
         const mainConsoleMsg = await channel.send(embedInfo);
 
+        // grab the staff role
+        const staffRole = await this.askOrCreate('staff', channel, userId, guild, '#00D166');
+        staffRole.setMentionable(true);
+        staffRole.setHoist(true);
+        staffRole.setPermissions(staffRole.permissions.missing(['VIEW_CHANNEL', 'MANAGE_EMOJIS', 'CHANGE_NICKNAME', 'MANAGE_NICKNAMES', 
+            'KICK_MEMBERS', 'BAN_MEMBERS', 'SEND_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES', 'ADD_REACTIONS', 'USE_EXTERNAL_EMOJIS', 'MANAGE_MESSAGES', 
+            'READ_MESSAGE_HISTORY', 'CONNECT', 'STREAM', 'SPEAK', 'PRIORITY_SPEAKER', 'USE_VAD', 'MUTE_MEMBERS', 'DEAFEN_MEMBERS', 'MOVE_MEMBERS']));
+
         // get the regular member, staff and admin role and assign the correct permissions
         const memberRole = await this.askOrCreate('member', channel, userId, guild, '#006798');
         memberRole.setMentionable(false);
@@ -79,6 +79,7 @@ module.exports = class InitBot extends Command {
         discordServices.roleIDs.hackerRole = memberRole.id;
         discordServices.roleIDs.staffRole = staffRole.id;
         discordServices.roleIDs.adminRole = adminRole.id;
+        discordServices.roleIDs.everyoneRole = everyoneRole.id;
 
         
         // ask if verification will be used
@@ -95,7 +96,7 @@ module.exports = class InitBot extends Command {
         // ask if attendance will be used
         try {
             if (await Prompt.yesNoPrompt('Will you be using the attendance service?', channel, userId)) {
-                guild.setCommandEnabled('startatt', true);
+                guild.setCommandEnabled('start-attend', true);
     
                 const attendeeRole = await this.askOrCreate('attendee', channel, userId, guild, '#0099E1');
                 discordServices.roleIDs.attendeeRole = attendeeRole.id;
