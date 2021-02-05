@@ -240,7 +240,7 @@ bot.on('guildMemberAdd', member => {
     var embed = new Discord.MessageEmbed()
         .setTitle('Welcome to the nwHacks 2021 Server!')
         .setDescription('We are very excited to have you here!')
-        .addField('Gain more access by verifying yourself!', 'Go back to the welcome channel and use the !verify command. More info there!')
+        .addField('Gain more access by verifying yourself!', 'Send me the following message !verify youremail@gmail.com . Make sure you change the email for your email!!')
         .addField('Have a question?', 'Go to the welcome-assistance channel to talk with our staff!')
         .addField('Want to learn more about what I can do?', 'Use the !help command anywhere and I will send you a message!')
         .setColor(discordServices.colors.embedColor);
