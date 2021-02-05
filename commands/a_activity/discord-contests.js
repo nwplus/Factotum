@@ -9,16 +9,16 @@ var interval;
 /**
  * The DiscordContests class handles all functions related to Discord contests. It will ask questions in set intervals and pick winners
  * based on keywords for those questions that have correct answers. For other questions it will tag staff and staff will be able to tell
- * it the winner. It can also be paused and unpaused, and questions can be removed.
+ * it the winner. It can also be paused and un-paused, and questions can be removed.
  * 
  * Note: all answers are case-insensitive but any extra or missing characters will be considered incorrect.
  */
 module.exports = class DiscordContests extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'contests',
+            name: 'discord-contest',
             group: 'a_utility',
-            memberName: 'handle discord contests',
+            memberName: 'handle discord contest',
             description: 'Sends each Discord contest question once at designated times and determines winners.',
             guildOnly: true,
         },
@@ -87,9 +87,9 @@ module.exports = class DiscordContests extends PermissionCommand {
 
             //filters so that it will only respond to Staff who reacted with one of the 3 emojis 
             const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '⏸️' || reaction.emoji.name === '⏯️') && message.guild.member(user).roles.cache.has(discordServices.roleIDs.staffRole);
-            const emojicollector = msg.createReactionCollector(emojiFilter);
+            const emojiCollector = msg.createReactionCollector(emojiFilter);
             
-            emojicollector.on('collect', (reaction, user) => {
+            emojiCollector.on('collect', (reaction, user) => {
                 reaction.users.remove(user.id);
                 if (reaction.emoji.name === '⏸️') {
                     //if it isn't already paused, pause by clearing the interval
@@ -148,9 +148,9 @@ module.exports = class DiscordContests extends PermissionCommand {
                     msg.react('👑');
 
                     const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '👑') && discordServices.checkForRole(message.guild.member(user), discordServices.roleIDs.staffRole);
-                    const emojicollector = msg.createReactionCollector(emojiFilter);
+                    const emojiCollector = msg.createReactionCollector(emojiFilter);
 
-                    emojicollector.on('collect', (reaction, user) => {
+                    emojiCollector.on('collect', (reaction, user) => {
                         //once someone from Staff hits the crown emoji, tell them to mention the winner in a message in the channel
                         reaction.users.remove(user.id);
 
@@ -158,13 +158,13 @@ module.exports = class DiscordContests extends PermissionCommand {
                             .then(member => {
                                 winners.push(member.id);
                                 message.channel.send("Congrats <@" + member.id + "> for the best answer to the previous question!");
-                                emojicollector.stop();
+                                emojiCollector.stop();
                             }).catch(error => {
                                 msg.channel.send('<@' + user.id + '> You have canceled the prompt, you can select a winner again at any time.').then(msg => msg.delete({timeout: 8000}));
                             })
                     });
 
-                    emojicollector.on('end', collected => {
+                    emojiCollector.on('end', collected => {
                         message.channel.send("Answers are no longer being accepted. Stay tuned for the next question!");
                     });
                 } else {

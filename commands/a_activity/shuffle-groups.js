@@ -7,7 +7,7 @@ const ActivityManager = require('../../classes/activity-manager');
 module.exports = class GroupShuffle extends ActivityCommand {
     constructor(client) {
         super(client, {
-            name: 'gshuffle',
+            name: 'shuffle-groups',
             group: 'a_activity',
             memberName: 'group shuffle in activity',
             description: 'Will shuffle groups in the main channel into the available private channels.',

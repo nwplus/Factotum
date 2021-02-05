@@ -25,7 +25,7 @@ async function addGroup(activityName, groupMembers) {
 }
 module.exports.addGroup = addGroup;
 
-// grab all groups from the coffe chat activity
+// grab all groups from the coffee chat activity
 async function getGroup(activityName) {
     return await (await db.collection(services.groups.activityGroup).doc(activityName).get()).get('teams');
 }

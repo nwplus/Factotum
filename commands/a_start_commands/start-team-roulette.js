@@ -9,7 +9,7 @@ const Team = require('../../classes/team');
 module.exports = class StartTeamRoulette extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'starttr',
+            name: 'start-team-roulette',
             group: 'a_start_commands',
             memberName: 'start team roulette',
             description: 'Send a message with emoji collector, solos, duos or triplets can join to get assigned a random team.',
@@ -17,9 +17,9 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         },
         {
             roleID: discordServices.roleIDs.staffRole,
-            roleMessage: 'Hey there, the !starttr command is only for staff!',
+            roleMessage: 'Hey there, the !start-team-roulette command is only for staff!',
             channelID: discordServices.channelIDs.adminConsoleChannel,
-            channelMessage: 'Hey there, th !starttr command is only available on the admin console.',
+            channelMessage: 'Hey there, th !start-team-roulette command is only available on the admin console.',
         });
     }
 

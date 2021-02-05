@@ -9,7 +9,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
             name: 'distribute-stamp',
             group: 'a_activity',
             memberName: 'gives stamps',
-            description: 'gives a stamp to everyone who reacted within the timeframe, if targetChannelKey not give, it will send it to the message channel.',
+            description: 'gives a stamp to everyone who reacted within the time-frame, if targetChannelKey not give, it will send it to the message channel.',
             args: [
                 {
                     key: 'timeLimit',

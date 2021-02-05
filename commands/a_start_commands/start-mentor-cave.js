@@ -9,12 +9,11 @@ const Prompt = require('../../classes/prompt');
 module.exports = class StartMentors extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'startm',
+            name: 'start-mentor-cave',
             group: 'a_start_commands',
             memberName: 'start the mentor\'s experience',
             description: 'Will create a private category for mentors with channels for them to use!',
             guildOnly: true,
-            args: [],
         },
         {
             channelID: discordServices.channelIDs.adminConsoleChannel,
@@ -38,7 +37,19 @@ module.exports = class StartMentors extends PermissionCommand {
             let requestTicketEmoji = await checkForDuplicateEmojis('What is the request ticket emoji?');
             let addRoleEmoji = await checkForDuplicateEmojis('What is the add mentor role emoji?');
             let deleteChannelsEmoji = await checkForDuplicateEmojis('What is the delete ticket channels emoji?');
-            let excludeFromAutodeleteEmoji = await checkForDuplicateEmojis('What is the emoji to opt tickets in/out for the garbage collector?')
+            let excludeFromAutoDeleteEmoji = await checkForDuplicateEmojis('What is the emoji to opt tickets in/out for the garbage collector?');
+
+            var role;
+            if (await Prompt.yesNoPrompt('Have you created the mentor role? If not it is okay, I can make it for you!', message.channel, message.author.id)) {
+                role = await Prompt.rolePrompt('Please mention the mentor role now!', message.channel, message.author.id);
+            } else {
+                role = await message.guild.roles.create({
+                    data: {
+                        name: 'Mentor',
+                        color: discordServices.randomColor(),
+                    }
+                });
+            }
 
             /**
              * 
@@ -57,14 +68,14 @@ module.exports = class StartMentors extends PermissionCommand {
                 preEmojis: '🧑🏽🎓',
                 preRoleText: 'M',
                 color: 'ORANGE',
-                role: message.guild.roles.resolve(discordServices.roleIDs.mentorRole),
+                role: role,
                 emojis: {
                     joinTicketEmoji: joinTicketEmoji,
                     giveHelpEmoji: giveHelpEmoji,
                     requestTicketEmoji: requestTicketEmoji,
                     addRoleEmoji: addRoleEmoji,
                     deleteChannelsEmoji: deleteChannelsEmoji,
-                    excludeFromAutodeleteEmoji: excludeFromAutodeleteEmoji,
+                    excludeFromAutoDeleteEmoji: excludeFromAutoDeleteEmoji,
                 },
                 times: {
                     inactivePeriod: await Prompt.numberPrompt('How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
@@ -91,7 +102,7 @@ module.exports = class StartMentors extends PermissionCommand {
 
             await cave.sendConsoleEmbeds(adminConsole);
 
-            cave.checkForExcistingRoles(message.guild.roles, adminConsole, message.author.id);
+            cave.checkForExistingRoles(message.guild.roles, adminConsole, message.author.id);
           
         } catch (error) {
             message.channel.send('Due to a prompt cancel, the mentor cave creation was unsuccessful.').then(msg => msg.delete({timeout: 5000})); 

@@ -27,7 +27,7 @@ async function addGroupToBooth(boothName, captain, group) {
     // get or create new doc for this group in waitlist
     var spot = waitlist.doc(captain);
 
-    // if the spot does not excist then we set the values, if it does we return hacker in use status
+    // if the spot does not exist then we set the values, if it does we return hacker in use status
     if (!(await spot.get()).exists) {
         spot.set({
             'group': group,
@@ -94,12 +94,12 @@ module.exports.removeGroupFromBooth = removeGroupFromBooth;
 
 
 // Add username to boothing wait list
-// returns status or nothing if successfull
+// returns status or nothing if successful
 async function addToWaitList(username, usernameList) {
     var userRef = db.collection('boothing-wait-list').doc(username);
     var user = await userRef.get();
 
-    // make sure the user is not alreayd in the waitlist
+    // make sure the user is not already in the waitlist
     if (!user.exists) {
         // add user to waitlist with timestamp
         userRef.set({
@@ -119,9 +119,9 @@ module.exports.addToWaitList = addToWaitList;
 // get next username from wait list
 // returns status or username of next hacker
 async function getFromWaitList() {
-    var docuemntQuery = await db.collection('boothing-wait-list').orderBy('time').limit(2).get().catch(console.error);
-    var docs = docuemntQuery.docs;
-    // Check to make sure there is something in the list, if there is non then there are no more poeple in the list!
+    var documentQuery = await db.collection('boothing-wait-list').orderBy('time').limit(2).get().catch(console.error);
+    var docs = documentQuery.docs;
+    // Check to make sure there is something in the list, if there is non then there are no more people in the list!
     if (docs.length === 0) {
         return services.status.FAILURE;
     } else if (docs.length === 1) {
@@ -168,16 +168,16 @@ module.exports.getFromWaitList = getFromWaitList;
 async function positionInWaitList(username) {
     var query = await db.collection('boothing-wait-list').orderBy('time').get();
 
-    // make sure ther are docuemnts in the list
+    // make sure there are documents in the list
     if (query.docs.length > 0) {
 
-        // Funciton to be used in findIndex
+        // Function to be used in findIndex
         // returns true if its id equals the username given
         function checkUsername(queryDoc) {
             return queryDoc.id === username;
         }
 
-        // Need to add 1 becuase we start counting at 0
+        // Need to add 1 because we start counting at 0
         return query.docs.findIndex(checkUsername) + 1;
     } else {
         return services.status.FAILURE;
