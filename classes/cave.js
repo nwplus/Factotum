@@ -31,6 +31,7 @@ class Cave {
       * @typedef Times
       * @property {Number} inactivePeriod - number of minutes a ticket channel will be inactive before bot starts to delete it
       * @property {Number} bufferTime - number of minutes the bot will wait for a response before deleting ticket
+      * @property {Number} reminderTime - number of minutes the bot will wait before reminding mentors of unaccepted tickets
       */
 
     /**
@@ -489,9 +490,10 @@ class Cave {
                         'All ticket channels older than this time will be deleted. Careful - this cannot be undone!', adminConsole, admin.id);
 
                     // delete all active tickets fitting the given age criteria
-                    this.tickets.forEach(async ticket => {
+                    this.tickets.forEach(async (ticket) => {
                         var timeNow = Date.now();
-                        if ((timeNow - ticket.category.createdTimestamp) > (age * 60 * 1000)) { // check if ticket is over the given number of minutes old
+                        // check if ticket is over the given number of minutes old
+                        if (ticket.category != null && ((timeNow - ticket.category.createdTimestamp) > (age * 60 * 1000))) { 
                             if (!ticket.category.deleted) {
                                 await ticket.category.children.forEach(async child => await discordServices.deleteChannel(child));
                                 await discordServices.deleteChannel(ticket.category);
@@ -526,7 +528,7 @@ class Cave {
                         if (exclude) { // check if user specified to exclude certain channels from being deleted
                             // start with ticketsToDelete being a Collection of all active tickets, and delete the excluded tickets from the 
                             // Collection as long as their CategoryChannels have not been deleted 
-                            ticketsToDelete = this.tickets;
+                            ticketsToDelete = new Map(this.tickets);
                             ticketMentions.forEach(ticketNumber => {
                                 // check if the number provided by the user is an active ticket and that this ticket's category is still there
                                 if (ticketsToDelete.has(ticketNumber) && !ticketsToDelete.get(ticketNumber).category.deleted) {
@@ -558,7 +560,7 @@ class Cave {
                     }
                 }
             } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[2]) { // check if Admin selected to include/exclude tickets from garbage collection
-                console.log(this.tickets.keys());
+                
                 var response = await Prompt.messagePrompt('**In one message separated by spaces**, ' +
                     'type whether you want to "include" or "exclude" tickets along with the ticket numbers to operate on.', 'string', adminConsole, admin.id, 30);
                 if (response != null) {
