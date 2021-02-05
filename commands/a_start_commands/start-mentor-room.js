@@ -30,7 +30,7 @@ module.exports = class StartMentors extends PermissionCommand {
      */
     async runCommand(message) {
         try {
-            var emojis = new Collection(); //collection to keep the names of the emojis used so far, used to check for duplicates
+            var emojis = new Discord.Collection(); //collection to keep the names of the emojis used so far, used to check for duplicates
 
             //ask user for each emoji
             let joinTicketEmoji = await checkForDuplicateEmojis('What is the join ticket emoji?');
@@ -70,6 +70,8 @@ module.exports = class StartMentors extends PermissionCommand {
                     inactivePeriod: await Prompt.numberPrompt('How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
                         message.channel, message.author.id),
                     bufferTime: await Prompt.numberPrompt('How long, in minutes, will the bot wait for a response to its request to delete a ticket?',
+                        message.channel, message.author.id),
+                    reminderTime: await Prompt.numberPrompt('How long, in minutes, shall a ticket go unaccepted before the bot sends a reminder to all mentors?',
                         message.channel, message.author.id),
                 }
             });

@@ -159,7 +159,7 @@ class Ticket {
             type: 'category',
             permissionOverwrites: [
                 {
-                    id: discordServices.everyoneRole,
+                    id: discordServices.roleIDs.everyoneRole,
                     deny: ['VIEW_CHANNEL'],
                 }
             ]
@@ -189,6 +189,11 @@ class Ticket {
 
         // reaction collector that listens for the emojis that trigger actions
         const ticketCollector = this.ticketMsg.createReactionCollector((reaction, user) => !user.bot && ticketEmojis.has(reaction.emoji.name));
+
+        // if ticket has not been accepted after the specified time, it will send a reminder to the incoming tickets channel tagging all mentors
+        var timeout = setTimeout(() => {
+            this.cave.privateChannels.incomingTickets.send('Hello <@&' + discordServices.roleIDs.mentorRole + '> ticket number ' + this.ticketNumber + ' still needs help!');
+        }, this.cave.caveOptions.times.reminderTime * 60 * 1000);
 
         // let user know that ticket was submitted and give option to remove ticket
         let removeTicketEmoji = '⚔️';
@@ -230,6 +235,7 @@ class Ticket {
                 this.ticketMsg.edit(this.ticketMsg.embeds[0].addField('More hands on deck!', '<@' + helper.id + '> Joined the ticket!'));
                 this.openTicketEmbedMsg.edit(this.openTicketEmbedMsg.embeds[0].addField('More hands on deck!', '<@' + helper.id + '> Joined the ticket!'));
             } else {
+                clearTimeout(timeout);
                 // edit incoming ticket with mentor information
                 this.ticketMsg.edit(this.ticketMsg.embeds[0].addField('This ticket is being handled!', '<@' + helper.id + '> Is helping this team!')
                     .addField('Still want to help?', 'Click the ' + this.caveEmojis.joinTicketEmoji.toString() + ' emoji to join the ticket!')
