@@ -280,7 +280,11 @@ async function greetNewMember(member) {
         try {
             var email = (await Prompt.messagePrompt('What email did you get accepted to this event? Please send it now!', 'string', member.user.dmChannel, member.id, 25)).content;
         } catch (error) {
-            console.log(error);
+            discordServices.sendEmbedToMember(member, {
+                title: 'Verification Error',
+                description: 'Email was not provided, please try again!'
+            }, true);
+            return;
         }
         reaction.users.remove(user.id);
 
