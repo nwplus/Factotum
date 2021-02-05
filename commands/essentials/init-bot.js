@@ -55,8 +55,8 @@ module.exports = class InitBot extends Command {
             'READ_MESSAGE_HISTORY', 'CONNECT', 'STREAM', 'SPEAK', 'PRIORITY_SPEAKER', 'USE_VAD', 'MUTE_MEMBERS', 'DEAFEN_MEMBERS', 'MOVE_MEMBERS']));
 
         // create the admin channel package
-        let adminConsole = await this.createAdminChannels(guild, adminRole, staffRole);
-        await discordServices.sendMsgToChannel(channel, userId, 'The admin channels have been created successfully! <#' + discordServices.channelIDs.adminConsolChannel + '>. Lets jump over there and continue yes?!', 60);
+        let adminConsole = await this.createAdminChannels(guild, adminRole, everyoneRole);
+        await discordServices.sendMsgToChannel(channel, userId, 'The admin channels have been created successfully! <#' + discordServices.channelIDs.adminConsoleChannel + '>. Lets jump over there and continue yes?!', 60);
         
         // try giving the admins administrator perms
         try {
@@ -154,7 +154,7 @@ module.exports = class InitBot extends Command {
         // ask if the user will use the report functionality
         try {
             if (await Prompt.yesNoPrompt('Will you be using the report functionality?', channel, userId)) {
-                let incomingReportChannel = await Prompt.channelPrompt('What channel should prompts be sent to? We recommend this channel be accessible to your staff.');
+                let incomingReportChannel = await Prompt.channelPrompt('What channel should prompts be sent to? We recommend this channel be accessible to your staff.', channel, userId);
                 discordServices.channelIDs.incomingReportChannel = incomingReportChannel.id;
 
                 guild.setCommandEnabled('report', true);
@@ -203,10 +203,10 @@ module.exports = class InitBot extends Command {
      * Will create the admin channels with the correct roles.
      * @param {Discord.Guild} guild 
      * @param {Discord.Role} adminRole 
-     * @param {Discord.Role} staffRole 
+     * @param {Discord.Role} everyoneRole 
      * @returns {Promise<Discord.TextChannel>} - the admin console channel
      */
-    async createAdminChannels(guild, adminRole, staffRole) {
+    async createAdminChannels(guild, adminRole, everyoneRole) {
         let adminCategory = await guild.channels.create('Admins', {
             type: 'category',
             permissionOverwrites: [
@@ -215,17 +215,13 @@ module.exports = class InitBot extends Command {
                     allow: 'VIEW_CHANNEL'
                 },
                 {
-                    id: staffRole.id,
-                    deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'CONNECT']
-                },
-                {
-                    id: discordServices.roleIDs.isVerifiedRole,
+                    id: everyoneRole.id,
                     deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'CONNECT']
                 }
             ]
         });
 
-        let adminConsolChannel = await guild.channels.create('console', {
+        let adminConsoleChannel = await guild.channels.create('console', {
             type: 'text',
             parent: adminCategory,
         });
@@ -235,10 +231,10 @@ module.exports = class InitBot extends Command {
             parent: adminCategory,
         });
 
-        discordServices.channelIDs.adminConsolChannel = adminConsolChannel.id;
+        discordServices.channelIDs.adminConsoleChannel = adminConsoleChannel.id;
         discordServices.channelIDs.adminLogChannel = adminLogChannel.id;
 
-        return adminConsolChannel;
+        return adminConsoleChannel;
     }
 
     /**
@@ -269,7 +265,8 @@ module.exports = class InitBot extends Command {
             data: {
                 name: 'isVerified',
                 permissions: ['VIEW_CHANNEL', 'CHANGE_NICKNAME', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY',
-                    'CONNECT', 'SPEAK', 'STREAM', 'USE_VAD']
+                    'CONNECT', 'SPEAK', 'STREAM', 'USE_VAD'],
+                color: '#ae44eb',
             }
         });
 
@@ -293,7 +290,8 @@ module.exports = class InitBot extends Command {
             permissionOverwrites: [
                 {
                     id: everyoneRole.id,
-                    deny: ['SEND_MESSAGES']
+                    allow: ['VIEW_CHANNEL', 'READ_MESSAGE_HISTORY'],
+                    deny: ['SEND_MESSAGES'],
                 }
             ],
         });
