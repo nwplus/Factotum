@@ -322,3 +322,12 @@ async function deleteChannel(channel) {
     }
 }
 module.exports.deleteChannel = deleteChannel;
+
+/**
+ * Returns a random color as a hex string.
+ * @returns {String} - hex color
+ */
+function randomColor() {
+    return Math.floor(Math.random()*16777215).toString(16);
+}
+module.exports.randomColor = randomColor;
