@@ -36,8 +36,16 @@ module.exports = class StartChannelCreation extends PermissionCommand {
             return;
         }
 
-        // grab channel creation category
+        // grab channel creation category and update permissions
         var category = channel.parent;
+        category.updateOverwrite(discordServices.roleIDs.everyoneRole, {
+            VIEW_CHANNEL: false,
+        });
+
+        channel.updateOverwrite(discordServices.roleIDs.everyoneRole, {
+            VIEW_CHANNEL: true,
+        });
+
         
         // create and send embed message to channel with emoji collector
         const msgEmbed = new Discord.MessageEmbed()
@@ -55,7 +63,7 @@ module.exports = class StartChannelCreation extends PermissionCommand {
 
         mainCollector.on('collect', async (reaction, user) => {
             try {
-                let channelType =(await Prompt.messagePrompt('Do you want a "voice" or "text" channel?', 'string', channel, user.id, 15)).content;
+                let channelType =(await Prompt.messagePrompt('Do you want a "voice" or "text" channel?', 'string', channel, user.id, 20)).content;
 
                 // make sure input is valid
                 if (channelType != 'voice' && channelType != 'text') {
@@ -64,9 +72,9 @@ module.exports = class StartChannelCreation extends PermissionCommand {
                     return;
                 }
 
-                let guests = (await Prompt.messagePrompt('Please tag all the invited users to this private ' + channelType + ' channel. Type "none" if no guests are welcomed.', 'string', channel, user.id, 30)).mentions.members;
+                let guests = (await Prompt.messagePrompt('Please tag all the invited users to this private ' + channelType + ' channel. Type "none" if no guests are welcomed.', 'string', channel, user.id, 60)).mentions.members;
 
-                let channelName = (await Prompt.messagePrompt('What do you want to name the channel? If you don\'t care then send "default"!', 'string', channel, user.id, 20)).content;
+                let channelName = (await Prompt.messagePrompt('What do you want to name the channel? If you don\'t care then send "default"!', 'string', channel, user.id, 30)).content;
 
                 // if channelName is default then use default
                 if (channelName === 'default') {
