@@ -9,7 +9,7 @@ const TeamFormation = require('../../classes/team-formation');
 module.exports = class StartTeamFormation extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'starttf',
+            name: 'start-team-formation',
             group: 'a_start_commands',
             memberName: 'start team formation',
             description: 'Send a message with emoji collector, one emoji for recruiters, one emoji for team searchers. Instructions will be sent via DM.',

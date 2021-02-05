@@ -6,7 +6,7 @@ const Discord = require('discord.js');
 module.exports = class ShowInformation extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'showi',
+            name: 'show-information',
             group: 'a_utility',
             memberName: 'show information for',
             description: 'Will send information about a command.',

@@ -8,7 +8,7 @@ const Prompt = require('../../classes/prompt');
 module.exports = class StartChannelCreation extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'startcc',
+            name: 'start-channel-creation',
             group: 'a_start_commands',
             memberName: 'start channel creation',
             description: 'Send a message with emoji collector, for each emoji bot will ask type and other friends invited and create the private channel.',

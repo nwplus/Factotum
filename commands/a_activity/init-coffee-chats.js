@@ -8,7 +8,7 @@ const ActivityCommand = require('../../classes/activity-command');
 module.exports = class InitCoffeeChats extends ActivityCommand {
     constructor(client) {
         super(client, {
-            name: 'initcc',
+            name: 'init-coffee-chats',
             group: 'a_activity',
             memberName: 'initialize coffee chat funcitonality for activity',
             description: 'Will initialize the coffee chat functionality for the given workshop.',

@@ -8,7 +8,7 @@ const StartAttend = require('../a_start_commands/start-attend');
 module.exports = class ClearChat extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'clearchat',
+            name: 'clear-chat',
             group: 'a_utility',
             memberName: 'clear chat utility',
             description: 'Will clear up to 100 newest messages from the channel. Messages older than two weeks will not be deleted. Then will send message with available commands in the channel, if any.',

@@ -7,7 +7,7 @@ const discordServices = require('../../discord-services');
 module.exports = class CreatePrivatesFor extends ActivityCommand {
     constructor(client) {
         super(client, {
-            name: 'addvoiceto',
+            name: 'add-voice-channels',
             group: 'a_activity',
             memberName: 'create private voice channels for a workshop',
             description: 'Will create x number of private voice channels for given workshop.',

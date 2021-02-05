@@ -7,7 +7,7 @@ const discordServices = require('../../discord-services');
 module.exports = class RemovePrivatesFor extends ActivityCommand {
     constructor(client) {
         super(client, {
-            name: 'removevoiceto',
+            name: 'remove-voice-channels',
             group: 'a_activity',
             memberName: 'remove private voice channels',
             description: 'Will remove x number of private voice channels for given workshop.',

@@ -9,7 +9,7 @@ const ActivityCommand = require('../../classes/activity-command');
 module.exports = class InitAmongUs extends ActivityCommand {
     constructor(client) {
         super(client, {
-            name: 'initau',
+            name: 'init-among-us',
             group: 'a_activity',
             memberName: 'initialize among us funcitonality for activity',
             description: 'Will initialize the among us functionality for the given workshop.',

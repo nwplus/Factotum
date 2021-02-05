@@ -16,9 +16,9 @@ var interval;
 module.exports = class DiscordContests extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'contests',
+            name: 'discord-contest',
             group: 'a_utility',
-            memberName: 'handle discord contests',
+            memberName: 'handle discord contest',
             description: 'Sends each Discord contest question once at designated times and determines winners.',
             guildOnly: true,
         },

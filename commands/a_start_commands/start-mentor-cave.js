@@ -9,7 +9,7 @@ const Prompt = require('../../classes/prompt');
 module.exports = class StartMentors extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'startm',
+            name: 'start-mentor-cave',
             group: 'a_start_commands',
             memberName: 'start the mentor\'s experience',
             description: 'Will create a private category for mentors with channels for them to use!',

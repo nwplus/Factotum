@@ -9,7 +9,7 @@ const { numberPrompt } = require('../../classes/prompt');
 module.exports = class NewActivity extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'newactivity',
+            name: 'new-activity',
             group: 'a_activity',
             memberName: 'create a new activity',
             description: 'Will create a category, a text channel and voice channel for the given activity name.',
@@ -91,7 +91,7 @@ module.exports = class NewActivity extends PermissionCommand {
                 activity.state.isWorkshop = true;
 
                 // init workshop command
-                commandRegistry.findCommands('initw', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('init-workshop', true)[0].runActivityCommand(message, activity);
                 activity.changeVoiceChannelPermissions(true); // TODO check if this is necessary
                 
                 // update embed
@@ -105,27 +105,27 @@ module.exports = class NewActivity extends PermissionCommand {
                     var numOfGroups = 0;
                 }
 
-                commandRegistry.findCommands('initcc', true)[0].runActivityCommand(message, activity, { numOfGroups: numOfGroups });
+                commandRegistry.findCommands('init-coffee-chats', true)[0].runActivityCommand(message, activity, { numOfGroups: numOfGroups });
                 activity.changeVoiceChannelPermissions(true); // TODO check if this is necessary
 
                 // update embed
                 msgEmbed.addField('Update', 'The activity is now a Coffee Chat!');
                 msgConsole.edit(msgEmbed);
             } else if (emojiName === emojis[4]) {
-                commandRegistry.findCommands('removeactivity', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('remove-activity', true)[0].runActivityCommand(message, activity);
                 msgConsole.delete({timeout: 3000});
             } else if (emojiName === emojis[2]) {
-                commandRegistry.findCommands('addvoiceto', true)[0].runActivityCommand(message, activity, { number: 1, isPrivate: !activity.isRegularActivity() || activity.isHidden, maxUsers: activity.state.isAmongUs ? 12 : 0});
+                commandRegistry.findCommands('add-voice-channels', true)[0].runActivityCommand(message, activity, { number: 1, isPrivate: !activity.isRegularActivity() || activity.isHidden, maxUsers: activity.state.isAmongUs ? 12 : 0});
             } else if (emojiName === emojis[3]) {
-                commandRegistry.findCommands('removevoiceto', true)[0].runActivityCommand(message, activity, { number: 1 });
+                commandRegistry.findCommands('remove-voice-channels', true)[0].runActivityCommand(message, activity, { number: 1 });
             } else if (emojiName === emojis[5]) {
                 commandRegistry.findCommands('shuffle', true)[0].runActivityCommand(message, activity);
             } else if (emojiName === emojis[6]) {
                 commandRegistry.findCommands('callback', true)[0].runActivityCommand(message, activity);
             } else if (emojiName === emojis[7]) {
-                commandRegistry.findCommands('gshuffle', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('shuffle-groups', true)[0].runActivityCommand(message, activity);
             } else if (emojiName === emojis[8]) {
-                commandRegistry.findCommands('mshuffle', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('shuffle-mentors', true)[0].runActivityCommand(message, activity);
             } else if (emojiName === emojis[9]) {
                 commandRegistry.findCommands('distribute-stamp', true)[0].runActivityCommand(message, activity, { timeLimit: discordServices.stampCollectTime });
             } else if (emojiName === emojis[10]) {
@@ -137,7 +137,7 @@ module.exports = class NewActivity extends PermissionCommand {
             } else if (emojiName === emojis[13] && activity.isRegularActivity()) {
                 activity.state.isAmongUs = true;
                 await activity.addLimitToVoiceChannels(12);
-                commandRegistry.findCommands('initau', true)[0].runActivityCommand(message, activity, { numOfChannels: 3 });
+                commandRegistry.findCommands('init-among-us', true)[0].runActivityCommand(message, activity, { numOfChannels: 3 });
                 activity.changeVoiceChannelPermissions(true);
             } else if (emojiName === emojis[14]) {
                 commandRegistry.findCommands('archive', true)[0].runActivityCommand(message, activity);

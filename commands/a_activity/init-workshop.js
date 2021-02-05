@@ -8,7 +8,7 @@ const ActivityCommand = require('../../classes/activity-command');
 module.exports = class InitWorkshop extends ActivityCommand {
     constructor(client) {
         super(client, {
-            name: 'initw',
+            name: 'init-workshop',
             group: 'a_activity',
             memberName: 'initialize workshop funcitonality for activity',
             description: 'Will initialize the workshop functionality for the given workshop. General voice channel will be muted for all hackers.',

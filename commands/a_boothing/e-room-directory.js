@@ -6,7 +6,7 @@ const Prompt = require('../../classes/prompt');
 module.exports = class BoothDirectory extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'add-directory',
+            name: 'e-room-directory',
             group: 'a_boothing',
             memberName: 'keep track of booths',
             description: 'Sends embeds to booth directory to notify hackers of booth statuses',

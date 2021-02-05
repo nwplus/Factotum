@@ -6,7 +6,7 @@ const discordServices = require('../../discord-services');
 module.exports = class HideUnhide extends Command {
     constructor(client) {
         super(client, {
-            name: 'hide_unhide',
+            name: 'hide-unhide',
             group: 'a_activity',
             memberName: 'hide or unhide an activity',
             description: 'Will add or remove permissions to everyone except staff to see the activity.',

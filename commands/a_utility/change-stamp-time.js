@@ -5,7 +5,7 @@ const discordServices = require('../../discord-services');
 module.exports = class ChangeStampTime extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'stamptime',
+            name: 'change-stamp-time',
             group: 'a_utility',
             memberName: 'new stamp time',
             description: 'Will set the given seconds as the new stamp time for activities.',

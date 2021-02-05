@@ -9,7 +9,7 @@ const Team = require('../../classes/team');
 module.exports = class StartTeamRoulette extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'starttr',
+            name: 'start-team-roulette',
             group: 'a_start_commands',
             memberName: 'start team roulette',
             description: 'Send a message with emoji collector, solos, duos or triplets can join to get assigned a random team.',
