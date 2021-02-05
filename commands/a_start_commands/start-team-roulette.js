@@ -21,6 +21,10 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
             channelID: discordServices.channelIDs.adminConsoleChannel,
             channelMessage: 'Hey there, th !start-team-roulette command is only available on the admin console.',
         });
+
+        // collection of reaction collectors listening for team leaders to delete teams; used for scope so collectors can be stopped
+        // when a team forms
+        this.destroyCollectors = new Collection();
     }
 
     /**
@@ -191,27 +195,24 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 color: '#57f542',
                 fields: [{
                     title: 'Destroy the team',
-                    description: 'If you want remove the team from the roulette react to this message with ' + destroyTeamEmoji,
+                    description: 'If you want remove the team from the roulette queue react to this message with ' + destroyTeamEmoji + '\n' 
+                    + 'Note that you will not be able to cancel after the team has been formed.',
                 }]
             });
             leaderDM.react(destroyTeamEmoji);
 
             // reaction to destroy the team only works before the team is completed
-            console.log(newTeam.hasBeenComplete);
-            leaderDM.awaitReactions((reaction, user) => {
-                console.log(!user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === destroyTeamEmoji);
-                return !user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === destroyTeamEmoji;
-            }, {max: 1}).then(reactions => {
-                console.log('inside await reactions');
-                // remove the team from the list, remove the team leader msg and send a confirmation message
+            //console.log(newTeam.hasBeenComplete);
+            const destroyTeamCollector = leaderDM.createReactionCollector((reaction,user) => !user.bot && reaction.emoji.name === destroyTeamEmoji, {max: 1});
+            this.destroyCollectors.set(teamLeaderUser.id, destroyTeamCollector);
+            destroyTeamCollector.on('collect', (reaction, leader) => {
                 this.teamList.get(newTeam.size()).splice(this.teamList.get(newTeam.size()).indexOf(newTeam), 1);
                 leaderDM.delete();
-                discordServices.sendEmbedToMember(teamLeaderUser, {
+                discordServices.sendEmbedToMember(leader, {
                     title: 'Team Roulette',
                     description: 'Your team has been removed from the roulette!',
                 }, true);
 
-                // remove all users from the activity and let them know
                 newTeam.members.forEach(user => {
                     this.participants.delete(user.id);
                     discordServices.sendEmbedToMember(user, {
@@ -220,10 +221,31 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                     });
                 });
             });
+            // leaderDM.awaitReactions((reaction, user) => {
+            //     console.log(!user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === destroyTeamEmoji);
+            //     return !user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === destroyTeamEmoji;
+            // }, {max: 1}).then(reactions => {
+            //     console.log('inside await reactions');
+            //     // remove the team from the list, remove the team leader msg and send a confirmation message
+            //     this.teamList.get(newTeam.size()).splice(this.teamList.get(newTeam.size()).indexOf(newTeam), 1);
+            //     leaderDM.delete();
+            //     discordServices.sendEmbedToMember(teamLeaderUser, {
+            //         title: 'Team Roulette',
+            //         description: 'Your team has been removed from the roulette!',
+            //     }, true);
+
+            //     // remove all users from the activity and let them know
+            //     newTeam.members.forEach(user => {
+            //         this.participants.delete(user.id);
+            //         discordServices.sendEmbedToMember(user, {
+            //             title: 'Team Roulette',
+            //             description: 'Your team with <@' + newTeam.leader + '> has been destroyed!',
+            //         });
+            //     });
+            // });
 
             this.runTeamCreator(message.guild.channels);
         });
-        
     }
 
     /**
@@ -329,6 +351,14 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
         // if team does NOT have a text channel
         if (!team?.textChannel) {
+            // disable the ability to destroy a team after team has been formed
+            team.members.forEach((user,id) => {
+                if (this.destroyCollectors.has(id)) {
+                    this.destroyCollectors.get(id).stop();
+                    this.destroyCollectors.delete(id);
+                }
+            });
+
             let privateChannelCategory = this.textChannel.parent;
 
             await team.createTextChannel(channelManager, privateChannelCategory);
