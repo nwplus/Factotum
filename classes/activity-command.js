@@ -43,7 +43,7 @@ class ActivityCommand extends PermissionCommand {
      * @param {Activity} activity - the activity for this command
      */
     runActivityCommand(message, activity, args) {
-        if (activity === null) discordServices.replyAndDelete('This command can not be called outside an activity console!');
+        if (activity === null) discordServices.replyAndDelete(message, 'This command cannot be called outside an activity console!');
         else this.activityCommand(message, activity, args);
     }
 

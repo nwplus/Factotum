@@ -1,9 +1,9 @@
 const discordServices = require('../../discord-services');
-const ActivityCommand = require('../../classes/activity-command');
+const PermissionCommand = require('../../classes/permission-command');
 const Activity = require('../../classes/activity');
 const ActivityManager = require('../../classes/activity-manager');
 
-module.exports = class DistributeStamp extends ActivityCommand {
+module.exports = class DistributeStamp extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'distribute-stamp',
@@ -18,6 +18,10 @@ module.exports = class DistributeStamp extends ActivityCommand {
                     default: discordServices.stampCollectTime,
                 },
             ],
+        },
+        {
+            roleID: discordServices.roleIDs.staffRole,
+            roleMessage: 'Hey there, the command !contests is only available to Staff!',
         });
     }
 
@@ -26,7 +30,7 @@ module.exports = class DistributeStamp extends ActivityCommand {
      * @param {Message} message 
      * @param {Activity} activity 
      */
-    async activityCommand(message, activity, {timeLimit}) {
+    async runCommand(message, activity, {timeLimit}) {
         ActivityManager.distributeStamp(activity, timeLimit);
     }
 };

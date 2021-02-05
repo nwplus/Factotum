@@ -333,7 +333,7 @@ class Activity {
     async makeWorkshop() {
         // udpate the voice channel permission to no speaking for attendees
         this.generalVoice.updateOverwrite(discordServices.roleIDs.attendeeRole, {
-            SPEAK: false
+            SPEAK: false,
         });
         this.generalVoice.updateOverwrite(discordServices.roleIDs.mentorRole, {
             SPEAK: true,
@@ -420,8 +420,8 @@ class Activity {
      */
     async changeVoiceChannelPermissions(toHide) {
         this.voiceChannels.forEach((channel) => {
-            channel.updateOverwrite(roleIDs.attendeeRole, {VIEW_CHANNEL: toHide ? false : true});
-            channel.updateOverwrite(roleIDs.sponsorRole, {VIEW_CHANNEL: toHide ? false : true});
+            channel.updateOverwrite(discordServices.roleIDs.attendeeRole, {VIEW_CHANNEL: toHide ? false : true});
+            channel.updateOverwrite(discordServices.roleIDs.sponsorRole, {VIEW_CHANNEL: toHide ? false : true});
         })
     }
 }

@@ -27,6 +27,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
 
         let taChannel = channels.taChannel;
         let assistanceChannel = channels.assistanceChannel;
+        let helpChannel = activity.generalText;
 
     // important variables and embeds
         // pullInFunctionality is default to true
@@ -51,10 +52,10 @@ module.exports = class InitWorkshop extends ActivityCommand {
 
             msg.awaitReactions((reaction, user) => !user.bot && reaction.emoji.name === '🤡', {max: 1}).then(collected => {
                 // hide general voice channel
-                var name = generalVoice.name;
-                generalVoice.setName('HIDDEN-' + name).catch(console.error);
-                generalVoice.updateOverwrite(discordServices.roleIDs.attendeeRole, {VIEW_CHANNEL: false});
-                generalVoice.updateOverwrite(discordServices.roleIDs.sponsorRole, {VIEW_CHANNEL: false});
+                var name = activity.generalVoice.name;
+                activity.generalVoice.setName('HIDDEN-' + name).catch(console.error);
+                activity.generalVoice.updateOverwrite(discordServices.roleIDs.attendeeRole, {VIEW_CHANNEL: false});
+                activity.generalVoice.updateOverwrite(discordServices.roleIDs.sponsorRole, {VIEW_CHANNEL: false});
 
                 // disable pull in functionality
                 pullInFunctonality = false;
@@ -95,13 +96,13 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 reaction.users.remove(user.id);
 
                 if (emojiName === emojis[0]) {
-                    commandRegistry.findCommands('distribute-stamp', true)[0].run(message, activity, { timeLimit: discordServices.stampCollectTime });
+                    commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(message, activity, { timeLimit: discordServices.stampCollectTime });
                 } else if (emojiName === emojis[1]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].run(message, activity, { question: 'speed' });
+                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(message, activity, { questionType: 'speed' });
                 } else if (emojiName === emojis[2]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].run(message, activity, { question: 'difficulty'});
+                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(message, activity, { questionType: 'difficulty'});
                 } else if (emojiName === emojis[3]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].run(message, activity, { question: 'explanations'});
+                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(message, activity, { questionType: 'explanations'});
                 }
             });
         });
@@ -154,9 +155,9 @@ module.exports = class InitWorkshop extends ActivityCommand {
             }
 
             // collect the question the hacker has
-            var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond').catch(console.error);
+            var qPromt = await assistanceChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond').catch(console.error);
 
-            helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000, error:['time'] }).then(async msgs => {
+            assistanceChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000, error:['time'] }).then(async msgs => {
                 // get question
                 var question = msgs.first().content;
 
@@ -187,7 +188,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
         // add reacton to get next in this message!
         const getNextCollector = taConsole.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🤝');
 
-        getNextCollector.on('collect', (reaction, user) => {
+        getNextCollector.on('collect', async (reaction, user) => {
             // remove the reaction
             reaction.users.remove(user.id);
 
@@ -226,7 +227,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 }
 
                 try {
-                    hacker.voice.setChannel(taVoice);
+                    await hacker.voice.setChannel(taVoice);
                     discordServices.sendMessageToMember(hacker, 'TA is ready to help you! You are with them now!', true);
                     taChannel.send('<@' + user.id + '> A hacker was moved to your voice channel! Thanks for your help!!!').then(msg => msg.delete({ timeout: 5000 }));
                 } catch (err) {

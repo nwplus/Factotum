@@ -92,7 +92,7 @@ module.exports = class NewActivity extends PermissionCommand {
 
                 // init workshop command
                 commandRegistry.findCommands('initw', true)[0].runActivityCommand(message, activity);
-                activity.changeVoiceChannelPermissions(true); // TODO check if this is necessary
+                //activity.changeVoiceChannelPermissions(true); // TODO check if this is necessary
                 
                 // update embed
                 msgConsole.edit(msgConsole.embeds[0].addField('Update', 'The activity is now a Workshop!'));
