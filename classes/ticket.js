@@ -200,7 +200,7 @@ class Ticket {
 
         let reqTicketUserEmbedMsg = await discordServices.sendEmbedToMember(this.requester, {
             title: 'Ticket was Successful!',
-            description: 'Your ticket to the ' + this.cave.caveOptions.name + ' group was successful!',
+            description: 'Your ticket to the ' + this.cave.caveOptions.name + ' group was successful! It is ticket number ' + this.ticketNumber + '.',
             fields: [{
                 title: 'Remove the ticket',
                 description: 'If you don\'t need help anymore, react to this message with ' + removeTicketEmoji,
@@ -220,9 +220,10 @@ class Ticket {
             reqTicketUserEmbedMsg.delete({ timeout: 3000 });
             discordServices.sendEmbedToMember(user, {
                 title: 'Ticket Closed!',
-                description: 'Your ticket has been closed!',
+                description: 'Your ticket number ' + this.ticketNumber + ' has been closed!',
             }, true);
             this.cave.tickets.delete(this.ticketNumber); // delete from cave's list of active tickets
+            clearTimeout(timeout);
         });
 
         ticketCollector.on('collect', async (reaction, helper) => {
@@ -245,7 +246,12 @@ class Ticket {
                 ticketEmojis.set(this.caveEmojis.joinTicketEmoji.name, this.caveEmojis.joinTicketEmoji);
 
                 // update dm with user to reflect that their ticket has been accepted
-                reqTicketUserEmbedMsg.edit(reqTicketUserEmbedMsg.embeds[0].addField('Ticket Open!', 'Your ticket has been opened! Good luck!'));
+                const openedTicketEmbed = new Discord.MessageEmbed()
+                    .setColor('#128c1e')
+                    .setTitle('Your Ticket Number ' + this.ticketNumber + ' Has Been Opened!')
+                    .setDescription('Your question: ' + this.question + '\nPlease go to the corresponding channel and read the instructions there.')
+                reqTicketUserEmbedMsg.edit(openedTicketEmbed);
+                reqTicketUserEmbedMsgCollector.stop();
 
                 // new ticket, create channels and add users
                 await this.createCategory();
@@ -292,8 +298,8 @@ class Ticket {
                         await discordServices.deleteChannel(this.voice);
                         await discordServices.deleteChannel(this.text);
                         await discordServices.deleteChannel(this.category);
-                        this.cave.tickets.delete(this.ticketNumber); // delete this ticket from the cave's Collection of active tickets
                         this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed!! Good job!'));
+                        this.cave.tickets.delete(this.ticketNumber); // delete this ticket from the cave's Collection of active tickets
                     } else if (this.mentors.length === 0) {
                         this.category.updateOverwrite(exitUser, { VIEW_CHANNEL: false, SEND_MESSAGES: false, READ_MESSAGE_HISTORY: false });
                         // tell hackers mentor is gone and ask to delete the ticket if this has not been done already 
@@ -355,8 +361,8 @@ class Ticket {
                     await discordServices.deleteChannel(this.voice);
                     await discordServices.deleteChannel(this.text);
                     await discordServices.deleteChannel(this.category);
-                    this.cave.tickets.delete(this.ticketNumber);
                     this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed Due to Inactivity', 'This ticket has been closed!! Good job!'));
+                    this.cave.tickets.delete(this.ticketNumber);
                 }
             } else if (collected.size > 0) {
                 await this.text.send('You have indicated that you need more time. I\'ll check in with you later!');

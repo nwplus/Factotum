@@ -24,7 +24,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
         // collection of reaction collectors listening for team leaders to delete teams; used for scope so collectors can be stopped
         // when a team forms
-        this.destroyCollectors = new Collection();
+        this.destroyCollectors = new Discord.Collection();
     }
 
     /**
