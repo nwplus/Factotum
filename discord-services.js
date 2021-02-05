@@ -115,7 +115,7 @@ module.exports.channelIDs = {
     /**
      * Support channel available to new users.
      */
-    welcomeSupport : '742896827082211419',
+    welcomeSupport : '803243225551863858',
 }
 
 
