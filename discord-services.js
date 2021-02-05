@@ -57,7 +57,7 @@ const channelIDs = {
      * The admin console where admins can run commands.
      * @type {String}
      */
-    adminConsoleChannel : '803242206814011433',
+    adminConsoleChannel : null,
   
     /**
      * The channel where the bot will log things.
