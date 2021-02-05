@@ -20,7 +20,7 @@ module.exports = class StartAttend extends PermissionCommand {
             {
                 channelID: discordServices.channelIDs.adminConsoleChannel,
                 channelMessage: 'This command can only be used in the admin console!',
-                roleID: discordServices.roleIDs.adminRole,
+                roleID: discordServices.roleIDs.staffRole,
                 roleMessage: 'Hey there, the command !startatt is only available to Admins!',
             });
     }

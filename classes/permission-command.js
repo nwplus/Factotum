@@ -81,9 +81,14 @@ class PermissionCommand extends Command {
                 return;
             }
             // Make sure only the permitted role can call it
-            else if (this.permissionInfo?.roleID && !discordServices.checkForRole(message.member, this.permissionInfo.roleID)) {
-                discordServices.sendMessageToMember(message.member, this.permissionInfo.roleMessage, true);
-                return;
+            else if (this.permissionInfo?.roleID) {
+                // if staff role then check for staff and admin, else check the given role
+                if ((this.permissionInfo.roleID === discordServices.roleIDs.staffRole && 
+                    (!discordServices.checkForRole(message.member, this.permissionInfo.roleID) && !discordServices.checkForRole(message.member, discordServices.roleIDs.adminRole))) || 
+                    (this.permissionInfo.roleID != discordServices.roleIDs.staffRole && !discordServices.checkForRole(message.member, this.permissionInfo.roleID))) {
+                        discordServices.sendMessageToMember(message.member, this.permissionInfo.roleMessage, true);
+                        return;
+                }
             }
         }
         this.runCommand(message, args, fromPattern, result);
