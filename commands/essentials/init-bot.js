@@ -31,7 +31,8 @@ module.exports = class InitBot extends Command {
         const embedInfo = new Discord.MessageEmbed().setColor(discordServices.colors.embedColor)
             .setTitle('Hackabot Console')
             .setTimestamp()
-            .setDescription('Bot information will be added here! You can make changes here as well!');
+            .setDescription('Bot information will be added here! You can make changes here as well!')
+            .addField('Role Changes', 'You are free to change role colors and role names! However, stamp role numbers can NOT be changed. You can add permissions but don\'t remove any!');
 
         // easy constants to use
         var channel = message.channel;
@@ -288,13 +289,11 @@ module.exports = class InitBot extends Command {
         let welcomeChannel = await guild.channels.create('welcome', {
             type: 'text',
             parent: welcomeCategory,
-            permissionOverwrites: [
-                {
-                    id: everyoneRole.id,
-                    allow: ['VIEW_CHANNEL', 'READ_MESSAGE_HISTORY'],
-                    deny: ['SEND_MESSAGES'],
-                }
-            ],
+        });
+
+        // update welcome channel to not send messages
+        welcomeChannel.updateOverwrite(everyoneRole, {
+            SEND_MESSAGES: false,
         });
 
         let welcomeChannelSupport = await guild.channels.create('welcome-support', {
