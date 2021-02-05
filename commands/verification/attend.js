@@ -6,7 +6,7 @@ const discordServices = require('../../discord-services');
 const StartAttend = require('../a_start_commands/start-attend');
 
 // Command export
-module.exports = class Attendace extends PermissionCommand {
+module.exports = class Attend extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'attend',
@@ -58,7 +58,7 @@ module.exports = class Attendace extends PermissionCommand {
         let guild = message.channel.client.guilds.cache.first();
         let member = guild.member(message.author.id);
         
-        // call the firebase services attendhacker function
+        // call the firebase services attendHacker function
         var status = await firebaseServices.attendHacker(email);
 
         // embed to use

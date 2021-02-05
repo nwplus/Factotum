@@ -40,7 +40,7 @@ async function addVoiceChannels(workshopName, number) {
 }
 module.exports.addVoiceChannels = addVoiceChannels;
 
-// updates a workshop by remivng x number of private channels
+// updates a workshop by removing x number of private channels
 async function removeVoiceChannels(workshopName, number) {
     var ref = db.collection(services.groups.activityGroup).doc(workshopName);
     var doc = await ref.get();

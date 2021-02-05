@@ -27,7 +27,7 @@ class Activity {
      */
     constructor(activityName, guild, activityInfo) {
         /**
-         * The name of this activity. Will remove all leading and trailling whitespace and
+         * The name of this activity. Will remove all leading and trailing whitespace and
          * switch spaces for '-'. Will also replace all character except for numbers, letters and '-' 
          * and make it lowercase.
          * @type {string}
@@ -137,7 +137,7 @@ class Activity {
 
 
     /**
-     * Helper funciton to create the category 
+     * Helper function to create the category 
      * @param {Number} position - the position of this category on the server
      * @async
      * @private
@@ -181,8 +181,8 @@ class Activity {
      */
 
     /**
-     * Add voice channels to this activity. Will automaticaly set the parent and add it to the correct collection.
-     * @param {String} name - name of the channel to ccreate
+     * Add voice channels to this activity. Will automatically set the parent and add it to the correct collection.
+     * @param {String} name - name of the channel to create
      * @param {import("discord.js").GuildCreateChannelOptions} info - one of voice or text
      * @param {Array<RolePermission>} permissions - the permissions per role to be added to this channel after creation.
      */
@@ -218,7 +218,7 @@ class Activity {
     /**
      * Add voice channels to this activity.
      * @param {Number} number - the number of new voice channels to add
-     * @param {Boolean} isPrivate - if the channels should be private to attndees
+     * @param {Boolean} isPrivate - if the channels should be private to attendees
      * @param {Number} maxUsers - max number of users per channel, 0 if unlimited
      * @returns {Number} - total number of channels
      */
@@ -331,9 +331,9 @@ class Activity {
      * @returns {Promise<{taChannel : TextChannel, assistanceChannel : TextChannel}>} - an object with two text channels, taChannel, assistanceChannel
      */
     async makeWorkshop() {
-        // udpate the voice channel permission to no speaking for attendees
+        // update the voice channel permission to no speaking for attendees
         this.generalVoice.updateOverwrite(discordServices.roleIDs.attendeeRole, {
-            SPEAK: false
+            SPEAK: false,
         });
         this.generalVoice.updateOverwrite(discordServices.roleIDs.mentorRole, {
             SPEAK: true,
@@ -420,8 +420,8 @@ class Activity {
      */
     async changeVoiceChannelPermissions(toHide) {
         this.voiceChannels.forEach((channel) => {
-            channel.updateOverwrite(roleIDs.attendeeRole, {VIEW_CHANNEL: toHide ? false : true});
-            channel.updateOverwrite(roleIDs.sponsorRole, {VIEW_CHANNEL: toHide ? false : true});
+            channel.updateOverwrite(discordServices.roleIDs.attendeeRole, {VIEW_CHANNEL: toHide ? false : true});
+            channel.updateOverwrite(discordServices.roleIDs.sponsorRole, {VIEW_CHANNEL: toHide ? false : true});
         })
     }
 }

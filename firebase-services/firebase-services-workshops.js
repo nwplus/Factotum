@@ -18,7 +18,7 @@ async function addHacker(workshopName, username) {
     var workshop = await workshopRef.get();
     var list = workshop.get('taHelpList');
 
-    // return a failure if list does not excist
+    // return a failure if list does not exist
     if (list == undefined) {
         return services.status.FAILURE;
     } else if (list.includes(username)) {
@@ -91,7 +91,7 @@ async function addQuestionTo(workshopName, question, username) {
     var workshop = await workshopRef.get();
     var list = workshop.get('questions');
 
-    // return a failure if list does not excist
+    // return a failure if list does not exist
     if (list == undefined) {
         return services.status.FAILURE;
     }

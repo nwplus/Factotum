@@ -9,7 +9,7 @@ const TeamFormation = require('../../classes/team-formation');
 module.exports = class StartTeamFormation extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'starttf',
+            name: 'start-team-formation',
             group: 'a_start_commands',
             memberName: 'start team formation',
             description: 'Send a message with emoji collector, one emoji for recruiters, one emoji for team searchers. Instructions will be sent via DM.',
@@ -17,9 +17,9 @@ module.exports = class StartTeamFormation extends PermissionCommand {
         },
         {
             roleID: discordServices.roleIDs.adminRole,
-            roleMessage: 'Hey there, the !starttf command is only for admins!',
+            roleMessage: 'Hey there, the !start-team-formation command is only for admins!',
             channelID: discordServices.channelIDs.adminConsoleChannel,
-            channelMessage: 'Hey there, the !starttf command is only available in the admin console.',
+            channelMessage: 'Hey there, the !start-team-formation command is only available in the admin console.',
         });
     }
 

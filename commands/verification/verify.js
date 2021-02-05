@@ -5,12 +5,12 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 
 // Command export
-module.exports = class Verificaiton extends PermissionCommand {
+module.exports = class Verification extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'verify',
             group: 'verification',
-            memberName: 'hacker verificaiton',
+            memberName: 'hacker verification',
             description: 'Will verify a guest to its correct role if their email is in our database.',
             args: [
                 {
@@ -45,6 +45,9 @@ module.exports = class Verificaiton extends PermissionCommand {
             return;
         }
 
+        let guild = message.channel.client.guilds.cache.first();
+        let member = guild.member(message.author.id);
+
         // check if the user needs to verify, else warn and return
         if (!discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
             discordServices.sendEmbedToMember(member, {
@@ -53,9 +56,6 @@ module.exports = class Verificaiton extends PermissionCommand {
             }, true);
             return;
         }
-
-        let guild = message.channel.client.guilds.cache.first();
-        let member = guild.member(message.author.id);
 
         // Call the verify function to get status
         var status = await firebaseServices.verify(email, message.author.id);
@@ -93,13 +93,13 @@ module.exports = class Verificaiton extends PermissionCommand {
                 ' in our system, please make sure your email is well typed. If you think this is an error' +
                 ' please contact us in the welcome-support channel.')
                     .setColor('#fc1403');
-                discordServices.discordLog(guild, 'VERIFY ERROR : <@' + message.author.id + '> Tried to verify email: ' + email + ' and faild! I couldnt find that email!');
+                discordServices.discordLog(guild, 'VERIFY ERROR : <@' + message.author.id + '> Tried to verify email: ' + email + ' and failed! I couldn\'t find that email!');
                 break;
             default:
                 embed.addField('ERROR 401', 'Hi there, it seems the email you tried to verify with is already in use or you were not accepted! Please make ' +
-                    'sure that you have the correct email. If you think this is an error please contact us in the welome-support channel.')
+                    'sure that you have the correct email. If you think this is an error please contact us in the welcome-support channel.')
                     .setColor('#fc1403');
-                    discordServices.discordLog(guild, 'VERIFY WARNING : <@' + message.author.id + '> Tried to verify email: ' + email + ' and faild! He already verified or was not accepted!');
+                    discordServices.discordLog(guild, 'VERIFY WARNING : <@' + message.author.id + '> Tried to verify email: ' + email + ' and failed! He already verified or was not accepted!');
                 break;
         }
         discordServices.sendMessageToMember(member, embed);

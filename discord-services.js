@@ -90,7 +90,7 @@ module.exports.channelIDs = {
     /**
      * The admin console where admins can run commands.
      */
-    adminConsoleChannel : '803242206814011433',
+    adminConsoleChannel : '807110076036808714',
   
     /**
      * The channel where the bot will log things.
@@ -105,7 +105,7 @@ module.exports.channelIDs = {
     /**
      * Where the bot will send reports.
      */
-    incomingReportChannel : '782683901998137355',
+    incomingReportChannel : '803589670486147083',
 
     /**
      * The first channel users have access to, where the verify command is used.
@@ -127,26 +127,10 @@ module.exports.boothingWaitList = boothingWaitList;
 // where they accept/get the next group to talk to them
 var sponsorConsoleChannel = '748397163997954108';
 module.exports.sponsorConsoleChannel = sponsorConsoleChannel;
-// the category where the sponsorConsole and boothingwaitlist
+// the category where the sponsorConsole and boothingWaitlist
 // channels are, used to add more private voice channels
 var sponsorCategory = '738528333935018034';
 module.exports.sponsorCategory = sponsorCategory;
-
-// where hackers can emoji to let the bot know if they are looking
-// for a team or a hacker(s)
-var teamformationChannel = '770354140961570857';
-module.exports.teamformationChannel = teamformationChannel;
-// channel where team bios are posted, hackers shouldn't be able to post
-var recruitingChannel = '770354487595499592';
-module.exports.recruitingChannel = recruitingChannel;
-// channel where hacker bios are posted, hackers shouldn't be able to post
-var lookingforteamChannel = '770354521733857320';
-module.exports.lookingforteamChannel = lookingforteamChannel;
-
-// where hackers and other users can call the !createchannel command
-// to create new private channels for them and their team
-var channelcreationChannel = '754396445494214789';
-module.exports.channelcreationChannel = channelcreationChannel;
 
 /**
  * Checks if the member has a role, returns true if it does
@@ -322,3 +306,12 @@ async function deleteChannel(channel) {
     }
 }
 module.exports.deleteChannel = deleteChannel;
+
+/**
+ * Returns a random color as a hex string.
+ * @returns {String} - hex color
+ */
+function randomColor() {
+    return Math.floor(Math.random()*16777215).toString(16);
+}
+module.exports.randomColor = randomColor;

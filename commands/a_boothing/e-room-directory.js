@@ -6,7 +6,7 @@ const Prompt = require('../../classes/prompt');
 module.exports = class BoothDirectory extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'add-directory',
+            name: 'e-room-directory',
             group: 'a_boothing',
             memberName: 'keep track of booths',
             description: 'Sends embeds to booth directory to notify hackers of booth statuses',
@@ -60,11 +60,11 @@ module.exports = class BoothDirectory extends PermissionCommand {
             msg.react(emoji);
             //only listen for the door react from Staff and Sponsors
             const emojiFilter = (reaction, user) => (reaction.emoji.name === emoji.name) && (discordServices.checkForRole(message.guild.member(user), discordServices.roleIDs.staffRole) || discordServices.checkForRole(message.guild.member(user), discordServices.roleIDs.sponsorRole));
-            const emojicollector = msg.createReactionCollector(emojiFilter);
+            const emojiCollector = msg.createReactionCollector(emojiFilter);
             
             var announcementMsg;
 
-            emojicollector.on('collect', async (reaction, user) => {
+            emojiCollector.on('collect', async (reaction, user) => {
                 reaction.users.remove(user);
                 if (closed) {
                     //embed for open state

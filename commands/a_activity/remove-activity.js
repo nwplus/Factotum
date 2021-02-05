@@ -6,7 +6,7 @@ const ActivityCommand = require('../../classes/activity-command');
 module.exports = class RemoveActivity extends ActivityCommand {
     constructor(client) {
         super(client, {
-            name: 'removeactivity',
+            name: 'remove-activity',
             group: 'a_activity',
             memberName: 'remove an activity',
             description: 'Will remove the category and everything inside it for the given activity',
@@ -24,6 +24,6 @@ module.exports = class RemoveActivity extends ActivityCommand {
         activity.delete();
 
         // report success of activity removal
-        discordServices.replyAndDelete(message,'Activity named: ' + activity.name + ' removed succesfully!');
+        discordServices.replyAndDelete(message,'Activity named: ' + activity.name + ' removed successfully!');
     }
 };

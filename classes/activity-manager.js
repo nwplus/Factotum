@@ -1,5 +1,5 @@
 const firebaseActivity = require('../firebase-services/firebase-services-activities');
-const firebaseCoffeChats = require('../firebase-services/firebase-services-coffeechats');
+const firebaseCoffeeChats = require('../firebase-services/firebase-services-coffeechats');
 const discordServices = require('../discord-services');
 const Activity = require('./activity');
 const Discord = require('discord.js');
@@ -27,7 +27,7 @@ class ActivityManager {
      * @param {Activity} activity - the activity to use
      */
     static async groupShuffle(activity) {
-        let groups = await firebaseCoffeChats.getGroup(activity.name);
+        let groups = await firebaseCoffeeChats.getGroup(activity.name);
 
         let channels = activity.category.children.filter(channel => channel.type === 'voice' && channel.id != activity.generalVoice.id);
 
@@ -159,13 +159,13 @@ class ActivityManager {
      * @param {Activity} activity - activity to use
      * @param {String} title - the title of the poll
      * @param {String} question - the question to poll for
-     * @param {Discord.Collection<String, String>} resposes - <Emoji, Respose> A collection, in order of emojis with its response
+     * @param {Discord.Collection<String, String>} response - <Emoji, Response> A collection, in order of emojis with its response
      */
-    static sendPoll(activity, title, question, resposes){
+    static sendPoll(activity, title, question, response){
         // create poll
         let description = question + '\n\n';
-        for (const key of resposes.keys()) {
-            description += '**' + resposes.get(key) + '->** ' + key + '\n\n';
+        for (const key of response.keys()) {
+            description += '**' + response.get(key) + '->** ' + key + '\n\n';
         }
 
         let qEmbed = new Discord.MessageEmbed()
@@ -175,7 +175,7 @@ class ActivityManager {
 
         // send poll
         activity.generalText.send(qEmbed).then(msg => {
-            resposes.forEach((value, key) => msg.react(key));
+            response.forEach((value, key) => msg.react(key));
         })
     }
 

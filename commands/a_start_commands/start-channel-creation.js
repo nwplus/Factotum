@@ -8,7 +8,7 @@ const Prompt = require('../../classes/prompt');
 module.exports = class StartChannelCreation extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'startcc',
+            name: 'start-channel-creation',
             group: 'a_start_commands',
             memberName: 'start channel creation',
             description: 'Send a message with emoji collector, for each emoji bot will ask type and other friends invited and create the private channel.',
@@ -16,9 +16,9 @@ module.exports = class StartChannelCreation extends PermissionCommand {
         },
         {
             roleID: discordServices.roleIDs.staffRole,
-            roleMessage: 'Hey there, the !startcc command is only for staff!',
+            roleMessage: 'Hey there, the !start-channel-creation command is only for staff!',
             channelID: discordServices.channelIDs.adminConsoleChannel,
-            channelMessage: 'Hey there, the !startcc command is only available in the admin console channel.',
+            channelMessage: 'Hey there, the !start-channel-creation command is only available in the admin console channel.',
         });
     }
 
@@ -36,8 +36,16 @@ module.exports = class StartChannelCreation extends PermissionCommand {
             return;
         }
 
-        // grab channel creation category
+        // grab channel creation category and update permissions
         var category = channel.parent;
+        category.updateOverwrite(discordServices.roleIDs.everyoneRole, {
+            VIEW_CHANNEL: false,
+        });
+
+        channel.updateOverwrite(discordServices.roleIDs.everyoneRole, {
+            VIEW_CHANNEL: true,
+        });
+
         
         // create and send embed message to channel with emoji collector
         const msgEmbed = new Discord.MessageEmbed()
@@ -55,7 +63,7 @@ module.exports = class StartChannelCreation extends PermissionCommand {
 
         mainCollector.on('collect', async (reaction, user) => {
             try {
-                let channelType =(await Prompt.messagePrompt('Do you want a "voice" or "text" channel?', 'string', channel, user.id, 15)).content;
+                let channelType =(await Prompt.messagePrompt('Do you want a "voice" or "text" channel?', 'string', channel, user.id, 20)).content;
 
                 // make sure input is valid
                 if (channelType != 'voice' && channelType != 'text') {
@@ -64,9 +72,9 @@ module.exports = class StartChannelCreation extends PermissionCommand {
                     return;
                 }
 
-                let guests = (await Prompt.messagePrompt('Please tag all the invited users to this private ' + channelType + ' channel. Type "none" if no guests are welcomed.', 'string', channel, user.id, 30)).mentions.members;
+                let guests = (await Prompt.messagePrompt('Please tag all the invited users to this private ' + channelType + ' channel. Type "none" if no guests are welcomed.', 'string', channel, user.id, 60)).mentions.members;
 
-                let channelName = (await Prompt.messagePrompt('What do you want to name the channel? If you don\'t care then send "default"!', 'string', channel, user.id, 20)).content;
+                let channelName = (await Prompt.messagePrompt('What do you want to name the channel? If you don\'t care then send "default"!', 'string', channel, user.id, 30)).content;
 
                 // if channelName is default then use default
                 if (channelName === 'default') {
@@ -90,7 +98,7 @@ module.exports = class StartChannelCreation extends PermissionCommand {
                     // DM to creator with emoji collector
                     let dmMsg = await discordServices.sendEmbedToMember(user, {
                         title: 'Channel Creation',
-                        description: 'Your private channel' + channelName +
+                        description: 'Your private channel ' + channelName +
                             ' has been created, when you are done with it, please react to this message with 🚫 to delete the channel.',
                     });
                     dmMsg.react('🚫');
