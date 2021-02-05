@@ -71,7 +71,7 @@ class Cave {
     constructor(caveOptions) {
 
         /**
-         * The name of the cave category.
+         * The cave options.
          * @type {CaveOptions}
          */
         this.caveOptions;
@@ -213,21 +213,13 @@ class Cave {
             type: 'category',  
             permissionOverwrites: [
                 {
-                    id: discordServices.roleIDs.hackerRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.roleIDs.attendeeRole,
-                    deny: ['VIEW_CHANNEL'],
+                    id: discordServices.roleIDs.everyoneRole,
+                    deny: ['VIEW_CHANNEL']
                 },
                 {
                     id: this.caveOptions.role.id,
                     allow: ['VIEW_CHANNEL'],
                     deny: ['SEND_MESSAGES'],
-                },
-                {
-                    id: discordServices.roleIDs.sponsorRole,
-                    deny: ['VIEW_CHANNEL'],
                 },
                 {
                     id: discordServices.roleIDs.staffRole,
@@ -273,29 +265,7 @@ class Cave {
     async initPublic(guildChannelManager) {
         // create help public channels category
         this.publicChannels.category = await guildChannelManager.create('👉🏽👈🏽' + this.caveOptions.name + ' Help', {
-            type: 'category', 
-            permissionOverwrites: [
-                {
-                    id: discordServices.roleIDs.hackerRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.roleIDs.attendeeRole,
-                    allow: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: this.caveOptions.role.id,
-                    allow: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.roleIDs.sponsorRole,
-                    allow: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.roleIDs.staffRole,
-                    allow: ['VIEW_CHANNEL'],
-                }
-            ]
+            type: 'category',
         });
 
         // create request ticket channel
