@@ -233,29 +233,6 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                     }
                 });
             });
-            // leaderDM.awaitReactions((reaction, user) => {
-            //     console.log(!user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === destroyTeamEmoji);
-            //     return !user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === destroyTeamEmoji;
-            // }, {max: 1}).then(reactions => {
-            //     console.log('inside await reactions');
-            //     // remove the team from the list, remove the team leader msg and send a confirmation message
-            //     this.teamList.get(newTeam.size()).splice(this.teamList.get(newTeam.size()).indexOf(newTeam), 1);
-            //     leaderDM.delete();
-            //     discordServices.sendEmbedToMember(teamLeaderUser, {
-            //         title: 'Team Roulette',
-            //         description: 'Your team has been removed from the roulette!',
-            //     }, true);
-
-            //     // remove all users from the activity and let them know
-            //     newTeam.members.forEach(user => {
-            //         this.participants.delete(user.id);
-            //         discordServices.sendEmbedToMember(user, {
-            //             title: 'Team Roulette',
-            //             description: 'Your team with <@' + newTeam.leader + '> has been destroyed!',
-            //         });
-            //     });
-            // });
-
             this.runTeamCreator(message.guild.channels);
         });
     }
