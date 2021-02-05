@@ -90,7 +90,7 @@ module.exports.channelIDs = {
     /**
      * The admin console where admins can run commands.
      */
-    adminConsoleChannel : '803242206814011433',
+    adminConsoleChannel : '807110076036808714',
   
     /**
      * The channel where the bot will log things.

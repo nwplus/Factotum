@@ -45,6 +45,9 @@ module.exports = class Verificaiton extends PermissionCommand {
             return;
         }
 
+        let guild = message.channel.client.guilds.cache.first();
+        let member = guild.member(message.author.id);
+
         // check if the user needs to verify, else warn and return
         if (!discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
             discordServices.sendEmbedToMember(member, {
@@ -53,9 +56,6 @@ module.exports = class Verificaiton extends PermissionCommand {
             }, true);
             return;
         }
-
-        let guild = message.channel.client.guilds.cache.first();
-        let member = guild.member(message.author.id);
 
         // Call the verify function to get status
         var status = await firebaseServices.verify(email, message.author.id);
