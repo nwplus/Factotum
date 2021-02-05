@@ -24,6 +24,6 @@ module.exports = class RemoveActivity extends ActivityCommand {
         activity.delete();
 
         // report success of activity removal
-        discordServices.replyAndDelete(message,'Activity named: ' + activity.name + ' removed succesfully!');
+        discordServices.replyAndDelete(message,'Activity named: ' + activity.name + ' removed successfully!');
     }
 };

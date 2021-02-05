@@ -127,7 +127,7 @@ module.exports.boothingWaitList = boothingWaitList;
 // where they accept/get the next group to talk to them
 var sponsorConsoleChannel = '748397163997954108';
 module.exports.sponsorConsoleChannel = sponsorConsoleChannel;
-// the category where the sponsorConsole and boothingwaitlist
+// the category where the sponsorConsole and boothingWaitlist
 // channels are, used to add more private voice channels
 var sponsorCategory = '738528333935018034';
 module.exports.sponsorCategory = sponsorCategory;

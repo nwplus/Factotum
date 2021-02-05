@@ -21,7 +21,7 @@ class ActivityCommand extends PermissionCommand {
         super(client, info, 
             {
                 roleID: discordServices.roleIDs.staffRole,
-                roleMessage: 'You do not have permision for this command, only staff can use it!',
+                roleMessage: 'You do not have permission for this command, only staff can use it!',
                 channelID: discordServices.channelIDs.adminConsoleChannel,
                 channelMessage: 'This command can only be used in the admin console!',
             }
@@ -29,10 +29,10 @@ class ActivityCommand extends PermissionCommand {
     }
 
     /**
-     * Asked by our parent PermissionCommand, will contain the code specific to acticity commands.
+     * Asked by our parent PermissionCommand, will contain the code specific to activity commands.
      */
     runCommand(message, args, fromPattern, result) {
-        // we dont want this command to be available outside the activity console
+        // we don't want this command to be available outside the activity console
         this.runActivityCommand(message, null, args);
     }
 

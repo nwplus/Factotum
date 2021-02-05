@@ -97,7 +97,7 @@ class Team {
                 'VIEW_CHANNEL' : true,
                 'SEND_MESSAGES' : true,
             });
-            this.textChannel.send('Helo <@' + user.id + '>, welcome to the team!');
+            this.textChannel.send('Hello <@' + user.id + '>, welcome to the team!');
         }
     }
 
@@ -132,7 +132,7 @@ class Team {
             SEND_MESSAGES: false,
         });
 
-        // if user is the team leader apoint another team member
+        // if user is the team leader appoint another team member
         if (this.leader = user.id) {
             this.leader = this.members.first().id;
         }
@@ -149,7 +149,7 @@ class Team {
     }
 
     /**
-     * True if the team has 4 memebrs, false otherwise.
+     * True if the team has 4 members, false otherwise.
      */
     isComplete() {
         return this.size() === 4;

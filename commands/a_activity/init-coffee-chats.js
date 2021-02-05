@@ -10,7 +10,7 @@ module.exports = class InitCoffeeChats extends ActivityCommand {
         super(client, {
             name: 'init-coffee-chats',
             group: 'a_activity',
-            memberName: 'initialize coffee chat funcitonality for activity',
+            memberName: 'initialize coffee chat functionality for activity',
             description: 'Will initialize the coffee chat functionality for the given workshop.',
             guildOnly: true,
             args: [
@@ -69,8 +69,8 @@ module.exports = class InitCoffeeChats extends ActivityCommand {
         // filter for message await
         const msgFilter = m => m.author.id === user.id;
 
-        // send promt and expect a response within 20 seconds!
-        var promt = await joinActivityChannel.send('<@' + user.id + '> Please mention (tag) all your group members in one message and send it here! You have 20 seconds.');
+        // send prompt and expect a response within 20 seconds!
+        var prompt = await joinActivityChannel.send('<@' + user.id + '> Please mention (tag) all your group members in one message and send it here! You have 20 seconds.');
 
         joinActivityChannel.awaitMessages(msgFilter, { max: 1, time: 20000, errors: ['time'] }).then(msgs => {
             var groupMsg = msgs.first();
@@ -88,14 +88,14 @@ module.exports = class InitCoffeeChats extends ActivityCommand {
             // add group to activity list
             firebaseCoffeeChats.addGroup(activityName, groupMembers);
 
-            promt.delete();
+            prompt.delete();
             joinActivityChannel.send('<@' + user.id + '> Your team has been added to the activity! Make sure you follow the instructions in the main channel.').then(msg => {
                 msg.delete({ timeout: 5000 });
                 groupMsg.delete({ timeout: 5000 });
             });
 
         }).catch(error => {
-            promt.delete();
+            prompt.delete();
             joinActivityChannel.send('<@' + user.id + '> Time has run out! Please try again!').then(msg => msg.delete({timeout: 3000}));
         });
     }

@@ -9,7 +9,7 @@ module.exports = class AskQuestion extends PermissionCommand {
         super(client, {
             name: 'ask',
             group: 'utility',
-            memberName: 'ask anonymus question with thread',
+            memberName: 'ask anonymous question with thread',
             description: 'Will send the question to the same channel, and add emoji collector for thread like support.',
             guildOnly: true,
             args: [
@@ -55,7 +55,7 @@ module.exports = class AskQuestion extends PermissionCommand {
             
             msg.react('🇷');  // respond emoji
             msg.react('✅');  // answered emoji!
-            msg.react('⏫');  // upvote emoji
+            msg.react('⏫');  // up vote emoji
             msg.react('⛔');  // delete emoji
 
             // filter and collector
@@ -63,7 +63,7 @@ module.exports = class AskQuestion extends PermissionCommand {
             const collector = msg.createReactionCollector(emojiFilter);
 
             collector.on('collect', async (reaction, user) => {
-                // delete the reaciton
+                // delete the reaction
                 reaction.users.remove(user.id);
 
                 // add response to question
@@ -75,16 +75,16 @@ module.exports = class AskQuestion extends PermissionCommand {
                         onResponse.set(user.id, user.username);
                     }
 
-                    // promt the response
-                    curChannel.send('<@' + user.id + '> Please send your response within 15 seconds! If you want to cancel write cancel.').then(promt => {
+                    // prompt the response
+                    curChannel.send('<@' + user.id + '> Please send your response within 15 seconds! If you want to cancel write cancel.').then(prompt => {
                         // filter and message await only one
-                        // only user who emojied this message will be able to add a reply to it
+                        // only user who reacted this message will be able to add a reply to it
                         curChannel.awaitMessages(m => m.author.id === user.id, {max: 1, time: 15000, errors: ['time']}).then((msgs) => {
                             var response = msgs.first();
 
                             // if cancel then do nothing
                             if (response.content.toLowerCase() != 'cancel') {
-                                // if user has a mentor role, they get a spcial title
+                                // if user has a mentor role, they get a special title
                                 if (discordServices.checkForRole(response.member, discordServices.roleIDs.mentorRole)) {
                                     msg.edit(msg.embeds[0].addField('🤓 ' + user.username + ' Responded:', response.content));
                                 } else {
@@ -94,13 +94,13 @@ module.exports = class AskQuestion extends PermissionCommand {
                             }
 
                             // delete messages
-                            promt.delete();
+                            prompt.delete();
                             response.delete();
 
                             // remove user from on response list
                             onResponse.delete(user.id);
                         }).catch((msgs) => {
-                            promt.delete();
+                            prompt.delete();
                             curChannel.send('<@' + user.id + '> Time is up! When you are ready to respond, emoji again!').then(msg => msg.delete({timeout: 2000}));
 
                             // remove user from on response list
@@ -108,7 +108,7 @@ module.exports = class AskQuestion extends PermissionCommand {
                         });
                     });
                 }
-                // check for checkmark emoji and only user who asked the question
+                // check for check-mark emoji and only user who asked the question
                 else if (reaction.emoji.name === '✅' && user.id === message.author.id) {
                     // change color
                     msg.embeds[0].setColor('#80c904');

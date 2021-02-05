@@ -24,7 +24,7 @@ class Cave {
      * @property {Discord.GuildEmoji | Discord.ReactionEmoji} requestTicketEmoji - emoji for hackers to request a ticket
      * @property {Discord.GuildEmoji | Discord.ReactionEmoji} addRoleEmoji - emoji for Admins to add a mentor role
      * @property {Discord.GuildEmoji | Discord.ReactionEmoji} deleteChannelsEmoji - emoji for Admins to force delete ticket channels
-     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} excludeFromAutodeleteEmoji - emoji for Admins to opt tickets in/out of garbage collector
+     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} excludeFromAutoDeleteEmoji - emoji for Admins to opt tickets in/out of garbage collector
      */
 
      /**
@@ -65,7 +65,7 @@ class Cave {
 
 
     /**
-     * Contructor to create a cave.
+     * Constructor to create a cave.
      * @param {CaveOptions} caveOptions - the cave options
      */
     constructor(caveOptions) {
@@ -99,7 +99,7 @@ class Cave {
         this.adminEmojis = new Discord.Collection();
         this.adminEmojis.set(this.caveOptions.emojis.addRoleEmoji.name, this.caveOptions.emojis.addRoleEmoji);
         this.adminEmojis.set(this.caveOptions.emojis.deleteChannelsEmoji.name, this.caveOptions.emojis.deleteChannelsEmoji);
-        this.adminEmojis.set(this.caveOptions.emojis.excludeFromAutodeleteEmoji.name, this.caveOptions.emojis.excludeFromAutodeleteEmoji);
+        this.adminEmojis.set(this.caveOptions.emojis.excludeFromAutoDeleteEmoji.name, this.caveOptions.emojis.excludeFromAutoDeleteEmoji);
 
         /**
          * The emojis to use for roles.
@@ -248,7 +248,7 @@ class Cave {
         this.privateChannels.console = await guildChannelManager.create('📝' + this.caveOptions.name + '-console', {
             type: 'text',
             parent: this.privateChannels.category,
-            topic: 'Sign yourself up for specific roles! New roles will be added as requested, only add yourself to one if you feel comfortable responing to questions about the topic.',
+            topic: 'Sign yourself up for specific roles! New roles will be added as requested, only add yourself to one if you feel comfortable responding to questions about the topic.',
         });
 
         // incoming tickets
@@ -323,7 +323,7 @@ class Cave {
     }
 
     /**
-     * Send the requst ticket console and creates the reaction collector.
+     * Send the request ticket console and creates the reaction collector.
      * @async
      * @private
      */
@@ -406,7 +406,7 @@ class Cave {
             .setColor(this.caveOptions.color)
             .setTitle(this.caveOptions.name + ' Role Console')
             .setDescription('Hi! Thank you for being here. \n* Please read over all the available roles. \n* Choose those you would feel ' +
-                'comfortable answering questions for. \n* When someone sends a help ticket, and has specificed one of your roles, you will get pinged!');
+                'comfortable answering questions for. \n* When someone sends a help ticket, and has specified one of your roles, you will get pinged!');
         this.embedMessages.console = await (await this.privateChannels.console.send(caveConsoleEmbed)).pin();
 
         const collector = this.embedMessages.console.createReactionCollector((reaction, user) => !user.bot && this.emojis.has(reaction.emoji.name), { dispose: true });
@@ -451,7 +451,7 @@ class Cave {
             .addField('Add a role', 'To add a role please click the ' + this.caveOptions.emojis.addRoleEmoji.toString() + ' emoji.')
             .addField('Delete ticket channels', 'Click the ' + this.caveOptions.emojis.deleteChannelsEmoji.toString() + ' emoji to delete some or all mentor ticket channels.\n' +
                 'Note that if some of a ticket\'s channels are deleted, it will be automatically excluded from the garbage collector.')
-            .addField('Include/Exclude tickets from garbage collector', 'Click the ' + this.caveOptions.emojis.excludeFromAutodeleteEmoji.toString() +
+            .addField('Include/Exclude tickets from garbage collector', 'Click the ' + this.caveOptions.emojis.excludeFromAutoDeleteEmoji.toString() +
                 ' emoji to include/exclude a ticket from being automatically deleted for inactivity or mentors leaving. (All tickets are included by default, and the status of partially deleted tickets cannot be changed)');
         this.embedMessages.adminConsole = await adminConsole.send(msgEmbed);
         this.adminEmojis.forEach(emoji => this.embedMessages.adminConsole.react(emoji));
@@ -472,7 +472,7 @@ class Cave {
                     return;
                 }
 
-                // let admin know the action was succesfull
+                // let admin know the action was successful
                 adminConsole.send('<@' + admin.id + '> The role has been added!').then(msg => msg.delete({ timeout: 8000 }));
 
             } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[1]) { // check if the delete channels emoji was selected
@@ -606,7 +606,7 @@ class Cave {
      * @param {Discord.TextChannel} adminConsole - the channel to prompt
      * @param {Discord.Snowflake} userId - the user's id to prompt
      */
-    checkForExcistingRoles(roleManager, adminConsole, userId) {
+    checkForExistingRoles(roleManager, adminConsole, userId) {
         let initialRoles = roleManager.cache.filter(role => role.name.startsWith(this.caveOptions.preRoleText + '-'));
 
         initialRoles.each(async role => {

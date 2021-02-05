@@ -11,7 +11,7 @@ module.exports = class InitAmongUs extends ActivityCommand {
         super(client, {
             name: 'init-among-us',
             group: 'a_activity',
-            memberName: 'initialize among us funcitonality for activity',
+            memberName: 'initialize among us functionality for activity',
             description: 'Will initialize the among us functionality for the given workshop.',
             guildOnly: true,
             args: [
@@ -68,7 +68,7 @@ module.exports = class InitAmongUs extends ActivityCommand {
     }
 
     /**
-     * Gives a user full acccess to the category, that is, all its children!
+     * Gives a user full access to the category, that is, all its children!
      * @param {Discord.User} user - the user give access to
      * @param {Discord.CategoryChannel} category - the category to give access to
      */

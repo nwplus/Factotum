@@ -37,7 +37,7 @@ module.exports = class StartMentors extends PermissionCommand {
             let requestTicketEmoji = await checkForDuplicateEmojis('What is the request ticket emoji?');
             let addRoleEmoji = await checkForDuplicateEmojis('What is the add mentor role emoji?');
             let deleteChannelsEmoji = await checkForDuplicateEmojis('What is the delete ticket channels emoji?');
-            let excludeFromAutodeleteEmoji = await checkForDuplicateEmojis('What is the emoji to opt tickets in/out for the garbage collector?');
+            let excludeFromAutoDeleteEmoji = await checkForDuplicateEmojis('What is the emoji to opt tickets in/out for the garbage collector?');
 
             var role;
             if (await Prompt.yesNoPrompt('Have you created the mentor role? If not it is okay, I can make it for you!', message.channel, message.author.id)) {
@@ -75,7 +75,7 @@ module.exports = class StartMentors extends PermissionCommand {
                     requestTicketEmoji: requestTicketEmoji,
                     addRoleEmoji: addRoleEmoji,
                     deleteChannelsEmoji: deleteChannelsEmoji,
-                    excludeFromAutodeleteEmoji: excludeFromAutodeleteEmoji,
+                    excludeFromAutoDeleteEmoji: excludeFromAutoDeleteEmoji,
                 },
                 times: {
                     inactivePeriod: await Prompt.numberPrompt('How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
@@ -102,7 +102,7 @@ module.exports = class StartMentors extends PermissionCommand {
 
             await cave.sendConsoleEmbeds(adminConsole);
 
-            cave.checkForExcistingRoles(message.guild.roles, adminConsole, message.author.id);
+            cave.checkForExistingRoles(message.guild.roles, adminConsole, message.author.id);
           
         } catch (error) {
             message.channel.send('Due to a prompt cancel, the mentor cave creation was unsuccessful.').then(msg => msg.delete({timeout: 5000})); 

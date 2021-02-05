@@ -24,7 +24,7 @@ module.exports = class HideUnhide extends Command {
                 },
                 {
                     key: 'categoryChannelKey',
-                    prompt: 'snowflake of the activiti\'s category',
+                    prompt: 'snowflake of the activity\'s category',
                     type: 'string',
                     default: '',
                 },
@@ -41,9 +41,9 @@ module.exports = class HideUnhide extends Command {
             discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
             return;   
         }
-        // only memebers with the staff tag can run this command!
+        // only members with the staff tag can run this command!
         if (!(discordServices.checkForRole(message.member, discordServices.roleIDs.staffRole))) {
-            discordServices.replyAndDelete(message, 'You do not have permision for this command, only staff can use it!');
+            discordServices.replyAndDelete(message, 'You do not have permission for this command, only staff can use it!');
             return;             
         }
 
@@ -58,15 +58,15 @@ module.exports = class HideUnhide extends Command {
 
         // if no category then report failure and return
         if (category === undefined) {
-            // if the category does not excist
-            discordServices.replyAndDelete(message,'The workshop named: ' + activityName +', does not excist! Did not remove voice channels.');
+            // if the category does not exist
+            discordServices.replyAndDelete(message,'The workshop named: ' + activityName +', does not exist! Did not remove voice channels.');
             return;
         }
 
         // NOTE:
         // * It appears that the discord api takes a LONG time to change the name once the category has been changed a few times
-        // * For our purposes, we are okay with hiding it only initialy and then unhiding, after that no more hidding alowed
-        // * Will make sure this rule is followed in !newactivity console
+        // * For our purposes, we are okay with hiding it only initially and then un-hiding, after that no more hiding allowed
+        // * Will make sure this rule is followed in !new-activity console
         // * UPDATE: it appears the problem was using category.name inside the setName method, using a simple variable solved the issue
 
 

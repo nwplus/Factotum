@@ -21,7 +21,7 @@ module.exports = class ShowInformation extends PermissionCommand {
         },
         {
             roleID: discordServices.roleIDs.adminRole,
-            roleMessage: 'Hey there, the command !showi is only available to Admins!',
+            roleMessage: 'Hey there, the command !show-information is only available to Admins!',
         });
     }
 
@@ -34,12 +34,12 @@ module.exports = class ShowInformation extends PermissionCommand {
             embed.setTitle('Welcome to the nwHacks 2021 Discord server!')
                 .setDescription('In order to verify that you have registered for nwHacks 2021, please send the **!verify** command to this channel followed by the email you used to sign up. \nFor example: !verify example@gmail.com')
                 .addField('Do you need assistance?', 'Head over to the welcome-support channel and ping the admins!')
-                .addField('Worry Not! Your email will be kept Private!', 'All messages to this channel are automaticaly removed!');
+                .addField('Worry Not! Your email will be kept Private!', 'All messages to this channel are automatically removed!');
         } else if (command === 'attend') {
             embed.setTitle('Hey there!')
                 .setDescription('In order to indicate that you are participating at nwHacks 2021, please send the **!attend** command to this channel followed by the email you used to sign up. \nFor example: !attend example@gmail.com')
                 .addField('Do you need assistance?', 'Head over to the support channel and ping the admins!')
-                .addField('Worry Not! Your email will be kept Private!', 'All messages to this channel are automaticaly removed!');
+                .addField('Worry Not! Your email will be kept Private!', 'All messages to this channel are automatically removed!');
         }
 
         message.channel.send(embed).then(msg => msg.pin());

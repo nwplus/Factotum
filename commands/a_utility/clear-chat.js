@@ -30,7 +30,7 @@ module.exports = class ClearChat extends PermissionCommand {
         },
         {
             roleID: discordServices.roleIDs.adminRole,
-            roleMessage: 'Hey there, the command !clearchat is only available to Admins!',
+            roleMessage: 'Hey there, the command !clear-chat is only available to Admins!',
         });
     }
 
@@ -38,7 +38,7 @@ module.exports = class ClearChat extends PermissionCommand {
   async runCommand (message, {keepPinned, isCommands}) {
 
         if (keepPinned) {
-            // other option is to get all channel messages, filter of the pined channels and pass those to bulkDelete, might be to costy?
+            // other option is to get all channel messages, filter of the pined channels and pass those to bulkDelete, might be to costly?
             var messagesToDelete = await message.channel.messages.cache.filter(msg => !msg.pinned);
             await message.channel.bulkDelete(messagesToDelete, true).catch(console.error);
         } else {
@@ -66,10 +66,6 @@ module.exports = class ClearChat extends PermissionCommand {
                         commands.push(value);
                     })
                 });
-            }
-            // create channel
-            else if (message.channel.id === discordServices.channelcreationChannel) {
-                commands = this.client.registry.findCommands('createchannel');
             }
             // any other channels will send the hacker commands
             else {

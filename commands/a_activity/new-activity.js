@@ -26,7 +26,7 @@ module.exports = class NewActivity extends PermissionCommand {
             channelID: discordServices.channelIDs.adminConsoleChannel,
             channelMessage: 'This command can only be used in the admin console!',
             roleID: discordServices.roleIDs.adminRole,
-            roleMessage: 'You do not have permision for this command, only admins can use it!',
+            roleMessage: 'You do not have permission for this command, only admins can use it!',
         });
     }
 
@@ -35,7 +35,7 @@ module.exports = class NewActivity extends PermissionCommand {
         let activity = await new Activity(activityName, message.guild).init();
 
         // report success of activity creation
-        discordServices.replyAndDelete(message,'Activity session named: ' + activity.name + ' created succesfully. Any other commands will require this name as paramter.');
+        discordServices.replyAndDelete(message,'Activity session named: ' + activity.name + ' created successfully. Any other commands will require this name as paramter.');
 
         // send message to console with emoji commands
         // message embed

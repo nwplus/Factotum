@@ -11,7 +11,7 @@ class Ticket {
     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} requestTicketEmoji - emoji for hackers to request a ticket
     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} addRoleEmoji - emoji for Admins to add a mentor role
     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} deleteChannelsEmoji - emoji for Admins to force delete ticket channels
-    * @property {Discord.GuildEmoji | Discord.ReactionEmoji} excludeFromAutodeleteEmoji - emoji for Admins to opt tickets in/out of garbage collector
+    * @property {Discord.GuildEmoji | Discord.ReactionEmoji} excludeFromAutoDeleteEmoji - emoji for Admins to opt tickets in/out of garbage collector
     */
 
     constructor(guild, question, cave, requester, hackers, ticketNumber, ticketMsg, inactivePeriod, bufferTime) {
@@ -200,7 +200,7 @@ class Ticket {
 
         let reqTicketUserEmbedMsg = await discordServices.sendEmbedToMember(this.requester, {
             title: 'Ticket was Successful!',
-            description: 'Your ticket to the ' + this.cave.caveOptions.name + ' group was succesful!',
+            description: 'Your ticket to the ' + this.cave.caveOptions.name + ' group was successful!',
             fields: [{
                 title: 'Remove the ticket',
                 description: 'If you don\'t need help anymore, react to this message with ' + removeTicketEmoji,
@@ -212,8 +212,8 @@ class Ticket {
         });
 
         reqTicketUserEmbedMsg.react(removeTicketEmoji);
-        let reqTicketUserEmbedMsgcollector = reqTicketUserEmbedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === removeTicketEmoji, { max: 1 });
-        reqTicketUserEmbedMsgcollector.on('collect', (reaction, user) => {
+        let reqTicketUserEmbedMsgCollector = reqTicketUserEmbedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === removeTicketEmoji, { max: 1 });
+        reqTicketUserEmbedMsgCollector.on('collect', (reaction, user) => {
             // don't allow anyone to join ticket and update dm with user to show that ticket has been canceled
             ticketCollector.stop();
             this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed by the user!'));
@@ -372,7 +372,7 @@ class Ticket {
     async createActivityListener() {
         // stop listening if there is another deletion process ongoing
         if (this.category.deleted || this.text.deleted || this.voice.deleted || this.excluded) return;
-        // message collector that stops when there are no messages for inactiverPeriod minutes
+        // message collector that stops when there are no messages for inactivePeriod minutes
         const activityListener = this.text.createMessageCollector(m => !m.author.bot, { idle: this.inactivePeriod * 60 * 1000 });
         activityListener.on('end', async collected => {
             //don't start deletion sequence if the text/voice channel got deleted while the collector was listening

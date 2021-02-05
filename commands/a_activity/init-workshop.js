@@ -10,7 +10,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
         super(client, {
             name: 'init-workshop',
             group: 'a_activity',
-            memberName: 'initialize workshop funcitonality for activity',
+            memberName: 'initialize workshop functionality for activity',
             description: 'Will initialize the workshop functionality for the given workshop. General voice channel will be muted for all hackers.',
             guildOnly: true,
         });
@@ -30,7 +30,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
 
     // important variables and embeds
         // pullInFunctionality is default to true
-        var pullInFunctonality = true;
+        var pullInFunctionality = true;
 
         ////// TA Side
         // embed color for mentors
@@ -40,7 +40,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
             .setTitle('TA Information')
             .setDescription('Please read this before the workshop starts!')
             .addField('Create Private Channels', 'If you can only see one voice channel called activity room, go to the staff console and add voice channels to this activity.')
-            .addField('Keep Track Of', '* The wait list will udpate but won\'t notify you about it. Keep an eye on it!\n *The activity-banter channel for any questions!')
+            .addField('Keep Track Of', '* The wait list will update but won\'t notify you about it. Keep an eye on it!\n *The activity-banter channel for any questions!')
             .addField('Low Tech Solution', '* React to this message with 🤡 to enable the low tech solution! \n* This solution will disable the public voice channel ' +
             ' and disable the pull in functionality. \n* TAs will have to DM hackers that need help and then react to the wait list.')
             .setColor(mentorColor);
@@ -57,7 +57,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 generalVoice.updateOverwrite(discordServices.roleIDs.sponsorRole, {VIEW_CHANNEL: false});
 
                 // disable pull in functionality
-                pullInFunctonality = false;
+                pullInFunctionality = false;
 
                 // let TAs know about the change!
                 taChannel.send('Low tech solution has been turned on!').then(msg => msg.delete({timeout: 5000}));
@@ -154,7 +154,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
             }
 
             // collect the question the hacker has
-            var qPromt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond').catch(console.error);
+            var qPrompt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond').catch(console.error);
 
             helpChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000, error:['time'] }).then(async msgs => {
                 // get question
@@ -164,8 +164,8 @@ module.exports = class InitWorkshop extends ActivityCommand {
                     .setColor(discordServices.colors.embedColor)
                     .setTitle('Hey there! We got you signed up to talk to a TA!')
                     .setDescription('You are number: ' + position + ' in the wait list.')
-                    .addField(pullInFunctonality ? 'JOIN THE VOICE CHANNEL!' : 'KEEP AN EYE ON YOUR DMs', 
-                    pullInFunctonality ? 'Sit tight in the voice channel. If you are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!' :
+                    .addField(pullInFunctionality ? 'JOIN THE VOICE CHANNEL!' : 'KEEP AN EYE ON YOUR DMs', 
+                    pullInFunctionality ? 'Sit tight in the voice channel. If you are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!' :
                     'A TA will reach out to you soon via DM! Have your question ready and try to keep up with the workshop until then!');
 
                 discordServices.sendMessageToMember(user, hackerEmbed);
@@ -175,16 +175,16 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 // send a quick message to let ta know a new user is on the wait list
                 taChannel.send('A new hacker needs help!').then(msg => msg.delete({timeout: 3000}));
 
-                // delete promt and user msg
-                qPromt.delete();
+                // delete prompt and user msg
+                qPrompt.delete();
                 msgs.each(msg => msg.delete());
             }).catch(() => {
-                qPromt.delete();
+                qPrompt.delete();
                 helpChannel.send('<@' + user.id + '> Time is up! Write up your message and react again!').then(msg => msg.delete({timeout: 3000}));
             });
         });
 
-        // add reacton to get next in this message!
+        // add reaction to get next in this message!
         const getNextCollector = taConsole.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🤝');
 
         getNextCollector.on('collect', (reaction, user) => {
@@ -198,7 +198,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
             }
 
             // if pullInFunctionality is turned off then then just remove from list
-            if (!pullInFunctonality) {
+            if (!pullInFunctionality) {
                 // remove hacker from wait list
                 var hackerKey = waitlist.firstKey();
                 waitlist.delete(hackerKey);

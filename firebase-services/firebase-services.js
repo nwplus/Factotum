@@ -9,7 +9,7 @@ const nwDB = firebase.firestore(firebase.apps.find((value, index, app) => value.
 module.exports.db = db;
 module.exports.nwDB = nwDB;
 
-// collection constats
+// collection constants
 const groups = {
     hackerGroup : 'hackers',
     sponsorGroup : 'sponsors',
@@ -20,14 +20,14 @@ const groups = {
 }
 module.exports.groups = groups;
 
-// Enum used internaly for firebase functions returns
+// Enum used internally for firebase functions returns
 const internalStatus = {
     // Everything worked well
     SUCCESS: 1,
     // Email was not found
     FAILURE: 2,
     // Email was found but already in use
-    FAILTURE_IN_USE: 3,
+    FAILURE_IN_USE: 3,
 }
 
 // Enum used publicly for firebase function returns
@@ -118,7 +118,7 @@ async function verifyHacker(email, id) {
 /**
  * Verifies a discord member.
  * @param {String} email - member's email with which to verify
- * @param {String} id - member's discord id snowlfake
+ * @param {String} id - member's discord id snowflake
  * @returns {Promise<String>} - one of the status constants
  */
 async function verify(email, id) {
