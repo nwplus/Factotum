@@ -18,7 +18,7 @@ module.exports = class StartTeamFormation extends PermissionCommand {
         {
             roleID: discordServices.roleIDs.adminRole,
             roleMessage: 'Hey there, the !starttf command is only for admins!',
-            channelID: discordServices.channelIDs.adminConsolChannel,
+            channelID: discordServices.channelIDs.adminConsoleChannel,
             channelMessage: 'Hey there, the !starttf command is only available in the admin console.',
         });
     }
