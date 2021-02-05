@@ -16,9 +16,9 @@ module.exports = class StartChannelCreation extends PermissionCommand {
         },
         {
             roleID: discordServices.roleIDs.staffRole,
-            roleMessage: 'Hey there, the !startcc command is only for staff!',
+            roleMessage: 'Hey there, the !start-channel-creation command is only for staff!',
             channelID: discordServices.channelIDs.adminConsoleChannel,
-            channelMessage: 'Hey there, the !startcc command is only available in the admin console channel.',
+            channelMessage: 'Hey there, the !start-channel-creation command is only available in the admin console channel.',
         });
     }
 
@@ -90,7 +90,7 @@ module.exports = class StartChannelCreation extends PermissionCommand {
                     // DM to creator with emoji collector
                     let dmMsg = await discordServices.sendEmbedToMember(user, {
                         title: 'Channel Creation',
-                        description: 'Your private channel' + channelName +
+                        description: 'Your private channel ' + channelName +
                             ' has been created, when you are done with it, please react to this message with 🚫 to delete the channel.',
                     });
                     dmMsg.react('🚫');
