@@ -45,23 +45,27 @@ module.exports = class StartAttend extends PermissionCommand {
                 let categoryReply = await Prompt.messagePrompt('What category do you want the new attend channel under? ', 'string', message.channel, message.author.id, 20);
                 
                 var categoryName = categoryReply.content;
-                //create the channel
-                let newChannel = await message.guild.channels.create('attend')
-                // .then(newChannel => {
-                let category = message.guild.channels.cache.find(c => c.name.toLowerCase() == categoryName.toLowerCase() && c.type == 'category');
-                if (category) {
-                    newChannel.setParent(category.id);
-                } else {
+
+
+                let category = message.guild.channels.cache.find(c => c.type == 'category' && c.name.toLowerCase() == categoryName.toLowerCase());
+                if (!category) {
                     message.channel.send('Invalid category name. Please try the command again.')
                     .then((msg) => msg.delete({timeout: 3000}));
                     return;
                 }
-                channel = newChannel;
+
+                //create the channel
+                channel = await message.guild.channels.create('attend', {
+                    parent: category,
+                    topic: 'Channel to attend the event!',
+                });
             }
         } catch (error) {
             message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;
         }
+
+        channel.updateOverwrite(discordServices.roleIDs.everyoneRole, { SEND_MESSAGES: false });
 
         //send embed with information and tagging hackers
         let attendEmoji = '🔋';
