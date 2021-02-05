@@ -132,22 +132,6 @@ module.exports.sponsorConsoleChannel = sponsorConsoleChannel;
 var sponsorCategory = '738528333935018034';
 module.exports.sponsorCategory = sponsorCategory;
 
-// where hackers can emoji to let the bot know if they are looking
-// for a team or a hacker(s)
-var teamformationChannel = '770354140961570857';
-module.exports.teamformationChannel = teamformationChannel;
-// channel where team bios are posted, hackers shouldn't be able to post
-var recruitingChannel = '770354487595499592';
-module.exports.recruitingChannel = recruitingChannel;
-// channel where hacker bios are posted, hackers shouldn't be able to post
-var lookingforteamChannel = '770354521733857320';
-module.exports.lookingforteamChannel = lookingforteamChannel;
-
-// where hackers and other users can call the !createchannel command
-// to create new private channels for them and their team
-var channelcreationChannel = '754396445494214789';
-module.exports.channelcreationChannel = channelcreationChannel;
-
 /**
  * Checks if the member has a role, returns true if it does
  * @param {Discord.GuildMember} member - member to check role
