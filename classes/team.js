@@ -97,7 +97,7 @@ class Team {
                 'VIEW_CHANNEL' : true,
                 'SEND_MESSAGES' : true,
             });
-            this.textChannel.send('Hello <@' + user.id + '>, welcome to the team!');
+            this.textChannel.send('Hello <@' + user.id + '>, welcome to the team!').then(msg => msg.delete({timeout: 30000}));
         }
     }
 
