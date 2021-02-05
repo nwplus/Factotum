@@ -348,14 +348,15 @@ class Cave {
         const collector = this.embedMessages.request.createReactionCollector((reaction, user) => !user.bot && !usersSubmittingTicket.has(user.id) && (this.emojis.has(reaction.emoji.name) || reaction.emoji.name === this.caveOptions.emojis.requestTicketEmoji.name));
 
         collector.on('collect', async (reaction, user) => {
-            // currently submitting a ticket
-            usersSubmittingTicket.set(user.id, user);
 
             // check if role they request has users in it
             if (this.emojis.has(reaction.emoji.name) && this.emojis.get(reaction.emoji.name).activeUsers === 0) {
                 this.publicChannels.outgoingTickets.send('<@' + user.id + '> There are no mentors available with that role. Please request another role or the general role!').then(msg => msg.delete({ timeout: 10000 }));
                 return;
             }
+            
+            // currently submitting a ticket
+            usersSubmittingTicket.set(user.id, user);
 
             try {
                 var promptMsg = await Prompt.messagePrompt('Please send ONE message with: \n* A one liner of your problem ' + 
@@ -387,7 +388,7 @@ class Cave {
 
             // initialize a ticket and add it to the Collection of active tickets
             var hackers = Array.from(promptMsg.mentions.users.values());
-            hackers.push(user.id);
+            hackers.push(user);
             let ticket = new Ticket(promptMsg.guild, promptMsg.content, this, user, hackers, this.ticketCount, ticketMsg, 
                 this.caveOptions.times.inactivePeriod, this.caveOptions.times.bufferTime);
             this.tickets.set(this.ticketCount, ticket);
