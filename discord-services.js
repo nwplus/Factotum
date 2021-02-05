@@ -105,7 +105,7 @@ module.exports.channelIDs = {
     /**
      * Where the bot will send reports.
      */
-    incomingReportChannel : '782683901998137355',
+    incomingReportChannel : '803589670486147083',
 
     /**
      * The first channel users have access to, where the verify command is used.

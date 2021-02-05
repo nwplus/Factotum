@@ -11,12 +11,12 @@ module.exports = class RoleSelector extends PermissionCommand {
             name: 'role-selector',
             group: 'a_utility',
             memberName: 'transfer role',
-            description: 'Will let users transfer roles. Usefull for sponsor reps that are also mentors!',
+            description: 'Will let users transfer roles. Useful for sponsor reps that are also mentors!',
             guildOnly: true,
         },
         {
             roleID: discordServices.roleIDs.staffRole,
-            roleMessage: 'Hey there, the command !roletransfer is only available to staff!',
+            roleMessage: 'Hey there, the command !role-selector is only available to staff!',
         });
     }
 
