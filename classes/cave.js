@@ -363,6 +363,7 @@ class Cave {
                                     '\n* Mention your team members using @friendName .', 'string', this.publicChannels.outgoingTickets, user.id, 45);
             } catch (error) {
                 // prompt was canceled, cancel ticket and return;
+                usersSubmittingTicket.delete(user.id);
                 return;
             }
             

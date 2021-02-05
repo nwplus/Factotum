@@ -36,7 +36,14 @@ class Team {
          * True if the team has been complete at least once.
          * @type {Boolean}
          */
-        this.hasBeenComplete= false;
+        this.hasBeenComplete = false;
+
+        /**
+         * True if the team has been deleted, else false.
+         * @type {Boolean}
+         */
+        this.deleted = false;
+        
     }
 
     /**
