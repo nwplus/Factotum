@@ -133,6 +133,7 @@ module.exports = class InitBot extends Command {
                         data: {
                             name: 'Stamp Role #' + i,
                             hoist: true,
+                            color: Math.floor(Math.random()*16777215).toString(16),
                         }
                     });
                     discordServices.stampRoles.set(i, role.id);
