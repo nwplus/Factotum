@@ -14,7 +14,6 @@ module.exports = class StartMentors extends PermissionCommand {
             memberName: 'start the mentor\'s experience',
             description: 'Will create a private category for mentors with channels for them to use!',
             guildOnly: true,
-            args: [],
         },
         {
             channelID: discordServices.channelIDs.adminConsoleChannel,
@@ -38,7 +37,19 @@ module.exports = class StartMentors extends PermissionCommand {
             let requestTicketEmoji = await checkForDuplicateEmojis('What is the request ticket emoji?');
             let addRoleEmoji = await checkForDuplicateEmojis('What is the add mentor role emoji?');
             let deleteChannelsEmoji = await checkForDuplicateEmojis('What is the delete ticket channels emoji?');
-            let excludeFromAutodeleteEmoji = await checkForDuplicateEmojis('What is the emoji to opt tickets in/out for the garbage collector?')
+            let excludeFromAutodeleteEmoji = await checkForDuplicateEmojis('What is the emoji to opt tickets in/out for the garbage collector?');
+
+            var role;
+            if (await Prompt.yesNoPrompt('Have you created the mentor role? If not it is okay, I can make it for you!', message.channel, message.author.id)) {
+                role = await Prompt.rolePrompt('Please mention the mentor role now!', message.channel, message.author.id);
+            } else {
+                role = await message.guild.roles.create({
+                    data: {
+                        name: 'Mentor',
+                        color: discordServices.randomColor(),
+                    }
+                });
+            }
 
             /**
              * 
@@ -57,7 +68,7 @@ module.exports = class StartMentors extends PermissionCommand {
                 preEmojis: '🧑🏽🎓',
                 preRoleText: 'M',
                 color: 'ORANGE',
-                role: message.guild.roles.resolve(discordServices.roleIDs.mentorRole),
+                role: role,
                 emojis: {
                     joinTicketEmoji: joinTicketEmoji,
                     giveHelpEmoji: giveHelpEmoji,
