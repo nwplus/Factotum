@@ -284,7 +284,7 @@ async function greetNewMember(member) {
                 title: 'Verification Error',
                 description: 'Email was not provided, please try again!'
             }, true);
-            return;
+            return; 
         }
         reaction.users.remove(user.id);
 
