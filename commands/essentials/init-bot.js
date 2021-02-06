@@ -71,12 +71,17 @@ module.exports = class InitBot extends Command {
             'KICK_MEMBERS', 'BAN_MEMBERS', 'SEND_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES', 'ADD_REACTIONS', 'USE_EXTERNAL_EMOJIS', 'MANAGE_MESSAGES', 
             'READ_MESSAGE_HISTORY', 'CONNECT', 'STREAM', 'SPEAK', 'PRIORITY_SPEAKER', 'USE_VAD', 'MUTE_MEMBERS', 'DEAFEN_MEMBERS', 'MOVE_MEMBERS']));
 
-        // get the regular member, staff and admin role and assign the correct permissions
+        // get the regular member, this role will have the general member permissions
         const memberRole = await this.askOrCreate('member', channel, userId, guild, '#006798');
         memberRole.setMentionable(false);
+        memberRole.setPermissions(memberRole.permissions.missing(['VIEW_CHANNEL', 'CHANGE_NICKNAME', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY',
+        'CONNECT', 'SPEAK', 'STREAM', 'USE_VAD']));
+
+        // change the everyone role permissions
+        everyoneRole.setPermissions(0); // no permissions for anything like the guest role
 
         // set discordServices roles
-        discordServices.roleIDs.hackerRole = memberRole.id;
+        discordServices.roleIDs.memberRole = memberRole.id;
         discordServices.roleIDs.staffRole = staffRole.id;
         discordServices.roleIDs.adminRole = adminRole.id;
         discordServices.roleIDs.everyoneRole = everyoneRole.id;
@@ -85,7 +90,7 @@ module.exports = class InitBot extends Command {
         // ask if verification will be used
         try {
             if (await Prompt.yesNoPrompt('Will you be using the verification service?', channel, userId)) {
-                await this.setVerification(channel, userId, guild, everyoneRole);
+                await this.setVerification(channel, userId, guild, everyoneRole, memberRole);
                 discordServices.sendMsgToChannel(channel, userId, 'The verification service has been set up correctly!', 60);
             }
         } catch (error) {
@@ -245,9 +250,10 @@ module.exports = class InitBot extends Command {
      * @param {Discord.TextChannel} channel 
      * @param {Discord.Snowflake} userId 
      * @param {CommandoGuild} guild 
-     * @param {Discord.Role} everyoneRole 
+     * @param {Discord.Role} everyoneRole
+     * @param {Discord.Role} memberRole
      */
-    async setVerification(channel, userId, guild, everyoneRole) {
+    async setVerification(channel, userId, guild, everyoneRole, memberRole) {
         guild.setCommandEnabled('verify', true);
         var guestRole;
         try {
@@ -260,19 +266,6 @@ module.exports = class InitBot extends Command {
             return this.setVerification(channel, userId, guild, everyoneRole);
         }
 
-
-        // change the everyone role permissions
-        everyoneRole.setPermissions(0); // no permissions for anything like the guest role
-
-        const isVerifiedRole = await guild.roles.create({
-            data: {
-                name: 'isVerified',
-                permissions: ['VIEW_CHANNEL', 'CHANGE_NICKNAME', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY',
-                    'CONNECT', 'SPEAK', 'STREAM', 'USE_VAD'],
-                color: '#ae44eb',
-            }
-        });
-
         let welcomeCategory = await guild.channels.create('Welcome', {
             type: 'category',
             permissionOverwrites: [
@@ -281,7 +274,7 @@ module.exports = class InitBot extends Command {
                     allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
                 },
                 {
-                    id: isVerifiedRole.id,
+                    id: memberRole.id,
                     deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
                 },
             ],
@@ -311,7 +304,6 @@ module.exports = class InitBot extends Command {
         discordServices.channelIDs.welcomeSupport = welcomeChannelSupport.id;
         discordServices.channelIDs.welcomeChannel = welcomeChannel.id;
         discordServices.roleIDs.guestRole = guestRole.id;
-        discordServices.roleIDs.isVerifiedRole = isVerifiedRole.id;
     }
 
     /**

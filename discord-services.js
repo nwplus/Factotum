@@ -14,7 +14,7 @@ module.exports.roleIDs = {
     staffRole : null,
     adminRole : null,
     everyoneRole : null,
-    isVerifiedRole: null,
+    memberRole: null,
 }
 
 /**
