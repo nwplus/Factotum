@@ -144,7 +144,7 @@ class ActivityManager {
      * @private
      */
     static parseRole(member, role, activityName) {
-        let stampNumber = praseInt(role.name.substring(role.name.length - 2));
+        let stampNumber = parseInt(role.name.substring(role.name.length - 2));
         let newRoleID = discordServices.stampRoles.get(stampNumber + 1);
 
         if (newRoleID != undefined) {
