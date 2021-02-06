@@ -22,7 +22,7 @@ module.exports = class AskQuestion extends PermissionCommand {
             ],
         },
         {
-            roleID: discordServices.roleIDs.attendeeRole,
+            roleID: discordServices.roleIDs.memberRole,
             roleMessage: 'This command is only available for attendees!',
         });
     }

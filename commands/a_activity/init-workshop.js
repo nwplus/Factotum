@@ -54,8 +54,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 // hide general voice channel
                 var name = activity.generalVoice.name;
                 activity.generalVoice.setName('HIDDEN-' + name).catch(console.error);
-                activity.generalVoice.updateOverwrite(discordServices.roleIDs.attendeeRole, {VIEW_CHANNEL: false});
-                activity.generalVoice.updateOverwrite(discordServices.roleIDs.sponsorRole, {VIEW_CHANNEL: false});
+                activity.makeVoiceChannelPrivate(activity.generalVoice, true);
 
                 // disable pull in functionality
                 pullInFunctionality = false;

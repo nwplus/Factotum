@@ -330,8 +330,7 @@ class Activity {
             type: 'text', 
             topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
         },[
-            { roleID: discordServices.roleIDs.attendeeRole || discordServices.roleIDs.everyoneRole, permissions: {VIEW_CHANNEL: false} },
-            { roleID: discordServices.roleIDs.sponsorRole, permissions: {VIEW_CHANNEL: false} }
+            { roleID: discordServices.roleIDs?.attendeeRole || discordServices.roleIDs.everyoneRole, permissions: {VIEW_CHANNEL: false} },
         ]);
 
         // create and blacklist an assistance channel
@@ -399,11 +398,19 @@ class Activity {
      * Will make all voice channels except the general one private to attendees and sponsors
      * @param {Boolean} toHide - true if you want to hide the channels from attendees and sponsors, false otherwise
      */
-    async changeVoiceChannelPermissions(toHide) {
+    async makeVoiceChannelsButGeneralPrivate(toHide) {
         this.voiceChannels.forEach((channel) => {
-            channel.updateOverwrite(discordServices.roleIDs.attendeeRole, {VIEW_CHANNEL: toHide ? false : true});
-            channel.updateOverwrite(discordServices.roleIDs.sponsorRole, {VIEW_CHANNEL: toHide ? false : true});
+            this.makeVoiceChannelPrivate(channel, toHide);
         })
+    }
+
+    /**
+     * Will hide the voice channel given.
+     * @param {TextChannel} channel 
+     * @param {Boolean} toHide 
+     */
+    async makeVoiceChannelPrivate(channel, toHide) {
+        channel.updateOverwrite(discordServices.roleIDs?.attendeeRole || discordServices.roleIDs.everyoneRole, {VIEW_CHANNEL: toHide ? false : true});
     }
 }
 

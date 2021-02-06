@@ -33,28 +33,21 @@ module.exports = class InitAmongUs extends ActivityCommand {
             archiveCategory = await message.guild.channels.create('💼archive', {
                 type: 'category', 
                 position: position + 1,
-                permissionOverwrites: [
-                {
-                    id: discordServices.roleIDs.hackerRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.roleIDs.attendeeRole,
-                    allow: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.roleIDs.mentorRole,
-                    allow: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.roleIDs.sponsorRole,
-                    allow: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: discordServices.roleIDs.staffRole,
-                    allow: ['VIEW_CHANNEL'],
-                }
-            ]});
+                permissionOverwrites: discordServices.roleIDs?.attendeeRole ? [
+                    {
+                        id: discordServices.roleIDs.everyoneRole,
+                        deny: ['VIEW_CHANNEL'],
+                    },
+                    {
+                        id: discordServices.roleIDs.attendeeRole,
+                        allow: ['VIEW_CHANNEL'],
+                    },
+                    {
+                        id: discordServices.roleIDs.staffRole,
+                        allow: ['VIEW_CHANNEL'],
+                    }
+                ] : []
+            });
         }
 
         activity.archive(archiveCategory);

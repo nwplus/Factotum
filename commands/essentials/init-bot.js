@@ -107,12 +107,9 @@ module.exports = class InitBot extends Command {
                 discordServices.roleIDs.attendeeRole = attendeeRole.id;
                 discordServices.sendMsgToChannel(channel, userId, 'The attendance service has been set up correctly!', 60);
             } else {
-                // if attendance will not be used then set it to the same role ID as the regular member
-                discordServices.roleIDs.attendeeRole = discordServices.roleIDs.hackerRole;
                 discordServices.sendMsgToChannel(channel, userId, 'Attendance was not set up!', 60);
             }
         } catch (error) {
-            discordServices.roleIDs.attendeeRole = discordServices.roleIDs.hackerRole;
             discordServices.sendMsgToChannel(channel, userId, 'Attendance was not set up due to Prompt cancellation.', 10);
         }
 
