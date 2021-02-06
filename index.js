@@ -197,38 +197,46 @@ async function greetNewMember(member) {
     var embed = new Discord.MessageEmbed()
         .setTitle('Welcome to the nwHacks 2021 Server!')
         .setDescription('We are very excited to have you here!')
-        .addField('Gain more access by verifying yourself!', 'React to this message with ' + verifyEmoji + ' and follow my instructions!')
         .addField('Have a question?', 'Go to the welcome-assistance channel to talk with our staff!')
         .addField('Want to learn more about what I can do?', 'Use the !help command anywhere and I will send you a message!')
         .setColor(discordServices.colors.embedColor);
 
+    if (discordServices.roleIDs?.guestRole) embed.addField('Gain more access by verifying yourself!', 'React to this message with ' + verifyEmoji + ' and follow my instructions!');
+    
     let msg = await member.send(embed);
 
-    discordServices.addRoleToMember(member, discordServices.roleIDs.guestRole);
+    // if verification is on then give guest role and let user verify
+    if (discordServices.roleIDs?.guestRole) {
+        discordServices.addRoleToMember(member, discordServices.roleIDs.guestRole);
 
-    msg.react(verifyEmoji);
+        msg.react(verifyEmoji);
 
-    let verifyCollector = msg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === verifyEmoji);
+        let verifyCollector = msg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === verifyEmoji);
 
-    verifyCollector.on('collect', async (reaction, user) => {
-        try {
-            var email = (await Prompt.messagePrompt('What email did you get accepted to this event? Please send it now!', 'string', member.user.dmChannel, member.id, 25)).content;
-        } catch (error) {
-            discordServices.sendEmbedToMember(member, {
-                title: 'Verification Error',
-                description: 'Email was not provided, please try again!'
-            }, true);
-            return; 
-        }
-        reaction.users.remove(user.id);
+        verifyCollector.on('collect', async (reaction, user) => {
+            try {
+                var email = (await Prompt.messagePrompt('What email did you get accepted to this event? Please send it now!', 'string', member.user.dmChannel, member.id, 25)).content;
+            } catch (error) {
+                discordServices.sendEmbedToMember(member, {
+                    title: 'Verification Error',
+                    description: 'Email was not provided, please try again!'
+                }, true);
+                return; 
+            }
+            reaction.users.remove(user.id);
 
-        let success = await verify(member, email, member.guild);
+            let success = await verify(member, email, member.guild);
 
-        if (success) {
-            verifyCollector.stop();
-        }
+            if (success) {
+                verifyCollector.stop();
+            }
 
-    });
+        });
+    } 
+    // if verification is off, then just ive member role
+    else {
+        discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
+    }
 }
 
 /**
@@ -239,7 +247,9 @@ async function greetNewMember(member) {
  */
 async function fixDMIssue(error, member) {
     if (error.code === 50007) {
-        member.guild.channels.resolve(discordServices.channelIDs.welcomeSupport).send('<@' + member.id + '> I couldn\'t reach you :(.' + 
+        let channelID = discordServices.channelIDs?.welcomeChannel || discordServices.channelIDs.botSupportChannel;
+
+        member.guild.channels.resolve(channelID).send('<@' + member.id + '> I couldn\'t reach you :(.' + 
             '\n* Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-' + 
             '\n* Once this is done, please react to this message with 🤖 to let me know!').then(msg => {
                 msg.react('🤖');
@@ -252,7 +262,7 @@ async function fixDMIssue(error, member) {
                         collector.stop();
                         msg.delete();
                     } catch (error) {
-                        member.guild.channels.resolve(discordServices.channelIDs.welcomeSupport).send('<@' + member.id + '> Are you sure you made the changes? I couldn\'t reach you again 😕').then(msg => msg.delete({timeout: 8000}));
+                        member.guild.channels.resolve(channelID).send('<@' + member.id + '> Are you sure you made the changes? I couldn\'t reach you again 😕').then(msg => msg.delete({timeout: 8000}));
                     }
                 });
             });
