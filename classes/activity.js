@@ -59,7 +59,7 @@ class Activity {
         this.generalVoice;
 
         // create workshop in db
-        firebaseActivity.create(this.name);
+        // firebaseActivity.create(this.name);
 
         /**
          * The state of this activity
