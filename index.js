@@ -304,7 +304,7 @@ async function verify(member, email, guild) {
     }
 
     // Call the verify function to get status
-    var status = await firebaseServices.verify(email, member.id);
+    var status = await firebaseServices.verifyUser(email, member.id);
 
     // embed to send
     const embed = new Discord.MessageEmbed()
