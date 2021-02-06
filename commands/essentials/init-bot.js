@@ -186,6 +186,14 @@ module.exports = class InitBot extends Command {
         });
 
         discordServices.sendMsgToChannel(channel, userId, 'The bot is set and ready to hack!', 10);
+
+        // TODO remove this when fixed
+        try {
+            discordServices.roleIDs.mentorRole = await Prompt.rolePrompt('What is the mentor role', channel, userId);
+            discordServices.roleIDs.sponsorRole = await Prompt.rolePrompt('What is the sponsor role?', channel, userId);
+        } catch (error) {
+            discordServices.sendMsgToChannel(channel, userId, 'Mentor and/or Sponsor verification was not set due to cancel prompt!');
+        }
     }
 
     /**

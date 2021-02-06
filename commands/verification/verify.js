@@ -75,16 +75,20 @@ module.exports = class Verification extends PermissionCommand {
                 discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a hacker!");
                 break;
             case firebaseServices.status.SPONSOR_SUCCESS:
-                embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of nwhacks 2021 and for joining our discord!');
-                discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.sponsorRole);
-                discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
-                discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a sponsor!");
+                if (discordServices.roleIDs?.sponsorRole) {
+                    embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of nwhacks 2021 and for joining our discord!');
+                    discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.sponsorRole);
+                    discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
+                    discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a sponsor!");
+                }
                 break;
             case firebaseServices.status.MENTOR_SUCCESS:
-                embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of nwhacks 2021 and for joining our discord!');
-                discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.mentorRole);
-                discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
-                discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and he is now a mentor!");
+                if (discordServices.roleIDs?.mentorRole) {
+                    embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of nwhacks 2021 and for joining our discord!');
+                    discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.mentorRole);
+                    discordServices.addRoleToMember(member,discordServices.roleIDs.memberRole);
+                    discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + member.id + "> Verified email: " + email + " successfully and he is now a mentor!");
+                }
                 break;
             case firebaseServices.status.STAFF_SUCCESS:
                 embed.addField('Welcome To Your Server!', 'Welcome to your discord server! If you need to know more about what I can do please call !help.');

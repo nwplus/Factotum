@@ -45,6 +45,8 @@ class ActivityManager {
      * @param {Activity} activity - the activity to use
      */
     static async mentorShuffle(activity) {
+        if (!discordServices.roleIDs?.memberRole) return;
+
         let mentors = activity.generalVoice.members.filter(member => discordServices.checkForRole(member, discordServices.roleIDs.mentorRole));
 
         let channels = activity.category.children.filter(channel => channel.type === 'voice' && channel.id != activity.generalVoice.id);
@@ -54,7 +56,7 @@ class ActivityManager {
         mentors.forEach(mentor => {
             mentor.voice.setChannel(channels[channelIndex % channelsLength]);
             channelIndex++;
-        })
+        });
     }
 
 

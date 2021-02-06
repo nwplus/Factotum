@@ -35,7 +35,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
 
         ////// TA Side
         // embed color for mentors
-        var mentorColor = (await message.guild.roles.fetch(discordServices.roleIDs.mentorRole)).color;
+        var mentorColor = (await message.guild.roles.fetch(discordServices.roleIDs?.mentorRole))?.color || discordServices.randomColor();
 
         const taInfoEmbed = new Discord.MessageEmbed()
             .setTitle('TA Information')
