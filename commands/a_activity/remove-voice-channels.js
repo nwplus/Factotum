@@ -31,6 +31,6 @@ module.exports = class RemovePrivatesFor extends ActivityCommand {
         let final = activity.removeVoiceChannels(number);
 
         // report success of channel deletions
-        discordServices.replyAndDelete(message,'Workshop session named: ' + activityName + ' now has ' + final + ' voice channels.');
+        discordServices.replyAndDelete(message,'Workshop session named: ' + activity.name + ' now has ' + final + ' voice channels.');
     }
 };
