@@ -3,6 +3,7 @@ const { Command, CommandoGuild } = require('discord.js-commando');
 const Discord = require('discord.js');
 const discordServices = require('../../discord-services');
 const Prompt = require('../../classes/prompt');
+const jsonfile = require('jsonfile');
 
 // Command export
 module.exports = class InitBot extends Command {
@@ -13,6 +14,14 @@ module.exports = class InitBot extends Command {
             memberName: 'initialize the bot',
             description: 'Will start the bot given some information.',
             hidden: true,
+            args: [
+                {
+                    type: 'boolean',
+                    key: 'isDev',
+                    prompt: 'Should the dev config be used',
+                    default: true,
+                }
+            ]
         });
     }
 
@@ -20,12 +29,41 @@ module.exports = class InitBot extends Command {
      *  
      * @param {Discord.Message} message 
      */
-    async run(message) {
+    async run(message, { isDev }) {
         message.delete();
 
         // make sure the user had manage server permission
         if (!message.member.hasPermission('MANAGE_GUILD')) {
             message.reply('Only admins can use this command!').then(msg => msg.delete({timeout: 5000}));
+        }
+
+        if (isDev) {
+            const file = './dev_config.json';
+            let data = await jsonfile.readFile(file);
+            
+            discordServices.roleIDs.adminRole = data.adminRoleID;
+            discordServices.roleIDs.staffRole = data.staffRoleID;
+            discordServices.roleIDs.memberRole = data.memberRoleID;
+            discordServices.roleIDs.everyoneRole = data.everyoneRoleID;
+            
+            discordServices.channelIDs.adminConsoleChannel = data.adminConsoleID;
+            discordServices.channelIDs.adminLogChannel = data.adminLogsID;
+
+            if (data.isVerificationOn) {
+                discordServices.roleIDs.guestRole = data.guestRoleID;
+                discordServices.channelIDs.welcomeChannel = data.welcomeChannelID;
+                discordServices.channelIDs.welcomeSupport = data.welcomeChannelSupportID;
+            }
+
+            if (data.isAttendanceOn) {
+                discordServices.roleIDs.attendeeRole = data.attendeeRoleID;
+            }
+
+            discordServices.channelIDs.botSupportChannel = data.botSupportChannelID;
+
+            discordServices.roleIDs.mentorRole = data.mentorRoleID;
+            discordServices.roleIDs.sponsorRole = data.sponsorRoleID;
+            return;
         }
 
         const embedInfo = new Discord.MessageEmbed().setColor(discordServices.colors.embedColor)
