@@ -16,9 +16,9 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
             guildOnly: true,
         },
         {
-            roleID: discordServices.roleIDs.staffRole,
+            role: PermissionCommand.FLAGS.ADMIN_ROLE,
             roleMessage: 'Hey there, the !start-team-roulette command is only for staff!',
-            channelID: discordServices.channelIDs.adminConsoleChannel,
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
             channelMessage: 'Hey there, th !start-team-roulette command is only available on the admin console.',
         });
 

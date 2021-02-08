@@ -15,7 +15,7 @@ module.exports = class RoleSelector extends PermissionCommand {
             guildOnly: true,
         },
         {
-            roleID: discordServices.roleIDs.staffRole,
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
             roleMessage: 'Hey there, the command !role-selector is only available to staff!',
         });
     }

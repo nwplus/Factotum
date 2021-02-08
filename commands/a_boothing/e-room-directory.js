@@ -13,7 +13,7 @@ module.exports = class BoothDirectory extends PermissionCommand {
             guildOnly: true,
         },
         {
-            roleID: discordServices.roleIDs.staffRole,
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
             roleMessage: 'This command can only be ran by staff!',
         });
     }

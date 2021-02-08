@@ -20,7 +20,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
             ],
         },
         {
-            roleID: discordServices.roleIDs.staffRole,
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
             roleMessage: 'Hey there, the command !contests is only available to Staff!',
         });
     }

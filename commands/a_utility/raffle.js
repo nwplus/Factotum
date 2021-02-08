@@ -25,9 +25,9 @@ module.exports = class Raffle extends PermissionCommand {
             ]
         },
         {
-            channelID: discordServices.channelIDs.adminConsoleChannel,
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
             channelMessage: 'This command can only be used in the admin console!',
-            roleID: discordServices.roleIDs.adminRole,
+            role: PermissionCommand.FLAGS.ADMIN_ROLE,
             roleMessage: 'You do not have permission for this command, only admins can use it!',
         });
     }

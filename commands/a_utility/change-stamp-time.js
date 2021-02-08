@@ -19,8 +19,8 @@ module.exports = class ChangeStampTime extends PermissionCommand {
             ],
         },
         {
-            roleID: discordServices.roleIDs.adminRole,
-            roleMessage: 'Hey there, the command !change-stamp-time is only available to Admins!',
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
+            roleMessage: 'Hey there, the command !change-stamp-time is only available to staff!',
         });
     }
 
