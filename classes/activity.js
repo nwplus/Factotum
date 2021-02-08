@@ -148,28 +148,21 @@ class Activity {
         return this.guild.channels.create(this.name, {
             type: 'category',
             position: position >= 0 ? position : 0,
-            permissionOverwrites: [
-            {
-                id: discordServices.roleIDs.hackerRole,
-                deny: ['VIEW_CHANNEL'],
-            },
-            {
-                id: discordServices.roleIDs.attendeeRole,
-                allow: ['VIEW_CHANNEL'],
-            },
-            {
-                id: discordServices.roleIDs.mentorRole,
-                allow: ['VIEW_CHANNEL'],
-            },
-            {
-                id: discordServices.roleIDs.sponsorRole,
-                allow: ['VIEW_CHANNEL'],
-            },
-            {
-                id: discordServices.roleIDs.staffRole,
-                allow: ['VIEW_CHANNEL'],
-            }
-        ]});
+            permissionOverwrites: discordServices.roleIDs?.attendeeRole ? [ // only lock the activity if the attendance role is in use
+                {
+                    id: discordServices.roleIDs.everyoneRole,
+                    deny: ['VIEW_CHANNEL']
+                },
+                {
+                    id: discordServices.roleIDs.attendeeRole,
+                    allow: ['VIEW_CHANNEL']
+                },
+                {
+                    id: discordServices.roleIDs.staffRole,
+                    allow: ['VIEW_CHANNEL']
+                }
+            ] : []
+        });
     }
 
 
@@ -234,17 +227,9 @@ class Activity {
             }, 
             [
                 {
-                    roleID: discordServices.roleIDs.attendeeRole,
+                    roleID: discordServices.roleIDs.hackerRole,
                     permissions: {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true},
                 },
-                {
-                    roleID: discordServices.roleIDs.sponsorRole,
-                    permissions: {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true},
-                },
-                {
-                    roleID: discordServices.roleIDs.mentorRole,
-                    permissions: {MOVE_MEMBERS: true, USE_VAD: true},
-                }
             ]);
         }
         return total;
@@ -291,7 +276,7 @@ class Activity {
         this.addChannel('🎮' + 'game-codes', {
             type: 'text',
             topic: 'This channel is only intended to send game codes for others to join!',
-        }, [{roleID: discordServices.roleIDs.attendeeRole, permissions: {VIEW_CHANNEL: false}}]);
+        }, [{roleID: discordServices.roleIDs.hackerRole, permissions: {VIEW_CHANNEL: false}}]);
 
         this.addVoiceChannels(numOfChannels, true, 12);
 
@@ -332,12 +317,8 @@ class Activity {
      */
     async makeWorkshop() {
         // update the voice channel permission to no speaking for attendees
-        this.generalVoice.updateOverwrite(discordServices.roleIDs.attendeeRole, {
+        this.generalVoice.updateOverwrite(discordServices.roleIDs.hackerRole, {
             SPEAK: false,
-        });
-        this.generalVoice.updateOverwrite(discordServices.roleIDs.mentorRole, {
-            SPEAK: true,
-            MOVE_MEMBERS: true,
         });
         this.generalVoice.updateOverwrite(discordServices.roleIDs.staffRole, {
             SPEAK: true,
@@ -349,8 +330,7 @@ class Activity {
             type: 'text', 
             topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
         },[
-            { roleID: discordServices.roleIDs.attendeeRole, permissions: {VIEW_CHANNEL: false} },
-            { roleID: discordServices.roleIDs.sponsorRole, permissions: {VIEW_CHANNEL: false} }
+            { roleID: discordServices.roleIDs?.attendeeRole || discordServices.roleIDs.everyoneRole, permissions: {VIEW_CHANNEL: false} },
         ]);
 
         // create and blacklist an assistance channel
@@ -418,11 +398,19 @@ class Activity {
      * Will make all voice channels except the general one private to attendees and sponsors
      * @param {Boolean} toHide - true if you want to hide the channels from attendees and sponsors, false otherwise
      */
-    async changeVoiceChannelPermissions(toHide) {
+    async makeVoiceChannelsButGeneralPrivate(toHide) {
         this.voiceChannels.forEach((channel) => {
-            channel.updateOverwrite(discordServices.roleIDs.attendeeRole, {VIEW_CHANNEL: toHide ? false : true});
-            channel.updateOverwrite(discordServices.roleIDs.sponsorRole, {VIEW_CHANNEL: toHide ? false : true});
+            this.makeVoiceChannelPrivate(channel, toHide);
         })
+    }
+
+    /**
+     * Will hide the voice channel given.
+     * @param {TextChannel} channel 
+     * @param {Boolean} toHide 
+     */
+    async makeVoiceChannelPrivate(channel, toHide) {
+        channel.updateOverwrite(discordServices.roleIDs?.attendeeRole || discordServices.roleIDs.everyoneRole, {VIEW_CHANNEL: toHide ? false : true});
     }
 }
 

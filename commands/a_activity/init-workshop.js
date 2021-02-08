@@ -35,7 +35,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
 
         ////// TA Side
         // embed color for mentors
-        var mentorColor = (await message.guild.roles.fetch(discordServices.roleIDs.mentorRole)).color;
+        var mentorColor = (await message.guild.roles.fetch(discordServices.roleIDs?.mentorRole))?.color || discordServices.randomColor();
 
         const taInfoEmbed = new Discord.MessageEmbed()
             .setTitle('TA Information')
@@ -54,8 +54,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 // hide general voice channel
                 var name = activity.generalVoice.name;
                 activity.generalVoice.setName('HIDDEN-' + name).catch(console.error);
-                activity.generalVoice.updateOverwrite(discordServices.roleIDs.attendeeRole, {VIEW_CHANNEL: false});
-                activity.generalVoice.updateOverwrite(discordServices.roleIDs.sponsorRole, {VIEW_CHANNEL: false});
+                activity.makeVoiceChannelPrivate(activity.generalVoice, true);
 
                 // disable pull in functionality
                 pullInFunctionality = false;

@@ -6,52 +6,22 @@ const Discord = require('discord.js');
  * All the available roles from server creation.
  */
 module.exports.roleIDs = {
-    guestRole : '778651193362481213',
-    hackerRole : '738519785028976741',
-    attendeeRole : '742896999556448357',
-    mentorRole : '747527454200955051',
-    sponsorRole : '738519983981723748',
-    staffRole : '738519363904077916',
-    adminRole : '738491577596641311',
-    everyoneRole : '738475671977722058',
+    guestRole : null,
+    hackerRole : null,
+    attendeeRole : null,
+    mentorRole : null,
+    sponsorRole : null,
+    staffRole : null,
+    adminRole : null,
+    everyoneRole : null,
+    memberRole: null,
 }
-
-var stamp0Role = '776690929557831680';
-var stamp1Role = '776694051482107944';
-var stamp2Role = '777163284679229461';
-var stamp3Role = '777163346456870913';
-var stamp4Role = '777163367814922250';
-var stamp5Role = '777163388631253002';
-var stamp6Role = '777163410269011990';
-var stamp7Role = '777163427328163850';
-var stamp8Role = '777163452560048168';
-var stamp9Role = '777163468053938186';
-var stamp10Role = '777163488019480586';
-var stamp11Role = '777163506902237196';
-var stamp12Role = '777163524568776704';
-var stamp12Role = '777163524568776704';
-var stamp13Role = '784224112909221948';
-var stamp14Role = '784224898230779945';
-var stamp15Role = '784224924633923635';
-var stamp16Role = '784224943730327592';
-var stamp17Role = '781404770803908609';
-var stamp18Role = '781404769133527040';
-var stamp19Role = '784224999698726942';
-var stamp20Role = '784225017172590622';
-
-/**
- * We need this role available for when users verify. The first stamp role.
- */
-module.exports.stamp0Role = stamp0Role;
 
 /**
  * A collection of all the stamp roles.
  * @type {Discord.Collection<Number, String>} - <StampNumber, roleID>
  */
 var stampRoles = new Discord.Collection();
-let listOfStampRoles = [stamp0Role, stamp1Role, stamp2Role, stamp3Role, stamp4Role, stamp5Role, stamp6Role, stamp7Role, stamp8Role, stamp9Role, stamp10Role, stamp11Role,
-    stamp12Role, stamp13Role, stamp14Role, stamp15Role, stamp16Role, stamp17Role, stamp18Role, stamp19Role, stamp20Role];
-listOfStampRoles.forEach((value, index) => stampRoles.set(index, value));
 module.exports.stampRoles = stampRoles;
 
 /**
@@ -81,42 +51,45 @@ module.exports.stampCollectTime = stampCollectTime;
 
 // Common channels
 
-module.exports.channelIDs = {
-    /**
-     * Where announcements should be sent.
-     */
-    announcementChannel : '784254136040161310',
+const channelIDs = {
 
     /**
      * The admin console where admins can run commands.
+     * @type {String}
      */
-    adminConsoleChannel : '807110076036808714',
+    adminConsoleChannel : null,
   
     /**
      * The channel where the bot will log things.
+     * @type {String}
      */
-    adminLogChannel : '743197503884755045',
+    adminLogChannel : null,
 
     /**
      * Where the bot can send messages to users when DM is not available.
+     * @type {String}
      */
-    botSupportChannel : '784910416224583751',
+    botSupportChannel : null,
 
     /**
      * Where the bot will send reports.
+     * @type {String}
      */
-    incomingReportChannel : '803589670486147083',
+    incomingReportChannel : null,
 
     /**
      * The first channel users have access to, where the verify command is used.
+     * @type {String}
      */
-    welcomeChannel : '743192401434378271',
+    welcomeChannel : null,
 
     /**
      * Support channel available to new users.
+     * @type {String}
      */
-    welcomeSupport : '803243225551863858',
+    welcomeSupport : null,
 }
+module.exports.channelIDs = channelIDs;
 
 
 // where hackers join the wait list to talk to a sponsor
@@ -141,6 +114,24 @@ function checkForRole(member, role) {
     return member.roles.cache.has(role);
 }
 module.exports.checkForRole = checkForRole;
+
+/**
+ * Will send a message to a text channel and ping the user, can be deleted after a timeout.
+ * @param {Discord.TextChannel} channel - the channel to send the message to
+ * @param {Discord.Snowflake} userId - the user to tag on the message
+ * @param {String} message - the message to send
+ * @param {Number} timeout - timeout before delete if any, in seconds
+ * @async
+ * @returns {Promise<Discord.Message>}
+ */
+async function sendMsgToChannel(channel, userId, message, timeout = 0) {
+    let msg = await channel.send('<@' + userId + '> ' + message);
+
+    if (timeout) msg.delete({timeout: timeout * 1000}); // convert to milliseconds
+
+    return msg;
+}
+module.exports.sendMsgToChannel = sendMsgToChannel;
 
 /**
  * Send a Direct message to a member, option to delete after 10 seconds
@@ -257,7 +248,7 @@ module.exports.replaceRoleToMember = replaceRoleToMember;
  * @param {String | Discord.MessageEmbed} message - message to send to the log channel
  */
 function discordLog(guild, message) {
-    guild.channels.cache.get(this.channelIDs.adminLogChannel).send(message);
+    if (channelIDs?.adminLogChannel) guild.channels.cache.get(channelIDs.adminLogChannel).send(message);
 }
 module.exports.discordLog = discordLog;
 

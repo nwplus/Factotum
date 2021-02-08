@@ -15,9 +15,9 @@ module.exports = class StartChannelCreation extends PermissionCommand {
             guildOnly: true,
         },
         {
-            roleID: discordServices.roleIDs.staffRole,
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
             roleMessage: 'Hey there, the !start-channel-creation command is only for staff!',
-            channelID: discordServices.channelIDs.adminConsoleChannel,
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
             channelMessage: 'Hey there, the !start-channel-creation command is only available in the admin console channel.',
         });
     }

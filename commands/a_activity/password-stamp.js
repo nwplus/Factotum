@@ -32,9 +32,9 @@ module.exports = class DistributeStamp extends PermissionCommand {
             ],
         }, 
         {
-            channelID: discordServices.channelIDs.adminConsoleChannel,
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
             channelMessage: 'This command is only available on the admin console!',
-            roleID: discordServices.roleIDs.staffRole,
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
             roleMessage: 'This command can only available to staff!',
         });
     }

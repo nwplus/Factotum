@@ -1,0 +1,28 @@
+{
+    "adminRoleID" : "738491577596641311",
+    "adminConsoleID" : "807110076036808714",
+    "adminLogsID" : "743197503884755045",
+    "staffRoleID" : "738519363904077916",
+    "memberRoleID" : "808409937373298700",
+    "everyoneRoleID" : "738475671977722058",
+
+    "isVerificationOn" : true,
+    "guestRoleID" : "778651193362481213",
+    "welcomeChannelID" : "803243187811909635",
+    "welcomeChannelSupportID" : "803243225551863858",
+
+    "isAttendanceOn" : true,
+    "attendeeRoleID" : "742896999556448357",
+
+    "isAnnouncementOn" : false,
+
+    "isStampOn" : false,
+
+    "botSupportChannelID" : "806586723483385857",
+
+    "isReportOn" : false,
+    "isAskOn" : false,
+
+    "mentorRoleID" : "747527454200955051",
+    "sponsorRoleID" : "738519983981723748"
+}

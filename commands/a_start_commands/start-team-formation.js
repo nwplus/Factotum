@@ -16,9 +16,9 @@ module.exports = class StartTeamFormation extends PermissionCommand {
             guildOnly: true,
         },
         {
-            roleID: discordServices.roleIDs.adminRole,
+            role: PermissionCommand.FLAGS.ADMIN_ROLE,
             roleMessage: 'Hey there, the !start-team-formation command is only for admins!',
-            channelID: discordServices.channelIDs.adminConsoleChannel,
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
             channelMessage: 'Hey there, the !start-team-formation command is only available in the admin console.',
         });
     }

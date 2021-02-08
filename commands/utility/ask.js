@@ -22,7 +22,7 @@ module.exports = class AskQuestion extends PermissionCommand {
             ],
         },
         {
-            roleID: discordServices.roleIDs.attendeeRole,
+            roleID: discordServices.roleIDs.memberRole,
             roleMessage: 'This command is only available for attendees!',
         });
     }
@@ -85,7 +85,7 @@ module.exports = class AskQuestion extends PermissionCommand {
                             // if cancel then do nothing
                             if (response.content.toLowerCase() != 'cancel') {
                                 // if user has a mentor role, they get a special title
-                                if (discordServices.checkForRole(response.member, discordServices.roleIDs.mentorRole)) {
+                                if (discordServices.checkForRole(response.member, discordServices.roleIDs?.mentorRole)) {
                                     msg.edit(msg.embeds[0].addField('🤓 ' + user.username + ' Responded:', response.content));
                                 } else {
                                     // add a field to the message embed with the response

@@ -15,8 +15,8 @@ class PermissionCommand extends Command {
     /**
      * Our custom command information for validation
      * @typedef {Object} CommandPermissionInfo
-     * @property {string} roleID - the role this command can be run by
-     * @property {string} channelID - the channel ID where this command can be run
+     * @property {string} role - the role this command can be run by
+     * @property {string} channel - the channel ID where this command can be run
      * @property {string} roleMessage - the message to be sent for an incorrect role
      * @property {string} channelMessage - the message to be sent for an incorrect channel
      * @property {Boolean} dmOnly - true if this command can only be used on a DM
@@ -76,16 +76,23 @@ class PermissionCommand extends Command {
             }
         } else {
             // Make sure it is only used in the permitted channel
-            if (this.permissionInfo?.channelID && message.channel.id != this.permissionInfo.channelID) {
-                discordServices.sendMessageToMember(message.member, this.permissionInfo.channelMessage, true);
-                return;
+            if (this.permissionInfo?.channel) {
+                let channelID = discordServices.channelIDs[this.permissionInfo.channel];
+
+                if (channelID && message.channel.id != channelID) {
+                    discordServices.sendMessageToMember(message.member, this.permissionInfo.channelMessage, true);
+                    return;
+                }
             }
             // Make sure only the permitted role can call it
-            else if (this.permissionInfo?.roleID) {
+            else if (this.permissionInfo?.role) {
+
+                let roleID = discordServices.roleIDs[this.permissionInfo.role];
+
                 // if staff role then check for staff and admin, else check the given role
-                if ((this.permissionInfo.roleID === discordServices.roleIDs.staffRole && 
-                    (!discordServices.checkForRole(message.member, this.permissionInfo.roleID) && !discordServices.checkForRole(message.member, discordServices.roleIDs.adminRole))) || 
-                    (this.permissionInfo.roleID != discordServices.roleIDs.staffRole && !discordServices.checkForRole(message.member, this.permissionInfo.roleID))) {
+                if (roleID && (roleID === discordServices.roleIDs.staffRole && 
+                    (!discordServices.checkForRole(message.member, roleID) && !discordServices.checkForRole(message.member, discordServices.roleIDs.adminRole))) || 
+                    (roleID != discordServices.roleIDs.staffRole && !discordServices.checkForRole(message.member, roleID))) {
                         discordServices.sendMessageToMember(message.member, this.permissionInfo.roleMessage, true);
                         return;
                 }
@@ -102,6 +109,19 @@ class PermissionCommand extends Command {
     runCommand(message, args, fromPattern, result) {
         throw new Error('You need to implement the runCommand method!');
     }
+}
+
+/**
+ * String permission flags used for command permissions.
+ * * ADMIN_ROLE : only admins can use this command
+ * * STAFF_ROLE : staff and admin can use this command
+ * * ADMIN_CONSOLE : can only be used in the admin console
+ * @type {Object}
+ */
+PermissionCommand.FLAGS = {
+    ADMIN_ROLE: 'adminRole',
+    STAFF_ROLE: 'staffRole',
+    ADMIN_CONSOLE: 'adminConsoleChannel',
 }
 
 module.exports = PermissionCommand;

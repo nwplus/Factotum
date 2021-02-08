@@ -1,4 +1,4 @@
-const commando = require('discord.js-commando');
+const Commando = require('discord.js-commando');
 const Discord = require('discord.js');
 
 
@@ -45,19 +45,20 @@ const config = {
     token: process.env.TOKEN,
     owner: process.env.OWNER,
 }
-const bot = new commando.Client({
+const bot = new Commando.Client({
     commandPrefix: '!',
     owner: config.owner,
 });
 
 bot.registry
     .registerDefaultTypes()
-    .registerGroup('verification', 'Verification group')
-    .registerGroup('utility', 'utility group')
     .registerGroup('a_boothing', 'boothing group for admins')
     .registerGroup('a_activity', 'activity group for admins')
     .registerGroup('a_start_commands', 'advanced admin commands')
     .registerGroup('a_utility', 'utility commands for admins')
+    .registerGroup('utility', 'utility commands for users')
+    .registerGroup('verification', 'verification commands')
+    .registerGroup('essentials', 'essential commands for any guild', true)
     .registerDefaultGroups()
     .registerDefaultCommands({
         unknownCommand: false,
@@ -68,80 +69,14 @@ bot.registry
 bot.once('ready', async () => {
     console.log(`Logged in as ${bot.user.tag}!`);
     bot.user.setActivity('Ready to hack!');
+});
 
-    // add verify and attend channels to the black list
-    discordServices.blackList.set(discordServices.channelIDs.welcomeChannel, 3000);
-
-    // check roles
-    // we asume the bot is only in one guild!
-    var guild = bot.guilds.cache.first();
-    var roleManager = await guild.roles.fetch();
-
-    // disable the attend command
-    bot.registry.commands.get('attend').setEnabledIn(guild, false);
-
-    // roles we are looking for
-    // dict key: role name, value: list of color and then id (snowflake)
-    var initialRoles = new Map([
-        ['Guest', ['#969C9F']], ['Hacker', ['#006798']], ['Attendee', ['#0099E1']],
-        ['Mentor', ['#CC7900']], ['Sponsor', ['#F8C300']], ['Staff', ['#00D166']]
-    ]);
-
-    // found roles, dict same as above
-    var foundRoles = new Map();
-
-    // loop over every role to search for roles we need
-    roleManager.cache.each((role) => {
-        // remove from roles list if name matches and add it to found roles
-        if (initialRoles.has(role.name)) {
-            foundRoles.set(role.name, [role.color, role.id]);
-            initialRoles.delete(role.name);
-        }
+bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */ (guild) => {
+    bot.registry.groups.forEach((group, key, map) => {
+        if (!group.guarded) guild.setGroupEnabled(group, false);
     });
 
-    // loop over remaining roles to create them
-    for (let [key, value] of initialRoles) {
-        var roleObject = await roleManager.create({
-            data: {
-                name: key,
-                color: value[0],
-            }
-        });
-        // add role to found roles because it has been created
-        foundRoles.set(key, [value[0], roleObject.id]);
-    }
-
-    // update values for discord services role snowflake
-    discordServices.roleIDs.everyoneRole = roleManager.everyone.id;
-    discordServices.roleIDs.hackerRole = foundRoles.get('Hacker')[1];
-    discordServices.roleIDs.guestRole = foundRoles.get('Guest')[1];
-    discordServices.roleIDs.attendeeRole = foundRoles.get('Attendee')[1];
-    discordServices.roleIDs.mentorRole = foundRoles.get('Mentor')[1];
-    discordServices.roleIDs.sponsorRole = foundRoles.get('Sponsor')[1];
-    discordServices.roleIDs.staffRole = foundRoles.get('Staff')[1];
-
-    // var to mark if gotten documents once
-    var isInitState = true;
-
-    // start query listener for announcements
-    nwFirebase.firestore().collection('Hackathons').doc('nwHacks2021').collection('Announcements').onSnapshot(querySnapshot => {
-        // exit if we are at the initial state
-        if (isInitState) {
-            isInitState = false;
-            return;
-        }
-
-        querySnapshot.docChanges().forEach(change => {
-            if (change.type === 'added') {
-                const embed = new Discord.MessageEmbed()
-                    .setColor(discordServices.colors.announcementEmbedColor)
-                    .setTitle('Announcement')
-                    .setDescription(change.doc.data()['content']);
-                
-                guild.channels.resolve(discordServices.channelIDs.announcementChannel).send('<@&' + discordServices.roleIDs.attendeeRole + '>', {embed: embed});
-            }
-        })
-    })
+    console.log('inside guild create!');
 });
 
 // Listeners for the bot
@@ -170,8 +105,7 @@ bot.on('commandError', (command, error) => {
             '\nmessage: ' + error.message +
             '\nfile: ' + error.fileName + 
             '\nline number: ' + error.lineNumber +
-            '\nstack: ' + error.stack + 
-            `\nException origin: ${origin}`)
+            '\nstack: ' + error.stack)
             .setTimestamp()
     );
 });
@@ -227,9 +161,9 @@ process.on('exit', () => {
 });
 
 bot.on('message', async message => {
-    // Deletes all messages to any channel in the black list with a 5 second timout
+    // Deletes all messages to any channel in the black list with the specified timeout
     // this is to make sure that if the message is for the bot, it is able to get it
-    // bot and staff messeges are not deleted
+    // bot and staff messages are not deleted
     if (discordServices.blackList.has(message.channel.id)) {
         if (!message.author.bot && !discordServices.checkForRole(message.member, discordServices.roleIDs.staffRole)) {
             (new Promise(res => setTimeout(res, discordServices.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
@@ -263,38 +197,46 @@ async function greetNewMember(member) {
     var embed = new Discord.MessageEmbed()
         .setTitle('Welcome to the nwHacks 2021 Server!')
         .setDescription('We are very excited to have you here!')
-        .addField('Gain more access by verifying yourself!', 'React to this message with ' + verifyEmoji + ' and follow my instructions!')
         .addField('Have a question?', 'Go to the welcome-assistance channel to talk with our staff!')
         .addField('Want to learn more about what I can do?', 'Use the !help command anywhere and I will send you a message!')
         .setColor(discordServices.colors.embedColor);
 
+    if (discordServices.roleIDs?.guestRole) embed.addField('Gain more access by verifying yourself!', 'React to this message with ' + verifyEmoji + ' and follow my instructions!');
+    
     let msg = await member.send(embed);
 
-    discordServices.addRoleToMember(member, discordServices.roleIDs.guestRole);
+    // if verification is on then give guest role and let user verify
+    if (discordServices.roleIDs?.guestRole) {
+        discordServices.addRoleToMember(member, discordServices.roleIDs.guestRole);
 
-    msg.react(verifyEmoji);
+        msg.react(verifyEmoji);
 
-    let verifyCollector = msg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === verifyEmoji);
+        let verifyCollector = msg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === verifyEmoji);
 
-    verifyCollector.on('collect', async (reaction, user) => {
-        try {
-            var email = (await Prompt.messagePrompt('What email did you get accepted to this event? Please send it now!', 'string', member.user.dmChannel, member.id, 25)).content;
-        } catch (error) {
-            discordServices.sendEmbedToMember(member, {
-                title: 'Verification Error',
-                description: 'Email was not provided, please try again!'
-            }, true);
-            return; 
-        }
-        reaction.users.remove(user.id);
+        verifyCollector.on('collect', async (reaction, user) => {
+            try {
+                var email = (await Prompt.messagePrompt('What email did you get accepted to this event? Please send it now!', 'string', member.user.dmChannel, member.id, 25)).content;
+            } catch (error) {
+                discordServices.sendEmbedToMember(member, {
+                    title: 'Verification Error',
+                    description: 'Email was not provided, please try again!'
+                }, true);
+                return; 
+            }
+            reaction.users.remove(user.id);
 
-        let success = await verify(member, email, member.guild);
+            let success = await verify(member, email, member.guild);
 
-        if (success) {
-            verifyCollector.stop();
-        }
+            if (success) {
+                verifyCollector.stop();
+            }
 
-    });
+        });
+    } 
+    // if verification is off, then just ive member role
+    else {
+        discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
+    }
 }
 
 /**
@@ -305,7 +247,9 @@ async function greetNewMember(member) {
  */
 async function fixDMIssue(error, member) {
     if (error.code === 50007) {
-        member.guild.channels.resolve(discordServices.channelIDs.welcomeSupport).send('<@' + member.id + '> I couldn\'t reach you :(.' + 
+        let channelID = discordServices.channelIDs?.welcomeChannel || discordServices.channelIDs.botSupportChannel;
+
+        member.guild.channels.resolve(channelID).send('<@' + member.id + '> I couldn\'t reach you :(.' + 
             '\n* Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-' + 
             '\n* Once this is done, please react to this message with 🤖 to let me know!').then(msg => {
                 msg.react('🤖');
@@ -318,7 +262,7 @@ async function fixDMIssue(error, member) {
                         collector.stop();
                         msg.delete();
                     } catch (error) {
-                        member.guild.channels.resolve(discordServices.channelIDs.welcomeSupport).send('<@' + member.id + '> Are you sure you made the changes? I couldn\'t reach you again 😕').then(msg => msg.delete({timeout: 8000}));
+                        member.guild.channels.resolve(channelID).send('<@' + member.id + '> Are you sure you made the changes? I couldn\'t reach you again 😕').then(msg => msg.delete({timeout: 8000}));
                     }
                 });
             });
@@ -360,7 +304,7 @@ async function verify(member, email, guild) {
     }
 
     // Call the verify function to get status
-    var status = await firebaseServices.verify(email, member.id);
+    var status = await firebaseServices.verifyUser(email, member.id);
 
     // embed to send
     const embed = new Discord.MessageEmbed()
@@ -372,18 +316,25 @@ async function verify(member, email, guild) {
             embed.addField('You Have Been Verified!', 'Thank you for verifying your status with us, you now have access to most of the server.')
                 .addField('Don\'t Forget!', 'Remember you need to !attend <your email> in the attend channel that will open a few hours before the hackathon begins.');
             discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.hackerRole);
-            discordServices.addRoleToMember(member,discordServices.stampRoles.get(0));
+            if (discordServices.stampRoles.has(0)) discordServices.addRoleToMember(member,discordServices.stampRoles.get(0));
+            discordServices.addRoleToMember(member,discordServices.roleIDs.memberRole);
             discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + member.id + "> Verified email: " + email + " successfully and they are now a hacker!");
             break;
         case firebaseServices.status.SPONSOR_SUCCESS:
-            embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of nwhacks 2021 and for joining our discord!');
-            discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.sponsorRole);
-            discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + member.id + "> Verified email: " + email + " successfully and they are now a sponsor!");
+            if (discordServices.roleIDs?.sponsorRole) {
+                embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of nwhacks 2021 and for joining our discord!');
+                discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.sponsorRole);
+                discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
+                discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a sponsor!");
+            }
             break;
         case firebaseServices.status.MENTOR_SUCCESS:
-            embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of nwhacks 2021 and for joining our discord!');
-            discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.mentorRole);
-            discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + member.id + "> Verified email: " + email + " successfully and he is now a mentor!");
+            if (discordServices.roleIDs?.mentorRole) {
+                embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of nwhacks 2021 and for joining our discord!');
+                discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.mentorRole);
+                discordServices.addRoleToMember(member,discordServices.roleIDs.memberRole);
+                discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + member.id + "> Verified email: " + email + " successfully and he is now a mentor!");
+            }
             break;
         case firebaseServices.status.STAFF_SUCCESS:
             embed.addField('Welcome To Your Server!', 'Welcome to your discord server! If you need to know more about what I can do please call !help.');
