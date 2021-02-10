@@ -2,7 +2,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const { messagePrompt, numberPrompt, yesNoPrompt, rolePrompt, memberPrompt } = require('../../classes/prompt');
-const { getReminder } = require('../../firebase-services/firebase-services');
+const { getQuestion, getReminder } = require('../../firebase-services/firebase-services');
 
 var interval;
 
@@ -47,8 +47,9 @@ module.exports = class SelfCareReminders extends PermissionCommand {
 
         const startEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.colors.embedColor)
-            .setTitle(string)
-            .setDescription('To encourage healthy hackathon habits, we will be sending hourly self-care reminders!\n' +
+            .setTitle('To encourage healthy hackathon habits, we will be sending hourly self-care reminders! 🪴')
+            // temp
+            .setDescription('For Staff\n' +
                 '⏸️ to pause\n' +
                 '▶️ to resume\n');
 
@@ -91,13 +92,18 @@ module.exports = class SelfCareReminders extends PermissionCommand {
         // sendReminder is the function that picks and sends the next reminder
         async function sendReminder() {
             //get reminders parameters from db 
-            var data = await getReminder();
+            /*
+            getReminder() once fb collection setup
+            testing w existing questions collection
+            @jp :eyes: -> FirebaseError: Missing or insufficient permissions. 
+            */
+            var data = await getQuestion();
             let reminder = data.reminder;
 
             const qEmbed = new Discord.MessageEmbed()
                 .setColor(discordServices.colors.embedColor)
-                // .setTitle('Self care reminder!')
-                .setDescription(reminder);
+                .setTitle(reminder)
+                // .setDescription(reminder);
         }
     }
 }
