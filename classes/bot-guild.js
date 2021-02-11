@@ -222,7 +222,7 @@ module.exports = class BotGuild {
      * Will set the minimum required information for the bot to work on this guild.
      * @param {BotGuildInfo} botGuildInfo 
      * @param {CommandoClient} client
-     * @returns {BotGuild}
+     * @returns {Promise<BotGuild>}
      * @async
      */
     async readyUp(client, botGuildInfo) {
@@ -316,17 +316,24 @@ module.exports = class BotGuild {
             parent: adminCategory,
         });
 
-        return {adminConsoleChannel, adminLogChannel};
+        return {adminConsole: adminConsoleChannel, adminLog: adminLogChannel};
     }
+
+    /**
+     * @typedef VerificationChannels
+     * @property {String} welcomeChannelID
+     * @property {String} welcomeChannelSupportID
+     */
 
     /**
      * Will set up the verification process.
      * @param {CommandoClient} client 
      * @param {String} guestRoleID
-     * @return {BotGuild}
+     * @param {VerificationChannels} [verificationChannels]
+     * @return {Promise<BotGuild>}
      * @async
      */
-    async setUpVerification(client, guestRoleID) {
+    async setUpVerification(client, guestRoleID, verificationChannels = null) {
         /** @type {CommandoGuild} */
         let guild = client.guilds.fetch(this.guildID);
 
@@ -339,34 +346,46 @@ module.exports = class BotGuild {
         guestRole.setPermissions(0);
         this.verification.guestRoleID = guestRoleID;
 
-        let welcomeCategory = await guild.channels.create('Welcome', {
-            type: 'category',
-            permissionOverwrites: [
-                {
-                    id: this.roleIDs.everyoneRole,
-                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
-                },
-                {
-                    id: this.roleIDs.memberRole,
-                    deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
-                },
-            ],
-        });
+        if (verificationChannels) {
+            this.verification.welcomeChannelID = verificationChannels.welcomeChannelID;
+            this.verification.welcomeSupportChannelID = verificationChannels.welcomeChannelSupportID;
 
-        let welcomeChannel = await guild.channels.create('welcome', {
-            type: 'text',
-            parent: welcomeCategory,
-        });
+            /** @type {TextChannel} */
+            var welcomeChannel = guild.channels.resolve(this.verification.welcomeChannelID);
+            await welcomeChannel.bulkDelete(100, true);
+        } else {
+            let welcomeCategory = await guild.channels.create('Welcome', {
+                type: 'category',
+                permissionOverwrites: [
+                    {
+                        id: this.roleIDs.everyoneRole,
+                        allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                    },
+                    {
+                        id: this.roleIDs.memberRole,
+                        deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                    },
+                ],
+            });
+    
+            var welcomeChannel = await guild.channels.create('welcome', {
+                type: 'text',
+                parent: welcomeCategory,
+            });
+    
+            // update welcome channel to not send messages
+            welcomeChannel.updateOverwrite(this.roleIDs.everyoneRole, {
+                SEND_MESSAGES: false,
+            });
+    
+            let welcomeChannelSupport = await guild.channels.create('welcome-support', {
+                type: 'text',
+                parent: welcomeCategory,
+            });
 
-        // update welcome channel to not send messages
-        welcomeChannel.updateOverwrite(this.roleIDs.everyoneRole, {
-            SEND_MESSAGES: false,
-        });
-
-        let welcomeChannelSupport = await guild.channels.create('welcome-support', {
-            type: 'text',
-            parent: welcomeCategory,
-        });
+            this.verification.welcomeChannelID = welcomeChannel.id;
+            this.verification.welcomeSupportChannelID = welcomeChannelSupport.id;
+        }
 
         const embed = new Discord.MessageEmbed().setTitle('Welcome to the ' + guild.name + ' Discord server!')
             .setDescription('In order to verify that you have registered for ' + guild.name + ', please respond to the bot (me) via DM!')
@@ -374,8 +393,7 @@ module.exports = class BotGuild {
             .setColor(this.colors.embedColor);
         welcomeChannel.send(embed).then(msg => msg.pin());
 
-        this.verification.welcomeChannelID = welcomeChannel.id;
-        this.verification.welcomeSupportChannelID = welcomeChannelSupport.id;
+        
         this.verification.isEnabled = true;
         guild.setCommandEnabled('verify', true);
 
@@ -386,7 +404,7 @@ module.exports = class BotGuild {
      * Sets up the attendance functionality.
      * @param {CommandoClient} client 
      * @param {String} attendeeRoleID
-     * @returns {BotGuild}
+     * @returns {Promise<BotGuild>}
      * @async
      */
     async setUpAttendance(client, attendeeRoleID) {
@@ -436,25 +454,33 @@ module.exports = class BotGuild {
     }
 
     /**
-     * Creates the stamps roles and adds them to this BotGuild.
+     * Creates the stamps roles and adds them to this BotGuild. If stamps roles are given 
+     * then no roles are created!
      * @param {CommandoClient} client 
-     * @param {Number} stampAmount 
-     * @param {Number} [stampCollectionTime]
+     * @param {Number} [stampAmount] - amount of stamps to create
+     * @param {Number} [stampCollectionTime] - time given to users to send password to get stamp
+     * @param {String[]} [stampRoleIDs] - current stamp roles to use
      * @returns {Promise<BotGuild>}
      * @async
      */
-    async setUpStamps(client, stampAmount, stampCollectionTime = 60) {
+    async setUpStamps(client, stampAmount = 0, stampCollectionTime = 60, stampRoleIDs = []) {
         let guild = client.guilds.fetch(this.guildID);
 
-        for (let i = 0; i < stampAmount; i++) {
-            let role = await guild.roles.create({
-                data: {
-                    name: 'Stamp Role #' + i,
-                    hoist: true,
-                    color: discordServices.randomColor(),
-                }
+        if (stampRoleIDs) {
+            stampRoleIDs.forEach((ID, index, array) => {
+                discordServices.stampRoles.set(index, ID);
             });
-            this.stamps.stampRoleIDs.set(i, role.id);
+        } else {
+            for (let i = 0; i < stampAmount; i++) {
+                let role = await guild.roles.create({
+                    data: {
+                        name: 'Stamp Role #' + i,
+                        hoist: true,
+                        color: discordServices.randomColor(),
+                    }
+                });
+                this.stamps.stampRoleIDs.set(i, role.id);
+            }
         }
 
         this.stamps.stampCollectionTime = stampCollectionTime;
