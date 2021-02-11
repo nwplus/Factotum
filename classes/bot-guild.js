@@ -1,5 +1,6 @@
 const { Collection, Snowflake, Guild, TextChannel, Role, GuildAuditLogs } = require('discord.js');
 const { CommandoClient, CommandoGuild } = require('discord.js-commando');
+const discordServices = require('../discord-services');
 
 module.exports = class BotGuild {
 
@@ -423,6 +424,31 @@ module.exports = class BotGuild {
         // });
     }
 
-    
+    /**
+     * Creates the stamps roles and adds them to this BotGuild.
+     * @param {CommandoClient} client 
+     * @param {Number} stampAmount 
+     * @param {Number} [stampCollectionTime]
+     * @returns {BotGuild}
+     */
+    setUpStamps(client, stampAmount, stampCollectionTime = 60) {
+        let guild = client.guilds.resolve(this.guildID);
+
+        for (let i = 0; i < stampAmount; i++) {
+            let role = await guild.roles.create({
+                data: {
+                    name: 'Stamp Role #' + i,
+                    hoist: true,
+                    color: discordServices.randomColor(),
+                }
+            });
+            this.stamps.stampRoleIDs.set(i, role.id);
+        }
+
+        this.stamps.stampCollectionTime = stampCollectionTime;
+        this.stamps.isEnabled = true;
+
+        return this;
+    }
 
 }
