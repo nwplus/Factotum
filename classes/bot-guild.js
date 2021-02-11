@@ -48,6 +48,12 @@ module.exports = class BotGuild {
      */
 
     /**
+     * @typedef AnnouncementInfo
+     * @property {Boolean} isEnabled
+     * @property {String} announcementChannelID
+     */
+
+    /**
      * @typedef BotGuildInfo
      * @property {RoleIDs} roleIDs
      * @property {ChannelIDs} channelIDs
@@ -144,6 +150,15 @@ module.exports = class BotGuild {
         this.report = {
             isEnabled : false,
             incomingReportChannelID : null,
+        }
+
+        /**
+         * The announcement information.
+         * @type {AnnouncementInfo}
+         */
+        this.announcement = {
+            isEnabled : false,
+            announcementChannelID: null,
         }
 
         /**
@@ -370,5 +385,44 @@ module.exports = class BotGuild {
         guild.setCommandEnabled('start-attend', true);
         return this;
     }
+
+    /**
+     * Will set up the firebase announcements.
+     * @param {CommandoClient} client 
+     * @param {String} announcementChannelID
+     */
+    setUpAnnouncements(client, announcementChannelID) {
+        /** @type {CommandoGuild} */
+        let guild = client.guilds.fetch(this.guildID);
+        
+        let announcementChannel = guild.channels.resolve(announcementChannelID);
+        if (!announcementChannel) throw new Error('The announcement channel ID is not valid for this guild!');
+
+        this.announcement.isEnabled = true;
+        this.announcement.announcementChannelID = announcementChannelID;
+
+        // TODO Firebase setup 
+        // start query listener for announcements
+        // nwFirebase.firestore().collection('Hackathons').doc('nwHacks2021').collection('Announcements').onSnapshot(querySnapshot => {
+        //     // exit if we are at the initial state
+        //     if (isInitState) {
+        //         isInitState = false;
+        //         return;
+        //     }
+
+        //     querySnapshot.docChanges().forEach(change => {
+        //         if (change.type === 'added') {
+        //             const embed = new Discord.MessageEmbed()
+        //                 .setColor(discordServices.colors.announcementEmbedColor)
+        //                 .setTitle('Announcement')
+        //                 .setDescription(change.doc.data()['content']);
+
+        //             announcementChannel.send('<@&' + discordServices.roleIDs.attendeeRole + '>', { embed: embed });
+        //         }
+        //     });
+        // });
+    }
+
+    
 
 }
