@@ -1,5 +1,5 @@
-const { Collection, Snowflake, Guild, TextChannel, Role } = require('discord.js');
-const { CommandoClient } = require('discord.js-commando');
+const { Collection, Snowflake, Guild, TextChannel, Role, GuildAuditLogs } = require('discord.js');
+const { CommandoClient, CommandoGuild } = require('discord.js-commando');
 
 module.exports = class BotGuild {
 
@@ -301,6 +301,7 @@ module.exports = class BotGuild {
      * @return {BotGuild}
      */
     setUpVerification(client, guestRoleID) {
+        /** @type {CommandoGuild} */
         let guild = client.guilds.resolve(this.guildID);
 
         try {
@@ -350,7 +351,23 @@ module.exports = class BotGuild {
         this.verification.welcomeChannelID = welcomeChannel.id;
         this.verification.welcomeSupportChannelID = welcomeChannelSupport.id;
         this.verification.isEnabled = true;
+        guild.setCommandEnabled('verify', true);
 
+        return this;
+    }
+
+    /**
+     * Sets up the attendance functionality.
+     * @param {CommandoClient} client 
+     * @param {String} attendeeRoleID
+     * @returns {BotGuild}
+     */
+    setUpAttendance(client, attendeeRoleID) {
+        this.attendance.attendeeRoleID = attendeeRoleID;
+        this.attendance.isEnabled = true;
+        /** @type {CommandoGuild} */
+        let guild = await client.guilds.fetch(this.guildID);
+        guild.setCommandEnabled('start-attend', true);
         return this;
     }
 
