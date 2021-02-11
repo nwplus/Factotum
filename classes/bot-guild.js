@@ -477,4 +477,14 @@ module.exports = class BotGuild {
         return this;
     }
 
+    /**
+     * Will enable the ask command.
+     * @param {CommandoClient} client 
+     */
+    setUpAsk(client) {
+        /** @type {CommandoGuild} */
+        let guild = client.guilds.fetch(this.guildID);
+        guild.setCommandEnabled('ask', true);
+    }
+
 }
