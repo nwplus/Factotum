@@ -451,4 +451,22 @@ module.exports = class BotGuild {
         return this;
     }
 
+    /**
+     * Enables the report commands and sends the reports to the given channel.
+     * @param {CommandoClient} client 
+     * @param {String} incomingReportChannelID 
+     * @returns {BotGuild}
+     */
+    setUpReport(client, incomingReportChannelID) {
+        /** @type {CommandoGuild} */
+        let guild = client.guilds.resolve(this.guildID);
+
+        this.report.isEnabled = true;
+        this.report.incomingReportChannelID = incomingReportChannelID;
+
+        guild.setCommandEnabled('report', true);
+
+        return this;
+    }
+
 }
