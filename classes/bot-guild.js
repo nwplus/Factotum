@@ -225,7 +225,7 @@ module.exports = class BotGuild {
      * @returns {BotGuild}
      * @async
      */
-    async readyUp(botGuildInfo, client) {
+    async readyUp(client, botGuildInfo) {
         this.validateBotGuildInfo(botGuildInfo);
 
         this.roleIDs = botGuildInfo.roleIDs;
@@ -274,6 +274,10 @@ module.exports = class BotGuild {
         adminCategory.children.forEach(channel => channel.lockPermissions());
 
         this.isSetUpCompete = true;
+
+        client.registry.groups.forEach((group, key, map) => {
+            if (group.name.startsWith('a_')) guild.setGroupEnabled(group, true);
+        });
 
         return this;
     }
