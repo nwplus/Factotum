@@ -1,4 +1,5 @@
-const { Collection, Snowflake } = require('discord.js');
+const { Collection, Snowflake, Guild, TextChannel, Role } = require('discord.js');
+const { CommandoClient } = require('discord.js-commando');
 
 module.exports = class BotGuild {
 
@@ -45,6 +46,13 @@ module.exports = class BotGuild {
      * @property {Boolean} isEnabled - true if the report functionality is enabled
      * @property {String} incomingReportChannelID - channel where reports are sent
      */
+
+    /**
+     * @typedef BotGuildInfo
+     * @property {RoleIDs} roleIDs
+     * @property {ChannelIDs} channelIDs
+     */
+
 
     /**
      * Creates a new Bot Guild.
@@ -163,14 +171,125 @@ module.exports = class BotGuild {
          * The guild this Bot Guild belongs to.
          * @type {Snowflake}
          */
-        this.guildID = guildID
+        this.guildID = guildID;
 
         /**
          * The first console available to admins. Holds general bot information.
          */
-        this.mainConsoleMsg;
+        this.mainConsoleMsg = null;
 
+        /**
+         * True if the bot is ready and the commands are available to this guild. False otherwise.
+         * @type {Boolean}
+         */
+        this.isSetUpCompete = false;
     }
+
+    /**
+     * Validate the information.
+     * @param {BotGuildInfo} botGuildInfo - the information to validate
+     * @throws Error if the botGuildInfo is incomplete
+     */
+    validateBotGuildInfo(botGuildInfo) {
+        if (typeof botGuildInfo != Object) throw new Error('The bot guild information is required!');
+        if (!botGuildInfo?.roleIDs || !botGuildInfo?.roleIDs?.adminRole || !botGuildInfo?.roleIDs?.everyoneRole
+            || !botGuildInfo?.roleIDs?.memberRole || !botGuildInfo?.roleIDs?.staffRole) throw new Error('All the role IDs are required!');
+        if (!botGuildInfo?.channelIDs || !botGuildInfo?.channelIDs?.adminConsole || !botGuildInfo?.channelIDs?.adminLog
+            || !botGuildInfo?.channelIDs?.botSupportChannel) throw new Error('All the channel IDs are required!');
+    }
+
+    /**
+     * Will set the minimum required information for the bot to work on this guild.
+     * @param {BotGuildInfo} botGuildInfo 
+     * @param {CommandoClient} client
+     */
+    readyUp(botGuildInfo, client) {
+        this.validateBotGuildInfo(botGuildInfo);
+
+        this.roleIDs = botGuildInfo.roleIDs;
+        this.channelIDs = botGuildInfo.channelIDs;
+
+        let guild = await client.guilds.fetch(this.guildID);
+
+        let adminRole = await guild.roles.fetch(this.roleIDs.adminRole);
+        // try giving the admins administrator perms
+        try {
+            if (!adminRole.permissions.has('ADMINISTRATOR')) 
+            {
+                adminRole.setPermissions(adminRole.permissions.add(['ADMINISTRATOR']));
+                await adminRole.setMentionable(true);
+            }
+        } catch {
+            discordServices.discordLog(guild, 'Was not able to give administrator privileges to the role <@&' + adminRole.id + '>. Please help me!')
+        }
+
+        // staff role set up
+        let staffRole = await guild.roles.fetch(this.roleIDs.staffRole);
+        staffRole.setMentionable(true);
+        staffRole.setHoist(true);
+        staffRole.setPermissions(staffRole.permissions.add(this.permissions.staffPermissions));
+
+        // regular member role setup
+        let memberRole = await guild.roles.fetch(this.roleIDs.memberRole);
+        memberRole.setMentionable(false);
+        memberRole.setPermissions(memberRole.permissions.add(this.permissions.staffPermissions));
+
+        // change the everyone role permissions
+        guild.roles.everyone.setPermissions(0); // no permissions for anything like the guest role
+
+        // make sure admin channels are only for admins
+        let adminCategory = guild.channels.resolve(this.channelIDs.adminConsole).parent
+        adminCategory.overwritePermissions([
+            {
+                id: adminRole.id,
+                allow: 'VIEW_CHANNEL'
+            },
+            {
+                id: everyoneRole.id,
+                deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'CONNECT']
+            }
+        ]);
+        adminCategory.children.forEach(channel => channel.lockPermissions());
+
+        this.isSetUpCompete = true;
+    }
+
+    /**
+     * Will create the admin channels with the correct roles.
+     * @param {Guild} guild 
+     * @param {Role} adminRole 
+     * @param {Role} everyoneRole 
+     * @returns {Promise<{TextChannel, TextChannel}>} - {Admin Console, Admin Log Channel}
+     * @static
+     */
+    static async createAdminChannels(guild, adminRole, everyoneRole) {
+        let adminCategory = await guild.channels.create('Admins', {
+            type: 'category',
+            permissionOverwrites: [
+                {
+                    id: adminRole.id,
+                    allow: 'VIEW_CHANNEL'
+                },
+                {
+                    id: everyoneRole.id,
+                    deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'CONNECT']
+                }
+            ]
+        });
+
+        let adminConsoleChannel = await guild.channels.create('console', {
+            type: 'text',
+            parent: adminCategory,
+        });
+
+        let adminLogChannel = await guild.channels.create('logs', {
+            type: 'text',
+            parent: adminCategory,
+        });
+
+        return {adminConsoleChannel, adminLogChannel};
+    }
+
 
 
 }
