@@ -88,6 +88,13 @@ module.exports = class BotGuild {
              * @type {String[]}
              */
             adminPermissions: ['ADMINISTRATOR'],
+
+            /**
+             * The regular member perms.
+             * @type {String[]}
+             */
+            memberPermissions : ['VIEW_CHANNEL', 'CHANGE_NICKNAME', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY',
+            'CONNECT', 'SPEAK', 'STREAM', 'USE_VAD'],
         }
 
         /**
@@ -106,9 +113,6 @@ module.exports = class BotGuild {
          */
         this.verification = {
             isEnabled : false,
-            isVerifiedRoleID : null,
-            isVerifiedRolePermissions : ['VIEW_CHANNEL', 'CHANGE_NICKNAME', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY',
-            'CONNECT', 'SPEAK', 'STREAM', 'USE_VAD'],
             guestRoleID : null,
             welcomeChannelID : null,
             welcomeSupportChannelID : null,
@@ -232,7 +236,7 @@ module.exports = class BotGuild {
         // regular member role setup
         let memberRole = await guild.roles.fetch(this.roleIDs.memberRole);
         memberRole.setMentionable(false);
-        memberRole.setPermissions(memberRole.permissions.add(this.permissions.staffPermissions));
+        memberRole.setPermissions(memberRole.permissions.add(this.permissions.memberPermissions));
 
         // change the everyone role permissions
         guild.roles.everyone.setPermissions(0); // no permissions for anything like the guest role
@@ -290,6 +294,64 @@ module.exports = class BotGuild {
         return {adminConsoleChannel, adminLogChannel};
     }
 
+    /**
+     * Will set up the verification process.
+     * @param {CommandoClient} client 
+     * @param {String} guestRoleID
+     * @return {BotGuild}
+     */
+    setUpVerification(client, guestRoleID) {
+        let guild = client.guilds.resolve(this.guildID);
 
+        try {
+            var guestRole = await guild.roles.fetch(guestRoleID);
+        } catch (error) {
+            throw new Error('The given guest role ID is not valid for this guild!');
+        }
+        guestRole.setMentionable(false);
+        guestRole.setPermissions(0);
+        this.verification.guestRoleID = guestRoleID;
+
+        let welcomeCategory = await guild.channels.create('Welcome', {
+            type: 'category',
+            permissionOverwrites: [
+                {
+                    id: this.roleIDs.everyoneRole,
+                    allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                },
+                {
+                    id: this.roleIDs.memberRole,
+                    deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                },
+            ],
+        });
+
+        let welcomeChannel = await guild.channels.create('welcome', {
+            type: 'text',
+            parent: welcomeCategory,
+        });
+
+        // update welcome channel to not send messages
+        welcomeChannel.updateOverwrite(this.roleIDs.everyoneRole, {
+            SEND_MESSAGES: false,
+        });
+
+        let welcomeChannelSupport = await guild.channels.create('welcome-support', {
+            type: 'text',
+            parent: welcomeCategory,
+        });
+
+        const embed = new Discord.MessageEmbed().setTitle('Welcome to the ' + guild.name + ' Discord server!')
+            .setDescription('In order to verify that you have registered for ' + guild.name + ', please respond to the bot (me) via DM!')
+            .addField('Do you need assistance?', 'Head over to the welcome-support channel and ping the admins!')
+            .setColor(this.colors.embedColor);
+        welcomeChannel.send(embed).then(msg => msg.pin());
+
+        this.verification.welcomeChannelID = welcomeChannel.id;
+        this.verification.welcomeSupportChannelID = welcomeChannelSupport.id;
+        this.verification.isEnabled = true;
+
+        return this;
+    }
 
 }
