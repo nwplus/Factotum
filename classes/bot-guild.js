@@ -222,8 +222,10 @@ module.exports = class BotGuild {
      * Will set the minimum required information for the bot to work on this guild.
      * @param {BotGuildInfo} botGuildInfo 
      * @param {CommandoClient} client
+     * @returns {BotGuild}
+     * @async
      */
-    readyUp(botGuildInfo, client) {
+    async readyUp(botGuildInfo, client) {
         this.validateBotGuildInfo(botGuildInfo);
 
         this.roleIDs = botGuildInfo.roleIDs;
@@ -272,6 +274,8 @@ module.exports = class BotGuild {
         adminCategory.children.forEach(channel => channel.lockPermissions());
 
         this.isSetUpCompete = true;
+
+        return this;
     }
 
     /**
@@ -281,6 +285,7 @@ module.exports = class BotGuild {
      * @param {Role} everyoneRole 
      * @returns {Promise<{TextChannel, TextChannel}>} - {Admin Console, Admin Log Channel}
      * @static
+     * @async
      */
     static async createAdminChannels(guild, adminRole, everyoneRole) {
         let adminCategory = await guild.channels.create('Admins', {
@@ -315,10 +320,11 @@ module.exports = class BotGuild {
      * @param {CommandoClient} client 
      * @param {String} guestRoleID
      * @return {BotGuild}
+     * @async
      */
-    setUpVerification(client, guestRoleID) {
+    async setUpVerification(client, guestRoleID) {
         /** @type {CommandoGuild} */
-        let guild = client.guilds.resolve(this.guildID);
+        let guild = client.guilds.fetch(this.guildID);
 
         try {
             var guestRole = await guild.roles.fetch(guestRoleID);
@@ -377,8 +383,9 @@ module.exports = class BotGuild {
      * @param {CommandoClient} client 
      * @param {String} attendeeRoleID
      * @returns {BotGuild}
+     * @async
      */
-    setUpAttendance(client, attendeeRoleID) {
+    async setUpAttendance(client, attendeeRoleID) {
         this.attendance.attendeeRoleID = attendeeRoleID;
         this.attendance.isEnabled = true;
         /** @type {CommandoGuild} */
@@ -429,10 +436,11 @@ module.exports = class BotGuild {
      * @param {CommandoClient} client 
      * @param {Number} stampAmount 
      * @param {Number} [stampCollectionTime]
-     * @returns {BotGuild}
+     * @returns {Promise<BotGuild>}
+     * @async
      */
-    setUpStamps(client, stampAmount, stampCollectionTime = 60) {
-        let guild = client.guilds.resolve(this.guildID);
+    async setUpStamps(client, stampAmount, stampCollectionTime = 60) {
+        let guild = client.guilds.fetch(this.guildID);
 
         for (let i = 0; i < stampAmount; i++) {
             let role = await guild.roles.create({
@@ -459,7 +467,7 @@ module.exports = class BotGuild {
      */
     setUpReport(client, incomingReportChannelID) {
         /** @type {CommandoGuild} */
-        let guild = client.guilds.resolve(this.guildID);
+        let guild = client.guilds.fetch(this.guildID);
 
         this.report.isEnabled = true;
         this.report.incomingReportChannelID = incomingReportChannelID;
