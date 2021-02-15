@@ -38,14 +38,14 @@ module.exports = class DiscordContests extends PermissionCommand {
         //ask user for time interval between questions
         var timeInterval;
         try {
-            let num = await numberPrompt('What is the time interval between questions in minutes (integer only)? ', message.channel, message.author.id);
+            let num = await numberPrompt('What is the time interval between questions in minutes (integer only)? ', message.channel, message.author.id)[0];
             timeInterval = 1000 * 60 * num;
 
             // ask user whether to start asking questions now(true) or after 1 interval (false)
             var startNow = await yesNoPrompt('Type "yes" to start first question now, "no" to start one time interval from now. ', message.channel, message.author.id)
 
             // id of role to mention when new questions come out
-            var role = (await rolePrompt('What is the hacker role to notify for Discord contests?', message.channel, message.author.id, 15)).id;
+            var role = (await rolePrompt('What is the hacker role to notify for Discord contests?', message.channel, message.author.id, 15)).first().id;
         } catch (error) {
             message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;
@@ -155,9 +155,9 @@ module.exports = class DiscordContests extends PermissionCommand {
                         reaction.users.remove(user.id);
 
                         memberPrompt('Pick a winner for the previous question by mentioning them in your next message in this channel!', message.channel, user.id)
-                            .then(member => {
-                                winners.push(member.id);
-                                message.channel.send("Congrats <@" + member.id + "> for the best answer to the previous question!");
+                            .then(members => {
+                                winners.push(members.first().id);
+                                message.channel.send("Congrats <@" + members.first().id + "> for the best answer to the previous question!");
                                 emojiCollector.stop();
                             }).catch(error => {
                                 msg.channel.send('<@' + user.id + '> You have canceled the prompt, you can select a winner again at any time.').then(msg => msg.delete({timeout: 8000}));

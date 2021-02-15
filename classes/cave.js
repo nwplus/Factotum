@@ -145,10 +145,10 @@ class Cave {
      */
     async find(channel, userID) {
         try {
-            let console = await Prompt.channelPrompt('What is the cave\'s console channel?', channel, userID);
-            let generalText = await Prompt.channelPrompt('What is the cave\'s general text channel?', channel, userID);
-            let incomingTickets = await Prompt.channelPrompt('What is the cave\'s incoming tickets channel?', channel, userID);
-            let outgoingTickets = await Prompt.channelPrompt('What is the cave\'s outgoing tickets channel?', channel, userID);
+            let console = await Prompt.channelPrompt('What is the cave\'s console channel?', channel, userID).first();
+            let generalText = await Prompt.channelPrompt('What is the cave\'s general text channel?', channel, userID).first();
+            let incomingTickets = await Prompt.channelPrompt('What is the cave\'s incoming tickets channel?', channel, userID).first();
+            let outgoingTickets = await Prompt.channelPrompt('What is the cave\'s outgoing tickets channel?', channel, userID).first();
 
             this.privateChannels = {
                 console: console,
@@ -459,7 +459,7 @@ class Cave {
                     // get the age in minutes of the channels to delete if they wanted to specify an age
                     var age;
                     (deleteNow) ? age = 1 : age = await Prompt.numberPrompt('Enter the number of minutes. ' +
-                        'All ticket channels older than this time will be deleted. Careful - this cannot be undone!', adminConsole, admin.id);
+                        'All ticket channels older than this time will be deleted. Careful - this cannot be undone!', adminConsole, admin.id)[0];
 
                     // delete all active tickets fitting the given age criteria
                     this.tickets.forEach(async (ticket) => {
@@ -485,16 +485,9 @@ class Cave {
                         prompt = 'In **one** message, send all the ticket numbers to be deleted, separated by spaces. Careful - this cannot be undone!';
                     }
 
-                    var response = await Prompt.messagePrompt(prompt, 'string', adminConsole, admin.id, 30);
-                    var ticketMentions = []; //int array to store ticket numbers to include/exclude
+                    var ticketMentions = await Prompt.numberPrompt(prompt, adminConsole, admin.id);
                     // do nothing if no response given
-                    if (response != null) {
-                        // add all the words from the user's response into an array and parse for the integers
-                        response.content.split(" ").forEach(substring => {
-                            if (!isNaN(substring)) {
-                                ticketMentions.push(parseInt(substring));
-                            }
-                        });
+                    try {
                         
                         var ticketsToDelete; // will be initialized as a Map/Collection to keep track of tickets that the user chose to delete
                         if (exclude) { // check if user specified to exclude certain channels from being deleted
@@ -529,6 +522,8 @@ class Cave {
                         });
                         adminConsole.send('<@' + admin.id + '> The following tickets have been deleted: ' + Array.from(ticketsToDelete.keys()).join(', '))
                             .then(msg => msg.delete({ timeout: 8000 }));
+                    } catch {
+                        // do nothing if no tickets mentioned before timing out
                     }
                 }
             } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[2]) { // check if Admin selected to include/exclude tickets from garbage collection

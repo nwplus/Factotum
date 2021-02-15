@@ -30,7 +30,7 @@ module.exports = class StartChannelCreation extends PermissionCommand {
 
         try {
             // grab current channel
-            var channel = await Prompt.channelPrompt('What channel do you want to use? The channel\'s category will be used to create the new channels.', message.channel, message.author.id);
+            var channel = await Prompt.channelPrompt('What channel do you want to use? The channel\'s category will be used to create the new channels.', message.channel, message.author.id).first();
         } catch (error) {
             message.channel.send('<@' + message.author.id + '> The command has been canceled due to the prompt cancel.').then(msg => msg.delete({timeout: 5000}));
             return;

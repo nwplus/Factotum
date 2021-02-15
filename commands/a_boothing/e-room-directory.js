@@ -37,7 +37,7 @@ module.exports = class BoothDirectory extends PermissionCommand {
             link = link.content;
 
             //ask user for role and save its id in the role variable
-            var role = await Prompt.rolePrompt('What role will get pinged when booths open?', message.channel, message.author.id);
+            var role = await Prompt.rolePrompt('What role will get pinged when booths open?', message.channel, message.author.id).first().id;
         } catch (error) {
             message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;

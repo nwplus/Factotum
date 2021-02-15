@@ -262,7 +262,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 parent: category,
             });
         } else {
-            channel = await Prompt.channelPrompt('What channel would you like to use for team roulette, this channels category will be used for the new team channels.', promptChannel, promptId);
+            channel = await Prompt.channelPrompt('What channel would you like to use for team roulette, this channels category will be used for the new team channels.', promptChannel, promptId).first();
             channel.bulkDelete(100, true);
         }
 

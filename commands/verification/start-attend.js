@@ -42,7 +42,7 @@ module.exports = class StartAttend extends PermissionCommand {
 
             if (existsChannel) {
                 //ask user to mention channel to be used for !attend
-                channel = await Prompt.channelPrompt('Please mention the channel to be used for the !attend command. ', message.channel, message.author.id);
+                channel = await Prompt.channelPrompt('Please mention the channel to be used for the !attend command. ', message.channel, message.author.id).first();
             } else {
                 //ask user for category to create new attend channel under
                 let categoryReply = await Prompt.messagePrompt('What category do you want the new attend channel under? ', 'string', message.channel, message.author.id, 20);

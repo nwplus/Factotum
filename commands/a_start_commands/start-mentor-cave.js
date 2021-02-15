@@ -41,7 +41,7 @@ module.exports = class StartMentors extends PermissionCommand {
 
             var role;
             if (await Prompt.yesNoPrompt('Have you created the mentor role? If not it is okay, I can make it for you!', message.channel, message.author.id)) {
-                role = await Prompt.rolePrompt('Please mention the mentor role now!', message.channel, message.author.id);
+                role = await Prompt.rolePrompt('Please mention the mentor role now!', message.channel, message.author.id).first();
             } else {
                 role = await message.guild.roles.create({
                     data: {
@@ -79,11 +79,11 @@ module.exports = class StartMentors extends PermissionCommand {
                 },
                 times: {
                     inactivePeriod: await Prompt.numberPrompt('How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
-                        message.channel, message.author.id),
+                        message.channel, message.author.id)[0],
                     bufferTime: await Prompt.numberPrompt('How long, in minutes, will the bot wait for a response to its request to delete a ticket?',
-                        message.channel, message.author.id),
+                        message.channel, message.author.id)[0],
                     reminderTime: await Prompt.numberPrompt('How long, in minutes, shall a ticket go unaccepted before the bot sends a reminder to all mentors?',
-                        message.channel, message.author.id),
+                        message.channel, message.author.id)[0],
                 }
             });
 
