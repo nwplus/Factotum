@@ -111,10 +111,9 @@ module.exports = class DistributeStamp extends PermissionCommand {
                 pwdCollector.on('collect', async m => {
                     //update role and stop collecting if password matches
                     if (m.content === password) {
-                        const regex = RegExp('^(\w+)\s\-\s\d{1,2}$');
+                        const regex = RegExp(/^.+\s#\d{1,2}$/);
 
                         let role = member.roles.cache.find(role => regex.test(role.name));
-
                         if (role != undefined) ActivityManager.parseRole(member, role, activityName);
                         correctPassword = true;
                         //discordServices.deleteMessage(msgs);

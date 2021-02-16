@@ -123,7 +123,7 @@ class ActivityManager {
             const member = activity.generalText.guild.member(user);
 
             if (!seenUsers.has(user.id)) {
-                const regex = RegExp('^(\w+)\s\-\s\d{1,2}$');
+                const regex = RegExp(/^.+\s#\d{1,2}$/);
 
                 let role = member.roles.cache.find(role => regex.test(role.name));
 
@@ -150,9 +150,9 @@ class ActivityManager {
      * @param {Document} botGuild
      * @private
      */
-    static parseRole(member, role, activityName, botGuild) {
-        let stampNumber = parseInt(role.name.substring(role.name.length - 2));
-        let newRoleID = botGuild.stampRoles.get(stampNumber + 1);
+    static parseRole(member, role, activityName) {
+        let stampNumber = parseInt(role.name.split('#')[1]);
+        let newRoleID = discordServices.stampRoles.get(stampNumber + 1);
 
         if (newRoleID != undefined) {
             discordServices.replaceRoleToMember(member, role.id, newRoleID);
