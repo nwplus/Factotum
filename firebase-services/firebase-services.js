@@ -48,7 +48,7 @@ async function getQuestion() {
     //if there exists an unasked question, change its status to asked
     if (question != undefined) {
         question.ref.update({
-            'asked' : true,
+            'asked': true,
         });
         return question.data();
     }
@@ -56,6 +56,100 @@ async function getQuestion() {
 }
 module.exports.getQuestion = getQuestion;
 
+/**
+ * @typedef {Object} Member
+ * @property {String} email - the email of the member
+ * @property {Boolean} isVerified - whether member has already verified
+ * @property {String} type - role a member has in the server
+ */
+
+/**
+ * Checks to see if the input email matches or is similar to emails in the database
+ * Returns an array of objects containing emails that match or are similar, along with the verification status of each, 
+ * and returns empty array if none match
+ * @param {String} email - email to check
+ * @returns {Array<Member>} - array of members with similar emails to parameter email
+ */
+async function checkEmail(email) {
+    const snapshot = (await db.collection('members').get()).docs; // retrieve snapshot as an array of documents in the Firestore
+    var foundEmails = [];
+    snapshot.forEach(memberDoc => {
+        // compare each member's email with the given email
+        if (memberDoc.get('email') != null) {
+            let compare = memberDoc.get('email');
+            // if the member's emails is similar to the given email, retrieve and add the email, verification status, and member type of
+            // the member as an object to the array
+            if (compareEmails(email, compare)) {
+                foundEmails.push({
+                    email: compare,
+                    isVerified: memberDoc.get('isVerified'),
+                    type: memberDoc.get('type')
+                });
+            };
+        }
+    });
+    return foundEmails;
+}
+module.exports.checkEmail = checkEmail;
+
+/**
+ * Uses Levenshtein Distance to determine whether two emails are within 5 Levenshtein Distance
+ * @param {String} searchEmail - email to search for similar emails for
+ * @param {String} dbEmail - email from db to compare to searchEmail
+ * @returns {Boolean} - Whether the two emails are similar
+ */
+function compareEmails(searchEmail, dbEmail) {
+    // matrix to track Levenshtein Distance with
+    var matrix = new Array(searchEmail.length);
+    var searchEmailChars = searchEmail.split('');
+    var dbEmailChars = dbEmail.split('');
+    // initialize second dimension of matrix and set all elements to 0
+    for (var i = 0; i < matrix.length; i++) {
+        matrix[i] = new Array(dbEmail.length);
+        for (var j = 0; j < matrix[i].length; j++) {
+            matrix[i][j] = 0;
+        }
+    }
+    // set all elements in the top row and left column to increment by 1
+    for (var i = 1; i < searchEmail.length; i++) {
+        matrix[i][0] = i;
+    }
+    for (var j = 1; j < dbEmail.length; j++) {
+        matrix[0][j] = j;
+    }
+    // increment Levenshtein Distance by 1 if there is a letter inserted, deleted, or swapped; store the running tally in the corresponding
+    // element of the matrix
+    var substitutionCost;
+    for (var j = 1; j < dbEmail.length; j++) {
+        for (var i = 1; i < searchEmail.length; i++) {
+            if (searchEmailChars[i] === dbEmailChars[j]) {
+                substitutionCost = 0;
+            } else {
+                substitutionCost = 1;
+            }
+            matrix[i][j] = Math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + substitutionCost);
+        }
+    }
+    return matrix[searchEmail.length][dbEmail.length] <= 5;
+}
+
+/**
+ * Finds the email of user with given first and last names 
+ * @param {String} firstName - first name of member to match with database
+ * @param {String} lastName - last name of member to match with database
+ * @returns {String} - email of given member
+ */
+function checkName(firstName, lastName) {
+    const snapshot = (await db.collection('members').get()).docs; // snapshot of Firestore as array of documents
+    snapshot.forEach(memberDoc => {
+        if (memberDoc.get('firstName') != null && memberDoc.get('lastName') != null && memberDoc.get('firstName').toLowerCase() === firstName.toLowerCase()
+            && memberDoc.get('lastName').toLowerCase() === lastName.toLowerCase()) { // for each document, check if first and last names match given names
+            return memberDoc.get('email');
+        }
+    });
+    return null;
+}
+module.exports.checkName = checkName;
 
 /**
  * Verifies the any event member via their email.
@@ -67,13 +161,13 @@ module.exports.getQuestion = getQuestion;
 async function verifyUser(email, id) {
     var userRef = db.collection('members').where('email', '==', email).limit(1);
     var user = (await userRef.get()).docs[0];
-    
-    if(user) {
+
+    if (user) {
         var data = user.data();
-        if(!data['isVerified']) {
+        if (!data['isVerified']) {
             user.ref.update({
-                'isVerified' : true,
-                'discord-id' : id,
+                'isVerified': true,
+                'discord-id': id,
             });
             return data['type'] == 'hacker' ? status.HACKER_SUCCESS : data['type'] == 'mentor' ? status.MENTOR_SUCCESS : data['type'] == 'sponsor' ? status.SPONSOR_SUCCESS : status.STAFF_SUCCESS;
         } else {
@@ -96,7 +190,7 @@ async function attendUser(id) {
 
     if (user) {
         user.ref.update({
-            'isAttending' : true,
+            'isAttending': true,
         });
 
         return status.HACKER_SUCCESS;
