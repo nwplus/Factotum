@@ -71,7 +71,7 @@ module.exports.getQuestion = getQuestion;
  * @returns {Array<Member>} - array of members with similar emails to parameter email
  */
 async function checkEmail(email) {
-    const snapshot = (await db.collection('members').get()).docs; // retrieve snapshot as an array of documents in the Firestore
+    const snapshot = db.collection('members').get().docs; // retrieve snapshot as an array of documents in the Firestore
     var foundEmails = [];
     snapshot.forEach(memberDoc => {
         // compare each member's email with the given email
@@ -140,7 +140,7 @@ function compareEmails(searchEmail, dbEmail) {
  * @returns {String} - email of given member
  */
 function checkName(firstName, lastName) {
-    const snapshot = (await db.collection('members').get()).docs; // snapshot of Firestore as array of documents
+    const snapshot = db.collection('members').get().docs; // snapshot of Firestore as array of documents
     snapshot.forEach(memberDoc => {
         if (memberDoc.get('firstName') != null && memberDoc.get('lastName') != null && memberDoc.get('firstName').toLowerCase() === firstName.toLowerCase()
             && memberDoc.get('lastName').toLowerCase() === lastName.toLowerCase()) { // for each document, check if first and last names match given names
