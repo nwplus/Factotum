@@ -34,14 +34,14 @@ module.exports = class Report extends Command {
         var msgEmbed = await message.author.send(embed);
 
         // await response
-        msgEmbed.channel.awaitMessages(m => true, {max: 1}).then(msgs => {
+        msgEmbed.channel.awaitMessages(m => true, {max: 1}).then(async msgs => {
             var msg = msgs.first();
 
             msgEmbed.delete();
             message.author.send('Thank you for the report! Our admin team will look at it ASAP!');
 
             // send the report content to the admin report channel!
-            var incomingReportChn = message.guild.channels.resolve(discordServices.channelIDs.incomingReportChannel);
+            var incomingReportChn = await message.guild.channels.resolve(discordServices.channelIDs.incomingReportChannel);
 
             const adminMsgEmbed = new Discord.MessageEmbed()
                 .setColor(discordServices.colors.embedColor)
