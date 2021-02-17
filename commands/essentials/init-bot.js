@@ -5,6 +5,9 @@ const discordServices = require('../../discord-services');
 const Prompt = require('../../classes/prompt');
 const jsonfile = require('jsonfile');
 const BotGuild = require('../../classes/bot-guild');
+const mongoUtil = require('../../db/mongoUtil');
+
+const BotGuildDB = require('../../db/botGuildDBObject');
 
 // Command export
 module.exports = class InitBot extends Command {
@@ -33,7 +36,14 @@ module.exports = class InitBot extends Command {
     async run(message, { isDev }) {
         message.delete();
 
-        const botGuild = new BotGuild(message.guild.id);
+        // easy constants to use
+        var channel = message.channel;
+        const userId = message.author.id;
+        /** @type {CommandoGuild} */
+        const guild = message.guild;
+        const everyoneRole = message.guild.roles.everyone;
+
+        const botGuild = await BotGuildDB.findById(guild.id);
 
         // make sure the user had manage server permission
         if (!message.member.hasPermission('MANAGE_GUILD')) {
@@ -44,7 +54,7 @@ module.exports = class InitBot extends Command {
             const file = './dev_config.json';
             let data = await jsonfile.readFile(file);
             
-            botGuild.readyUp(this.client, {
+            await botGuild.readyUp(this.client, {
                 roleIDs:{
                     adminRole: data.adminRoleID,
                     staffRole: data.staffRoleID,
@@ -56,22 +66,24 @@ module.exports = class InitBot extends Command {
                     adminLog: data.adminLogsID,
                     botSupportChannel: data.botSupportChannelID
                 }
-            })
+            });
 
             if (data.isVerificationOn) {
-                botGuild.setUpVerification(this.client, data.guestRoleID, {
+                await botGuild.setUpVerification(this.client, data.guestRoleID, {
                     welcomeChannelID: data.welcomeChannelID,
                     welcomeChannelSupportID: data.welcomeChannelSupportID,
                 });
             }
 
             if (data.isAttendanceOn) {
-                botGuild.setUpAttendance(this.client, data.attendeeRoleID);
+                await botGuild.setUpAttendance(this.client, data.attendeeRoleID);
             }
 
             if (data.isStampOn) {
-                botGuild.setUpStamps(this.client, undefined, undefined, data.stamps);
+                await botGuild.setUpStamps(this.client, undefined, undefined, data.stamps);
             }
+
+            await botGuild.save();
 
             discordServices.sendMsgToChannel(channel, userId, 'The bot is set and ready to hack!', 10);
 
@@ -83,13 +95,6 @@ module.exports = class InitBot extends Command {
             .setTimestamp()
             .setDescription('Bot information will be added here! You can make changes here as well!')
             .addField('Role Changes', 'You are free to change role colors and role names! However, stamp role numbers can NOT be changed. You can add permissions but don\'t remove any!');
-
-        // easy constants to use
-        var channel = message.channel;
-        const userId = message.author.id;
-        /** @type {CommandoGuild} */
-        const guild = message.guild;
-        const everyoneRole = message.guild.roles.everyone;
 
         discordServices.sendMsgToChannel(channel, userId, 'Please follow the following simple instructions!\n If you cancel any of the prompts, the selected functionality will not be used, however, try not to cancel any prompts.', 60);
 
@@ -166,7 +171,7 @@ module.exports = class InitBot extends Command {
         try {
             if (await Prompt.yesNoPrompt({prompt: 'Have firebase announcements been set up code-side? If not say no, or the bot will fail!', channel, userId})) {
                 let announcementChannel = (await Prompt.channelPrompt('What channel should announcements be sent to? If you don\'t have it, create it and come back, do not cancel.')).first();
-                botGuild.setUpAnnouncements(this.client, announcementChannel.id);
+                await botGuild.setUpAnnouncements(this.client, announcementChannel.id);
                 discordServices.sendMsgToChannel(channel, userId, 'The announcements have been set up correctly!', 60);
             } else {
                 discordServices.sendMsgToChannel(channel, userId, 'Announcements functionality was not set up.', 10);
@@ -196,7 +201,7 @@ module.exports = class InitBot extends Command {
             if (await Prompt.yesNoPrompt({prompt: 'Will you be using the report functionality?', channel, userId})) {
                 let incomingReportChannel = (await Prompt.channelPrompt({prompt: 'What channel should prompts be sent to? We recommend this channel be accessible to your staff.', channel, userId})).first();
                 
-                botGuild.setUpReport(this.client, incomingReportChannel.id);
+                await botGuild.setUpReport(this.client, incomingReportChannel.id);
                 discordServices.sendMsgToChannel(channel, userId, 'The report command is available and reports will be sent to: <#' + incomingReportChannel.id + '>', 60);
             }
         } catch (error) {
@@ -213,6 +218,8 @@ module.exports = class InitBot extends Command {
         } catch (error) {
             discordServices.sendMsgToChannel(channel, userId, 'Ask command will not be loaded due to prompt cancel.', 10);
         }
+
+        botGuild.save();
 
         discordServices.sendMsgToChannel(channel, userId, 'The bot is set and ready to hack!', 10);
     }
