@@ -6,6 +6,7 @@ require('dotenv-flow').config();
 
 // Firebase requirements
 var firebase = require('firebase/app');
+const mongoUtil = require('./db/mongoUtil');
 
 const admin = require('firebase-admin');
 
@@ -64,6 +65,19 @@ bot.registry
 bot.once('ready', async () => {
     console.log(`Logged in as ${bot.user.tag}!`);
     bot.user.setActivity('Ready to hack!');
+
+    await mongoUtil.mongooseConnect();
+
+    bot.guilds.cache.forEach(async (guild, key, guilds) => {
+        let botGuild = await BotGuild.findById(guild.id);
+
+        if (!botGuild) {
+            BotGuild.create({
+                _id: guild.id,
+            });
+        }
+
+    });
 });
 
 bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
@@ -71,7 +85,9 @@ bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
         if (!group.guarded) guild.setGroupEnabled(group, false);
     });
 
-    console.log('inside guild create!');
+    BotGuild.create({
+        _id: guild.id,
+    });
 });
 
 // Listeners for the bot
