@@ -29,13 +29,13 @@ class Prompt {
             var msgs = await channel.awaitMessages(message => message.author.id === userID, {max: 1, time: time == 0 ? null : time * 1000, errors: ['time']});
             let msg = msgs.first();
 
-            discordServices.deleteMessage(promptMsg);
-            discordServices.deleteMessage(msg);
-
             // check if they responded with cancel
             if (msg.content.toLowerCase() === 'cancel') {
                 throw new Error("The prompt has been canceled.");
             }
+
+            discordServices.deleteMessage(promptMsg);
+            discordServices.deleteMessage(msg);
 
             return msg;
         } catch (error) {
