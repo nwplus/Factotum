@@ -1,12 +1,11 @@
+require('dotenv-flow').config();
 const Commando = require('discord.js-commando');
 const Discord = require('discord.js');
-
-
-require('dotenv-flow').config();
-
-// Firebase requirements
-var firebase = require('firebase/app');
+const firebase = require('firebase/app');
+const discordServices = require('./discord-services');
+const Prompt = require('./classes/prompt');
 const mongoUtil = require('./db/mongoUtil');
+const BotGuild = require('./db/botGuildDBObject');
 
 const admin = require('firebase-admin');
 
@@ -20,6 +19,8 @@ const nwFirebaseConfig = {
     appId: process.env.NWFIREBASEAPPID,
     measurementId: process.env.NWFIREBASEMEASUREMENTID
 }
+// initialize nw firebase
+firebase.initializeApp(nwFirebaseConfig, 'nwFirebase');
 
 // initialize firebase
 // firebase.initializeApp(firebaseConfig);
@@ -28,14 +29,6 @@ admin.initializeApp({
     credential: admin.credential.cert(adminSDK),
     databaseURL: "https://nwplus-bot.firebaseio.com",
 });
-
-// initialize nw firebase
-const nwFirebase = firebase.initializeApp(nwFirebaseConfig, 'nwFirebase');
-
-const discordServices = require('./discord-services');
-const Prompt = require('./classes/prompt');
-const Verification = require('./classes/verification');
-
 
 const config = {
     token: process.env.TOKEN,
@@ -93,12 +86,11 @@ bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
 // Listeners for the bot
 
 // error event
-// bot.on('error', (error) => {
-//     console.log(error)
-//     discordServices.discordLog(bot.guilds.cache.first(), )
-// });
+bot.on('error', (error) => {
+    console.log(error)
+});
 
-bot.on('commandError', (command, error) => {
+bot.on('commandError', (command, error, message) => {
     console.log(
         'Error on command: ' + command.name +
         'Uncaught Rejection, reason: ' + error.name +
@@ -108,7 +100,7 @@ bot.on('commandError', (command, error) => {
         '\nstack: ' + error.stack
     );
 
-    discordServices.discordLog(bot.guilds.cache.first(),
+    discordServices.discordLog(message.guild,
         new Discord.MessageEmbed().setColor('#ed3434')
             .setTitle('Command Error')
             .setDescription('Error on command: ' + command.name +
@@ -121,7 +113,7 @@ bot.on('commandError', (command, error) => {
     );
 });
 
-process.on('uncaughtException', (error, origin) => {
+process.on('uncaughtException', (error) => {
     console.log(
         'Uncaught Rejection, reason: ' + error.name +
         '\nmessage: ' + error.message +
