@@ -145,10 +145,10 @@ class Cave {
      */
     async find(channel, userID) {
         try {
-            let console = await Prompt.channelPrompt('What is the cave\'s console channel?', channel, userID).first();
-            let generalText = await Prompt.channelPrompt('What is the cave\'s general text channel?', channel, userID).first();
-            let incomingTickets = await Prompt.channelPrompt('What is the cave\'s incoming tickets channel?', channel, userID).first();
-            let outgoingTickets = await Prompt.channelPrompt('What is the cave\'s outgoing tickets channel?', channel, userID).first();
+            let console = (await Prompt.channelPrompt('What is the cave\'s console channel?', channel, userID)).first();
+            let generalText = (await Prompt.channelPrompt('What is the cave\'s general text channel?', channel, userID)).first();
+            let incomingTickets = (await Prompt.channelPrompt('What is the cave\'s incoming tickets channel?', channel, userID)).first();
+            let outgoingTickets = (await Prompt.channelPrompt('What is the cave\'s outgoing tickets channel?', channel, userID)).first();
 
             this.privateChannels = {
                 console: console,
@@ -458,8 +458,8 @@ class Cave {
                         'Type "yes" to confirm or "no" to set a different timescale. Careful - this cannot be undone!', adminConsole, admin.id);
                     // get the age in minutes of the channels to delete if they wanted to specify an age
                     var age;
-                    (deleteNow) ? age = 1 : age = await Prompt.numberPrompt('Enter the number of minutes. ' +
-                        'All ticket channels older than this time will be deleted. Careful - this cannot be undone!', adminConsole, admin.id)[0];
+                    (deleteNow) ? age = 1 : age = (await Prompt.numberPrompt('Enter the number of minutes. ' +
+                        'All ticket channels older than this time will be deleted. Careful - this cannot be undone!', adminConsole, admin.id))[0];
 
                     // delete all active tickets fitting the given age criteria
                     this.tickets.forEach(async (ticket) => {

@@ -83,7 +83,7 @@ module.exports = class InitBot extends Command {
 
         // grab the admin role
         const adminRole = await this.askOrCreate('admin', channel, userId, guild, '#008369');
-        await adminRole.setMentionable(true);
+        //await adminRole.setMentionable(true);
 
         // create the admin channel package
         let adminConsole = await this.createAdminChannels(guild, adminRole, everyoneRole);
@@ -168,7 +168,7 @@ module.exports = class InitBot extends Command {
         // ask if the stamps will be used
         try {
             if (await Prompt.yesNoPrompt('Will you be using the stamp service?', channel, userId)) {
-                let numberOfStamps = await Prompt.numberPrompt('How many stamps do you want? This number is final!', channel, userId)[0];
+                let numberOfStamps = (await Prompt.numberPrompt('How many stamps do you want? This number is final!', channel, userId))[0];
 
                 for (let i = 0; i < numberOfStamps; i++) {
                     let role = await guild.roles.create({
@@ -197,7 +197,7 @@ module.exports = class InitBot extends Command {
         // ask if the user will use the report functionality
         try {
             if (await Prompt.yesNoPrompt('Will you be using the report functionality?', channel, userId)) {
-                let incomingReportChannel = await Prompt.channelPrompt('What channel should prompts be sent to? We recommend this channel be accessible to your staff.', channel, userId).first();
+                let incomingReportChannel = (await Prompt.channelPrompt('What channel should prompts be sent to? We recommend this channel be accessible to your staff.', channel, userId)).first();
                 discordServices.channelIDs.incomingReportChannel = incomingReportChannel.id;
 
                 guild.setCommandEnabled('report', true);
@@ -227,8 +227,8 @@ module.exports = class InitBot extends Command {
 
         // TODO remove this when fixed
         try {
-            discordServices.roleIDs.mentorRole = await Prompt.rolePrompt('What is the mentor role', channel, userId).first();
-            discordServices.roleIDs.sponsorRole = await Prompt.rolePrompt('What is the sponsor role?', channel, userId).first();
+            discordServices.roleIDs.mentorRole = (await Prompt.rolePrompt('What is the mentor role', channel, userId)).first();
+            discordServices.roleIDs.sponsorRole = (await Prompt.rolePrompt('What is the sponsor role?', channel, userId)).first();
         } catch (error) {
             discordServices.sendMsgToChannel(channel, userId, 'Mentor and/or Sponsor verification was not set due to cancel prompt!');
         }
@@ -242,7 +242,7 @@ module.exports = class InitBot extends Command {
      */
     async askForBotSupportChannel(channel, userId) {
         try {
-            let botSupportChannel = await Prompt.channelPrompt('What channel can the bot use to contact users when DMs are not available?', channel, userId).first();
+            let botSupportChannel = (await Prompt.channelPrompt('What channel can the bot use to contact users when DMs are not available?', channel, userId)).first();
             discordServices.channelIDs.botSupportChannel = botSupportChannel.id;
         } catch (error) {
             channel.send('<@' + userId + '> You can not cancel this command, please try again!').then(msg => msg.delete({timeout: 15000}));
@@ -356,7 +356,7 @@ module.exports = class InitBot extends Command {
      */
     async setAnnouncements(channel, userId) {
         try {
-            let announcementChannel = await Prompt.channelPrompt('What channel should announcements be sent to? If you don\'t have it, create it and come back, do not cancel.').first();
+            let announcementChannel = (await Prompt.channelPrompt('What channel should announcements be sent to? If you don\'t have it, create it and come back, do not cancel.')).first();
 
             // var to mark if gotten documents once
             var isInitState = true;
@@ -400,7 +400,7 @@ module.exports = class InitBot extends Command {
         let hasRole = await Prompt.yesNoPrompt('Have you created the ' + roleName + ' role? You can go ahead and create it if you wish, or let me do the hard work.', channel, userId);
 
         if (hasRole) {
-            return await Prompt.rolePrompt('What is the ' + roleName + ' role?', channel, userId).first();
+            return (await Prompt.rolePrompt('What is the ' + roleName + ' role?', channel, userId)).first();
         } else {
             return await guild.roles.create({
                 data: {

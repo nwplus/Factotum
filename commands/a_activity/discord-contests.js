@@ -38,7 +38,7 @@ module.exports = class DiscordContests extends PermissionCommand {
         //ask user for time interval between questions
         var timeInterval;
         try {
-            let num = await numberPrompt('What is the time interval between questions in minutes (integer only)? ', message.channel, message.author.id)[0];
+            let num = (await numberPrompt('What is the time interval between questions in minutes (integer only)? ', message.channel, message.author.id))[0];
             timeInterval = 1000 * 60 * num;
 
             // ask user whether to start asking questions now(true) or after 1 interval (false)

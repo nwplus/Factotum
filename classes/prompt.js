@@ -52,16 +52,16 @@ class Prompt {
      * @param {Discord.TextChannel} channel - the channel to send the prompt to
      * @param {String} userID - the ID of the user to prompt
      * @async
-     * @returns {Promise<[Number]>} - an array of numbers
+     * @returns {Promise<Array<Number>>} - an array of numbers
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      */
     static async numberPrompt(prompt, channel, userID) {
         let promptMsg = await Prompt.messagePrompt(prompt, 'number', channel, userID);
         var invalid = false;
-        let numbers = promptMsg.split(' ');
+        let numbers = promptMsg.content.split(' ');
         numbers.forEach(num => {
-            let number = parseInt(num);
-            if (isNaN(number)) invalid = true;
+            //let number = parseInt(num);
+            if (isNaN(num)) invalid = true;
         });
         if (invalid) {
             return Prompt.numberPrompt(prompt, channel, userID);

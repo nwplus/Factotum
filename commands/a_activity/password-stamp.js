@@ -56,7 +56,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
                 password = prompt.content;
             }
 
-            var targetChannel = await Prompt.channelPrompt('What channel do you want to send the stamp collector to? Users should have access to this channel!', message.channel, message.author.id).first();
+            var targetChannel = (await Prompt.channelPrompt('What channel do you want to send the stamp collector to? Users should have access to this channel!', message.channel, message.author.id)).first();
         } catch (error) {
             message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;

@@ -38,13 +38,13 @@ module.exports = class StartTeamFormation extends PermissionCommand {
                 teamInfo: {
                     emoji: await Prompt.reactionPrompt('What emoji do you want to use for teams to sign up?', channel, userID),
                     role: (await Prompt.yesNoPrompt('Have you created the role teams will get when they sign up? If not its okay, I will create it for you!', channel, userID)) ? 
-                        await Prompt.rolePrompt('What role should team users get?', channel, userID).first() :
+                        (await Prompt.rolePrompt('What role should team users get?', channel, userID)).first() :
                         await TeamFormation.createTeamRole(message.guild.roles),
                 },
                 prospectInfo: {
                     emoji: await Prompt.reactionPrompt('What emoji do you want to use for prospects to sign up?', channel, userID),
                     role: (await Prompt.yesNoPrompt('Have you created the role prospects will get when they sign up? Worry not if you don\'t I can create it for you!', channel, userID)) ? 
-                        await Prompt.rolePrompt('What role should prospects get?', channel, userID).first() : 
+                        (await Prompt.rolePrompt('What role should prospects get?', channel, userID)).first() : 
                         await TeamFormation.createProspectRole(message.guild.roles),
                 },
                 guild: message.guild,
