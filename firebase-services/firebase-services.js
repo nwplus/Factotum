@@ -1,10 +1,13 @@
 // Firebase requirements
 const firebase = require('firebase/app');
 require('firebase/firestore');
+const admin = require('firebase-admin');
 
 // var to hold firestore
-const db = firebase.firestore();
+// const db = firebase.firestore()
+const db = admin.firestore();
 module.exports.db = db;
+
 
 /**
  * @typedef FirebaseStatus
