@@ -175,10 +175,13 @@ module.exports = class DiscordContests extends PermissionCommand {
                     collector.on('collect', m => {
                         if (!needAllAnswers) {
                             // for questions that have numbers as answers, the answer has to match at least one of the correct answers exactly
-                            if (!isNaN(answers[0]) && answers.some(correctAnswer => m.content == correctAnswer)) {
-                                message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + answers.join(' or ') + ".");
-                                winners.push(m.author.id);
-                                collector.stop();
+                            if (!isNaN(answers[0])) {
+                                console.log(m.content);
+                                if (answers.some(correctAnswer => m.content === correctAnswer)) {
+                                    message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + answers.join(' or ') + ".");
+                                    winners.push(m.author.id);
+                                    collector.stop();
+                                }
                             } else if (answers.some(correctAnswer => m.content.toLowerCase().includes(correctAnswer.toLowerCase()))) {
                                 //for most questions, an answer that contains at least once item of the answer array is correct
                                 message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + answers.join(' or ') + ".");

@@ -197,8 +197,8 @@ async function greetNewMember(member) {
         .setColor(discordServices.colors.embedColor);
 
     if (discordServices.roleIDs?.guestRole) embed
-        .addField('Gain more access by verifying yourself!', 'React to this message with ' + verifyEmoji + ' and follow my instructions!')
-        .addField('** Note that verification for the cmd-f 2021 hackathon opens Feb.28, 2021**');
+        .addField('Gain more access by verifying yourself!', 'React to this message with ' + verifyEmoji + ' and follow my instructions!\n' +
+        '**Note that verification for the cmd-f 2021 hackathon opens Feb.28, 2021**');
     let msg = await member.send(embed);
 
     // if verification is on then give guest role and let user verify
