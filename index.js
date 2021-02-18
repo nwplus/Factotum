@@ -9,18 +9,6 @@ var firebase = require('firebase/app');
 
 const admin = require('firebase-admin');
 
-// firebase config
-const firebaseConfig = {
-    apiKey: process.env.FIREBASEAPIKEY,
-    authDomain: process.env.FIREBASEAUTHDOMAIN,
-    databaseURL: process.env.FIREBASEURL,
-    projectId: process.env.FIREBASEPROJECTID,
-    storageBucket: process.env.FIREBASEBUCKET,
-    messagingSenderId: process.env.FIREBASESENDERID,
-    appId: process.env.FIREBASEAPPID,
-    measurementId: process.env.FIREBASEMEASUREMENTID
-};
-
 const nwFirebaseConfig = {
     apiKey: process.env.NWFIREBASEAPIKEY,
     authDomain: process.env.NWFIREBASEAUTHDOMAIN,
