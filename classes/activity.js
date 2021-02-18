@@ -148,13 +148,13 @@ class Activity {
         return this.guild.channels.create(this.name, {
             type: 'category',
             position: position >= 0 ? position : 0,
-            permissionOverwrites: discordServices.roleIDs?.attendeeRole ? [ // only lock the activity if the attendance role is in use
+            permissionOverwrites: discordServices.roleIDs?.memberRole ? [ // only lock the activity if the attendance role is in use
                 {
                     id: discordServices.roleIDs.everyoneRole,
                     deny: ['VIEW_CHANNEL']
                 },
                 {
-                    id: discordServices.roleIDs.attendeeRole,
+                    id: discordServices.roleIDs.memberRole,
                     allow: ['VIEW_CHANNEL']
                 },
                 {
@@ -317,7 +317,7 @@ class Activity {
      */
     async makeWorkshop() {
         // update the voice channel permission to no speaking for attendees
-        this.generalVoice.updateOverwrite(discordServices.roleIDs.hackerRole, {
+        this.generalVoice.updateOverwrite(discordServices.roleIDs.memberRole, {
             SPEAK: false,
         });
         this.generalVoice.updateOverwrite(discordServices.roleIDs.staffRole, {

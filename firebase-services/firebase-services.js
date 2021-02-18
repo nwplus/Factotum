@@ -67,21 +67,21 @@ module.exports.getQuestion = getQuestion;
  * @returns {Promise<FirebaseStatus>} - one of the status constants
  * @async
  */
-async function verifyUser(email, id) {
+async function verifyUser(email, id) { // for cmd-f: used to verify for Learn
     var userRef = db.collection('members').where('email', '==', email).limit(1);
     var user = (await userRef.get()).docs[0];
     
     if(user) {
         var data = user.data();
-        if(!data['isVerified']) {
+        if(!data['verifiedLearn'] && data['canVerifyLearn']) {
             user.ref.update({
-                'isVerified' : true,
+                'verifiedLearn' : true,
                 'discord-id' : id,
             });
             return data['type'] == 'hacker' ? status.HACKER_SUCCESS : data['type'] == 'mentor' ? status.MENTOR_SUCCESS : data['type'] == 'sponsor' ? status.SPONSOR_SUCCESS : status.STAFF_SUCCESS;
-        } else {
+        } else if (data['canVerifyLearn']) {
             return data['type'] == 'hacker' ? status.HACKER_IN_USE : data['type'] == 'mentor' ? status.MENTOR_IN_USE : data['type'] == 'sponsor' ? status.SPONSOR_IN_USE : status.STAFF_IN_USE;
-        }
+        } 
     }
     return status.FAILURE;
 }
@@ -89,23 +89,26 @@ module.exports.verifyUser = verifyUser;
 
 /**
  * Will set the isAttending field to true, finds user via discord-id.
- * @param {String} id - discord user ID to identify
+ * @param {String} email - email to verify
  * @returns {Promise<FirebaseStatus>}
  * @async
  */
-async function attendUser(id) {
-    var userRef = db.collection('members').where('discord-id', '==', id).limit(1);
+async function attendUser(email) { // for cmd-f: used to verify for cmd-f 2021
+    var userRef = db.collection('members').where('email', '==', email).limit(1);
     var user = (await userRef.get()).docs[0];
 
     if (user) {
-        user.ref.update({
-            'isAttending' : true,
-        });
-
-        return status.HACKER_SUCCESS;
-    } else {
-        return status.FAILURE;
-    }
+        var data = user.data();
+        if (!data['verifiedcmdf'] && data['canVerifycmdf']) {
+            user.ref.update({
+                'verifiedcmdf' : true,
+            });
+            return status.HACKER_SUCCESS;
+        } else if (data['canVerifycmdf']) {
+            return status.HACKER_IN_USE;
+        }
+    } 
+    return status.FAILURE;
 }
 module.exports.attendUser = attendUser;
 

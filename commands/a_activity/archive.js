@@ -33,13 +33,13 @@ module.exports = class InitAmongUs extends ActivityCommand {
             archiveCategory = await message.guild.channels.create('💼archive', {
                 type: 'category', 
                 position: position + 1,
-                permissionOverwrites: discordServices.roleIDs?.attendeeRole ? [
+                permissionOverwrites: discordServices.roleIDs?.memberRole ? [
                     {
                         id: discordServices.roleIDs.everyoneRole,
                         deny: ['VIEW_CHANNEL'],
                     },
                     {
-                        id: discordServices.roleIDs.attendeeRole,
+                        id: discordServices.roleIDs.memberRole,
                         allow: ['VIEW_CHANNEL'],
                     },
                     {

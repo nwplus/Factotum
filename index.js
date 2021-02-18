@@ -303,7 +303,7 @@ async function verifyLearn(member, email, guild) {
     if (discordServices.checkForRole(member, discordServices.roleIDs.sponsorRole) ||
         discordServices.checkForRole(member, discordServices.roleIDs.mentorRole ||
             discordServices.checkForRole(member, discordServices.roleIDs.staffRole ||
-                discordServices.checkForRole(member, discordServices.roleIDs.hackerRole)))) {
+                discordServices.checkForRole(member, discordServices.roleIDs.memberRole)))) {
         discordServices.sendEmbedToMember(member, {
             title: 'Verify Error',
             description: 'You have already verified for Learn!'
@@ -324,16 +324,15 @@ async function verifyLearn(member, email, guild) {
         case firebaseServices.status.HACKER_SUCCESS:
             embed.addField('You Have Been Verified!', 'Thank you for verifying your status with us, you now have access to most of the server.')
                 .addField('Don\'t Forget!', 'Remember if you are attending the cmd-f hackathon, that has a separate verification process before the hackathon begins.');
-            discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.hackerRole);
+            discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.memberRole);
             if (discordServices.stampRoles.has(0)) discordServices.addRoleToMember(member, discordServices.stampRoles.get(0));
-            discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
             discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + member.id + "> Verified email: " + email + " successfully and they are now a hacker!");
             break;
         case firebaseServices.status.SPONSOR_SUCCESS:
             if (discordServices.roleIDs?.sponsorRole) {
                 embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of cmd-f 2021 and for joining our discord!');
                 discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.sponsorRole);
-                discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
+                //discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
                 discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a sponsor!");
             }
             break;
@@ -341,7 +340,7 @@ async function verifyLearn(member, email, guild) {
             if (discordServices.roleIDs?.mentorRole) {
                 embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of cmd-f 2021 and for joining our discord!');
                 discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.mentorRole);
-                discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
+                //discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
                 discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + member.id + "> Verified email: " + email + " successfully and they are now a mentor!");
             }
             break;
@@ -359,7 +358,7 @@ async function verifyLearn(member, email, guild) {
             success = false;
             break;
         default:
-            embed.addField('ERROR 401', 'Hi there, it seems the email you tried to verify with is already in use or you were not accepted! Please make ' +
+            embed.addField('ERROR 401', 'Hi there, it seems that you have already verified for cmd-f Learn or you were not accepted! Please make ' +
                 'sure that you have the correct email. If you think this is an error please contact us in the welcome-support channel.')
                 .setColor('#fc1403');
             discordServices.discordLog(guild, 'VERIFY WARNING : <@' + member.id + '> Tried to verify email: ' + email + ' and failed! They already verified or was not accepted!');
@@ -395,30 +394,33 @@ async function verify(member, email, guild) {
     }
 
     // call the firebase services attendHacker function
-    var status = await firebaseServices.attendHacker(email);
+    var status = await firebaseServices.attendUser(email);
 
     // embed to use
     const embed = new Discord.MessageEmbed()
         .setColor(discordServices.colors.specialDMEmbedColor)
-        .setTitle('cmd-f Verification Process');
+        .setTitle('cmd-f 2021 Verification Process');
 
     var success = true;
     // Check the returned status and act accordingly!
     switch (status) {
         case firebaseServices.status.HACKER_SUCCESS:
             embed.addField('Thank you for attending cmd-f 2021', 'Happy hacking!!!');
+            if (discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
+                discordServices.removeRolToMember(member, discordServices.roleIDs.guestRole);
+            }
             discordServices.addRoleToMember(member, discordServices.roleIDs.attendeeRole);
-            discordServices.discordLog(guild, "ATTEND SUCCESS : <@" + message.author.id + "> with email: " + email + " is attending cmd-f 2021!");
+            discordServices.discordLog(guild, "ATTEND SUCCESS : <@" + member.id + "> with email: " + email + " is attending cmd-f 2021!");
             break;
         case firebaseServices.status.HACKER_IN_USE:
-            embed.addField('Hi there, this email is already marked as verified for cmd-f', 'Have a great day!')
+            embed.addField('Hi there, this email is already marked as verified for cmd-f 2021', 'Have a great day!')
             break;
         case firebaseServices.status.FAILURE:
             embed.addField('ERROR 401', 'Hi there, the email you tried to verify with is not' +
                 ' in our system, please make sure your email is well typed. If you think this is an error' +
                 ' please contact us in the support channel.')
                 .setColor('#fc1403');
-            discordServices.discordLog(guild, "ATTEND ERROR : <@" + message.author.id + "> with email: " + email + " tried to attend but I did not find his email!");
+            discordServices.discordLog(guild, "ATTEND ERROR : <@" + member.id + "> with email: " + email + " tried to attend but I did not find his email!");
             success = false;
             break;
     }
