@@ -51,7 +51,7 @@ async function getQuestion() {
     //if there exists an unasked question, change its status to asked
     if (question != undefined) {
         question.ref.update({
-            'asked' : true,
+            'asked': true,
         });
         return question.data();
     }
@@ -64,24 +64,37 @@ module.exports.getQuestion = getQuestion;
  * Verifies the any event member via their email.
  * @param {String} email - the user email
  * @param {String} id - the user's discord snowflake
+ * @param {String} event - which event user is verifying for
  * @returns {Promise<FirebaseStatus>} - one of the status constants
  * @async
  */
 async function verifyUser(email, id) { // for cmd-f: used to verify for Learn
     var userRef = db.collection('members').where('email', '==', email).limit(1);
     var user = (await userRef.get()).docs[0];
-    
-    if(user) {
+
+    if (user) {
         var data = user.data();
-        if(!data['verifiedLearn'] && data['canVerifyLearn']) {
-            user.ref.update({
-                'verifiedLearn' : true,
-                'discord-id' : id,
-            });
-            return data['type'] == 'hacker' ? status.HACKER_SUCCESS : data['type'] == 'mentor' ? status.MENTOR_SUCCESS : data['type'] == 'sponsor' ? status.SPONSOR_SUCCESS : status.STAFF_SUCCESS;
-        } else if (data['canVerifyLearn']) {
-            return data['type'] == 'hacker' ? status.HACKER_IN_USE : data['type'] == 'mentor' ? status.MENTOR_IN_USE : data['type'] == 'sponsor' ? status.SPONSOR_IN_USE : status.STAFF_IN_USE;
-        } 
+        if (data['type'] === 'hacker') {
+            if (!data['verifiedLearn'] && data['canVerifyLearn']) {
+                user.ref.update({
+                    'verifiedLearn': true,
+                    'discord-id': id,
+                });
+                return status.HACKER_SUCCESS;
+            } else if (data['canVerifyLearn']) {
+                return status.HACKER_IN_USE;
+            }
+        } else {
+            if (!data['verified']) {
+                user.ref.update({
+                    'verified': true,
+                    'discord-id': id,
+                });
+                return data['type'] == 'mentor' ? status.MENTOR_SUCCESS : data['type'] == 'sponsor' ? status.SPONSOR_SUCCESS : status.STAFF_SUCCESS;
+            } else {
+                return data['type'] == 'mentor' ? status.MENTOR_IN_USE : data['type'] == 'sponsor' ? status.SPONSOR_IN_USE : status.STAFF_SUCCESS;
+            }
+        }
     }
     return status.FAILURE;
 }
@@ -93,21 +106,34 @@ module.exports.verifyUser = verifyUser;
  * @returns {Promise<FirebaseStatus>}
  * @async
  */
-async function attendUser(email) { // for cmd-f: used to verify for cmd-f 2021
+async function attendUser(email, id) { // for cmd-f: used to verify for cmd-f 2021
     var userRef = db.collection('members').where('email', '==', email).limit(1);
     var user = (await userRef.get()).docs[0];
 
     if (user) {
         var data = user.data();
-        if (!data['verifiedcmdf'] && data['canVerifycmdf']) {
-            user.ref.update({
-                'verifiedcmdf' : true,
-            });
-            return status.HACKER_SUCCESS;
-        } else if (data['canVerifycmdf']) {
-            return status.HACKER_IN_USE;
+        if (data['type'] === 'hacker') {
+            if (!data['verifiedcmdf'] && data['canVerifycmdf']) {
+                user.ref.update({
+                    'verifiedcmdf': true,
+                    'discord-id': id,
+                });
+                return status.HACKER_SUCCESS;
+            } else if (data['canVerifycmdf']) {
+                return status.HACKER_IN_USE;
+            }
+        } else {
+            if (!data['verified']) {
+                user.ref.update({
+                    'verified': true,
+                    'discord-id': id,
+                });
+                return data['type'] == 'mentor' ? status.MENTOR_SUCCESS : data['type'] == 'sponsor' ? status.SPONSOR_SUCCESS : status.STAFF_SUCCESS;
+            } else {
+                return data['type'] == 'mentor' ? status.MENTOR_IN_USE : data['type'] == 'sponsor' ? status.SPONSOR_IN_USE : status.STAFF_SUCCESS;
+            }
         }
-    } 
+    }
     return status.FAILURE;
 }
 module.exports.attendUser = attendUser;
