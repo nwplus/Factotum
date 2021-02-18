@@ -71,10 +71,10 @@ module.exports.getQuestion = getQuestion;
  * Returns an array of objects containing emails that match or are similar, along with the verification status of each, 
  * and returns empty array if none match
  * @param {String} email - email to check
- * @returns {Array<Member>} - array of members with similar emails to parameter email
+ * @returns {Promise<Array<Member>>} - array of members with similar emails to parameter email
  */
 async function checkEmail(email) {
-    const snapshot = db.collection('members').get().docs; // retrieve snapshot as an array of documents in the Firestore
+    const snapshot = (await db.collection('members').get()).docs; // retrieve snapshot as an array of documents in the Firestore
     var foundEmails = [];
     snapshot.forEach(memberDoc => {
         // compare each member's email with the given email
@@ -82,10 +82,9 @@ async function checkEmail(email) {
             let compare = memberDoc.get('email');
             // if the member's emails is similar to the given email, retrieve and add the email, verification status, and member type of
             // the member as an object to the array
-            if (compareEmails(email, compare)) {
+            if (compareEmails(email.split('@')[0], compare.split('@')[0])) {
                 foundEmails.push({
                     email: compare,
-                    isVerified: memberDoc.get('isVerified'),
                     type: memberDoc.get('type')
                 });
             };
@@ -133,7 +132,7 @@ function compareEmails(searchEmail, dbEmail) {
             matrix[i][j] = Math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + substitutionCost);
         }
     }
-    return matrix[searchEmail.length][dbEmail.length] <= 5;
+    return matrix[searchEmail.length - 1][dbEmail.length - 1] <= (Math.min(searchEmail.length, dbEmail.length) / 2);
 }
 
 /**
@@ -142,8 +141,8 @@ function compareEmails(searchEmail, dbEmail) {
  * @param {String} lastName - last name of member to match with database
  * @returns {String} - email of given member
  */
-function checkName(firstName, lastName) {
-    const snapshot = db.collection('members').get().docs; // snapshot of Firestore as array of documents
+async function checkName(firstName, lastName) {
+    const snapshot = (await db.collection('members').get()).docs; // snapshot of Firestore as array of documents
     snapshot.forEach(memberDoc => {
         if (memberDoc.get('firstName') != null && memberDoc.get('lastName') != null && memberDoc.get('firstName').toLowerCase() === firstName.toLowerCase()
             && memberDoc.get('lastName').toLowerCase() === lastName.toLowerCase()) { // for each document, check if first and last names match given names
