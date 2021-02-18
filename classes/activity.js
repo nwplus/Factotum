@@ -227,7 +227,7 @@ class Activity {
             }, 
             [
                 {
-                    roleID: discordServices.roleIDs.hackerRole,
+                    roleID: discordServices.roleIDs.memberRole,
                     permissions: {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true},
                 },
             ]);
@@ -276,7 +276,7 @@ class Activity {
         this.addChannel('🎮' + 'game-codes', {
             type: 'text',
             topic: 'This channel is only intended to send game codes for others to join!',
-        }, [{roleID: discordServices.roleIDs.hackerRole, permissions: {VIEW_CHANNEL: false}}]);
+        }, [{roleID: discordServices.roleIDs.attendeeRole, permissions: {VIEW_CHANNEL: false}}]);
 
         this.addVoiceChannels(numOfChannels, true, 12);
 
