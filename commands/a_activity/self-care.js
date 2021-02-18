@@ -2,7 +2,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const { messagePrompt, numberPrompt, yesNoPrompt, rolePrompt, memberPrompt } = require('../../classes/prompt');
-const { getQuestion, getReminder } = require('../../firebase-services/firebase-services');
+const { getReminder } = require('../../firebase-services/firebase-services');
 
 var interval;
 
@@ -47,9 +47,9 @@ module.exports = class SelfCareReminders extends PermissionCommand {
 
         const startEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.colors.embedColor)
-            .setTitle('To encourage healthy hackathon habits, we will be sending hourly self-care reminders! 🪴')
+            .setTitle('To encourage healthy hackathon habits, we will be sending hourly self-care reminders! 🪴✨🧸💐🌱')
             // temp
-            .setDescription('For Staff\n' +
+            .setDescription('For Staff:\n' +
                 '⏸️ to pause\n' +
                 '▶️ to resume\n');
 
@@ -92,18 +92,24 @@ module.exports = class SelfCareReminders extends PermissionCommand {
         // sendReminder is the function that picks and sends the next reminder
         async function sendReminder() {
             //get reminders parameters from db 
-            /*
-            getReminder() once fb collection setup
-            testing w existing questions collection
-            @jp :eyes: -> FirebaseError: Missing or insufficient permissions. 
-            */
-            var data = await getQuestion();
+            var data = await getReminder();
+
+            //report in admin logs that there are no more messages
+            //TODO: consider having it just loop through the db again?
+            if (data === null) {
+                discordServices.discordLog(message.guild, "<@&" + discordServices.roleIDs.staffRole + "> HI, PLEASE FEED ME more self-care messages!!");
+                clearInterval(interval);
+                return;
+            }
+
             let reminder = data.reminder;
 
             const qEmbed = new Discord.MessageEmbed()
                 .setColor(discordServices.colors.embedColor)
                 .setTitle(reminder)
                 // .setDescription(reminder);
+            
+            message.channel.send(qEmbed);
         }
     }
 }

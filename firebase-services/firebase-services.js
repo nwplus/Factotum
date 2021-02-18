@@ -68,7 +68,7 @@ async function getReminder() {
     //if there reminder unsent, change its status to asked
     if (reminder != undefined) {
         reminder.ref.update({
-            'asked' : true,
+            'sent' : true,
         });
         return reminder.data();
     }
