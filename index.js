@@ -7,6 +7,8 @@ require('dotenv-flow').config();
 // Firebase requirements
 var firebase = require('firebase/app');
 
+const admin = require('firebase-admin');
+
 // firebase config
 const firebaseConfig = {
     apiKey: process.env.FIREBASEAPIKEY,
@@ -31,7 +33,12 @@ const nwFirebaseConfig = {
 }
 
 // initialize firebase
-firebase.initializeApp(firebaseConfig);
+// firebase.initializeApp(firebaseConfig);
+const adminSDK = require('./nwplus-bot-admin-sdk.json');
+admin.initializeApp({
+    credential: admin.credential.cert(adminSDK),
+    databaseURL: "https://nwplus-bot.firebaseio.com",
+});
 
 // initialize nw firebase
 const nwFirebase = firebase.initializeApp(nwFirebaseConfig, 'nwFirebase');
