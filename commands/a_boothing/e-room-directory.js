@@ -2,6 +2,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const Discord = require('discord.js');
 const discordServices = require('../../discord-services');
 const Prompt = require('../../classes/prompt');
+const BotGuild = require('../../db/botGuildDBObject');
 
 module.exports = class BoothDirectory extends PermissionCommand {
     constructor(client) {
@@ -50,6 +51,8 @@ module.exports = class BoothDirectory extends PermissionCommand {
         // prompt user for emoji to use
         let emoji = await Prompt.reactionPrompt({prompt: 'What emoji do you want to use?', channel, userId});
     
+        let botGuild = await BotGuild.findById(message.guild.id);
+
         //variable to keep track of state (Open vs Closed)
         var closed = true;
         //embed for closed state
@@ -64,8 +67,8 @@ module.exports = class BoothDirectory extends PermissionCommand {
             msg.react(emoji);
             //only listen for the door react from Staff and Sponsors
             const emojiFilter = (reaction, user) => (reaction.emoji.name === emoji.name) && 
-                (discordServices.checkForRole(message.guild.member(user), discordServices.roleIDs.staffRole) || 
-                    discordServices.checkForRole(message.guild.member(user), discordServices.roleIDs?.sponsorRole));
+                (discordServices.checkForRole(message.guild.member(user), botGuild.roleIDs.staffRole) || 
+                    discordServices.checkForRole(message.guild.member(user), botGuild.roleIDs?.sponsorRole));
             const emojiCollector = msg.createReactionCollector(emojiFilter);
             
             var announcementMsg;

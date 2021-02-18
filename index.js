@@ -164,11 +164,15 @@ process.on('exit', () => {
 });
 
 bot.on('message', async message => {
+    let botGuild = await BotGuild.findById(message.guild.id);
+
     // Deletes all messages to any channel in the black list with the specified timeout
     // this is to make sure that if the message is for the bot, it is able to get it
     // bot and staff messages are not deleted
-    if (discordServices.blackList.has(message.channel.id)) {
-        if (!message.author.bot && !discordServices.checkForRole(message.member, discordServices.roleIDs.staffRole)) {
+    if (true || botGuild.blackList.has(message.channel.id)) {
+        
+        
+        if (!message.author.bot && !discordServices.checkForRole(message.member, botGuild.roleIDs.staffRole)) {
             (new Promise(res => setTimeout(res, discordServices.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
         }
     }
@@ -195,6 +199,8 @@ bot.login(config.token).catch(console.error);
 async function greetNewMember(member) {
     let verifyEmoji = '🍀';
 
+    let botGuild = await BotGuild.findById(member.guild.id);
+
     var embed = new Discord.MessageEmbed()
         .setTitle('Welcome to the nwHacks 2021 Server!')
         .setDescription('We are very excited to have you here!')
@@ -202,13 +208,13 @@ async function greetNewMember(member) {
         .addField('Want to learn more about what I can do?', 'Use the !help command anywhere and I will send you a message!')
         .setColor(discordServices.colors.embedColor);
 
-    if (discordServices.roleIDs?.guestRole) embed
-        .addField('Gain more access by verifying yourself!', 'React to this message with ' + verifyEmoji + ' and follow my instructions!\n');
+    if (botGuild.verification.isEnabled) embed.addField('Gain more access by verifying yourself!', 'React to this message with ' + verifyEmoji + ' and follow my instructions!');
+    
     let msg = await member.send(embed);
 
     // if verification is on then give guest role and let user verify
-    if (discordServices.roleIDs?.guestRole) {
-        discordServices.addRoleToMember(member, discordServices.roleIDs.guestRole);
+    if (botGuild.verification.isEnabled) {
+        discordServices.addRoleToMember(member, botGuild.roleIDs.guestRole);
 
         msg.react(verifyEmoji);
         let verifyCollector = msg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === verifyEmoji);
@@ -236,7 +242,7 @@ async function greetNewMember(member) {
     }
     // if verification is off, then just ive member role
     else {
-        discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
+        discordServices.addRoleToMember(member, botGuild.roleIDs.memberRole);
     }
 }
 

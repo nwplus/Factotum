@@ -3,6 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt');
+const BotGuild = require('../../db/botGuildDBObject');
 
 // Command export
 module.exports = class StartChannelCreation extends PermissionCommand {
@@ -36,13 +37,15 @@ module.exports = class StartChannelCreation extends PermissionCommand {
             return;
         }
 
+        let botGuild = await BotGuild.findById(message.guild.id);
+
         // grab channel creation category and update permissions
         var category = channel.parent;
-        category.updateOverwrite(discordServices.roleIDs.everyoneRole, {
+        category.updateOverwrite(botGuild.roleIDs.everyoneRole, {
             VIEW_CHANNEL: false,
         });
 
-        channel.updateOverwrite(discordServices.roleIDs.everyoneRole, {
+        channel.updateOverwrite(botGuild.roleIDs.everyoneRole, {
             VIEW_CHANNEL: true,
         });
 

@@ -2,6 +2,7 @@
 const { Command } = require('discord.js-commando');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
+const BotGuild = require('../../db/botGuildDBObject');
 
 // Command export
 module.exports = class ClearChat extends Command {
@@ -16,6 +17,8 @@ module.exports = class ClearChat extends Command {
     }
 
     async run(message) {
+
+        let botGuild = await BotGuild.findById(message.guild.id);
         
         var commands = [];
 
@@ -25,7 +28,7 @@ module.exports = class ClearChat extends Command {
         } else {
             discordServices.deleteMessage(message);
 
-            if ((discordServices.checkForRole(message.member, discordServices.roleIDs.staffRole))) {
+            if ((discordServices.checkForRole(message.member, botGuild.roleIDs.staffRole))) {
                 var commandGroups = this.client.registry.findGroups('a_');
             } else {
                 var commandGroups = this.client.registry.findGroups('utility');

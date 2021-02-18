@@ -2,7 +2,7 @@ const Discord = require("discord.js");
 const discordServices = require('../discord-services');
 const Prompt = require('../classes/prompt');
 const Ticket = require('../classes/ticket');
-const { messagePrompt } = require("../classes/prompt");
+const BotGuild = require("../db/botGuildDBObject");
 
 class Cave {
 
@@ -208,12 +208,14 @@ class Cave {
      * @async
      */
     async initPrivate(guildChannelManager) {
+        let botGuild = await BotGuild.findById(guildChannelManager.guild.id);
+
         // Create category
         this.privateChannels.category = await guildChannelManager.create(this.caveOptions.preEmojis + this.caveOptions.name + ' Cave', {
             type: 'category',  
             permissionOverwrites: [
                 {
-                    id: discordServices.roleIDs.everyoneRole,
+                    id: botGuild.roleIDs.everyoneRole,
                     deny: ['VIEW_CHANNEL']
                 },
                 {
@@ -222,7 +224,7 @@ class Cave {
                     deny: ['SEND_MESSAGES'],
                 },
                 {
-                    id: discordServices.roleIDs.staffRole,
+                    id: botGuild.roleIDs.staffRole,
                     allow: ['VIEW_CHANNEL'],
                 }
             ]

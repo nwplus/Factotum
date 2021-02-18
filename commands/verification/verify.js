@@ -32,7 +32,7 @@ module.exports = class Verify extends PermissionCommand {
     }
 
     /**
-     * 
+     * DOES NOT WORK !!!! TODO REMOVE OR ADD ABILITY TO GIVE GUILD ID FOR IT TO WORK!
      * @param {Discord.Message} message 
      * @param {String} email 
      */
@@ -62,6 +62,7 @@ module.exports = class Verify extends PermissionCommand {
             return;
         }
         let member = guild.member(message.author.id);
+        let botGuild = await BotGuild.findById(guild.id);
 
         // Call the verify function
         try {
@@ -72,7 +73,5 @@ module.exports = class Verify extends PermissionCommand {
                 description: 'Email provided is not valid!'
             }, true);
         }
-
     }
-
 };

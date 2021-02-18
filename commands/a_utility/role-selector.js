@@ -3,6 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt');
+const BotGuild = require('../../db/botGuildDBObject');
 
 // Command export
 module.exports = class RoleSelector extends PermissionCommand {
@@ -26,6 +27,8 @@ module.exports = class RoleSelector extends PermissionCommand {
      * @param {Discord.Message} message - the command message
      */
     async runCommand (message) {
+
+        let botGuild = await BotGuild.findById(message.guild.id);
 
         // the emoji for staff to add new transfers
         let newTransferEmoji = '🆕';
@@ -56,7 +59,7 @@ module.exports = class RoleSelector extends PermissionCommand {
         // add role or a transfer depending on the emoji
         reactionCollector.on('collect', async (reaction, user) => {
             // admin add new transfer
-            if (reaction.emoji.name === newTransferEmoji && discordServices.checkForRole(message.guild.member(user), discordServices.roleIDs.staffRole)) {
+            if (reaction.emoji.name === newTransferEmoji && discordServices.checkForRole(message.guild.member(user), botGuild.roleIDs.staffRole)) {
                 
                 try {
                     var newTransferMsg = await Prompt.messagePrompt({prompt: 'What new transfer do you want to add? Your response should have (in this order, not including <>): @role <transfer name> - <transfer description>',

@@ -3,6 +3,7 @@ const firebaseCoffeeChats = require('../firebase-services/firebase-services-coff
 const discordServices = require('../discord-services');
 const Activity = require('./activity');
 const Discord = require('discord.js');
+const BotGuild = require('../db/botGuildDBObject');
 
 
 /**
@@ -45,9 +46,11 @@ class ActivityManager {
      * @param {Activity} activity - the activity to use
      */
     static async mentorShuffle(activity) {
-        if (!discordServices.roleIDs?.memberRole) return;
+        let botGuild = await BotGuild.findById(activity.guild.id);
 
-        let mentors = activity.generalVoice.members.filter(member => discordServices.checkForRole(member, discordServices.roleIDs.mentorRole));
+        if (!botGuild.roleIDs?.mentorRole) return;
+
+        let mentors = activity.generalVoice.members.filter(member => discordServices.checkForRole(member, botGuild.roleIDs.mentorRole));
 
         let channels = activity.category.children.filter(channel => channel.type === 'voice' && channel.id != activity.generalVoice.id);
 

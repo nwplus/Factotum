@@ -1,7 +1,9 @@
 // Discord.js commando requirements
 const Activity = require('../../classes/activity');
 const ActivityCommand = require('../../classes/activity-command');
+const BotGuild = require('../../db/botGuildDBObject');
 const discordServices = require('../../discord-services');
+const { Message } = require('discord.js');
 
 
 // Command export
@@ -23,6 +25,8 @@ module.exports = class InitAmongUs extends ActivityCommand {
      */
     async activityCommand(message, activity) {
 
+        let botGuild = await BotGuild.findById(message.guild.id);
+
         // get the archive category or create it
         var archiveCategory = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name === '💼archive');
 
@@ -33,17 +37,17 @@ module.exports = class InitAmongUs extends ActivityCommand {
             archiveCategory = await message.guild.channels.create('💼archive', {
                 type: 'category', 
                 position: position + 1,
-                permissionOverwrites: discordServices.roleIDs?.memberRole ? [
+                permissionOverwrites: botGuild.roleIDs?.attendeeRole ? [
                     {
-                        id: discordServices.roleIDs.everyoneRole,
+                        id: botGuild.roleIDs.everyoneRole,
                         deny: ['VIEW_CHANNEL'],
                     },
                     {
-                        id: discordServices.roleIDs.memberRole,
+                        id: botGuild.roleIDs.attendeeRole,
                         allow: ['VIEW_CHANNEL'],
                     },
                     {
-                        id: discordServices.roleIDs.staffRole,
+                        id: botGuild.roleIDs.staffRole,
                         allow: ['VIEW_CHANNEL'],
                     }
                 ] : []

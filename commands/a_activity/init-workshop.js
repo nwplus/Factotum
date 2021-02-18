@@ -3,6 +3,7 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Activity = require('../../classes/activity');
 const ActivityCommand = require('../../classes/activity-command');
+const BotGuild = require('../../db/botGuildDBObject');
 
 // Command export
 module.exports = class InitWorkshop extends ActivityCommand {
@@ -18,10 +19,12 @@ module.exports = class InitWorkshop extends ActivityCommand {
 
     /**
      * Required class by children, should contain the command code.
-     * @param {Message} message - the message that has the command
+     * @param {Discord.Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
      */
     async activityCommand(message, activity) {
+
+        let botGuild = await BotGuild.findById(message.guild.id);
 
         let channels = await activity.makeWorkshop();
 
@@ -35,7 +38,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
 
         ////// TA Side
         // embed color for mentors
-        var mentorColor = (await message.guild.roles.fetch(discordServices.roleIDs?.mentorRole))?.color || discordServices.randomColor();
+        var mentorColor = (await message.guild.roles.fetch(botGuild.roleIDs?.mentorRole))?.color || discordServices.randomColor();
 
         const taInfoEmbed = new Discord.MessageEmbed()
             .setTitle('TA Information')

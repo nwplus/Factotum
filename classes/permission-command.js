@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
 const { Command } = require('discord.js-commando');
+const BotGuild = require('../db/botGuildDBObject');
 const discordServices = require('../discord-services');
 
 
@@ -65,6 +66,8 @@ class PermissionCommand extends Command {
         // delete the message
         discordServices.deleteMessage(message);
 
+        let botGuild = await BotGuild.findById(message.guild.id);
+
         // check for DM only, when true, all other checks should not happen!
         if (this.permissionInfo.dmOnly) {
             if (message.channel.type != 'dm') {
@@ -87,12 +90,12 @@ class PermissionCommand extends Command {
             // Make sure only the permitted role can call it
             else if (this.permissionInfo?.role) {
 
-                let roleID = discordServices.roleIDs[this.permissionInfo.role];
+                let roleID = botGuild.roleIDs[this.permissionInfo.role];
 
                 // if staff role then check for staff and admin, else check the given role
-                if (roleID && (roleID === discordServices.roleIDs.staffRole && 
-                    (!discordServices.checkForRole(message.member, roleID) && !discordServices.checkForRole(message.member, discordServices.roleIDs.adminRole))) || 
-                    (roleID != discordServices.roleIDs.staffRole && !discordServices.checkForRole(message.member, roleID))) {
+                if (roleID && (roleID === botGuild.roleIDs.staffRole && 
+                    (!discordServices.checkForRole(message.member, roleID) && !discordServices.checkForRole(message.member, botGuild.roleIDs.adminRole))) || 
+                    (roleID != botGuild.roleIDs.staffRole && !discordServices.checkForRole(message.member, roleID))) {
                         discordServices.sendMessageToMember(message.member, this.permissionInfo.roleMessage, true);
                         return;
                 }

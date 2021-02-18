@@ -2,7 +2,11 @@ const { Schema, model } = require('mongoose');
 
 const BotGuildClass = require('../classes/bot-guild');
 
+/**
+ * @class BotGuild
+ */
 const BotGuildSchema = new Schema({
+
     roleIDs: {
         memberRole: {
             type: String,

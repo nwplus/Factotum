@@ -1,5 +1,6 @@
 const { Collection } = require("discord.js");
 const Discord = require("discord.js");
+const BotGuild = require("../db/botGuildDBObject");
 const discordServices = require('../discord-services');
 const Cave = require("./cave");
 
@@ -159,7 +160,7 @@ class Ticket {
             type: 'category',
             permissionOverwrites: [
                 {
-                    id: discordServices.roleIDs.everyoneRole,
+                    id: (await BotGuild.findById(this.guild.id)).roleIDs.everyoneRole,
                     deny: ['VIEW_CHANNEL'],
                 }
             ]
@@ -192,7 +193,7 @@ class Ticket {
 
         // if ticket has not been accepted after the specified time, it will send a reminder to the incoming tickets channel tagging all mentors
         var timeout = setTimeout(() => {
-            this.cave.privateChannels.incomingTickets.send('Hello <@&' + discordServices.roleIDs.mentorRole + '> ticket number ' + this.ticketNumber + ' still needs help!');
+            this.cave.privateChannels.incomingTickets.send('Hello <@&' + this.cave.caveOptions.role + '> ticket number ' + this.ticketNumber + ' still needs help!');
         }, this.cave.caveOptions.times.reminderTime * 60 * 1000);
 
         // let user know that ticket was submitted and give option to remove ticket

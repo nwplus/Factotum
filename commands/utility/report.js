@@ -2,6 +2,7 @@
 const { Command } = require('discord.js-commando');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
+const BotGuild = require('../../db/botGuildDBObject');
 
 // Command export
 module.exports = class Report extends Command {
@@ -49,7 +50,7 @@ module.exports = class Report extends Command {
                 .setDescription(msg.content);
 
             // send embed with text message to ping admin
-            incomingReportChn.send('<@&' + discordServices.roleIDs.adminRole + '> Incoming Report', {embed: adminMsgEmbed});
+            incomingReportChn.send('<@&' + (await BotGuild.findById(message.guild.id)).roleIDs.adminRole + '> Incoming Report', {embed: adminMsgEmbed});
         })
         
     }

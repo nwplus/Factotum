@@ -34,6 +34,7 @@ module.exports = class StartAttend extends PermissionCommand {
      */
     async runCommand(message) {
         var channel;
+        let botGuild = BotGuild.findById(message.guild.id);
 
         // register the attend command just in case its needed
         message.guild.setCommandEnabled('attend', true);
@@ -69,7 +70,7 @@ module.exports = class StartAttend extends PermissionCommand {
             return;
         }
 
-        channel.updateOverwrite(discordServices.roleIDs.everyoneRole, { SEND_MESSAGES: false });
+        channel.updateOverwrite(botGuild.roleIDs.everyoneRole, { SEND_MESSAGES: false });
 
         //send embed with information and tagging hackers
         let attendEmoji = '🔋';
@@ -79,7 +80,7 @@ module.exports = class StartAttend extends PermissionCommand {
             .setTitle('Hey there!')
             .setDescription('In order to indicate that you are participating, please react to this message with ' + attendEmoji)
             .addField('Do you need assistance?', 'Head over to the support channel and ping the admins!')
-        let embedMsg = await channel.send('<@&' + discordServices.roleIDs.hackerRole + '>', {embed: embed});
+        let embedMsg = await channel.send('<@&' + botGuild.roleIDs.memberRole + '>', {embed: embed});
         embedMsg.pin();
         embedMsg.react(attendEmoji);
         discordServices.blackList.set(channel.id, 1000);

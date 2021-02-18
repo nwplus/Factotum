@@ -1,6 +1,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
+const BotGuild = require('../../db/botGuildDBObject');
 
 /**
  * The Raffle class randomly picks a set number of winners from all members in a Discord server that have a role ending in a 1-2 digit 
@@ -37,12 +38,14 @@ module.exports = class Raffle extends PermissionCommand {
      * into an array. Then it chooses random numbers and picks the id corresponding to that index until it has numberOfWinners unique 
      * winners.
      * 
-     * @param {message} message - message used to call the command
+     * @param {Discord.Message} message - message used to call the command
      * @param {integer} numberOfWinners - number of winners to be drawn
      */
     async runCommand(message, {numberOfWinners}) {
+        let botGuild = await BotGuild.findById(message.guild.id);
+
         //check that numberOfWinners is less than the number of people with stamp roles or it will infinite loop
-        var memberCount = message.guild.members.cache.filter(member => member.roles.cache.has(discordServices.roleIDs.memberRole)).size;
+        var memberCount = message.guild.members.cache.filter(member => member.roles.cache.has(botGuild.roleIDs.memberRole)).size;
         if (memberCount <= numberOfWinners) {
             message.channel.send("Whoa there, you have more winners than hackers!").then((msg) => {
                 msg.delete({ timeout: 5000 })

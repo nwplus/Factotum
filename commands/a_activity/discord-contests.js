@@ -3,6 +3,7 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const { numberPrompt, yesNoPrompt, rolePrompt, memberPrompt } = require('../../classes/prompt');
 const { getQuestion } = require('../../firebase-services/firebase-services');
+const BotGuild = require('../../db/botGuildDBObject');
 
 var interval;
 
@@ -38,6 +39,8 @@ module.exports = class DiscordContests extends PermissionCommand {
         // helpful prompt vars
         let channel = message.channel;
         let userId = message.author.id;
+        
+        this.botGuild = await BotGuild.findById(message.guild.id);
 
         //ask user for time interval between questions
         var timeInterval;
@@ -90,7 +93,7 @@ module.exports = class DiscordContests extends PermissionCommand {
             msg.react('⏯️');
 
             //filters so that it will only respond to Staff who reacted with one of the 3 emojis 
-            const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '⏸️' || reaction.emoji.name === '⏯️') && message.guild.member(user).roles.cache.has(discordServices.roleIDs.staffRole);
+            const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '⏸️' || reaction.emoji.name === '⏯️') && message.guild.member(user).roles.cache.has(this.botGuild.roleIDs.staffRole);
             const emojiCollector = msg.createReactionCollector(emojiFilter);
             
             emojiCollector.on('collect', (reaction, user) => {
@@ -131,7 +134,7 @@ module.exports = class DiscordContests extends PermissionCommand {
             
             //sends results to Staff after all questions have been asked and stops looping
             if (data === null) {
-                discordServices.discordLog(message.guild, "<@&" + discordServices.roleIDs.staffRole + "> Discord contests have ended! Winners are: <@" + winners.join('> <@') + ">");
+                discordServices.discordLog(message.guild, "<@&" + this.botGuild.roleIDs.staffRole + "> Discord contests have ended! Winners are: <@" + winners.join('> <@') + ">");
                 clearInterval(interval);
                 return;
             }
@@ -147,11 +150,11 @@ module.exports = class DiscordContests extends PermissionCommand {
                                                                             'Exact answers only!'));
 
 
-            message.channel.send('<@&' + role + '>' + ((answers.length === 0) ? (' - <@&' + discordServices.roleIDs.staffRole + '> Need manual review!') : ''), { embed: qEmbed }).then((msg) => {
+            message.channel.send('<@&' + role + '>' + ((answers.length === 0) ? (' - <@&' + this.botGuild.roleIDs.staffRole + '> Need manual review!') : ''), { embed: qEmbed }).then((msg) => {
                 if (answers.length === 0) {
                     msg.react('👑');
 
-                    const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '👑') && discordServices.checkForRole(message.guild.member(user), discordServices.roleIDs.staffRole);
+                    const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '👑') && discordServices.checkForRole(message.guild.member(user), this.botGuild.roleIDs.staffRole);
                     const emojiCollector = msg.createReactionCollector(emojiFilter);
 
                     emojiCollector.on('collect', (reaction, user) => {
