@@ -6,37 +6,6 @@ const admin = require('firebase-admin');
 const db = admin.firestore();
 module.exports.db = db;
 
-
-/**
- * @typedef FirebaseStatus
- * @property {String} HACKER_SUCCESS - hacker related job was successful
- * @property {String} HACKER_IN_USE - hacker related job was not successful due to operation already been done
- * @property {String} SPONSOR_SUCCESS - sponsor related job was successful
- * @property {String} SPONSOR_IN_USE - sponsor related job was not successful due to operation already been done
- * @property {String} MENTOR_SUCCESS - mentor related job was successful
- * @property {String} MENTOR_IN_USE - mentor related job was not successful due to operation already been done
- * @property {String} STAFF_SUCCESS - staff related job was successful
- * @property {String} STAFF_IN_USE - staff related job was not successful due to operation already been done
- * @property {String} FAILURE - the job was not successful due to an error or the user not being found
- */
-
-/**
- * Different status used by firebase functions to let the user know what happened.
- * @type {FirebaseStatus}
- */
-const status = {
-    HACKER_SUCCESS: "C1",
-    HACKER_IN_USE: "C2",
-    SPONSOR_SUCCESS: "C3",
-    SPONSOR_IN_USE: "C4",
-    MENTOR_SUCCESS: "C5",
-    MENTOR_IN_USE: "C6",
-    STAFF_SUCCESS: "C7",
-    STAFF_IN_USE: "C8",
-    FAILURE: "C0",
-}
-module.exports.status = status;
-
 /**
  * Retrieves a question from the db that has not already been asked at the Discord Contests, then marks the question as having been 
  * asked in the db.

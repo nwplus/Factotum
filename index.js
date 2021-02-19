@@ -33,7 +33,6 @@ const nwFirebase = firebase.initializeApp(nwFirebaseConfig, 'nwFirebase');
 
 const discordServices = require('./discord-services');
 const Prompt = require('./classes/prompt');
-const firebaseServices = require('./firebase-services/firebase-services');
 const Verification = require('./classes/verification');
 
 
@@ -178,8 +177,6 @@ bot.on('guildMemberAdd', async member => {
 });
 
 bot.login(config.token).catch(console.error);
-
-
 
 
 /**
