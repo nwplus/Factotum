@@ -179,17 +179,6 @@ async function replyAndDelete(message, reply) {
 module.exports.replyAndDelete = replyAndDelete;
 
 /**
- * True if channel is admin console channel
- * @param {Discord.Channel} channel - channel to check
- * @returns {Promise<Boolean>}
- * @async
- */
-async function isAdminConsole(channel) {
-    return channel.id === (await (BotGuild.findById(channel.guild.id))).channelIDs.adminConsole;
-}
-module.exports.isAdminConsole = isAdminConsole;
-
-/**
  * Deletes a message if the message hasn't been deleted already
  * @param {Discord.Message} message - the message to delete
  * @param {Number} timeout - the time to wait in milliseconds

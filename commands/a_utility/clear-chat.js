@@ -60,7 +60,7 @@ module.exports = class ClearChat extends PermissionCommand {
                 commands = this.client.registry.findCommands('verify');
             } 
             // admin console
-            else if (( await discordServices.isAdminConsole(message.channel))) {
+            else if (message.channel.id === botGuild.channelIDs.adminConsole) {
                 // grab all the admin command groups
                 var commandGroups = this.client.registry.findGroups('a_');
                 // add all the commands from the command groups
