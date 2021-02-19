@@ -1,22 +1,31 @@
 {
     "adminRoleID" : "738491577596641311",
     "adminConsoleID" : "808454476116787230",
+<<<<<<< HEAD
     "adminLogsID" : "743197503884755045",
+=======
+    "adminLogsID" : "808454477484785684",
+>>>>>>> develop
     "staffRoleID" : "738519363904077916",
     "memberRoleID" : "808409937373298700",
     "everyoneRoleID" : "738475671977722058",
 
     "isVerificationOn" : true,
     "guestRoleID" : "778651193362481213",
-    "welcomeChannelID" : "803243187811909635",
-    "welcomeChannelSupportID" : "803243225551863858",
+    "welcomeChannelID" : "808454570418110484",
+    "welcomeChannelSupportID" : "808454571172954202",
 
     "isAttendanceOn" : true,
     "attendeeRoleID" : "742896999556448357",
 
     "isAnnouncementOn" : false,
 
-    "isStampOn" : false,
+    "isStampOn" : true,
+    "stamps" : [
+        "808451225930039316",
+        "808451226148405259",
+        "808451227230535700"
+    ],
 
     "botSupportChannelID" : "806586723483385857",
 

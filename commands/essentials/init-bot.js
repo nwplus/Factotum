@@ -19,7 +19,7 @@ module.exports = class InitBot extends Command {
                     type: 'boolean',
                     key: 'isDev',
                     prompt: 'Should the dev config be used',
-                    default: true,
+                    default: false,
                 }
             ]
         });
@@ -63,6 +63,13 @@ module.exports = class InitBot extends Command {
 
             discordServices.roleIDs.mentorRole = data.mentorRoleID;
             discordServices.roleIDs.sponsorRole = data.sponsorRoleID;
+
+            if (data.isStampOn) {
+                data.stamps.forEach((ID, index, array) => {
+                    discordServices.stampRoles.set(index, ID);
+                });
+            }
+
             return;
         }
 
@@ -83,7 +90,10 @@ module.exports = class InitBot extends Command {
 
         // grab the admin role
         const adminRole = await this.askOrCreate('admin', channel, userId, guild, '#008369');
+<<<<<<< HEAD
         //await adminRole.setMentionable(true);
+=======
+>>>>>>> develop
 
         // create the admin channel package
         let adminConsole = await this.createAdminChannels(guild, adminRole, everyoneRole);
@@ -91,7 +101,11 @@ module.exports = class InitBot extends Command {
         
         // try giving the admins administrator perms
         try {
-            if (!adminRole.permissions.has('ADMINISTRATOR')) adminRole.setPermissions(adminRole.permissions.missing(['ADMINISTRATOR']));
+            if (!adminRole.permissions.has('ADMINISTRATOR')) 
+            {
+                adminRole.setPermissions(adminRole.permissions.add(['ADMINISTRATOR']));
+                await adminRole.setMentionable(true);
+            }
         } catch {
             discordServices.discordLog(guild, 'Was not able to give administrator privileges to the role <@&' + adminRole.id + '>. Please help me!')
         }
@@ -105,14 +119,14 @@ module.exports = class InitBot extends Command {
         const staffRole = await this.askOrCreate('staff', channel, userId, guild, '#00D166');
         staffRole.setMentionable(true);
         staffRole.setHoist(true);
-        staffRole.setPermissions(staffRole.permissions.missing(['VIEW_CHANNEL', 'MANAGE_EMOJIS', 'CHANGE_NICKNAME', 'MANAGE_NICKNAMES', 
+        staffRole.setPermissions(staffRole.permissions.add(['VIEW_CHANNEL', 'MANAGE_EMOJIS', 'CHANGE_NICKNAME', 'MANAGE_NICKNAMES', 
             'KICK_MEMBERS', 'BAN_MEMBERS', 'SEND_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES', 'ADD_REACTIONS', 'USE_EXTERNAL_EMOJIS', 'MANAGE_MESSAGES', 
             'READ_MESSAGE_HISTORY', 'CONNECT', 'STREAM', 'SPEAK', 'PRIORITY_SPEAKER', 'USE_VAD', 'MUTE_MEMBERS', 'DEAFEN_MEMBERS', 'MOVE_MEMBERS']));
 
         // get the regular member, this role will have the general member permissions
         const memberRole = await this.askOrCreate('member', channel, userId, guild, '#006798');
         memberRole.setMentionable(false);
-        memberRole.setPermissions(memberRole.permissions.missing(['VIEW_CHANNEL', 'CHANGE_NICKNAME', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY',
+        memberRole.setPermissions(memberRole.permissions.add(['VIEW_CHANNEL', 'CHANGE_NICKNAME', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY',
         'CONNECT', 'SPEAK', 'STREAM', 'USE_VAD']));
 
         // change the everyone role permissions

@@ -42,7 +42,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
      * 
      * @param {Discord.Message} message
      */
-    async run(message, {activityName, password, stopTime}) {
+    async runCommand(message, {activityName, password, stopTime}) {
         // helpful vars
         let channel = message.channel;
         let userId = message.author.id;
