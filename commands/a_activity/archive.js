@@ -27,26 +27,23 @@ module.exports = class InitAmongUs extends ActivityCommand {
         var archiveCategory = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name === '💼archive');
 
         if (archiveCategory === undefined) {
-            
+            let overwrites = [
+                {
+                    id: discordServices.roleIDs.everyoneRole,
+                    deny: ['VIEW_CHANNEL']
+                },
+                {
+                    id: discordServices.roleIDs.staffRole,
+                    allow: ['VIEW_CHANNEL']
+                }];
+            this.permissions.each(role => overwrites.push({ id: role.id, allow: ['VIEW_CHANNEL'] }));
+
             // position is used to create archive at the very bottom!
             var position = (await message.guild.channels.cache.filter(channel => channel.type === 'category')).array().length;
             archiveCategory = await message.guild.channels.create('💼archive', {
                 type: 'category', 
                 position: position + 1,
-                permissionOverwrites: discordServices.roleIDs?.attendeeRole ? [
-                    {
-                        id: discordServices.roleIDs.everyoneRole,
-                        deny: ['VIEW_CHANNEL'],
-                    },
-                    {
-                        id: discordServices.roleIDs.attendeeRole,
-                        allow: ['VIEW_CHANNEL'],
-                    },
-                    {
-                        id: discordServices.roleIDs.staffRole,
-                        allow: ['VIEW_CHANNEL'],
-                    }
-                ] : []
+                permissionOverwrites: overwrites
             });
         }
 

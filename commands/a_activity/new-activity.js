@@ -3,7 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Activity = require('../../classes/activity');
-const { numberPrompt } = require('../../classes/prompt');
+const { numberPrompt, rolePrompt } = require('../../classes/prompt');
 
 // Command export
 module.exports = class NewActivity extends PermissionCommand {
@@ -32,7 +32,8 @@ module.exports = class NewActivity extends PermissionCommand {
 
     async runCommand(message, {activityName}) {
 
-        let activity = await new Activity(activityName, message.guild).init();
+        let allowedRoles = await rolePrompt({ prompt: 'What roles, aside from Staff, will be allowed to view this activity?', channel: message.channel, userId: message.author.id });
+        let activity = await new Activity(activityName, message.guild, allowedRoles).init();
 
         // report success of activity creation
         discordServices.replyAndDelete(message,'Activity session named: ' + activity.name + ' created successfully. Any other commands will require this name as paramter.');
@@ -138,7 +139,7 @@ module.exports = class NewActivity extends PermissionCommand {
                 activity.state.isAmongUs = true;
                 await activity.addLimitToVoiceChannels(12);
                 commandRegistry.findCommands('init-among-us', true)[0].runActivityCommand(message, activity, { numOfChannels: 3 });
-                activity.changeVoiceChannelPermissions(true);
+                //activity.changeVoiceChannelPermissions(true);
             } else if (emojiName === emojis[14]) {
                 commandRegistry.findCommands('archive', true)[0].runActivityCommand(message, activity);
                 msgConsole.delete({timeout: 3000});
