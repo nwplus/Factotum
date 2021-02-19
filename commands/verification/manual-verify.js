@@ -39,11 +39,7 @@ module.exports = class Verification extends PermissionCommand {
                     discordServices.addRoleToMember(member, role);
                 });
                 var type = 'hacker';
-                var newRoleArray = new Array(newRoles.size);
-                var i = 0;
-                newRoles.each(role => {
-                    newRoleArray[i] = role.id;
-                });
+                var newRoleArray = newRoles.array();
                 if (newRoleArray.includes(discordServices.roleIDs.staffRole)) {
                     type = 'staff';
                 } else if (newRoleArray.includes(discordServices.roleIDs.sponsorRole)) {
