@@ -65,8 +65,7 @@ module.exports = class BoothDirectory extends PermissionCommand {
             msg.react(emoji);
             //only listen for the door react from Staff and Sponsors
             const emojiFilter = (reaction, user) => (reaction.emoji.name === emoji.name) && 
-                (discordServices.checkForRole(message.guild.member(user), botGuild.roleIDs.staffRole) || 
-                    discordServices.checkForRole(message.guild.member(user), botGuild.roleIDs?.sponsorRole));
+                discordServices.checkForRole(message.guild.member(user), botGuild.roleIDs.staffRole);
             const emojiCollector = msg.createReactionCollector(emojiFilter);
             
             var announcementMsg;
