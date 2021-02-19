@@ -2,7 +2,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const firebaseServices = require('../../firebase-services/firebase-services');
 const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
+const { Message } = require('discord.js');
 const Prompt = require('../../classes/prompt');
 
 // Command export
@@ -23,16 +23,23 @@ module.exports = class Verification extends PermissionCommand {
             });
     }
 
+    /**
+     * 
+     * @param {Message} message 
+     */
     async runCommand(message) {
         try {
-            let id = (await Prompt.numberPrompt({ prompt: 'What is the ID of the member you would like to verify?', channel: message.channel, userId: message.author.id }))[0];
-            let newRoles = (await Prompt.rolePrompt({ prompt: 'Aside from Member, which role would you like to verify them to?', channel: message.channel, userId: message.author.id }));
-            let email = (await Prompt.messagePrompt({ prompt: 'What is their email?', channel: message.channel, userId: message.author.id }, 'string', 20)).content;
-            var userId = id.toString(); // convert id from int to string since ids are strings
-            var member = message.guild.members.cache.get(userId); // get member object by id
+            // helpful vars
+            let channel = message.channel;
+            let userId = message.author.id;
+
+            let guestId = (await Prompt.numberPrompt({ prompt: 'What is the ID of the member you would like to verify?', channel, userId}))[0];
+            let newRoles = (await Prompt.rolePrompt({ prompt: 'Aside from Member, which role would you like to verify them to?', channel, userId }));
+            let email = (await Prompt.messagePrompt({ prompt: 'What is their email?', channel, userId }, 'string', 20)).content;
+            var member = message.guild.members.cache.get(guestId.toString()); // get member object by id
             // if they are a guest, verify them to the specified role, otherwise print that they are already verified
             if (!discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
-                message.channel.send('<@' + userId + '> is not a guest!').then(msg => msg.delete({ timeout: 3000 }));
+                message.channel.send('<@' + guestId.toString() + '> is not a guest!').then(msg => msg.delete({ timeout: 3000 }));
             } else {
                 discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.memberRole);
                 newRoles.each(role => {
