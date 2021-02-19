@@ -375,7 +375,7 @@ class Activity {
         this.botGuild.save();
         await discordServices.deleteChannel(this.category);
 
-        firebaseActivity.remove(this.name);
+        //firebaseActivity.remove(this.name);
     }
 
     /**
@@ -390,7 +390,7 @@ class Activity {
 
         await this.category.delete();
 
-        firebaseActivity.remove(this.name);
+        //firebaseActivity.remove(this.name);
     }
 
     /**

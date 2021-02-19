@@ -135,11 +135,11 @@ module.exports = class NewActivity extends PermissionCommand {
             } else if (emojiName === emojis[9]) {
                 commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(message, activity, { timeLimit: discordServices.stampCollectTime });
             } else if (emojiName === emojis[10]) {
-                commandRegistry.findCommands('workshop-polls',true)[0].runActivityCommand(message, activity, { question: 'speed' });
+                commandRegistry.findCommands('workshop-polls',true)[0].runCommand(message, activity, { questionType: 'speed' });
             } else if (emojiName === emojis[11]) {
-                commandRegistry.findCommands('workshop-polls',true)[0].runActivityCommand(message, activity, { question: 'difficulty' });
+                commandRegistry.findCommands('workshop-polls',true)[0].runCommand(message, activity, { questionType: 'difficulty' });
             } else if (emojiName === emojis[12]) {
-                commandRegistry.findCommands('workshop-polls',true)[0].runActivityCommand(message, activity, { question: 'explanations' });
+                commandRegistry.findCommands('workshop-polls',true)[0].runCommand(message, activity, { questionType: 'explanations' });
             } else if (emojiName === emojis[13] && activity.isRegularActivity()) {
                 activity.state.isAmongUs = true;
                 await activity.addLimitToVoiceChannels(12);

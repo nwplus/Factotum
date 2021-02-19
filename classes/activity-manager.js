@@ -123,9 +123,10 @@ class ActivityManager {
             const member = activity.generalText.guild.member(user);
 
             if (!seenUsers.has(user.id)) {
-                const regex = RegExp(/^.+\s#\d{1,2}$/);
+                // const regex = RegExp(/^.+\s#\d{1,2}$/);
 
-                let role = member.roles.cache.find(role => regex.test(role.name));
+                // let role = member.roles.cache.find(role => regex.test(role.name));
+                let role = member.roles.cache.find(role => discordServices.stampRoles.has(role.id));
 
                 if (role != undefined) this.parseRole(member, role, activity.name, botGuild);
 
@@ -151,8 +152,10 @@ class ActivityManager {
      * @private
      */
     static parseRole(member, role, activityName) {
-        let stampNumber = parseInt(role.name.split('#')[1]);
-        let newRoleID = discordServices.stampRoles.get(stampNumber + 1);
+        let stampNumber = discordServices.stampRoles.get(role.id);
+        console.log(stampNumber);
+        let newRoleID = discordServices.stampRoles.findKey(number => number === (stampNumber + 1));
+        console.log(newRoleID);
 
         if (newRoleID != undefined) {
             discordServices.replaceRoleToMember(member, role.id, newRoleID);
@@ -175,6 +178,7 @@ class ActivityManager {
         for (const key of response.keys()) {
             description += '**' + response.get(key) + '->** ' + key + '\n\n';
         }
+        console.log(description);
 
         let qEmbed = new Discord.MessageEmbed()
             .setColor(botGuild.colors.embedColor)

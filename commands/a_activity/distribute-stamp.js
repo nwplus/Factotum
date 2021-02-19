@@ -21,7 +21,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
         },
         {
             role: PermissionCommand.FLAGS.STAFF_ROLE,
-            roleMessage: 'Hey there, the command !contests is only available to Staff!',
+            roleMessage: 'Hey there, the command !distribute-stamp is only available to Staff!',
         });
     }
 

@@ -369,7 +369,7 @@ module.exports = class BotGuild {
                         color: discordServices.randomColor(),
                     }
                 });
-                this.stamps.stampRoleIDs.set(i.toString(), role.id);
+                this.stamps.stampRoleIDs.set(role.id, i.toString());
             }
         }
 
