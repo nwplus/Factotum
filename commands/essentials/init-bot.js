@@ -50,6 +50,11 @@ module.exports = class InitBot extends Command {
             message.reply('Only admins can use this command!').then(msg => msg.delete({timeout: 5000}));
         }
 
+        if (botGuild?.isSetUpComplete) {
+            discordServices.sendMsgToChannel(channel, userId, 'This guild is already set up!!', 30);
+            return;
+        }
+
         if (isDev) {
             const file = './dev_config.json';
             let data = await jsonfile.readFile(file);
@@ -82,6 +87,8 @@ module.exports = class InitBot extends Command {
             if (data.isStampOn) {
                 await botGuild.setUpStamps(this.client, undefined, undefined, data.stamps);
             }
+
+            botGuild.isSetUpComplete = true;
 
             await botGuild.save();
 
