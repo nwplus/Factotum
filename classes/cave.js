@@ -140,15 +140,15 @@ class Cave {
     /**
      * Finds all the already created channels for this cave.
      * @param {Discord.TextChannel} channel - the channel where to prompt
-     * @param {Discord.Snowflake} userID - the user to prompt
+     * @param {Discord.Snowflake} userId - the user to prompt
      * @async
      */
-    async find(channel, userID) {
+    async find(channel, userId) {
         try {
-            let console = await Prompt.channelPrompt('What is the cave\'s console channel?', channel, userID);
-            let generalText = await Prompt.channelPrompt('What is the cave\'s general text channel?', channel, userID);
-            let incomingTickets = await Prompt.channelPrompt('What is the cave\'s incoming tickets channel?', channel, userID);
-            let outgoingTickets = await Prompt.channelPrompt('What is the cave\'s outgoing tickets channel?', channel, userID);
+            let console = (await Prompt.channelPrompt({prompt: 'What is the cave\'s console channel?', channel, userId})).first();
+            let generalText = (await Prompt.channelPrompt({prompt: 'What is the cave\'s general text channel?', channel, userId})).first();
+            let incomingTickets = (await Prompt.channelPrompt({prompt: 'What is the cave\'s incoming tickets channel?', channel, userId})).first();
+            let outgoingTickets = (await Prompt.channelPrompt({prompt: 'What is the cave\'s outgoing tickets channel?', channel, userId})).first();
 
             this.privateChannels = {
                 console: console,
@@ -172,13 +172,13 @@ class Cave {
             this.privateChannels.incomingTickets.bulkDelete(100, true);
         } catch (error) {
             try {
-                var isSure = await Prompt.yesNoPrompt('Are you sure you want to cancel? If you say yes, the channels will be created by me.', channel, userID);
+                var isSure = await Prompt.yesNoPrompt({prompt: 'Are you sure you want to cancel? If you say yes, the channels will be created by me.', channel, userId});
             } catch (error) {
                 this.init(channel.guild.channels);
             }
 
             if (isSure) this.init(channel.guild.channels);
-            else this.find(channel, userID);
+            else this.find(channel, userId);
         }
     }
 
@@ -329,8 +329,8 @@ class Cave {
             usersSubmittingTicket.set(user.id, user);
 
             try {
-                var promptMsg = await Prompt.messagePrompt('Please send ONE message with: \n* A one liner of your problem ' + 
-                                    '\n* Mention your team members using @friendName .', 'string', this.publicChannels.outgoingTickets, user.id, 45);
+                var promptMsg = await Prompt.messagePrompt({prompt: 'Please send ONE message with: \n* A one liner of your problem ' + 
+                                    '\n* Mention your team members using @friendName .', channel: this.publicChannels.outgoingTickets, userId: user.id}, 'string', 45);
             } catch (error) {
                 // prompt was canceled, cancel ticket and return;
                 usersSubmittingTicket.delete(user.id);
@@ -433,6 +433,10 @@ class Cave {
 
         // on emoji reaction
         collector.on('collect', async (reaction, admin) => {
+            // helpful prompt vars
+            let channel = adminConsole;
+            let userId = admin.id;
+
             // remove reaction
             reaction.users.remove(admin.id);
 
@@ -449,17 +453,17 @@ class Cave {
 
             } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[1]) { // check if the delete channels emoji was selected
                 // ask user whether they want to delete all channels / all channels older than an age that they specify, or specific channels
-                let all = await Prompt.yesNoPrompt('Type "yes" if you would like to delete all ticket channels (you can also specify to delete all channels older than a certain age if you choose this option),\n' +
-                    '"no" if you would like to only delete some.', adminConsole, admin.id);
+                let all = await Prompt.yesNoPrompt({prompt: 'Type "yes" if you would like to delete all ticket channels (you can also specify to delete all channels older than a certain age if you choose this option),\n' +
+                    '"no" if you would like to only delete some.', channel, userId});
                 if (all) {
                     // if user chose to delete all ticket channels, ask if they would like to delete all channels or all channels over
                     // a certain age
-                    let deleteNow = await Prompt.yesNoPrompt('All ticket categories older than a minute will be deleted. ' +
-                        'Type "yes" to confirm or "no" to set a different timescale. Careful - this cannot be undone!', adminConsole, admin.id);
+                    let deleteNow = await Prompt.yesNoPrompt({prompt: 'All ticket categories older than a minute will be deleted. ' +
+                        'Type "yes" to confirm or "no" to set a different timescale. Careful - this cannot be undone!', channel, userId});
                     // get the age in minutes of the channels to delete if they wanted to specify an age
                     var age;
-                    (deleteNow) ? age = 1 : age = await Prompt.numberPrompt('Enter the number of minutes. ' +
-                        'All ticket channels older than this time will be deleted. Careful - this cannot be undone!', adminConsole, admin.id);
+                    (deleteNow) ? age = 1 : age = (await Prompt.numberPrompt({prompt: 'Enter the number of minutes. ' +
+                        'All ticket channels older than this time will be deleted. Careful - this cannot be undone!', channel, userId}))[0];
 
                     // delete all active tickets fitting the given age criteria
                     this.tickets.forEach(async (ticket) => {
@@ -476,8 +480,8 @@ class Cave {
                     adminConsole.send('<@' + admin.id + '> All tickets over ' + age + ' minutes old have been deleted!').then(msg => msg.delete({ timeout: 8000 }));
                 } else {
                     // ask user if they want to name the tickets to not delete, or name the tickets to delete
-                    var exclude = await Prompt.yesNoPrompt('Type "yes" if you would like to delete all ticket channels **except** for the ones you mention, ' +
-                        '"no" if you would like for the tickets you mention to be deleted.', adminConsole, admin.id);
+                    var exclude = await Prompt.yesNoPrompt({prompt: 'Type "yes" if you would like to delete all ticket channels **except** for the ones you mention, ' +
+                        '"no" if you would like for the tickets you mention to be deleted.', channel, userId});
                     var prompt;
                     if (exclude) {
                         prompt = 'In **one** message, send all the ticket numbers to be excluded, separated by spaces. Careful - this cannot be undone!';
@@ -485,16 +489,9 @@ class Cave {
                         prompt = 'In **one** message, send all the ticket numbers to be deleted, separated by spaces. Careful - this cannot be undone!';
                     }
 
-                    var response = await Prompt.messagePrompt(prompt, 'string', adminConsole, admin.id, 30);
-                    var ticketMentions = []; //int array to store ticket numbers to include/exclude
+                    var ticketMentions = await Prompt.numberPrompt({prompt, channel, userId});
                     // do nothing if no response given
-                    if (response != null) {
-                        // add all the words from the user's response into an array and parse for the integers
-                        response.content.split(" ").forEach(substring => {
-                            if (!isNaN(substring)) {
-                                ticketMentions.push(parseInt(substring));
-                            }
-                        });
+                    try {
                         
                         var ticketsToDelete; // will be initialized as a Map/Collection to keep track of tickets that the user chose to delete
                         if (exclude) { // check if user specified to exclude certain channels from being deleted
@@ -529,12 +526,14 @@ class Cave {
                         });
                         adminConsole.send('<@' + admin.id + '> The following tickets have been deleted: ' + Array.from(ticketsToDelete.keys()).join(', '))
                             .then(msg => msg.delete({ timeout: 8000 }));
+                    } catch {
+                        // do nothing if no tickets mentioned before timing out
                     }
                 }
             } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[2]) { // check if Admin selected to include/exclude tickets from garbage collection
                 
-                var response = await Prompt.messagePrompt('**In one message separated by spaces**, ' +
-                    'type whether you want to "include" or "exclude" tickets along with the ticket numbers to operate on.', 'string', adminConsole, admin.id, 30);
+                var response = await Prompt.messagePrompt({prompt: '**In one message separated by spaces**, ' +
+                    'type whether you want to "include" or "exclude" tickets along with the ticket numbers to operate on.', channel, userId}, 'string', 30);
                 if (response != null) {
                     var words = response.content.split(" "); // array to store each word in user's response
                     // use variable exclude to flag whether user wants to do an include or exclude operation
@@ -594,14 +593,14 @@ class Cave {
      * Prompt for an emoji for a role, will make sure that emoji is not already in use!
      * @param {String} prompt - the prompt string
      * @param {String} roleName - the role name
-     * @param {Discord.TextChannel} promptChannel - channel to prompt for role
+     * @param {Discord.TextChannel} channel - channel to prompt for role
      * @param {Discord.Snowflake} userId - the user to prompt
      * @async
      * @private
      * @returns {Promise<Discord.GuildEmoji | Discord.ReactionEmoji>}
      */
-    async promptAndCheckReaction(prompt, roleName, promptChannel, userId) {
-        return await Prompt.reactionPrompt(prompt + ' ' +  roleName + '.', promptChannel, userId, this.emojis);
+    async promptAndCheckReaction(prompt, roleName, channel, userId) {
+        return await Prompt.reactionPrompt({prompt: prompt + ' ' +  roleName + '.', channel, userId}, this.emojis);
     }
 
 
@@ -637,7 +636,7 @@ class Cave {
      * @throws Throws an error if the prompt is canceled and the new role cant be created.
      */
     async newRole(channel, userId) {
-        let roleNameMsg = await Prompt.messagePrompt('What is the name of the new role?', 'string', channel, userId);
+        let roleNameMsg = await Prompt.messagePrompt({prompt: 'What is the name of the new role?', channel, userId}, 'string');
 
         let roleName = roleNameMsg.content;
 
@@ -659,7 +658,7 @@ class Cave {
         this.addRole(role, emoji);
 
         try {
-            var addPublic = await Prompt.yesNoPrompt('Do you want me to create a public text channel?', channel, userId);
+            var addPublic = await Prompt.yesNoPrompt({prompt: 'Do you want me to create a public text channel?', channel, userId});
         } catch (error) {
             // if canceled treat it as a false
             var addPublic = false;
