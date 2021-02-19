@@ -59,8 +59,8 @@ module.exports = class RoleSelector extends PermissionCommand {
             if (reaction.emoji.name === newTransferEmoji && discordServices.checkForRole(message.guild.member(user), discordServices.roleIDs.staffRole)) {
                 
                 try {
-                    var newTransferMsg = await Prompt.messagePrompt('What new transfer do you want to add? Your response should have (in this order, not including <>): @role <transfer name> - <transfer description>',
-                        'string', message.channel, user.id);
+                    var newTransferMsg = await Prompt.messagePrompt({prompt: 'What new transfer do you want to add? Your response should have (in this order, not including <>): @role <transfer name> - <transfer description>',
+                    channel: message.channel, userId: user.id}, 'string');
                 } catch (error) {
                     reaction.users.remove(user.id);
                     return;
@@ -72,7 +72,7 @@ module.exports = class RoleSelector extends PermissionCommand {
                 let name = newTransferMsg.cleanContent.substring(0, firstStop);
                 let description = newTransferMsg.cleanContent.substring(firstStop + 1);
 
-                let emoji = await Prompt.reactionPrompt('What emoji to you want to use for this transfer?', message.channel, message.author.id);
+                let emoji = await Prompt.reactionPrompt({prompt: 'What emoji to you want to use for this transfer?', channel: message.channel, userId: message.author.id});
 
                 transfers.set(emoji.name, {
                     name: name,

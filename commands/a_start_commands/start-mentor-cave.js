@@ -29,6 +29,11 @@ module.exports = class StartMentors extends PermissionCommand {
      */
     async runCommand(message) {
         try {
+            // helpful prompt vars
+            let channel = message.channel;
+            let userId = message.author.id;
+
+
             var emojis = new Discord.Collection(); //collection to keep the names of the emojis used so far, used to check for duplicates
 
             //ask user for each emoji
@@ -40,8 +45,8 @@ module.exports = class StartMentors extends PermissionCommand {
             let excludeFromAutoDeleteEmoji = await checkForDuplicateEmojis('What is the emoji to opt tickets in/out for the garbage collector?');
 
             var role;
-            if (await Prompt.yesNoPrompt('Have you created the mentor role? If not it is okay, I can make it for you!', message.channel, message.author.id)) {
-                role = await Prompt.rolePrompt('Please mention the mentor role now!', message.channel, message.author.id);
+            if (await Prompt.yesNoPrompt({prompt: 'Have you created the mentor role? If not it is okay, I can make it for you!', channel, userId})) {
+                role = (await Prompt.rolePrompt({prompt: 'Please mention the mentor role now!', channel, userId})).first();
             } else {
                 role = await message.guild.roles.create({
                     data: {
@@ -58,7 +63,7 @@ module.exports = class StartMentors extends PermissionCommand {
              * Gets user's reaction and adds them to the emoji collection.
              */
             async function checkForDuplicateEmojis(prompt) {
-                var emoji = await Prompt.reactionPrompt(prompt, message.channel, message.author.id, emojis);
+                var emoji = await Prompt.reactionPrompt({prompt, channel, userId}, emojis);
                 emojis.set(emoji.name, emoji);
                 return emoji;
             }
@@ -78,12 +83,12 @@ module.exports = class StartMentors extends PermissionCommand {
                     excludeFromAutoDeleteEmoji: excludeFromAutoDeleteEmoji,
                 },
                 times: {
-                    inactivePeriod: await Prompt.numberPrompt('How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
-                        message.channel, message.author.id),
-                    bufferTime: await Prompt.numberPrompt('How long, in minutes, will the bot wait for a response to its request to delete a ticket?',
-                        message.channel, message.author.id),
-                    reminderTime: await Prompt.numberPrompt('How long, in minutes, shall a ticket go unaccepted before the bot sends a reminder to all mentors?',
-                        message.channel, message.author.id),
+                    inactivePeriod: (await Prompt.numberPrompt({prompt: 'How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
+                        channel, userId}))[0],
+                    bufferTime: (await Prompt.numberPrompt({prompt: 'How long, in minutes, will the bot wait for a response to its request to delete a ticket?',
+                        channel, userId}))[0],
+                    reminderTime: (await Prompt.numberPrompt({prompt: 'How long, in minutes, shall a ticket go unaccepted before the bot sends a reminder to all mentors?',
+                        channel, userId}))[0],
                 }
             });
 
@@ -91,9 +96,9 @@ module.exports = class StartMentors extends PermissionCommand {
             let adminConsole = message.guild.channels.resolve(discordServices.channelIDs.adminConsoleChannel);
 
             try {
-                let isCreated = await Prompt.yesNoPrompt('Are the categories and channels already created?', message.channel, message.author.id);
+                let isCreated = await Prompt.yesNoPrompt({prompt: 'Are the categories and channels already created?', channel, userId});
 
-                if (isCreated) await cave.find(message.channel, message.author.id);
+                if (isCreated) await cave.find(channel, userId);
                 else await cave.init(message.guild.channels);
             } catch (error) {
                 // if prompt canceled then init then take it as false
@@ -102,10 +107,10 @@ module.exports = class StartMentors extends PermissionCommand {
 
             await cave.sendConsoleEmbeds(adminConsole);
 
-            cave.checkForExistingRoles(message.guild.roles, adminConsole, message.author.id);
+            cave.checkForExistingRoles(message.guild.roles, adminConsole, userId);
           
         } catch (error) {
-            message.channel.send('Due to a prompt cancel, the mentor cave creation was unsuccessful.').then(msg => msg.delete({timeout: 5000})); 
+            channel.send('Due to a prompt cancel, the mentor cave creation was unsuccessful.').then(msg => msg.delete({timeout: 5000})); 
         }
     }
 
