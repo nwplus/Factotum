@@ -28,7 +28,7 @@ module.exports = class BoothDirectory extends PermissionCommand {
  * 
  * @param {Discord.Message} message - messaged that called this command
  */
-    async runCommand(message) {
+    async runCommand(botGuild, message) {
 
         // helpful vars
         let channel = message.channel;
@@ -51,8 +51,6 @@ module.exports = class BoothDirectory extends PermissionCommand {
         // prompt user for emoji to use
         let emoji = await Prompt.reactionPrompt({prompt: 'What emoji do you want to use?', channel, userId});
     
-        let botGuild = await BotGuild.findById(message.guild.id);
-
         //variable to keep track of state (Open vs Closed)
         var closed = true;
         //embed for closed state
