@@ -6,6 +6,8 @@ const discordServices = require('./discord-services');
 const Prompt = require('./classes/prompt');
 const mongoUtil = require('./db/mongoUtil');
 const BotGuild = require('./db/botGuildDBObject');
+const { Document } = require('mongoose');
+const Verification = require('./classes/verification');
 
 const admin = require('firebase-admin');
 
@@ -184,10 +186,11 @@ bot.on('message', async message => {
 
 // If someone joins the server they get the guest role!
 bot.on('guildMemberAdd', async member => {
+    let botGuild = await BotGuild.findById(member.guild.id);
     try {
-        await greetNewMember(member);
+        await greetNewMember(member, botGuild);
     } catch (error) {
-        await fixDMIssue(error, member);
+        await fixDMIssue(error, member, botGuild);
     }
 });
 
@@ -197,12 +200,11 @@ bot.login(config.token).catch(console.error);
 /**
  * Greets a member!
  * @param {Discord.GuildMember} member - the member to greet
+ * @param {Document} botGuild
  * @throws Error if the user has server DMs off
  */
-async function greetNewMember(member) {
+async function greetNewMember(member, botGuild) {
     let verifyEmoji = '🍀';
-
-    let botGuild = await BotGuild.findById(member.guild.id);
 
     var embed = new Discord.MessageEmbed()
         .setTitle('Welcome to the nwHacks 2021 Server!')
@@ -253,9 +255,10 @@ async function greetNewMember(member) {
  * Will let the member know how to fix their DM issue.
  * @param {Error} error - the error
  * @param {Discord.GuildMember} member - the member with the error
+ * @param {Document} botGuild
  * @throws Error if the given error is not a DM error
  */
-async function fixDMIssue(error, member) {
+async function fixDMIssue(error, member, botGuild) {
     if (error.code === 50007) {
         let botGuild = await BotGuild.findById(member.guild.id);
 

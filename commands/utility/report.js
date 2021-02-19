@@ -57,7 +57,7 @@ module.exports = class Report extends Command {
                 .setDescription(msg.content);
 
             // send embed with text message to ping admin
-            incomingReportChn.send('<@&' + (await BotGuild.findById(message.guild.id)).roleIDs.adminRole + '> Incoming Report', {embed: adminMsgEmbed});
+            incomingReportChn.send('<@&' + botGuild.roleIDs.adminRole + '> Incoming Report', {embed: adminMsgEmbed});
         })
         
     }
