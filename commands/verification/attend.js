@@ -27,11 +27,11 @@ module.exports = class Attend extends PermissionCommand {
     }
 
     /**
-     * 
+     * Attends a member.
      * @param {Discord.Message} message 
      * @param {String} guildId 
      */
-    async runCommand(message, { guildId }) {
+    async runCommand(botGuild, message, { guildId }) {
         // check if the user needs to attend, else warn and return
         if (discordServices.checkForRole(message.author, discordServices.roleIDs.attendeeRole)) {
             discordServices.sendEmbedToMember(message.author, {
