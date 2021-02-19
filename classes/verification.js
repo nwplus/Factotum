@@ -15,7 +15,7 @@ class Verification {
      * @async
      * @static
      */
-    async static verify(member, email, guild) {
+    static async verify(member, email, guild) {
         // make email lowercase
         email = email.toLowerCase();
 
@@ -86,7 +86,7 @@ class Verification {
      * Will attend the user and give it the attendee role.
      * @param {GuildMember} member 
      */
-    async static attend(member) {
+    static async attend(member) {
         try {
             // wait for attend to end, then give role
             await firebaseServices.attend(member.id);

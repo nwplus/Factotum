@@ -23,7 +23,7 @@ module.exports = class Attend extends PermissionCommand {
                 {
                     key: 'guildId',
                     prompt: 'Please provide the server ID, ask admins for it!',
-                    type: 'number',
+                    type: 'integer',
                 },
             ],
         },

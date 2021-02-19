@@ -22,7 +22,7 @@ module.exports = class Verify extends PermissionCommand {
                 {
                     key: 'guildId',
                     prompt: 'Please provide the server ID, ask admins for it!',
-                    type: 'number',
+                    type: 'integer',
                 },
             ],
         },
