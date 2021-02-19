@@ -212,13 +212,13 @@ async function greetNewMember(member) {
         verifyCollector.on('collect', async (reaction, user) => {
             var today = new Date();
             try {
-                var prompt;
+                var event;
                 if (today < verifycmdfDate) {
-                    prompt = 'cmd-f Learn';
+                    event = 'cmd-f Learn';
                 } else {
-                    prompt = 'cmd-f 2021';
+                    event = 'cmd-f 2021';
                 }
-                var email = (await Prompt.messagePrompt('What email did you get accepted to ' + prompt + ' with? Please send it now!', 'string', member.user.dmChannel, member.id, 25)).content;
+                var email = (await Prompt.messagePrompt({prompt: 'What email did you get accepted to ' + event + ' with? Please send it now!', channel: member.user.dmChannel, userId: member.id}, 'string', 25)).content;
             } catch (error) {
                 discordServices.sendEmbedToMember(member, {
                     title: 'Verification Error',
@@ -330,7 +330,7 @@ async function verifyLearn(member, email, guild) {
             if (discordServices.roleIDs?.sponsorRole) {
                 embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of cmd-f 2021 and for joining our discord!');
                 discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.sponsorRole);
-                //discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
+                discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
                 discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a sponsor!");
             }
             break;
@@ -338,7 +338,7 @@ async function verifyLearn(member, email, guild) {
             if (discordServices.roleIDs?.mentorRole) {
                 embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of cmd-f 2021 and for joining our discord!');
                 discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.mentorRole);
-                //discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
+                discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
                 discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + member.id + "> Verified email: " + email + " successfully and they are now a mentor!");
             }
             break;
@@ -408,7 +408,7 @@ async function verify(member, email, guild) {
         case firebaseServices.status.HACKER_SUCCESS:
             embed.addField('Thank you for attending cmd-f 2021', 'Happy hacking!!!');
             if (discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
-                discordServices.removeRolToMember(member, discordServices.roleIDs.guestRole);
+                discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.memberRole);
                 if (discordServices.stampRoles.size > 0) discordServices.addRoleToMember(member, discordServices.stampRoles.get(0));
             }
             discordServices.addRoleToMember(member, discordServices.roleIDs.attendeeRole);
@@ -425,6 +425,7 @@ async function verify(member, email, guild) {
             if (discordServices.roleIDs?.mentorRole) {
                 embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of cmd-f 2021 and for joining our discord!');
                 discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.mentorRole);
+                discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
                 discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + member.id + "> Verified email: " + email + " successfully and they are now a mentor!");
             }
             break;
@@ -432,6 +433,7 @@ async function verify(member, email, guild) {
             if (discordServices.roleIDs?.sponsorRole) {
                 embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of cmd-f 2021 and for joining our discord!');
                 discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.sponsorRole);
+                discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
                 discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a sponsor!");
             }
             break;
