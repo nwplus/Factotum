@@ -22,7 +22,7 @@ module.exports = class Verification extends PermissionCommand {
     }
 
     async runCommand(message) {
-        let members = await Prompt.memberPrompt('Which member(s) would you like to verify? (They have to receive the same role!)', message.channel, message.author);
+        let members = (await Prompt.memberPrompt('Which member(s) would you like to verify? (They have to receive the same role!)', message.channel, message.author)).first();
         let newRole = (await Prompt.rolePrompt('Which role would you like to verify them to?', message.channel, message.author)).first().id;
         members.each((key, member) => {
             if (!discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
