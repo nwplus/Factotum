@@ -115,7 +115,7 @@ class Prompt {
      * Prompt the user for a channel mention.
      * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
      * @async
-     * @returns {Promise<Collection<TextChannel>>} - the text channels prompted
+     * @returns {Promise<Collection<String, TextChannel>>} - the text channels prompted <ChannelId, TextChannel>
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      */
     static async channelPrompt({prompt, channel, userId}) {
@@ -133,7 +133,7 @@ class Prompt {
      * Prompt the user for a role mention.
      * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
      * @async
-     * @returns {Promise<Collection<Role>>} - the roles prompted
+     * @returns {Promise<Collection<String, Role>>} - the roles prompted <RoleId, Role>
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      */
     static async rolePrompt({prompt, channel, userId}) {
@@ -150,7 +150,7 @@ class Prompt {
      * Prompt the user for a member mention.
      * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
      * @async
-     * @returns {Promise<Collection<GuildMember>>} - the members prompted
+     * @returns {Promise<Collection<String, GuildMember>>} - the members prompted <MemberId, GuildMember>
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      */
     static async memberPrompt({prompt, channel, userId}) {

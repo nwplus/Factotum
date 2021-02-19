@@ -60,6 +60,27 @@ async function getQuestion() {
 module.exports.getQuestion = getQuestion;
 
 /**
+ * Retrieves self-care reminder from the db that has not already been sent, 
+ * then marks the reminder as having been asked in the db.
+ * @returns {Object | null} - the data object of a reminder or null if no more reminders
+ */
+async function getReminder() {
+    //checks that the reminder has not been sent
+    var qref = db.collection('reminders').where('sent', '==', false).limit(1);
+    var reminder = (await qref.get()).docs[0];
+    //if there reminder unsent, change its status to asked
+    if (reminder != undefined) {
+        reminder.ref.update({
+            'sent' : true,
+        });
+        return reminder.data();
+    }
+    return null;
+}
+module.exports.getReminder = getReminder;
+
+
+/**
  * @typedef {Object} Member
  * @property {String} email - the email of the member
  * @property {Boolean} isVerified - whether member has already verified
