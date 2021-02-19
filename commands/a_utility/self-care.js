@@ -33,14 +33,14 @@ module.exports = class SelfCareReminders extends PermissionCommand {
         //ask user for time interval between reminders
         var timeInterval;
         try {
-            let num = await numberPrompt({prompt: 'What is the time interval between reminders in minutes (integer only)? ', channel, userId});
+            let num = (await numberPrompt({prompt: 'What is the time interval between reminders in minutes (integer only)? ', channel, userId}))[0];
             timeInterval = 1000 * 60 * num;
 
             // ask user whether to start sending reminders now(true) or after 1 interval (false)
-            var startNow = await yesNoPrompt({prompt: 'Type "yes" to send first reminder now, "no" to start one time interval from now. ', channel, userId});
+            var isStartNow = await yesNoPrompt({prompt: 'Type "yes" to send first reminder now, "no" to start one time interval from now. ', channel, userId});
 
             // id of role to mention when new reminders come out (use-case for self-care still tbd)
-            var role = (await rolePrompt({prompt: 'What is the hacker role to notify for self-care reminders?', channel, userId})).id;
+            var roleId = (await rolePrompt({prompt: 'What is the hacker role to notify for self-care reminders?', channel, userId})).first().id;
         } catch (error) {
             channel.send('<@' + userId + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;
@@ -51,13 +51,13 @@ module.exports = class SelfCareReminders extends PermissionCommand {
 
         const startEmbed = new Discord.MessageEmbed()
             .setColor(discordServices.colors.embedColor)
-            .setTitle('To encourage healthy hackathon habits, we will be sending hourly self-care reminders! 🪴✨🧸💐🌱')
+            .setTitle('To encourage healthy hackathon habits, we will be sending hourly self-care reminders!')
             // temp
             .setDescription('For Staff:\n' +
                 '⏸️ to pause\n' +
                 '▶️ to resume\n');
 
-        channel.send('<@&' + role + '>', { embed: startEmbed }).then((msg) => {
+        channel.send('<@&' + roleId + '>', { embed: startEmbed }).then((msg) => {
             msg.pin();
             msg.react('⏸️');
             msg.react('▶️');
@@ -88,7 +88,7 @@ module.exports = class SelfCareReminders extends PermissionCommand {
         })
 
         //starts the interval, and sends the first reminder immediately if startNow is true
-        if (startNow) {
+        if (isStartNow) {
             sendReminder();
         }
         interval = setInterval(sendReminder, timeInterval);
@@ -113,7 +113,7 @@ module.exports = class SelfCareReminders extends PermissionCommand {
                 .setTitle(reminder)
                 // .setDescription(reminder);
             
-            channel.send(qEmbed);
+            channel.send(`Hey <@&${roleId}> remember:`, {embed: qEmbed});
         }
     }
 }
