@@ -123,7 +123,6 @@ class ActivityManager {
             const member = activity.generalText.guild.member(user);
 
             if (!seenUsers.has(user.id)) {
-
                 let role = member.roles.cache.find(role => discordServices.stampRoles.has(role.id));
 
                 if (role != undefined) this.parseRole(member, role, activity.name, botGuild);
