@@ -99,16 +99,16 @@ class ActivityManager {
     /**
      * Will let hackers get a stamp for attending an activity.
      * @param {Activity} activity - activity to use
-     * @param {Number} time - time to wait till collector closes, in seconds
+     * @param {Number} [time] - time to wait till collector closes, in seconds
      * @async
      */
-    static async distributeStamp(activity, time = discordServices.stampCollectTime) {
+    static async distributeStamp(activity, time = 60) {
         
         // The users already seen by this stamp distribution.
         let seenUsers = new Discord.Collection();
 
         const promptEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor((await (BotGuild.findById(activity.guild.id))).colors.embedColor)
             .setTitle('React within ' + time + ' seconds of the posting of this message to get a stamp for ' + activity.name + '!');
         
         let promptMsg = await activity.generalText.send(promptEmbed);
@@ -150,7 +150,7 @@ class ActivityManager {
      */
     static parseRole(member, role, activityName) {
         let stampNumber = parseInt(role.name.substring(role.name.length - 2));
-        let newRoleID = discordServices.stampRoles.get(stampNumber + 1);
+        let newRoleID = (await (BotGuild.findById(member.guild.id))).stampRoles.get(stampNumber + 1);
 
         if (newRoleID != undefined) {
             discordServices.replaceRoleToMember(member, role.id, newRoleID);
@@ -174,7 +174,7 @@ class ActivityManager {
         }
 
         let qEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor((await (BotGuild.findById(activity.guild.id))).colors.embedColor)
             .setTitle(title)
             .setDescription(description);
 
