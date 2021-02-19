@@ -1,4 +1,3 @@
-const { Command } = require('discord.js-commando');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const PermissionCommand = require('../../classes/permission-command');
@@ -44,21 +43,25 @@ module.exports = class DistributeStamp extends PermissionCommand {
      * @param {Discord.Message} message
      */
     async run(message, {activityName, password, stopTime}) {
+        // helpful vars
+        let channel = message.channel;
+        let userId = message.author.id;
+
         // check if arguments have been given and prompt for the channel to use
         try {
             if (activityName === '') {
-                var prompt = await Prompt.messagePrompt('Please respond with the workshop/activity name.', 'string', message.channel, message.author.id);
+                var prompt = await Prompt.messagePrompt({prompt: 'Please respond with the workshop/activity name.', channel, userId}, 'string');
                 activityName = prompt.content;
             }
 
             if(password === '') {
-                var prompt = await Prompt.messagePrompt('Please respond with the password for hackers to use to get stamp.', 'string', message.channel, message.author.id);
+                var prompt = await Prompt.messagePrompt({prompt: 'Please respond with the password for hackers to use to get stamp.', channel, userId}, 'string');
                 password = prompt.content;
             }
 
-            var targetChannel = (await Prompt.channelPrompt('What channel do you want to send the stamp collector to? Users should have access to this channel!', message.channel, message.author.id)).first();
+            var targetChannel = (await Prompt.channelPrompt({prompt: 'What channel do you want to send the stamp collector to? Users should have access to this channel!', channel, userId})).first();
         } catch (error) {
-            message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
+            channel.send('<@' + userId + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;
         }
 

@@ -28,28 +28,28 @@ module.exports = class StartTeamFormation extends PermissionCommand {
      * @param {Discord.Message} message - the message in which the command was run
      */
     async runCommand(message) {
-
+        // helpful prompt vars
         let channel = message.channel;
-        let userID = message.author.id;
+        let userId = message.author.id;
 
         try {
             
             var teamFormation = new TeamFormation({
                 teamInfo: {
-                    emoji: await Prompt.reactionPrompt('What emoji do you want to use for teams to sign up?', channel, userID),
-                    role: (await Prompt.yesNoPrompt('Have you created the role teams will get when they sign up? If not its okay, I will create it for you!', channel, userID)) ? 
-                        (await Prompt.rolePrompt('What role should team users get?', channel, userID)).first() :
+                    emoji: await Prompt.reactionPrompt({prompt: 'What emoji do you want to use for teams to sign up?', channel, userId}),
+                    role: (await Prompt.yesNoPrompt({prompt: 'Have you created the role teams will get when they sign up? If not its okay, I will create it for you!', channel, userId})) ? 
+                        (await Prompt.rolePrompt({prompt: 'What role should team users get?', channel, userId})).first() :
                         await TeamFormation.createTeamRole(message.guild.roles),
                 },
                 prospectInfo: {
-                    emoji: await Prompt.reactionPrompt('What emoji do you want to use for prospects to sign up?', channel, userID),
-                    role: (await Prompt.yesNoPrompt('Have you created the role prospects will get when they sign up? Worry not if you don\'t I can create it for you!', channel, userID)) ? 
-                        (await Prompt.rolePrompt('What role should prospects get?', channel, userID)).first() : 
+                    emoji: await Prompt.reactionPrompt({prompt: 'What emoji do you want to use for prospects to sign up?', channel, userId}),
+                    role: (await Prompt.yesNoPrompt({prompt: 'Have you created the role prospects will get when they sign up? Worry not if you don\'t I can create it for you!', channel, userId})) ? 
+                        (await Prompt.rolePrompt({prompt: 'What role should prospects get?', channel, userId})).first() : 
                         await TeamFormation.createProspectRole(message.guild.roles),
                 },
                 guild: message.guild,
                 channels: await TeamFormation.createChannels(message.guild.channels),
-                isNotificationsEnabled: await Prompt.yesNoPrompt('Do you want to notify users when the opposite party has a new post?', channel, userID),
+                isNotificationsEnabled: await Prompt.yesNoPrompt({prompt: 'Do you want to notify users when the opposite party has a new post?', channel, userId}),
             });
 
         } catch (error) {
@@ -58,7 +58,7 @@ module.exports = class StartTeamFormation extends PermissionCommand {
             return;
         }
 
-        message.channel.send('<@' + userID + '> The team formation activity is ready to go! <#' + teamFormation.channels.info + '>');
+        message.channel.send('<@' + userId + '> The team formation activity is ready to go! <#' + teamFormation.channels.info + '>');
 
         teamFormation.start();
     }

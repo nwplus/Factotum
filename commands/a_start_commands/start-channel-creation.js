@@ -30,7 +30,7 @@ module.exports = class StartChannelCreation extends PermissionCommand {
 
         try {
             // grab current channel
-            var channel = (await Prompt.channelPrompt('What channel do you want to use? The channel\'s category will be used to create the new channels.', message.channel, message.author.id)).first();
+            var channel = (await Prompt.channelPrompt({prompt: 'What channel do you want to use? The channel\'s category will be used to create the new channels.', channel: message.channel, userId: message.author.id})).first();
         } catch (error) {
             message.channel.send('<@' + message.author.id + '> The command has been canceled due to the prompt cancel.').then(msg => msg.delete({timeout: 5000}));
             return;
@@ -62,8 +62,11 @@ module.exports = class StartChannelCreation extends PermissionCommand {
         var mainCollector = cardMessage.createReactionCollector(m => true);
 
         mainCollector.on('collect', async (reaction, user) => {
+            // helpful vars
+            let userId = user.id;
+
             try {
-                let channelType =(await Prompt.messagePrompt('Do you want a "voice" or "text" channel?', 'string', channel, user.id, 20)).content;
+                let channelType =(await Prompt.messagePrompt({prompt: 'Do you want a "voice" or "text" channel?', channel, userId}, 'string', 20)).content;
 
                 // make sure input is valid
                 if (channelType != 'voice' && channelType != 'text') {
@@ -72,9 +75,9 @@ module.exports = class StartChannelCreation extends PermissionCommand {
                     return;
                 }
 
-                let guests = (await Prompt.messagePrompt('Please tag all the invited users to this private ' + channelType + ' channel. Type "none" if no guests are welcomed.', 'string', channel, user.id, 60)).mentions.members;
+                let guests = (await Prompt.messagePrompt({prompt: 'Please tag all the invited users to this private ' + channelType + ' channel. Type "none" if no guests are welcomed.', channel, userId}, 'string', 60)).mentions.members;
 
-                let channelName = (await Prompt.messagePrompt('What do you want to name the channel? If you don\'t care then send "default"!', 'string', channel, user.id, 30)).content;
+                let channelName = (await Prompt.messagePrompt({prompt: 'What do you want to name the channel? If you don\'t care then send "default"!', channel, userId}, 'string', 30)).content;
 
                 // if channelName is default then use default
                 if (channelName === 'default') {

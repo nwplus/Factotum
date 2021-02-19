@@ -122,7 +122,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
             if (reaction.emoji.name === this.teamEmoji) {
                 
                 try {
-                    var groupMsg = await Prompt.messagePrompt('Please mention all your current team members in one message. You mention by typing @friendName .', 'string', this.textChannel, teamLeaderUser.id, 30);
+                    var groupMsg = await Prompt.messagePrompt({prompt: 'Please mention all your current team members in one message. You mention by typing @friendName .', channel: this.textChannel, userId: teamLeaderUser.id}, 'string', 30);
                 } catch (error) {
                     reaction.users.remove(newTeam.leader);
                     return;
@@ -247,7 +247,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
      * @throws Throws an error if the user cancels either of the two Prompts, the command should quit!
      */
     async getOrCreateChannel(promptChannel, promptId, guildChannelManager) {
-        let needChannel = await Prompt.yesNoPrompt('Do you need a new channel and category or have you created one already?', promptChannel, promptId);
+        let needChannel = await Prompt.yesNoPrompt({prompt: 'Do you need a new channel and category or have you created one already?', channel: promptChannel, userId: promptId});
 
         let channel;
 
@@ -262,7 +262,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 parent: category,
             });
         } else {
-            channel = (await Prompt.channelPrompt('What channel would you like to use for team roulette, this channels category will be used for the new team channels.', promptChannel, promptId)).first();
+            channel = (await Prompt.channelPrompt({prompt: 'What channel would you like to use for team roulette, this channels category will be used for the new team channels.', channel: promptChannel, userId: promptId})).first();
             channel.bulkDelete(100, true);
         }
 

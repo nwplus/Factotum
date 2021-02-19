@@ -100,7 +100,7 @@ module.exports = class NewActivity extends PermissionCommand {
                 activity.state.isCoffeeChats = true;
 
                 try {
-                    var numOfGroups = (await numberPrompt('How many groups do you want?', message.channel, user.id))[0];
+                    var numOfGroups = (await numberPrompt({prompt: 'How many groups do you want?', channel: message.channel, userId: user.id}))[0];
                 } catch (error) {
                     var numOfGroups = 0;
                 }

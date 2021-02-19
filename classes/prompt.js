@@ -1,4 +1,4 @@
-const Discord = require("discord.js");
+const { TextChannel, Role, Collection, GuildEmoji, ReactionEmoji, Message, Emoji, GuildMember } = require("discord.js");
 const discordServices = require('../discord-services');
 
 /**
@@ -7,26 +7,32 @@ const discordServices = require('../discord-services');
 class Prompt {
 
     /**
+     * Common data for all prompts.
+     * @typedef PromptInfo
+     * @property {String} prompt - the text prompt to send to user
+     * @property {TextChannel} channel - the channel to send the prompt to
+     * @property {String} userId - the ID of the user to prompt
+     */
+
+    /**
      * Prompt the user for some text.
-     * @param {String} prompt - the text prompt to send to user
-     * @param {String} responseType - the type of response, one of string, number, boolean
-     * @param {Discord.TextChannel} channel - the channel to send the prompt to
-     * @param {String} userID - the ID of the user to prompt
+     * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
+     * @param {String} responseType - the type of response, one of string, number, boolean, mention
      * @param {Number} time - the time in seconds to wait for the response, if 0 then wait forever
-     * @returns {Promise<Discord.Message>} - the message response to the prompt or false if it timed out!
+     * @returns {Promise<Message>} - the message response to the prompt or false if it timed out!
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      * @async
      */
-    static async messagePrompt(prompt, responseType, channel, userID, time = 0) {
+    static async messagePrompt({prompt, channel, userId}, responseType, time = 0) {
 
-        let finalPrompt = '<@' + userID + '> ' + prompt + (responseType == 'number' ? ' Respond with a number only!' : responseType == 'boolean' ? ' (yes/no)' : responseType == 'mention' ? ' To make a mention use the @ or # for a user or channel respectively!' : '' + 
+        let finalPrompt = '<@' + userId + '> ' + prompt + (responseType == 'number' ? ' Respond with a number only!' : responseType == 'boolean' ? ' (yes/no)' : responseType == 'mention' ? ' To make a mention use the @ or # for a user or channel respectively!' : '' + 
                         (time === 0 ? '' : '\n* Respond within ' + time + ' seconds.') + '\n* Respond with cancel to cancel.');
 
         // send prompt
         let promptMsg = await channel.send(finalPrompt);
 
         try {
-            var msgs = await channel.awaitMessages(message => message.author.id === userID, {max: 1, time: time == 0 ? null : time * 1000, errors: ['time']});
+            var msgs = await channel.awaitMessages(message => message.author.id === userId, {max: 1, time: time == 0 ? null : time * 1000, errors: ['time']});
             let msg = msgs.first();
 
             discordServices.deleteMessage(promptMsg);
@@ -39,7 +45,7 @@ class Prompt {
 
             return msg;
         } catch (error) {
-            channel.send('<@' + userID + '> Time is up, please try again once you are ready, we recommend you write the text, then react, then send!').then(msg => msg.delete({timeout: 10000}));
+            channel.send('<@' + userId + '> Time is up, please try again once you are ready, we recommend you write the text, then react, then send!').then(msg => msg.delete({timeout: 10000}));
             discordServices.deleteMessage(promptMsg);
             throw new Error('Prompt timed out.');
         }
@@ -48,15 +54,13 @@ class Prompt {
 
     /**
      * Prompt a user for a number, will ask again if not given a number.
-     * @param {String} prompt - the text prompt to send to user
-     * @param {Discord.TextChannel} channel - the channel to send the prompt to
-     * @param {String} userID - the ID of the user to prompt
+     * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
      * @async
      * @returns {Promise<Array<Number>>} - an array of numbers
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      */
-    static async numberPrompt(prompt, channel, userID) {
-        let promptMsg = await Prompt.messagePrompt(prompt, 'number', channel, userID);
+    static async numberPrompt({prompt, channel, userId}) {
+        let promptMsg = await Prompt.messagePrompt({prompt, channel, userId}, 'number');
         var invalid = false;
         let numbers = promptMsg.content.split(' ');
         numbers.forEach(num => {
@@ -64,31 +68,28 @@ class Prompt {
             if (isNaN(num)) invalid = true;
         });
         if (invalid) {
-            discordServices.sendMsgToChannel(channel, userID, 'One of the numbers is invalid, please try again, numbers only!', 10);
-            return Prompt.numberPrompt(prompt, channel, userID);
+            discordServices.sendMsgToChannel(channel, userId, 'One of the numbers is invalid, please try again, numbers only!', 10);
+            return Prompt.numberPrompt({prompt, channel, userId});
         } else {
             return numbers;
         }
     }
-
  
     /**
      * Prompts the user to respond to a message with an emoji.
-     * @param {String} prompt - the text prompt to send to user
-     * @param {Discord.TextChannel} channel - the channel to send the prompt to
-     * @param {String} userID - the ID of the user to prompt
-     * @param {Discord.Collection<String, Discord.Emoji>} unavailableEmojis - <emoji name, emoji>, the emojis the user can't select, re-prompt if necessary
+     * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
+     * @param {Collection<String, Emoji>} unavailableEmojis - <emoji name, emoji>, the emojis the user can't select, re-prompt if necessary
      * @async
-     * @returns {Promise<Discord.GuildEmoji | Discord.ReactionEmoji>} - the message reaction
+     * @returns {Promise<GuildEmoji | ReactionEmoji>} - the message reaction
      */
-    static async reactionPrompt(prompt, channel, userID, unavailableEmojis = new Map()) {
-        let reactionMsg = await channel.send('<@' + userID + '> ' + prompt + ' React to this message with the emoji.');
-        let reactions = await reactionMsg.awaitReactions((reaction, user) => !user.bot && user.id === userID, {max: 1});
+    static async reactionPrompt({prompt, channel, userId}, unavailableEmojis = new Map()) {
+        let reactionMsg = await channel.send('<@' + userId + '> ' + prompt + ' React to this message with the emoji.');
+        let reactions = await reactionMsg.awaitReactions((reaction, user) => !user.bot && user.id === userId, {max: 1});
         discordServices.deleteMessage(reactionMsg);
 
         if (unavailableEmojis.has(reactions.first().emoji.name)) {
-            channel.send('<@' + userID + '> The emoji you choose is already in use, please try again!').then(msg => msg.delete({timeout: 5000}));
-            return this.reactionPrompt(prompt, channel, userID, unavailableEmojis);
+            channel.send('<@' + userId + '> The emoji you choose is already in use, please try again!').then(msg => msg.delete({timeout: 5000}));
+            return this.reactionPrompt({prompt, channel, userId}, unavailableEmojis);
         }
 
         return reactions.first().emoji;
@@ -97,36 +98,32 @@ class Prompt {
       
     /**
      * Prompt the user for a yes/no answer and return true/false.
-     * @param {String} prompt - the text prompt to send to user
-     * @param {Discord.TextChannel} channel - the channel to send the prompt to
-     * @param {String} userID - the ID of the user to prompt
+     * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
      * @async
      * @returns {Promise<Boolean>} - yes == true, no == false
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      */
-    static async yesNoPrompt(prompt, channel, userID) {
-        let promptMsg = await Prompt.messagePrompt(prompt, 'boolean', channel, userID);
+    static async yesNoPrompt({prompt, channel, userId}) {
+        let promptMsg = await Prompt.messagePrompt({prompt, channel, userId}, 'boolean');
         if (promptMsg.content.toLowerCase() === 'no') return false;
         else if (promptMsg.content.toLowerCase() === 'yes') return true;
-        else return Prompt.yesNoPrompt(prompt, channel, userID);
+        else return Prompt.yesNoPrompt({prompt, channel, userId});
     }
 
 
     /**
      * Prompt the user for a channel mention.
-     * @param {String} prompt - the text prompt to send to user
-     * @param {Discord.TextChannel} promptChannel - the channel to send the prompt to
-     * @param {String} userID - the ID of the user to prompt
+     * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
      * @async
-     * @returns {Promise<Collection<Discord.TextChannel>>} - the text channels prompted
+     * @returns {Promise<Collection<TextChannel>>} - the text channels prompted
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      */
-    static async channelPrompt(prompt, promptChannel, userID) {
-        let promptMsg = await Prompt.messagePrompt(prompt, 'mention', promptChannel, userID);
+    static async channelPrompt({prompt, channel, userId}) {
+        let promptMsg = await Prompt.messagePrompt({prompt, channel, userId}, 'mention');
         let channels = promptMsg.mentions.channels;
         if (channels === null) {
-            promptChannel.send('<@' + userID + '> No channel was mentioned, try again!').then(msg => msg.delete({timeout: 8000}));
-            return Prompt.channelPrompt(prompt, promptChannel, userID);
+            channel.send('<@' + userId + '> No channel was mentioned, try again!').then(msg => msg.delete({timeout: 8000}));
+            return Prompt.channelPrompt({prompt, channel, userId});
         }
         else return channels;
     }
@@ -134,38 +131,34 @@ class Prompt {
 
     /**
      * Prompt the user for a role mention.
-     * @param {String} prompt - the text prompt to send to user
-     * @param {Discord.TextChannel} promptChannel - the channel to send the prompt to
-     * @param {String} userID - the ID of the user to prompt
+     * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
      * @async
-     * @returns {Promise<Collection<Discord.Role>>} - the roles prompted
+     * @returns {Promise<Collection<Role>>} - the roles prompted
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      */
-    static async rolePrompt(prompt, promptChannel, userID) {
-        let promptMsg = await Prompt.messagePrompt(prompt, 'mention', promptChannel, userID);
+    static async rolePrompt({prompt, channel, userId}) {
+        let promptMsg = await Prompt.messagePrompt({prompt, channel, userId}, 'mention');
         let roles = promptMsg.mentions.roles;
         if (roles === null) {
-            promptChannel.send('<@' + userID + '> You did not mention a role, try again!').then(msg => msg.delete({timeout: 8000}));
-            return Prompt.rolePrompt(prompt, promptChannel, userID);
+            channel.send('<@' + userId + '> You did not mention a role, try again!').then(msg => msg.delete({timeout: 8000}));
+            return Prompt.rolePrompt({prompt, channel, userId});
         }
         else return roles;
     }
 
     /**
      * Prompt the user for a member mention.
-     * @param {String} prompt - the text prompt to send to user
-     * @param {Discord.TextChannel} promptChannel - the channel to send the prompt to
-     * @param {String} userID - the ID of the user to prompt
+     * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
      * @async
-     * @returns {Promise<Collection<Discord.GuildMember>>} - the members prompted
+     * @returns {Promise<Collection<GuildMember>>} - the members prompted
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      */
-    static async memberPrompt(prompt, promptChannel, userID) {
-        let promptMsg = await Prompt.messagePrompt(prompt, 'mention', promptChannel, userID);
+    static async memberPrompt({prompt, channel, userId}) {
+        let promptMsg = await Prompt.messagePrompt({prompt, channel, userId}, 'mention');
         let members = promptMsg.mentions.members;
         if (members === null) {
-            promptChannel.send('<@' + userID + '> You did not mention a member, try again!').then(msg => msg.delete({timeout: 8000}));
-            return Prompt.rolePrompt(prompt, promptChannel, userID);
+            channel.send('<@' + userId + '> You did not mention a member, try again!').then(msg => msg.delete({timeout: 8000}));
+            return Prompt.rolePrompt({prompt, channel, userId});
         }
         else return members;
     }

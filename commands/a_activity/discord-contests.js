@@ -1,7 +1,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
-const { messagePrompt, numberPrompt, yesNoPrompt, rolePrompt, memberPrompt } = require('../../classes/prompt');
+const { numberPrompt, yesNoPrompt, rolePrompt, memberPrompt } = require('../../classes/prompt');
 const { getQuestion } = require('../../firebase-services/firebase-services');
 
 var interval;
@@ -35,19 +35,23 @@ module.exports = class DiscordContests extends PermissionCommand {
      * @param {Discord.Message} message - the message in which this command was called
      */
     async runCommand(message) {
+        // helpful prompt vars
+        let channel = message.channel;
+        let userId = message.author.id;
+
         //ask user for time interval between questions
         var timeInterval;
         try {
-            let num = (await numberPrompt('What is the time interval between questions in minutes (integer only)? ', message.channel, message.author.id))[0];
+            let num = (await numberPrompt({prompt: 'What is the time interval between questions in minutes (integer only)? ', channel, userId}))[0];
             timeInterval = 1000 * 60 * num;
 
             // ask user whether to start asking questions now(true) or after 1 interval (false)
-            var startNow = await yesNoPrompt('Type "yes" to start first question now, "no" to start one time interval from now. ', message.channel, message.author.id)
+            var startNow = await yesNoPrompt({prompt: 'Type "yes" to start first question now, "no" to start one time interval from now. ', channel, userId})
 
             // id of role to mention when new questions come out
-            var role = (await rolePrompt('What is the hacker role to notify for Discord contests?', message.channel, message.author.id, 15)).first().id;
+            var role = (await rolePrompt({prompt: 'What is the hacker role to notify for Discord contests?', channel, userId})).first().id;
         } catch (error) {
-            message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
+            channel.send('<@' + userId + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;
         }
 
@@ -154,7 +158,7 @@ module.exports = class DiscordContests extends PermissionCommand {
                         //once someone from Staff hits the crown emoji, tell them to mention the winner in a message in the channel
                         reaction.users.remove(user.id);
 
-                        memberPrompt('Pick a winner for the previous question by mentioning them in your next message in this channel!', message.channel, user.id)
+                        memberPrompt({prompt: 'Pick a winner for the previous question by mentioning them in your next message in this channel!', channel: message.channel, userId: user.id})
                             .then(members => {
                                 winners.push(members.first().id);
                                 message.channel.send("Congrats <@" + members.first().id + "> for the best answer to the previous question!");

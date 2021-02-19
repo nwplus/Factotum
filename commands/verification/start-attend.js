@@ -38,14 +38,14 @@ module.exports = class StartAttend extends PermissionCommand {
         message.guild.setCommandEnabled('attend', true);
 
         try {
-            let existsChannel = await Prompt.yesNoPrompt('Is there already a channel that exists that hackers will be using !attend in?', message.channel, message.author.id);
+            let existsChannel = await Prompt.yesNoPrompt({prompt: 'Is there already a channel that exists that hackers will be using !attend in?', channel: message.channel, userId: message.author.id});
 
             if (existsChannel) {
                 //ask user to mention channel to be used for !attend
-                channel = (await Prompt.channelPrompt('Please mention the channel to be used for the !attend command. ', message.channel, message.author.id)).first();
+                channel = (await Prompt.channelPrompt({prompt: 'Please mention the channel to be used for the !attend command. ', channel: message.channel, userId: message.author.id})).first();
             } else {
                 //ask user for category to create new attend channel under
-                let categoryReply = await Prompt.messagePrompt('What category do you want the new attend channel under? ', 'string', message.channel, message.author.id, 20);
+                let categoryReply = await Prompt.messagePrompt({prompt: 'What category do you want the new attend channel under? ', channel: message.channel, userId: message.author.id}, 'string', 20);
                 
                 var categoryName = categoryReply.content;
 

@@ -29,22 +29,26 @@ module.exports = class BoothDirectory extends PermissionCommand {
  */
     async runCommand(message) {
 
+        // helpful vars
+        let channel = message.channel;
+        let userId = message.author.id;
+
         try {
-            var sponsorName = await Prompt.messagePrompt('What is the sponsor name?', 'string', message.channel, message.author.id);
+            var sponsorName = await Prompt.messagePrompt({prompt: 'What is the sponsor name?', channel, userId}, 'string');
             sponsorName = sponsorName.content;
 
-            var link = await Prompt.messagePrompt('What is the sponsor link?', 'string', message.channel, message.author.id);
+            var link = await Prompt.messagePrompt({prompt: 'What is the sponsor link?', channel, userId}, 'string');
             link = link.content;
 
             //ask user for role and save its id in the role variable
-            var role = (await Prompt.rolePrompt('What role will get pinged when booths open?', message.channel, message.author.id)).first().id;
+            var role = (await Prompt.rolePrompt({prompt: 'What role will get pinged when booths open?', channel, userId})).first().id;
         } catch (error) {
-            message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
+            channel.send('<@' + userId + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;
         }
 
         // prompt user for emoji to use
-        let emoji = await Prompt.reactionPrompt('What emoji do you want to use?', message.channel, message.author.id);
+        let emoji = await Prompt.reactionPrompt({prompt: 'What emoji do you want to use?', channel, userId});
     
         //variable to keep track of state (Open vs Closed)
         var closed = true;
@@ -55,7 +59,7 @@ module.exports = class BoothDirectory extends PermissionCommand {
             .setDescription(sponsorName + ' \'s Zoom link: ' + link);
         
         //send closed embed at beginning (default is Closed)
-        message.channel.send(embed).then((msg) => {
+        channel.send(embed).then((msg) => {
             msg.pin();
             msg.react(emoji);
             //only listen for the door react from Staff and Sponsors
@@ -78,7 +82,7 @@ module.exports = class BoothDirectory extends PermissionCommand {
                     msg.edit(openEmbed);
                     closed = false;
                     //notify people of the given role that booth is open and delete notification after 5 mins
-                    announcementMsg = await message.channel.send('<@&' + role + '> ' + sponsorName + ' \'s booth has just opened!');
+                    announcementMsg = await channel.send('<@&' + role + '> ' + sponsorName + ' \'s booth has just opened!');
                     announcementMsg.delete({timeout:300 * 1000});
                 } else {
                     //change to closed state embed if closed is false
