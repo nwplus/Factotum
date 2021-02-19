@@ -209,7 +209,7 @@ async function greetNewMember(member) {
         .setDescription('We are very excited to have you here!')
         .addField('Have a question?', 'Go to the welcome-assistance channel to talk with our staff!')
         .addField('Want to learn more about what I can do?', 'Use the !help command anywhere and I will send you a message!')
-        .setColor(discordServices.colors.embedColor);
+        .setColor(botGuild.colors.embedColor);
 
     if (botGuild.verification.isEnabled) embed.addField('Gain more access by verifying yourself!', 'React to this message with ' + verifyEmoji + ' and follow my instructions!');
     
@@ -217,7 +217,7 @@ async function greetNewMember(member) {
 
     // if verification is on then give guest role and let user verify
     if (botGuild.verification.isEnabled) {
-        discordServices.addRoleToMember(member, botGuild.roleIDs.guestRole);
+        discordServices.addRoleToMember(member, botGuild.verification.guestRoleID);
 
         msg.react(verifyEmoji);
         let verifyCollector = msg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === verifyEmoji);
@@ -257,7 +257,9 @@ async function greetNewMember(member) {
  */
 async function fixDMIssue(error, member) {
     if (error.code === 50007) {
-        let channelID = discordServices.channelIDs?.welcomeSupport || discordServices.channelIDs.botSupportChannel;
+        let botGuild = await BotGuild.findById(member.guild.id);
+
+        let channelID = botGuild.verification?.welcomeSupportChannelID || botGuild.channelIDs.botSupportChannel;
 
         member.guild.channels.resolve(channelID).send('<@' + member.id + '> I couldn\'t reach you :(.' +
             '\n* Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-' +
