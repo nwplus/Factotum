@@ -22,7 +22,7 @@ const BotGuildSchema = new Schema({
         },
     },
 
-    channelsIDs: {
+    channelIDs: {
         adminConsole: {
             type: String,
         },
