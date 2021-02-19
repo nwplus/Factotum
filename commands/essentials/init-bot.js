@@ -90,10 +90,6 @@ module.exports = class InitBot extends Command {
 
         // grab the admin role
         const adminRole = await this.askOrCreate('admin', channel, userId, guild, '#008369');
-<<<<<<< HEAD
-        //await adminRole.setMentionable(true);
-=======
->>>>>>> develop
 
         // create the admin channel package
         let adminConsole = await this.createAdminChannels(guild, adminRole, everyoneRole);
