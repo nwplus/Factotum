@@ -321,7 +321,7 @@ module.exports = class BotGuild {
         //     querySnapshot.docChanges().forEach(change => {
         //         if (change.type === 'added') {
         //             const embed = new Discord.MessageEmbed()
-        //                 .setColor(discordServices.colors.announcementEmbedColor)
+        //                 .setColor(botGuild.colors.announcementEmbedColor)
         //                 .setTitle('Announcement')
         //                 .setDescription(change.doc.data()['content']);
 
