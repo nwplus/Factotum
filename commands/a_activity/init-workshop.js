@@ -3,6 +3,7 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Activity = require('../../classes/activity');
 const ActivityCommand = require('../../classes/activity-command');
+const Prompt = require('../../classes/prompt');
 
 // Command export
 module.exports = class InitWorkshop extends ActivityCommand {
@@ -22,12 +23,24 @@ module.exports = class InitWorkshop extends ActivityCommand {
      * @param {Activity} activity - the activity for this activity command
      */
     async activityCommand(message, activity) {
-
-        let channels = await activity.makeWorkshop();
+        let TAroles;
+        try {
+            if (await Prompt.yesNoPrompt({prompt: 'Aside from Staff, are there other roles you would like to allow access to the TA channels?', 
+                channel: message.channel, userId: message.author.id})) {
+                TAroles = await Prompt.rolePrompt({prompt: 'Mention the role(s) here now!', channel: message.channel, userId: message.author.id});
+            };
+        } catch (error) {
+            TAroles = new Discord.Collection();
+        }
+        TAroles.each(role => {
+            activity.generalText.updateOverwrite(role, {VIEW_CHANNEL: true});
+            activity.generalVoice.updateOverwrite(role, {VIEW_CHANNEL: true, SPEAK: true, MOVE_MEMBERS: true});
+            activity.category.updateOverwrite(role, {VIEW_CHANNEL: true});
+        });
+        let channels = await activity.makeWorkshop(TAroles);
 
         let taChannel = channels.taChannel;
         let assistanceChannel = channels.assistanceChannel;
-        let helpChannel = activity.generalText;
 
     // important variables and embeds
         // pullInFunctionality is default to true
@@ -62,7 +75,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 // let TAs know about the change!
                 taChannel.send('Low tech solution has been turned on!').then(msg => msg.delete({timeout: 5000}));
                 msg.edit(msg.embeds[0].addField('Low Tech Solution Is On', 'To give assistance: \n* Send a DM to the highers member on the wait list \n* Then click on the emoji to remove them from the list!'));
-                helpChannel.send(new Discord.MessageEmbed().setColor(discordServices.colors.embedColor).setTitle('Quick Update!').setDescription('You do not need to join the ' +  activity.activityInfo.generalVoiceChannelName + ' voice channel. TAs will send you a DM when they are ready to assist you!'));
+                assistanceChannel.send(new Discord.MessageEmbed().setColor(discordServices.colors.embedColor).setTitle('Quick Update!').setDescription('You do not need to join the ' +  activity.activityInfo.generalVoiceChannelName + ' voice channel. TAs will send you a DM when they are ready to assist you!'));
             });
         });
         
@@ -154,7 +167,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
             }
 
             // collect the question the hacker has
-            var qPrompt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond').catch(console.error);
+            var qPrompt = await assistanceChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond').catch(console.error);
 
             assistanceChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000, error:['time'] }).then(async msgs => {
                 // get question
@@ -180,7 +193,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 msgs.each(msg => msg.delete());
             }).catch(() => {
                 qPrompt.delete();
-                helpChannel.send('<@' + user.id + '> Time is up! Write up your message and react again!').then(msg => msg.delete({timeout: 3000}));
+                assistanceChannel.send('<@' + user.id + '> Time is up! Write up your message and react again!').then(msg => msg.delete({timeout: 3000}));
             });
         });
 

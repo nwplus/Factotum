@@ -318,25 +318,36 @@ class Activity {
     /**
      * Will make this activity a workshop activity.
      * @async
+     * @param {Collection<Snowflake, Role>} TAroles - roles with TA permissions aside from Staff
      * @returns {Promise<{taChannel : TextChannel, assistanceChannel : TextChannel}>} - an object with two text channels, taChannel, assistanceChannel
      */
-    async makeWorkshop() {
+    async makeWorkshop(TAroles) {
         // update the voice channel permission to no speaking for attendees
-        this.generalVoice.updateOverwrite(discordServices.roleIDs.hackerRole, {
+        this.generalVoice.updateOverwrite(discordServices.roleIDs.everyoneRole, {
             SPEAK: false,
         });
         this.generalVoice.updateOverwrite(discordServices.roleIDs.staffRole, {
             SPEAK: true,
             MOVE_MEMBERS: true,
         });
+        TAroles.each(role => {
+            this.generalVoice.updateOverwrite(role, {
+                SPEAK: true,
+                MOVE_MEMBERS: true,
+            });
+        })
+
+        // make TA channel private and give each TA role permission to view it
+        let TAChannelPermissions = [
+            { roleID: discordServices.roleIDs.everyoneRole, permissions: { VIEW_CHANNEL: false } },
+        ];
+        TAroles.each(role => TAChannelPermissions.push({roleID: role, permissions: {VIEW_CHANNEL: true}}));
 
         // create ta console
         let taChannel = await this.addChannel(':🧑🏽‍🏫:' + 'ta-console', {
             type: 'text',
             topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
-        }, [
-            { roleID: discordServices.roleIDs.memberRole || discordServices.roleIDs?.attendeeRole || discordServices.roleIDs.everyoneRole, permissions: { VIEW_CHANNEL: false } },
-        ]);
+        }, TAChannelPermissions);
 
         // create and blacklist an assistance channel
         let assistanceChannel = await this.addChannel('🙋🏽' + 'assistance', {

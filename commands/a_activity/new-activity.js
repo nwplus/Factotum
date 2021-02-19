@@ -31,8 +31,13 @@ module.exports = class NewActivity extends PermissionCommand {
     }
 
     async runCommand(message, {activityName}) {
-
-        let allowedRoles = await rolePrompt({ prompt: 'What roles, aside from Staff, will be allowed to view this activity?', channel: message.channel, userId: message.author.id });
+        let allowedRoles;
+        try {
+            allowedRoles = await rolePrompt({ prompt: 'What roles, aside from Staff, will be allowed to view this activity? (Type "cancel" if none)',
+                channel: message.channel, userId: message.author.id });
+        } catch (error) {
+            allowedRoles = new Discord.Collection();
+        }
         let activity = await new Activity(activityName, message.guild, allowedRoles).init();
 
         // report success of activity creation
