@@ -1,105 +1,5 @@
 const Discord = require('discord.js');
-
-// Available Roles
-
-/**
- * @type {Discord.Collection<String, String>} - <type, roleId>
- */
-const verificationRoles = new Discord.Collection();
-verificationRoles.set('cmd-f Hacker', '812441340888612924');
-verificationRoles.set('Learn Hacker', '812441385630040086')
-
- module.exports.verificationRoles = verificationRoles
-
-/**
- * All the available roles from server creation.
- */
-module.exports.roleIDs = {
-    guestRole : null,
-    hackerRole : null,
-    attendeeRole : null,
-    mentorRole : null,
-    sponsorRole : null,
-    staffRole : null,
-    adminRole : null,
-    everyoneRole : null,
-    memberRole: null,
-}
-
-/**
- * A collection of all the stamp roles.
- * @type {Discord.Collection<Number, String>} - <StampNumber, roleID>
- */
-var stampRoles = new Discord.Collection();
-module.exports.stampRoles = stampRoles;
-
-/**
- * All the custom colors available to the bot.
- * @type {Object}
- */
-module.exports.colors = {
-    embedColor : '#26fff4',
-    questionEmbedColor : '#f4ff26',
-    announcementEmbedColor : '#9352d9',
-    specialDMEmbedColor : '#fc6b03',
-}
-
-/**
- * A list of channels where messages will get deleted after x amount of time
- * @type {Map<Discord.Snowflake, Number>} - <text channel snowflake, Number>
- */
-const blackList = new Map();
-module.exports.blackList = blackList;
-
-/**
- * The time given to users to send password to the stamp collector
- * @type {Number}
- */
-var stampCollectTime = 60;
-module.exports.stampCollectTime = stampCollectTime;
-
-// Common channels
-
-const channelIDs = {
-
-    /**
-     * The admin console where admins can run commands.
-     * @type {String}
-     */
-    adminConsoleChannel : null,
-  
-    /**
-     * The channel where the bot will log things.
-     * @type {String}
-     */
-    adminLogChannel : null,
-
-    /**
-     * Where the bot can send messages to users when DM is not available.
-     * @type {String}
-     */
-    botSupportChannel : null,
-
-    /**
-     * Where the bot will send reports.
-     * @type {String}
-     */
-    incomingReportChannel : null,
-
-    /**
-     * The first channel users have access to, where the verify command is used.
-     * @type {String}
-     */
-    welcomeChannel : null,
-
-    /**
-     * Support channel available to new users.
-     * @type {String}
-     */
-    welcomeSupport : null,
-}
-module.exports.channelIDs = channelIDs;
-
+const BotGuild = require('./db/botGuildDBObject');
 
 // where hackers join the wait list to talk to a sponsor
 // at the moment its only one, planned to extend to multiple
@@ -156,9 +56,13 @@ async function sendMessageToMember(member, message, isDelete = false) {
             msg.delete({timeout: 60000})
         }
         return msg;
-    }).catch(error => {
+    }).catch(async error => {
         if (error.code === 50007) {
-            member.guild.channels.resolve(this.channelIDs.botSupportChannel).send('<@' + member.id + '> I couldn\'t reach you :(. Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-');
+            let botGuild;
+            if (member?.guild) botGuild = await BotGuild.findById(member.guild.id);
+            else throw Error(`I could not help ${member.id} due to not finding the guild he is trying to access. I need a member and not a user!`);
+
+            member.guild.channels.resolve(botGuild.channelIDs.botSupportChannel).send('<@' + member.id + '> I couldn\'t reach you :(. Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-');
         } else {
             throw error;
         }
@@ -255,9 +159,11 @@ module.exports.replaceRoleToMember = replaceRoleToMember;
  * Log a message on the log channel
  * @param {Discord.Guild} guild - the guild being used
  * @param {String | Discord.MessageEmbed} message - message to send to the log channel
+ * @async
  */
-function discordLog(guild, message) {
-    //if (channelIDs?.adminLogChannel) guild.channels.cache.get(channelIDs.adminLogChannel).send(message);
+async function discordLog(guild, message) {
+    let botGuild = await BotGuild.findById(guild.id);
+    if (botGuild.channelIDs.adminLog) guild.channels.cache.get(botGuild.channelIDs.adminLog).send(message);
 }
 module.exports.discordLog = discordLog;
 
@@ -275,10 +181,11 @@ module.exports.replyAndDelete = replyAndDelete;
 /**
  * True if channel is admin console channel
  * @param {Discord.Channel} channel - channel to check
- * @returns {Boolean}
+ * @returns {Promise<Boolean>}
+ * @async
  */
-function isAdminConsole(channel) {
-    return channel.id === this.channelIDs.adminConsoleChannel;
+async function isAdminConsole(channel) {
+    return channel.id === (await (BotGuild.findById(channel.guild.id))).channelIDs.adminConsole;
 }
 module.exports.isAdminConsole = isAdminConsole;
 
