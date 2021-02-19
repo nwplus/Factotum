@@ -29,13 +29,13 @@ class Prompt {
             var msgs = await channel.awaitMessages(message => message.author.id === userID, {max: 1, time: time == 0 ? null : time * 1000, errors: ['time']});
             let msg = msgs.first();
 
+            discordServices.deleteMessage(promptMsg);
+            if (msg.channel.type != 'dm') discordServices.deleteMessage(msg);
+
             // check if they responded with cancel
             if (msg.content.toLowerCase() === 'cancel') {
                 throw new Error("The prompt has been canceled.");
             }
-
-            discordServices.deleteMessage(promptMsg);
-            discordServices.deleteMessage(msg);
 
             return msg;
         } catch (error) {
@@ -64,6 +64,7 @@ class Prompt {
             if (isNaN(num)) invalid = true;
         });
         if (invalid) {
+            discordServices.sendMsgToChannel(channel, userID, 'One of the numbers is invalid, please try again, numbers only!', 10);
             return Prompt.numberPrompt(prompt, channel, userID);
         } else {
             return numbers;
