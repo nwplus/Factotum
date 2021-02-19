@@ -1,6 +1,4 @@
 // Firebase requirements
-const firebase = require('firebase/app');
-require('firebase/firestore');
 const admin = require('firebase-admin');
 
 // var to hold firestore
@@ -59,144 +57,53 @@ async function getQuestion() {
 }
 module.exports.getQuestion = getQuestion;
 
+/**
+ * @typedef UserType
+ * @property {String} type
+ * @property {Boolean} isVerified
+ * @property {Date} timestamp
+ */
+
+/**
+ * @typedef FirebaseUser
+ * @property {String} email
+ * @property {String} discordId
+ * @property {UserType[]} types
+ */
 
 /**
  * Verifies the any event member via their email.
  * @param {String} email - the user email
  * @param {String} id - the user's discord snowflake
- * @param {String} event - which event user is verifying for
- * @returns {Promise<FirebaseStatus>} - one of the status constants
+ * @returns {Promise<String[]>} - the types this user is verified
  * @async
+ * @throws Error if the email provided was not found.
  */
-async function verifyUser(email, id) { // for cmd-f: used to verify for Learn
+async function verify(email, id) {
     var userRef = db.collection('members').where('email', '==', email).limit(1);
     var user = (await userRef.get()).docs[0];
 
     if (user) {
+        let returnTypes = [];
+
+        /** @type {FirebaseUser} */
         var data = user.data();
-        if (data['type'] === 'hacker') {
-            if (!data['verifiedLearn'] && data['canVerifyLearn']) {
-                user.ref.update({
-                    'verifiedLearn': true,
-                    'discord-id': id,
-                });
-                return status.HACKER_SUCCESS;
-            } else if (data['canVerifyLearn']) {
-                return status.HACKER_IN_USE;
+
+        data.types.forEach((value, index, array) => {
+            if (!value.isVerified) {
+                value.isVerified = true;
+                value.timestamp = admin.firestore.Timestamp.now();
+                returnTypes.push(value.type);
             }
-        } else {
-            if (!data['verified']) {
-                user.ref.update({
-                    'verified': true,
-                    'discord-id': id,
-                });
-                return data['type'] == 'mentor' ? status.MENTOR_SUCCESS : data['type'] == 'sponsor' ? status.SPONSOR_SUCCESS : status.STAFF_SUCCESS;
-            } else {
-                return data['type'] == 'mentor' ? status.MENTOR_IN_USE : data['type'] == 'sponsor' ? status.SPONSOR_IN_USE : status.STAFF_SUCCESS;
-            }
-        }
+        });
+
+        data.discordId = id;
+
+        user.ref.update(data);
+
+        return returnTypes;
+    } else {
+        throw new Error('The email provided was not found!');
     }
-    return status.FAILURE;
 }
-module.exports.verifyUser = verifyUser;
-
-/**
- * Will set the isAttending field to true, finds user via discord-id.
- * @param {String} email - email to verify
- * @returns {Promise<FirebaseStatus>}
- * @async
- */
-async function attendUser(email, id) { // for cmd-f: used to verify for cmd-f 2021
-    var userRef = db.collection('members').where('email', '==', email).limit(1);
-    var user = (await userRef.get()).docs[0];
-
-    if (user) {
-        var data = user.data();
-        if (data['type'] === 'hacker') {
-            if (!data['verifiedcmdf'] && data['canVerifycmdf']) {
-                user.ref.update({
-                    'verifiedcmdf': true,
-                    'discord-id': id,
-                });
-                return status.HACKER_SUCCESS;
-            } else if (data['canVerifycmdf']) {
-                return status.HACKER_IN_USE;
-            }
-        } else {
-            if (!data['verified']) {
-                user.ref.update({
-                    'verified': true,
-                    'discord-id': id,
-                });
-                return data['type'] == 'mentor' ? status.MENTOR_SUCCESS : data['type'] == 'sponsor' ? status.SPONSOR_SUCCESS : status.STAFF_SUCCESS;
-            } else {
-                return data['type'] == 'mentor' ? status.MENTOR_IN_USE : data['type'] == 'sponsor' ? status.SPONSOR_IN_USE : status.STAFF_SUCCESS;
-            }
-        }
-    }
-    return status.FAILURE;
-}
-module.exports.attendUser = attendUser;
-
-// /**
-//  * Verify a hacker by their email. Will make sure the hacker was accepted.
-//  * @param {String} email - the email of the hacker to verify
-//  * @param {String} id - the user's discord id snowflake
-//  * @private
-//  * @returns {Promise<String>} - one of the status constants
-//  */
-// async function verifyHacker(email, id) {
-//     var userRef = nwDB.collection('Hackathons').doc('nwHacks2021').collection('Applicants').where('basicInfo.email', '==', email).limit(1);
-//     var user = (await userRef.get()).docs[0];
-
-//     if (user != undefined) {
-//         let data = user.data();
-//         if (data['status'].applicationStatus === 'accepted' && (data['discord.isVerified'] == null || data['discord.isVerified'] == false) ) {
-//             // user.ref.update({
-//             //     'discord.id' : id,
-//             //     'discord.isVerified' : true,
-//             // });
-//             return status.HACKER_SUCCESS;
-//         } else return status.HACKER_IN_USE;
-//     } else return status.FAILURE;
-// }
-
-
-// /**
-//  * Verifies a discord member.
-//  * @param {String} email - member's email with which to verify
-//  * @param {String} id - member's discord id snowflake
-//  * @returns {Promise<String>} - one of the status constants
-//  */
-// async function verify(email, id) {
-//     // Check if hacker
-//     var sts = await verifyHacker(email, id);
-//     if(sts != status.FAILURE) {
-//         return sts;
-//     } else {
-//         // check everything else
-//         sts = await verifyUser(email, id);
-//         return sts;
-//     }
-// }
-// module.exports.verify = verify;
-
-// // sets the attendance to true for this email, this only works with hackers!
-// async function attendHacker(email) {
-//     var userRef = nwDB.collection('Hackathons').doc('nwHacks2021').collection('Applicants').where('basicInfo.email', '==', email).limit(1);
-//     var user = (await userRef.get()).docs[0];
-//     if (user != undefined) {
-//         data = user.data();
-//         if (data['discord.isAttending'] == false) {
-//             // user.ref.update({
-//             //     'discord.isAttending' : true,
-//             // });
-//             return status.HACKER_SUCCESS;
-//         } else if (data['discord.isAttending'] == true) {
-//             return status.HACKER_IN_USE;
-//         }
-//     } else {
-//         return status.FAILURE;
-//     }
-// }
-// module.exports.attendHacker = attendHacker;
+module.exports.verify = verify;
