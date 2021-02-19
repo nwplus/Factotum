@@ -25,7 +25,7 @@ module.exports = class AskQuestion extends PermissionCommand {
     }
 
     // Run function -> command body
-    async runCommand(message, {question}) {
+    async runCommand(botGuild, message, {question}) {
 
         // if question is blank let user know via DM and exit
         if (question === '') {
@@ -33,15 +33,13 @@ module.exports = class AskQuestion extends PermissionCommand {
                                                                 'Like this: !ask This is a question');
             return;
         }
-
-        let botGuild = await BotGuild.findById(message.guild.id);        
         
         // get current channel
         var curChannel = message.channel;
 
         // message embed to be used for question
         const qEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.questionEmbedColor)
+            .setColor(botGuild.colors.questionEmbedColor)
             .setTitle('Question from ' + message.author.username)
             .setDescription(question);
         

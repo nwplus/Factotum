@@ -45,7 +45,7 @@ module.exports = class ClearChat extends Command {
         var length = commands.length;
 
         const textEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('Commands Available for you')
             .setDescription('All other interactions with me will be via emoji reactions!')
             .setTimestamp();

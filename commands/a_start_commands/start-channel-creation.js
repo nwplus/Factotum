@@ -24,10 +24,10 @@ module.exports = class StartChannelCreation extends PermissionCommand {
     }
 
     /**
-     *  
-     * @param {Discord.Message} message 
+     * @param {Document} botGuild
+     * @param {Discord.Message} message - the message in which the command was run
      */
-    async runCommand(message) {
+    async runCommand(botGuild, message) {
 
         try {
             // grab current channel
@@ -36,8 +36,6 @@ module.exports = class StartChannelCreation extends PermissionCommand {
             message.channel.send('<@' + message.author.id + '> The command has been canceled due to the prompt cancel.').then(msg => msg.delete({timeout: 5000}));
             return;
         }
-
-        let botGuild = await BotGuild.findById(message.guild.id);
 
         // grab channel creation category and update permissions
         var category = channel.parent;
@@ -52,7 +50,7 @@ module.exports = class StartChannelCreation extends PermissionCommand {
         
         // create and send embed message to channel with emoji collector
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('Private Channel Creation')
             .setDescription('Do you need a private channel to work with your friends? Or a voice channel to get to know a mentor, here you can create private text or voice channels.' +
                 ' However do know that server admins will have access to these channels, and the bot will continue to monitor for bad language, so please follow the rules!')

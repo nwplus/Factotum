@@ -18,10 +18,17 @@ module.exports = class Report extends Command {
     }
 
     async run (message) {
+        let botGuild = await BotGuild.findById(message.guild.id);
+
         discordServices.deleteMessage(message);
 
+        if (!botGuild.report.isEnabled) {
+            discordServices.sendMessageToMember(message.author, 'The report functionality is disabled for this guild.');
+            return;
+        }
+
         const embed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('Thank you for taking the time to report users who are not following server or MLH rules. You help makes our community safer!')
             .setDescription('Please use the format below, be as precise and accurate as possible. \n ' + 
                             'Everything you say will be 100% anonymous. We have no way of reaching back to you so again, be as detailed as possible!\n' + 
@@ -42,10 +49,10 @@ module.exports = class Report extends Command {
             message.author.send('Thank you for the report! Our admin team will look at it ASAP!');
 
             // send the report content to the admin report channel!
-            var incomingReportChn = await message.guild.channels.resolve(discordServices.channelIDs.incomingReportChannel);
+            var incomingReportChn = await message.guild.channels.resolve(botGuild.report.incomingReportChannelID);
 
             const adminMsgEmbed = new Discord.MessageEmbed()
-                .setColor(discordServices.colors.embedColor)
+                .setColor(botGuild.colors.embedColor)
                 .setTitle('There is a new report that needs your attention!')
                 .setDescription(msg.content);
 

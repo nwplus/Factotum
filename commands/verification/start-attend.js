@@ -3,6 +3,7 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt');
 const Verification = require('../../classes/verification');
+const { Document } = require('mongoose');
 
 /**
  * StartAttend makes a new channel called #attend, or uses an existing channel of the user's choice, as the channel where the attend
@@ -30,11 +31,11 @@ module.exports = class StartAttend extends PermissionCommand {
      * If existsChannel is true, asks user to indicate the channel to use. Else asks user to indicate the category under which the
      * channel should be created, and then creates it. In both cases it will send an embed containing the instructions for hackers to 
      * check in.
+     * @param {Document} botGuild
      * @param {Discord.Message} message - message containing command
      */
-    async runCommand(message) {
+    async runCommand(botGuild, message) {
         var channel;
-        let botGuild = BotGuild.findById(message.guild.id);
 
         // register the attend command just in case its needed
         message.guild.setCommandEnabled('attend', true);
@@ -76,14 +77,15 @@ module.exports = class StartAttend extends PermissionCommand {
         let attendEmoji = '🔋';
 
         const embed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('Hey there!')
             .setDescription('In order to indicate that you are participating, please react to this message with ' + attendEmoji)
             .addField('Do you need assistance?', 'Head over to the support channel and ping the admins!')
         let embedMsg = await channel.send('<@&' + botGuild.roleIDs.memberRole + '>', {embed: embed});
         embedMsg.pin();
         embedMsg.react(attendEmoji);
-        discordServices.blackList.set(channel.id, 1000);
+        botGuild.blackList.set(channel.id, 1000);
+        botGuild.save();
         
         // reaction collector to attend hackers
         let embedMsgCollector = embedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === attendEmoji);
@@ -92,7 +94,7 @@ module.exports = class StartAttend extends PermissionCommand {
             let member = message.guild.member(user.id);
 
             // check if user needs to attend
-            if (!discordServices.checkForRole(member, discordServices.roleIDs.attendeeRole)) {
+            if (!discordServices.checkForRole(member, botGuild.roleIDs.attendeeRole)) {
                    Verification.attend(member);
             } else {
                 discordServices.sendEmbedToMember(member, {

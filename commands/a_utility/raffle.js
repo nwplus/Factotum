@@ -41,8 +41,7 @@ module.exports = class Raffle extends PermissionCommand {
      * @param {Discord.Message} message - message used to call the command
      * @param {integer} numberOfWinners - number of winners to be drawn
      */
-    async runCommand(message, {numberOfWinners}) {
-        let botGuild = await BotGuild.findById(message.guild.id);
+    async runCommand(botGuild, message, {numberOfWinners}) {
 
         //check that numberOfWinners is less than the number of people with stamp roles or it will infinite loop
         var memberCount = message.guild.members.cache.filter(member => member.roles.cache.has(botGuild.roleIDs.memberRole)).size;
@@ -73,7 +72,7 @@ module.exports = class Raffle extends PermissionCommand {
         }
         winners = Array.from(winners);
         const embed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('The winners of the raffle draw are:')
             .setDescription('<@' + winners.join('><@') + '>');
         await message.channel.send(embed);

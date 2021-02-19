@@ -3,7 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt');
-const BotGuild = require('../../db/botGuildDBObject');
+const { Document } = require('mongoose');
 
 // Command export
 module.exports = class RoleSelector extends PermissionCommand {
@@ -23,12 +23,10 @@ module.exports = class RoleSelector extends PermissionCommand {
 
 
     /**
-     * 
+     * @param {Document} botGuild
      * @param {Discord.Message} message - the command message
      */
-    async runCommand (message) {
-
-        let botGuild = await BotGuild.findById(message.guild.id);
+    async runCommand (botGuild, message) {
 
         // the emoji for staff to add new transfers
         let newTransferEmoji = '🆕';
@@ -46,7 +44,7 @@ module.exports = class RoleSelector extends PermissionCommand {
          */
         let transfers = new Discord.Collection();
 
-        const cardEmbed = new Discord.MessageEmbed().setColor(discordServices.colors.embedColor)
+        const cardEmbed = new Discord.MessageEmbed().setColor(botGuild.colors.embedColor)
             .setTitle('Role Selector!')
             .setDescription('React to the specified emoji to get the role, un-react to remove the role.');
 
