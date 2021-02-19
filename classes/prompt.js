@@ -121,7 +121,7 @@ class Prompt {
     static async channelPrompt({prompt, channel, userId}) {
         let promptMsg = await Prompt.messagePrompt({prompt, channel, userId}, 'mention');
         let channels = promptMsg.mentions.channels;
-        if (channels === null) {
+        if (!channels.first()) {
             channel.send('<@' + userId + '> No channel was mentioned, try again!').then(msg => msg.delete({timeout: 8000}));
             return Prompt.channelPrompt({prompt, channel, userId});
         }
@@ -139,7 +139,7 @@ class Prompt {
     static async rolePrompt({prompt, channel, userId}) {
         let promptMsg = await Prompt.messagePrompt({prompt, channel, userId}, 'mention');
         let roles = promptMsg.mentions.roles;
-        if (roles === null) {
+        if (!roles.first()) {
             channel.send('<@' + userId + '> You did not mention a role, try again!').then(msg => msg.delete({timeout: 8000}));
             return Prompt.rolePrompt({prompt, channel, userId});
         }
@@ -156,7 +156,7 @@ class Prompt {
     static async memberPrompt({prompt, channel, userId}) {
         let promptMsg = await Prompt.messagePrompt({prompt, channel, userId}, 'mention');
         let members = promptMsg.mentions.members;
-        if (members === null) {
+        if (!members.first()) {
             channel.send('<@' + userId + '> You did not mention a member, try again!').then(msg => msg.delete({timeout: 8000}));
             return Prompt.rolePrompt({prompt, channel, userId});
         }
