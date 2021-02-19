@@ -164,18 +164,21 @@ process.on('exit', () => {
 });
 
 bot.on('message', async message => {
-    let botGuild = await BotGuild.findById(message.guild.id);
+    if (message?.guild) {
+        let botGuild = await BotGuild.findById(message.guild.id);
 
-    // Deletes all messages to any channel in the black list with the specified timeout
-    // this is to make sure that if the message is for the bot, it is able to get it
-    // bot and staff messages are not deleted
-    if (true || botGuild.blackList.has(message.channel.id)) {
-        
-        
-        if (!message.author.bot && !discordServices.checkForRole(message.member, botGuild.roleIDs.staffRole)) {
-            (new Promise(res => setTimeout(res, discordServices.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
+        // Deletes all messages to any channel in the black list with the specified timeout
+        // this is to make sure that if the message is for the bot, it is able to get it
+        // bot and staff messages are not deleted
+        if (botGuild.blackList.has(message.channel.id)) {
+            if (!message.author.bot && !discordServices.checkForRole(message.member, botGuild.roleIDs.staffRole)) {
+                (new Promise(res => setTimeout(res, botGuild.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
+            }
         }
     }
+
+
+    
 
 });
 
