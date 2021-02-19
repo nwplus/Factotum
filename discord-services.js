@@ -3,6 +3,15 @@ const Discord = require('discord.js');
 // Available Roles
 
 /**
+ * @type {Discord.Collection<String, String>} - <type, roleId>
+ */
+const verificationRoles = new Discord.Collection();
+verificationRoles.set('cmd-f Hacker', '812441340888612924');
+verificationRoles.set('Learn Hacker', '812441385630040086')
+
+ module.exports.verificationRoles = verificationRoles
+
+/**
  * All the available roles from server creation.
  */
 module.exports.roleIDs = {
