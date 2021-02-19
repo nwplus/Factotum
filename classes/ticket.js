@@ -160,7 +160,7 @@ class Ticket {
             type: 'category',
             permissionOverwrites: [
                 {
-                    id: (await BotGuild.findById(this.guild.id)).roleIDs.everyoneRole,
+                    id: this.cave.botGuild.roleIDs.everyoneRole,
                     deny: ['VIEW_CHANNEL'],
                 }
             ]
