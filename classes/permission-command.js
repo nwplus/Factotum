@@ -1,7 +1,8 @@
 const Discord = require('discord.js');
-const { Command } = require('discord.js-commando');
+const { Command, CommandoMessage } = require('discord.js-commando');
 const BotGuild = require('../db/botGuildDBObject');
 const discordServices = require('../discord-services');
+const { Document } = require('mongoose');
 
 
 /**
@@ -66,7 +67,9 @@ class PermissionCommand extends Command {
         // delete the message
         discordServices.deleteMessage(message);
 
-        let botGuild = await BotGuild.findById(message.guild.id);
+        let botGuild;
+        if (message?.guild) botGuild = await BotGuild.findById(message.guild.id);
+        else botGuild = null;
 
         // check for DM only, when true, all other checks should not happen!
         if (this.permissionInfo.dmOnly) {
@@ -80,7 +83,7 @@ class PermissionCommand extends Command {
         } else {
             // Make sure it is only used in the permitted channel
             if (this.permissionInfo?.channel) {
-                let channelID = discordServices.channelIDs[this.permissionInfo.channel];
+                let channelID = botGuild.channelIDs[this.permissionInfo.channel];
 
                 if (channelID && message.channel.id != channelID) {
                     discordServices.sendMessageToMember(message.member, this.permissionInfo.channelMessage, true);
@@ -101,15 +104,20 @@ class PermissionCommand extends Command {
                 }
             }
         }
-        this.runCommand(message, args, fromPattern, result);
+        this.runCommand(botGuild, message, args, fromPattern, result);
     }
 
 
     /**
      * Required class by children, will throw error if not implemented!
+     * @param {Document} botGuild
+     * @param {CommandoMessage} message
+     * @param {*} args
+     * @param {Boolean} fromPattern
+     * @param {Promise<*>} result
      * @abstract
      */
-    runCommand(message, args, fromPattern, result) {
+    runCommand(botGuild, message, args, fromPattern, result) {
         throw new Error('You need to implement the runCommand method!');
     }
 }
@@ -124,7 +132,7 @@ class PermissionCommand extends Command {
 PermissionCommand.FLAGS = {
     ADMIN_ROLE: 'adminRole',
     STAFF_ROLE: 'staffRole',
-    ADMIN_CONSOLE: 'adminConsoleChannel',
+    ADMIN_CONSOLE: 'adminConsole',
 }
 
 module.exports = PermissionCommand;
