@@ -107,6 +107,7 @@ module.exports = class InitBot extends Command {
 
         // grab the admin role
         const adminRole = await this.askOrCreate('admin', channel, userId, guild, '#008369');
+        discordServices.addRoleToMember(message.author, adminRole);
 
         // create the admin channel package
         let {adminConsole, adminLog} = await BotGuild.createAdminChannels(guild, adminRole, everyoneRole);
