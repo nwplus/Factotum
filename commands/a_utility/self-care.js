@@ -1,7 +1,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
-const { messagePrompt, numberPrompt, yesNoPrompt, rolePrompt, memberPrompt } = require('../../classes/prompt');
+const { numberPrompt, yesNoPrompt, rolePrompt } = require('../../classes/prompt');
 const { getReminder } = require('../../firebase-services/firebase-services');
 
 var interval;
@@ -18,7 +18,7 @@ module.exports = class SelfCareReminders extends PermissionCommand {
         },
             {
                 role: PermissionCommand.FLAGS.STAFF_ROLE,
-                roleMessage: 'Hey there, the command !contests is only available to Staff!',
+                roleMessage: 'Hey there, the command !self-care is only available to Staff!',
             });
     }
 

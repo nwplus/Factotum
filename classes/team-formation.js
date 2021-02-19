@@ -317,8 +317,8 @@ module.exports = class TeamFormation {
      */
     async gatherForm(user, isTeam) {
         
-        var formMsg = await messagePrompt('Please send me your completed form, if you do not follow the form your post will be deleted!', 
-            'string', user.dmChannel, user.id, 30);
+        var formMsg = await messagePrompt({prompt: 'Please send me your completed form, if you do not follow the form your post will be deleted!', 
+            channel: user.dmChannel, userId: user.id},'string', 30);
         
 
         const embed = new MessageEmbed()

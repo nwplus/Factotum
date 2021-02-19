@@ -248,7 +248,7 @@ module.exports.replaceRoleToMember = replaceRoleToMember;
  * @param {String | Discord.MessageEmbed} message - message to send to the log channel
  */
 function discordLog(guild, message) {
-    if (channelIDs?.adminLogChannel) guild.channels.cache.get(channelIDs.adminLogChannel).send(message);
+    //if (channelIDs?.adminLogChannel) guild.channels.cache.get(channelIDs.adminLogChannel).send(message);
 }
 module.exports.discordLog = discordLog;
 
