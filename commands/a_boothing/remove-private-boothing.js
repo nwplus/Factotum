@@ -20,13 +20,13 @@ module.exports = class RemovePrivates extends PermissionCommand {
             ],
         },
         {
-            roleID: discordServices.roleIDs.staffRole,
+            roleID: PermissionCommand.FLAGS.STAFF_ROLE,
             roleMessage: 'This command can only be ran by staff!',
         });
     }
 
 
-    async runCommand(message, {number}) {
+    async runCommand(botGuild, message, {number}) {
 
         // make sure command is only used in the boothing-wait-list channel
         if (message.channel.name != 'boothing-wait-list') {
