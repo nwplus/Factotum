@@ -58,6 +58,6 @@ module.exports = class WorkshopPolls extends PermissionCommand {
             responses.set('🐇', 'Easy to understand?');
         }
 
-        ActivityManager.sendPoll(activity, title, question, responses);
+        ActivityManager.sendPoll(activity, title, question, responses, botGuild);
     }
 }

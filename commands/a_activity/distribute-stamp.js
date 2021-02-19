@@ -31,6 +31,6 @@ module.exports = class DistributeStamp extends PermissionCommand {
      * @param {Activity} activity 
      */
     async runCommand(botGuild, message, activity, {timeLimit}) {
-        ActivityManager.distributeStamp(activity, timeLimit);
+        ActivityManager.distributeStamp(activity, botGuild, timeLimit);
     }
 };

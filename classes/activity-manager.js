@@ -100,15 +100,16 @@ class ActivityManager {
      * Will let hackers get a stamp for attending an activity.
      * @param {Activity} activity - activity to use
      * @param {Number} [time] - time to wait till collector closes, in seconds
+     * @param {Document} botGuild
      * @async
      */
-    static async distributeStamp(activity, time = 60) {
+    static async distributeStamp(activity, botGuild, time = 60) {
         
         // The users already seen by this stamp distribution.
         let seenUsers = new Discord.Collection();
 
         const promptEmbed = new Discord.MessageEmbed()
-            .setColor((await (BotGuild.findById(activity.guild.id))).colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('React within ' + time + ' seconds of the posting of this message to get a stamp for ' + activity.name + '!');
         
         let promptMsg = await activity.generalText.send(promptEmbed);
@@ -126,7 +127,7 @@ class ActivityManager {
 
                 let role = member.roles.cache.find(role => regex.test(role.name));
 
-                if (role != undefined) this.parseRole(member, role, activity.name);
+                if (role != undefined) this.parseRole(member, role, activity.name, botGuild);
 
                 seenUsers.set(user.id, user.username);
             }
@@ -146,11 +147,12 @@ class ActivityManager {
      * @param {Discord.GuildMember} member - the member to add the new role to
      * @param {Discord.Role} role - the current role
      * @param {String} activityName - the name of the activity
+     * @param {Document} botGuild
      * @private
      */
-    static parseRole(member, role, activityName) {
+    static parseRole(member, role, activityName, botGuild) {
         let stampNumber = parseInt(role.name.substring(role.name.length - 2));
-        let newRoleID = (await (BotGuild.findById(member.guild.id))).stampRoles.get(stampNumber + 1);
+        let newRoleID = botGuild.stampRoles.get(stampNumber + 1);
 
         if (newRoleID != undefined) {
             discordServices.replaceRoleToMember(member, role.id, newRoleID);
@@ -165,8 +167,9 @@ class ActivityManager {
      * @param {String} title - the title of the poll
      * @param {String} question - the question to poll for
      * @param {Discord.Collection<String, String>} response - <Emoji, Response> A collection, in order of emojis with its response
+     * @param {Document} botGuild
      */
-    static sendPoll(activity, title, question, response){
+    static sendPoll(activity, title, question, response, botGuild){
         // create poll
         let description = question + '\n\n';
         for (const key of response.keys()) {
@@ -174,7 +177,7 @@ class ActivityManager {
         }
 
         let qEmbed = new Discord.MessageEmbed()
-            .setColor((await (BotGuild.findById(activity.guild.id))).colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle(title)
             .setDescription(description);
 
