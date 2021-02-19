@@ -157,7 +157,7 @@ class Activity {
         return this.guild.channels.create(this.name, {
             type: 'category',
             position: position >= 0 ? position : 0,
-            permissionOverwrites: this.botGuild.attendance?.attendeeRoleID ? [ // only lock the activity if the attendance role is in use
+            permissionOverwrites: this.botGuild.attendance.isEnabled ? [ // only lock the activity if the attendance role is in use
                 {
                     id: this.botGuild.roleIDs.everyoneRole,
                     deny: ['VIEW_CHANNEL']
@@ -372,6 +372,7 @@ class Activity {
             await discordServices.deleteChannel(channels[i]);
         }
 
+        this.botGuild.save();
         await discordServices.deleteChannel(this.category);
 
         firebaseActivity.remove(this.name);
