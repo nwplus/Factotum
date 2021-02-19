@@ -90,6 +90,10 @@ module.exports = class InitBot extends Command {
 
         // grab the admin role
         const adminRole = await this.askOrCreate('admin', channel, userId, guild, '#008369');
+<<<<<<< HEAD
+        //await adminRole.setMentionable(true);
+=======
+>>>>>>> develop
 
         // create the admin channel package
         let adminConsole = await this.createAdminChannels(guild, adminRole, everyoneRole);
@@ -137,7 +141,7 @@ module.exports = class InitBot extends Command {
         
         // ask if verification will be used
         try {
-            if (await Prompt.yesNoPrompt('Will you be using the verification service?', channel, userId)) {
+            if (await Prompt.yesNoPrompt({prompt: 'Will you be using the verification service?', channel, userId})) {
                 await this.setVerification(channel, userId, guild, everyoneRole, memberRole);
                 discordServices.sendMsgToChannel(channel, userId, 'The verification service has been set up correctly!', 60);
             }
@@ -148,7 +152,7 @@ module.exports = class InitBot extends Command {
 
         // ask if attendance will be used
         try {
-            if (await Prompt.yesNoPrompt('Will you be using the attendance service?', channel, userId)) {
+            if (await Prompt.yesNoPrompt({prompt: 'Will you be using the attendance service?', channel, userId})) {
                 guild.setCommandEnabled('start-attend', true);
     
                 const attendeeRole = await this.askOrCreate('attendee', channel, userId, guild, '#0099E1');
@@ -164,7 +168,7 @@ module.exports = class InitBot extends Command {
 
         // ask if the announcements will be used
         try {
-            if (await Prompt.yesNoPrompt('Have firebase announcements been set up code-side? If not say no, or the bot will fail!', channel, userId)) {
+            if (await Prompt.yesNoPrompt({prompt: 'Have firebase announcements been set up code-side? If not say no, or the bot will fail!', channel, userId})) {
                 await this.setAnnouncements(channel, userId);
                 discordServices.sendMsgToChannel(channel, userId, 'The announcements have been set up correctly!', 60);
             } else {
@@ -177,8 +181,8 @@ module.exports = class InitBot extends Command {
 
         // ask if the stamps will be used
         try {
-            if (await Prompt.yesNoPrompt('Will you be using the stamp service?', channel, userId)) {
-                let numberOfStamps = await Prompt.numberPrompt('How many stamps do you want? This number is final!', channel, userId);
+            if (await Prompt.yesNoPrompt({prompt: 'Will you be using the stamp service?', channel, userId})) {
+                let numberOfStamps = (await Prompt.numberPrompt({prompt: 'How many stamps do you want? This number is final!', channel, userId}))[0];
 
                 for (let i = 0; i < numberOfStamps; i++) {
                     let role = await guild.roles.create({
@@ -206,8 +210,8 @@ module.exports = class InitBot extends Command {
 
         // ask if the user will use the report functionality
         try {
-            if (await Prompt.yesNoPrompt('Will you be using the report functionality?', channel, userId)) {
-                let incomingReportChannel = await Prompt.channelPrompt('What channel should prompts be sent to? We recommend this channel be accessible to your staff.', channel, userId);
+            if (await Prompt.yesNoPrompt({prompt: 'Will you be using the report functionality?', channel, userId})) {
+                let incomingReportChannel = (await Prompt.channelPrompt({prompt: 'What channel should prompts be sent to? We recommend this channel be accessible to your staff.', channel, userId})).first();
                 discordServices.channelIDs.incomingReportChannel = incomingReportChannel.id;
 
                 guild.setCommandEnabled('report', true);
@@ -220,7 +224,7 @@ module.exports = class InitBot extends Command {
 
         // ask if the user wants to use the experimental !ask command
         try {
-            if (await Prompt.yesNoPrompt('Do you want to let users use the experimental !ask command?', channel, userId)) {
+            if (await Prompt.yesNoPrompt({prompt: 'Do you want to let users use the experimental !ask command?', channel, userId})) {
                 guild.setCommandEnabled('ask', true);
                 discordServices.sendMsgToChannel(channel, userId, 'The ask command is now available to the server users.', 60);
             }
@@ -237,8 +241,8 @@ module.exports = class InitBot extends Command {
 
         // TODO remove this when fixed
         try {
-            discordServices.roleIDs.mentorRole = await Prompt.rolePrompt('What is the mentor role', channel, userId);
-            discordServices.roleIDs.sponsorRole = await Prompt.rolePrompt('What is the sponsor role?', channel, userId);
+            discordServices.roleIDs.mentorRole = (await Prompt.rolePrompt({prompt: 'What is the mentor role', channel, userId})).first();
+            discordServices.roleIDs.sponsorRole = (await Prompt.rolePrompt({prompt: 'What is the sponsor role?', channel, userId})).first();
         } catch (error) {
             discordServices.sendMsgToChannel(channel, userId, 'Mentor and/or Sponsor verification was not set due to cancel prompt!');
         }
@@ -252,7 +256,7 @@ module.exports = class InitBot extends Command {
      */
     async askForBotSupportChannel(channel, userId) {
         try {
-            let botSupportChannel = await Prompt.channelPrompt('What channel can the bot use to contact users when DMs are not available?', channel, userId);
+            let botSupportChannel = (await Prompt.channelPrompt({prompt: 'What channel can the bot use to contact users when DMs are not available?', channel, userId})).first();
             discordServices.channelIDs.botSupportChannel = botSupportChannel.id;
         } catch (error) {
             channel.send('<@' + userId + '> You can not cancel this command, please try again!').then(msg => msg.delete({timeout: 15000}));
@@ -366,7 +370,7 @@ module.exports = class InitBot extends Command {
      */
     async setAnnouncements(channel, userId) {
         try {
-            let announcementChannel = await Prompt.channelPrompt('What channel should announcements be sent to? If you don\'t have it, create it and come back, do not cancel.');
+            let announcementChannel = (await Prompt.channelPrompt({prompt: 'What channel should announcements be sent to? If you don\'t have it, create it and come back, do not cancel.', channel, userId})).first();
 
             // var to mark if gotten documents once
             var isInitState = true;
@@ -407,14 +411,13 @@ module.exports = class InitBot extends Command {
      * @throws Error from Prompt if canceled
      */
     async askOrCreate(roleName, channel, userId, guild, color) {
-        let hasRole = await Prompt.yesNoPrompt('Have you created the ' + roleName + ' role? You can go ahead and create it if you wish, or let me do the hard work.', channel, userId);
-
+        let hasRole = await Prompt.yesNoPrompt({prompt: 'Have you created the ' + roleName + ' role? You can go ahead and create it if you wish, or let me do the hard work.', channel, userId});
         if (hasRole) {
-            return await Prompt.rolePrompt('What is the ' + roleName + ' role?', channel, userId);
+            return (await Prompt.rolePrompt({prompt: 'What is the ' + roleName + ' role?', channel, userId})).first();
         } else {
             return await guild.roles.create({
                 data: {
-                    name: (await Prompt.messagePrompt('What name would you like the ' + roleName + ' role to have?', 'string', channel, userId)).content,
+                    name: (await Prompt.messagePrompt({prompt: 'What name would you like the ' + roleName + ' role to have?', channel, userId}, 'string')).content,
                     color: color,
                 }
             });

@@ -1,7 +1,11 @@
 {
     "adminRoleID" : "738491577596641311",
     "adminConsoleID" : "808454476116787230",
+<<<<<<< HEAD
+    "adminLogsID" : "743197503884755045",
+=======
     "adminLogsID" : "808454477484785684",
+>>>>>>> develop
     "staffRoleID" : "738519363904077916",
     "memberRoleID" : "808409937373298700",
     "everyoneRoleID" : "738475671977722058",
