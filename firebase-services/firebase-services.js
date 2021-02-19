@@ -92,7 +92,7 @@ async function verify(email, id) {
         data.types.forEach((value, index, array) => {
             if (!value.isVerified) {
                 value.isVerified = true;
-                value.timestamp = admin.firestore.Timestamp.now();
+                value.VerifiedTimestamp = admin.firestore.Timestamp.now();
                 returnTypes.push(value.type);
             }
         });
@@ -107,3 +107,32 @@ async function verify(email, id) {
     }
 }
 module.exports.verify = verify;
+
+/**
+ * Attends the user via their discord id
+ * @param {String} id - the user's discord snowflake
+ * @returns {Promise<String[]>} - the types this user is verified
+ * @async
+ * @throws Error if the email provided was not found.
+ */
+async function attend(id) {
+    var userRef = db.collection('members').where('discordId', '==', id).limit(1);
+    var user = (await userRef.get()).docs[0];
+
+    if (user) {
+        /** @type {FirebaseUser} */
+        var data = user.data();
+
+        data.types.forEach((value, index, array) => {
+            if (value.isVerified) {
+                value.isAttending = true;
+                value.AttendingTimestamp = admin.firestore.Timestamp.now();
+            }
+        });
+
+        user.ref.update(data);
+    } else {
+        throw new Error('The email provided was not found!');
+    }
+}
+module.exports.attend = attend;

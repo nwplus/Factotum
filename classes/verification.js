@@ -79,7 +79,29 @@ class Verification {
             });
             discordServices.discordLog(guild, `VERIFY ERROR : <@${member.id}> Verified email: ${email} had types available, but I could not find them on the botGuild!`);
         }
-    }   
+    }
+
+
+    /**
+     * Will attend the user and give it the attendee role.
+     * @param {GuildMember} member 
+     */
+    async static attend(member) {
+        try {
+            // wait for attend to end, then give role
+            await firebaseServices.attend(member.id);
+            discordServices.addRoleToMember(member, discordServices.roleIDs.attendeeRole);
+            discordServices.sendEmbedToMember(member, {
+                title: 'Attendance Success',
+                description: 'You have been marked as attending, thank you and good luck!',
+                color: discordServices.colors.specialDMEmbedColor,
+            });
+            discordServices.discordLog(member.guild, `ATTEND SUCCESS : <@${member.id}> has been marked as attending!`);
+        } catch (error) {
+            // email was not found, let admins know!
+            discordServices.discordLog(member.guild, `ATTEND WARNING : <@${member.id}> tried to attend but I could not find his discord ID! He might be an impostor!!!`);
+        }
+    }
 
 }
 module.exports = Verification;

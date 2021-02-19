@@ -3,6 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const firebaseServices = require('../../firebase-services/firebase-services');
 const Discord = require('discord.js');
 const discordServices = require('../../discord-services');
+const Verification = require('../../classes/verification');
 
 // Command export
 module.exports = class Attend extends PermissionCommand {
@@ -19,7 +20,11 @@ module.exports = class Attend extends PermissionCommand {
                     type: 'string',
                     default: '',
                 },
-                
+                {
+                    key: 'guildId',
+                    prompt: 'Please provide the server ID, ask admins for it!',
+                    type: 'number',
+                },
             ],
         },
         {
@@ -32,7 +37,16 @@ module.exports = class Attend extends PermissionCommand {
      * @param {Discord.Message} message 
      * @param {String} param1 
      */
-    async runCommand(message, { email }) {
+    async runCommand(message, { email, guildId }) {
+        // check if the user needs to attend, else warn and return
+        if (discordServices.checkForRole(message.author, discordServices.roleIDs.attendeeRole)) {
+            discordServices.sendEmbedToMember(message.author, {
+                title: 'Attend Error',
+                description: 'You do not need to attend! Happy hacking!!!'
+            }, true);
+            return;
+        }
+
         // make email lowercase
         email = email.toLowerCase();
 
@@ -45,45 +59,18 @@ module.exports = class Attend extends PermissionCommand {
             return;
         }
 
-        // check if the user needs to attend, else warn and return
-        if (discordServices.checkForRole(member, discordServices.roleIDs.attendeeRole)) {
-            discordServices.sendEmbedToMember(member, {
-                title: 'Attend Error',
-                description: 'You do not need to attend! Happy hacking!!!'
-            }, true);
+        let guild = this.client.guilds.cache.get(guildId);
+        if (!guild) {
+            discordServices.sendEmbedToMember(message.author, {
+                title: 'Attendance Failure',
+                description: 'The given server ID is not valid. Please try again!',
+            });
             return;
         }
-
-        let guild = message.channel.client.guilds.cache.first();
         let member = guild.member(message.author.id);
         
         // call the firebase services attendHacker function
-        var status = await firebaseServices.attendHacker(email);
-
-        // embed to use
-        const embed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.specialDMEmbedColor)
-            .setTitle('Attendance Process');
-
-        // Check the returned status and act accordingly!
-        switch(status) {
-            case firebaseServices.status.HACKER_SUCCESS:
-                embed.addField('Thank you for attending nwHacks 2021', 'Happy hacking!!!');
-                discordServices.addRoleToMember(member, discordServices.roleIDs.attendeeRole);
-                discordServices.discordLog(guild, "ATTEND SUCCESS : <@" + message.author.id + "> with email: " + email + " is attending nwHacks 2021!");
-                break;
-            case firebaseServices.status.HACKER_IN_USE:
-                embed.addField('Hi there, this email is already marked as attending', 'Have a great day!')
-                break;
-            case firebaseServices.status.FAILURE:
-                embed.addField('ERROR 401', 'Hi there, the email you tried to attend with is not' +
-                    ' in our system, please make sure your email is well typed. If you think this is an error' +
-                    ' please contact us in the support channel.')
-                    .setColor('#fc1403');
-                discordServices.discordLog(guild, "ATTEND ERROR : <@" + message.author.id + "> with email: " + email + " tried to attend but I did not find his email!");
-                break;
-        }
-        discordServices.sendMessageToMember(member, embed);
+        Verification.attend(member);
     }
 
 };
