@@ -41,6 +41,7 @@ module.exports = class DiscordContests extends PermissionCommand {
         // helpful prompt vars
         let channel = message.channel;
         let userId = message.author.id;
+        this.botGuild = botGuild;
 
         //ask user for time interval between questions
         var timeInterval;
@@ -80,7 +81,7 @@ module.exports = class DiscordContests extends PermissionCommand {
         }
 
         const startEmbed = new Discord.MessageEmbed()
-            .setColor(botGuild.colors.embedColor)
+            .setColor(this.botGuild.colors.embedColor)
             .setTitle(string)
             .setDescription('Note: Questions that have correct answers are non-case sensitive but any extra or missing symbols will be considered incorrect.\n' +
                 'For Staff only:\n' +
@@ -144,7 +145,7 @@ module.exports = class DiscordContests extends PermissionCommand {
             let needAllAnswers = data.needAllAnswers;
 
             const qEmbed = new Discord.MessageEmbed()
-                .setColor(botGuild.colors.embedColor)
+                .setColor(this.botGuild.colors.embedColor)
                 .setTitle('A new Discord Contest Question:')
                 .setDescription(question + '\n' + ((answers.length === 0) ? 'Staff: click the 👑 emoji to announce a winner!' : 
                                                                             'Exact answers only!'));

@@ -110,7 +110,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
                 pwdCollector.on('collect', async m => {
                     //update role and stop collecting if password matches
                     if (m.content === password) {
-                        member.roles.cache.forEach(async role => (await this.parseRole(member, user, role, message, activityName)));
+                        member.roles.cache.forEach(async role => (await this.parseRole(member, user, role, message, activityName, botGuild)));
                         correctPassword = true;
                         //discordServices.deleteMessage(msgs);
                         discordServices.deleteMessage(dmMessage);
@@ -151,7 +151,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
     }
 
     //replaces user's current role with the next one
-    async parseRole(member,user,curRole,message,activityName) {
+    async parseRole(member,user,curRole,message,activityName, botGuild) {
         var stampNumber; //keep track of which role should be next based on number of stamps
         var newRole; //next role based on stampNumber
         
@@ -163,7 +163,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
             
             if (stampNumber === 6) {
                 //manually set newRole to Stamp - 6 if stampNumber = 6 because otherwise it will end up being MEE6
-                newRole = message.guild.roles.cache.find(role => role.id === (await (BotGuild.findById(message.guild.id))).stampRoles.stamp6Role);
+                newRole = message.guild.roles.cache.find(role => role.id === botGuild.stampRoles.stamp6Role);
             }
             newRole = message.guild.roles.cache.find(role => 
                 !isNaN(role.name.substring(role.name.length - 2)) &&
