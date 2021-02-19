@@ -29,7 +29,7 @@ module.exports = class InitCoffeeChats extends ActivityCommand {
      * @param {Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
      */
-    async activityCommand(message, activity, { numOfGroups }) {
+    async activityCommand(botGuild, message, activity, { numOfGroups }) {
 
         let joinActivityChannel = await activity.makeCoffeeChats(numOfGroups);
 
@@ -38,7 +38,7 @@ module.exports = class InitCoffeeChats extends ActivityCommand {
 
         // send embed and react with emoji
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('Join the activity!')
             .setDescription('If you want to join this activity, please react to this message with ' + emoji +' and follow my instructions!\n If the emojis are not working' +
             ' it means the activity is full. Check the activity text channel for other activity times!');

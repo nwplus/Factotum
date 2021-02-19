@@ -3,7 +3,8 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const { numberPrompt, yesNoPrompt, rolePrompt, memberPrompt } = require('../../classes/prompt');
 const { getQuestion } = require('../../firebase-services/firebase-services');
-const BotGuild = require('../../db/botGuildDBObject');
+const { Document } = require('mongoose');
+
 
 var interval;
 
@@ -33,14 +34,13 @@ module.exports = class DiscordContests extends PermissionCommand {
      * Stores a map which keeps the questions (strings) as keys and an array of possible answers (strings) as values. It iterates through
      * each key in order and asks them in the Discord channel in which it was called at the given intervals. It also listens for emojis
      * that tell it to pause, resume, or remove a specified question. 
+     * @param {Document} botGuild
      * @param {Discord.Message} message - the message in which this command was called
      */
-    async runCommand(message) {
+    async runCommand(botGuild, message) {
         // helpful prompt vars
         let channel = message.channel;
         let userId = message.author.id;
-        
-        this.botGuild = await BotGuild.findById(message.guild.id);
 
         //ask user for time interval between questions
         var timeInterval;
@@ -80,7 +80,7 @@ module.exports = class DiscordContests extends PermissionCommand {
         }
 
         const startEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle(string)
             .setDescription('Note: Questions that have correct answers are non-case sensitive but any extra or missing symbols will be considered incorrect.\n' +
                 'For Staff only:\n' +
@@ -144,7 +144,7 @@ module.exports = class DiscordContests extends PermissionCommand {
             let needAllAnswers = data.needAllAnswers;
 
             const qEmbed = new Discord.MessageEmbed()
-                .setColor(discordServices.colors.embedColor)
+                .setColor(botGuild.colors.embedColor)
                 .setTitle('A new Discord Contest Question:')
                 .setDescription(question + '\n' + ((answers.length === 0) ? 'Staff: click the 👑 emoji to announce a winner!' : 
                                                                             'Exact answers only!'));

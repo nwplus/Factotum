@@ -23,10 +23,8 @@ module.exports = class InitAmongUs extends ActivityCommand {
      * @param {Message} message 
      * @param {Activity} activity 
      */
-    async activityCommand(message, activity) {
-
-        let botGuild = await BotGuild.findById(message.guild.id);
-
+    async activityCommand(botGuild, message, activity) {
+        
         // get the archive category or create it
         var archiveCategory = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name === '💼archive');
 
@@ -37,13 +35,13 @@ module.exports = class InitAmongUs extends ActivityCommand {
             archiveCategory = await message.guild.channels.create('💼archive', {
                 type: 'category', 
                 position: position + 1,
-                permissionOverwrites: botGuild.roleIDs?.attendeeRole ? [
+                permissionOverwrites: botGuild.attendance.isEnabled ? [
                     {
                         id: botGuild.roleIDs.everyoneRole,
                         deny: ['VIEW_CHANNEL'],
                     },
                     {
-                        id: botGuild.roleIDs.attendeeRole,
+                        id: botGuild.attendance.attendeeRoleID,
                         allow: ['VIEW_CHANNEL'],
                     },
                     {

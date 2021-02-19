@@ -32,7 +32,7 @@ module.exports = class WorkshopPolls extends PermissionCommand {
      * @param {Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
      */
-    async runCommand(message, activity, { questionType }) {
+    async runCommand(botGuild, message, activity, { questionType }) {
 
         let responses = new Discord.Collection();
         let title = '';

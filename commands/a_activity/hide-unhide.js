@@ -37,7 +37,7 @@ module.exports = class HideUnhide extends Command {
         discordServices.deleteMessage(message);
 
         // make sure command is only used in the admin console
-        if (! discordServices.isAdminConsole(message.channel)) {
+        if (! (await discordServices.isAdminConsole(message.channel))) {
             discordServices.replyAndDelete(message, 'This command can only be used in the admin console!');
             return;   
         }

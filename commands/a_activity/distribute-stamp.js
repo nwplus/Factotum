@@ -15,7 +15,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
                     key: 'timeLimit',
                     prompt: 'How many seconds will the reactions be open for',
                     type: 'integer',
-                    default: discordServices.stampCollectTime,
+                    default: 60,
                 },
             ],
         },
@@ -30,7 +30,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
      * @param {Message} message 
      * @param {Activity} activity 
      */
-    async runCommand(message, activity, {timeLimit}) {
+    async runCommand(botGuild, message, activity, {timeLimit}) {
         ActivityManager.distributeStamp(activity, timeLimit);
     }
 };

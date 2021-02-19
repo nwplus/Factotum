@@ -2,6 +2,7 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const PermissionCommand = require('../../classes/permission-command');
 const Prompt = require('../../classes/prompt');
+const { Document } = require('mongoose');
 
 module.exports = class DistributeStamp extends PermissionCommand {
     constructor(client) {
@@ -39,14 +40,13 @@ module.exports = class DistributeStamp extends PermissionCommand {
     }
 
     /**
-     * 
+     * @param {Document} botGuild
      * @param {Discord.Message} message
      */
-    async runCommand(message, {activityName, password, stopTime}) {
+    async runCommand(botGuild, message, {activityName, password, stopTime}) {
         // helpful vars
         let channel = message.channel;
         let userId = message.author.id;
-
         // check if arguments have been given and prompt for the channel to use
         try {
             if (activityName === '') {
@@ -66,7 +66,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
         }
 
         const qEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('React with anything to claim a stamp for attending ' + activityName)
             .setDescription('Once you react to this message, check for a DM from this bot. **You can only emoji this message once!**')
             .addField('A Password Is Required!', 'Through the Bot\'s DM, you will have 3 attempts in the first 60 seconds to enter the correct password.');
@@ -163,7 +163,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
             
             if (stampNumber === 6) {
                 //manually set newRole to Stamp - 6 if stampNumber = 6 because otherwise it will end up being MEE6
-                newRole = message.guild.roles.cache.find(role => role.id === discordServices.stampRoles.stamp6Role);
+                newRole = message.guild.roles.cache.find(role => role.id === (await (BotGuild.findById(message.guild.id))).stampRoles.stamp6Role);
             }
             newRole = message.guild.roles.cache.find(role => 
                 !isNaN(role.name.substring(role.name.length - 2)) &&
