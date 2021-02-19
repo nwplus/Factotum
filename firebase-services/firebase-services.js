@@ -154,6 +154,38 @@ async function checkName(firstName, lastName) {
 module.exports.checkName = checkName;
 
 /**
+ * Adds new document in Firebase members collection for manually verified member
+ * @param {String} email - email of member verified
+ * @param {GuildMember} member - member verified
+ * @param {String} type - type of participant verified
+ */
+async function addUserData(email, member, type) {
+    var newDocument = db.collection('members').doc();
+    if (type === 'hacker') {
+        var verifyLearn = false;
+        if (new Date() < new Date(2021, 1, 28)) {
+            verifyLearn = true;
+        }
+        newDocument.set({
+            'email': email,
+            'type': 'hacker',
+            'discord-id': member.id,
+            'canVerifyLearn': true,
+            'canVerifycmdf': true,
+            'verifiedLearn': verifyLearn,
+            'verifiedcmdf': !verifyLearn,
+        });
+    } else {
+        newDocument.set({
+            'email': email,
+            'type': type,
+            'discord-id': member.id,
+            'verified': true,
+        });
+    }
+}
+module.exports.addUserData = addUserData;
+/**
  * Verifies the any event member via their email.
  * @param {String} email - the user email
  * @param {String} id - the user's discord snowflake
