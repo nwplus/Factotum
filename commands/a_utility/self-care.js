@@ -26,19 +26,23 @@ module.exports = class SelfCareReminders extends PermissionCommand {
      * @param {Discord.Message} message - the message in which this command was called
      */
     async runCommand(message) {
+        // helpful vars
+        let channel = message.channel;
+        let userId = message.author.id;
+
         //ask user for time interval between reminders
         var timeInterval;
         try {
-            let num = await numberPrompt('What is the time interval between reminders in minutes (integer only)? ', message.channel, message.author.id);
+            let num = await numberPrompt({prompt: 'What is the time interval between reminders in minutes (integer only)? ', channel, userId});
             timeInterval = 1000 * 60 * num;
 
             // ask user whether to start sending reminders now(true) or after 1 interval (false)
-            var startNow = await yesNoPrompt('Type "yes" to send first reminder now, "no" to start one time interval from now. ', message.channel, message.author.id)
+            var startNow = await yesNoPrompt({prompt: 'Type "yes" to send first reminder now, "no" to start one time interval from now. ', channel, userId});
 
             // id of role to mention when new reminders come out (use-case for self-care still tbd)
-            var role = (await rolePrompt('What is the hacker role to notify for self-care reminders?', message.channel, message.author.id, 15)).id;
+            var role = (await rolePrompt({prompt: 'What is the hacker role to notify for self-care reminders?', channel, userId})).id;
         } catch (error) {
-            message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
+            channel.send('<@' + userId + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;
         }
 
@@ -53,7 +57,7 @@ module.exports = class SelfCareReminders extends PermissionCommand {
                 '⏸️ to pause\n' +
                 '▶️ to resume\n');
 
-        message.channel.send('<@&' + role + '>', { embed: startEmbed }).then((msg) => {
+        channel.send('<@&' + role + '>', { embed: startEmbed }).then((msg) => {
             msg.pin();
             msg.react('⏸️');
             msg.react('▶️');
@@ -69,7 +73,7 @@ module.exports = class SelfCareReminders extends PermissionCommand {
                     if (interval != null && !paused) {
                         clearInterval(interval);
                         paused = true;
-                        message.channel.send('<@' + user.id + '> Self-care reminders have been paused!').then(msg => msg.delete({timeout: 10000}));
+                        channel.send('<@' + user.id + '> Self-care reminders have been paused!').then(msg => msg.delete({timeout: 10000}));
                     }
                 } else if (reaction.emoji.name === '▶️') {
                     //if it is currently paused, restart the interval and send the next reminder immediately
@@ -77,7 +81,7 @@ module.exports = class SelfCareReminders extends PermissionCommand {
                         sendReminder();
                         interval = setInterval(sendReminder, timeInterval);
                         paused = false;
-                        message.channel.send('<@' + user.id + '> Self-care reminders have been un-paused!').then(msg => msg.delete({timeout: 10000}));
+                        channel.send('<@' + user.id + '> Self-care reminders have been un-paused!').then(msg => msg.delete({timeout: 10000}));
                     }
                 } 
             });
@@ -109,7 +113,7 @@ module.exports = class SelfCareReminders extends PermissionCommand {
                 .setTitle(reminder)
                 // .setDescription(reminder);
             
-            message.channel.send(qEmbed);
+            channel.send(qEmbed);
         }
     }
 }
