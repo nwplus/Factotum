@@ -37,6 +37,16 @@ module.exports = class Verify extends PermissionCommand {
      * @param {String} email 
      */
     async runCommand(message, { email, guildId }) {
+
+        // check if the user needs to verify, else warn and return
+        if (!discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
+            discordServices.sendEmbedToMember(member, {
+                title: 'Verify Error',
+                description: 'You do not need to verify, you are already more than a guest!'
+            }, true);
+            return;
+        }
+
         // make email lowercase
         email = email.toLowerCase();
 
@@ -50,16 +60,14 @@ module.exports = class Verify extends PermissionCommand {
         }
 
         let guild = this.client.guilds.cache.get(guildId);
-        let member = guild.member(message.author.id);
-
-        // check if the user needs to verify, else warn and return
-        if (!discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
-            discordServices.sendEmbedToMember(member, {
-                title: 'Verify Error',
-                description: 'You do not need to verify, you are already more than a guest!'
-            }, true);
+        if (!guild) {
+            discordServices.sendEmbedToMember(message.author, {
+                title: 'Verification Failure',
+                description: 'The given server ID is not valid. Please try again!',
+            });
             return;
         }
+        let member = guild.member(message.author.id);
 
         // Call the verify function
         Verification.verify(member, email, guild);
