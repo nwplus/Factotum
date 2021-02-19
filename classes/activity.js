@@ -3,6 +3,7 @@ const BotGuild = require("../db/botGuildDBObject");
 const discordServices = require('../discord-services');
 const firebaseActivity = require('../firebase-services/firebase-services-activities');
 const firebaseCoffeeChats = require('../firebase-services/firebase-services-coffeechats');
+const { Document } = require('mongoose');
 
 
 /**
@@ -99,7 +100,7 @@ class Activity {
 
         /**
          * The mongoose BotGuild Object
-         * @type {BotGuild}
+         * @type {Document}
          */
         this.botGuild;
     }
@@ -129,6 +130,7 @@ class Activity {
      * @returns {Promise<Activity>}
      */
     async init() {
+        this.botGuild = await BotGuild.findById(this.guild.id);
         let position = await this.guild.channels.cache.filter(channel => channel.type === 'category').array().length;
         this.category = await this.createCategory(position);
         this.generalText =  await this.addChannel(this.activityInfo.generalTextChannelName, {
@@ -138,7 +140,6 @@ class Activity {
         this.generalVoice = await this.addChannel(this.activityInfo.generalVoiceChannelName, {
             type: 'voice', 
         });
-        this.botGuild = await BotGuild.findById(guild.id);;
 
         return this;
     }
@@ -156,13 +157,13 @@ class Activity {
         return this.guild.channels.create(this.name, {
             type: 'category',
             position: position >= 0 ? position : 0,
-            permissionOverwrites: this.botGuild.roleIDs?.attendeeRole ? [ // only lock the activity if the attendance role is in use
+            permissionOverwrites: this.botGuild.attendance?.attendeeRoleID ? [ // only lock the activity if the attendance role is in use
                 {
                     id: this.botGuild.roleIDs.everyoneRole,
                     deny: ['VIEW_CHANNEL']
                 },
                 {
-                    id: this.botGuild.roleIDs.attendeeRole,
+                    id: this.botGuild.attendance.attendeeRoleID,
                     allow: ['VIEW_CHANNEL']
                 },
                 {
@@ -235,7 +236,7 @@ class Activity {
             }, 
             [
                 {
-                    roleID: (await (BotGuild.findById(this.guild.id))).roleIDs.hackerRole,
+                    roleID: this.botGuild.roleIDs.memberRole,
                     permissions: {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true},
                 },
             ]);
@@ -338,7 +339,7 @@ class Activity {
             type: 'text', 
             topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
         },[
-            { roleID: this.botGuild.roleIDs?.attendeeRole || this.botGuild.roleIDs.everyoneRole, permissions: {VIEW_CHANNEL: false} },
+            { roleID: this.botGuild.attendance?.attendeeRoleID || this.botGuild.roleIDs.everyoneRole, permissions: {VIEW_CHANNEL: false} },
         ]);
 
         // create and blacklist an assistance channel
@@ -346,7 +347,8 @@ class Activity {
             type: 'text', 
             topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
         });
-        discordServices.blackList.set(assistanceChannel.id, 5000);
+        this.botGuild.blackList.set(assistanceChannel.id, 5000);
+        this.botGuild.save();
         
         return {taChannel, assistanceChannel};
     }
@@ -366,7 +368,7 @@ class Activity {
         let channels = this.category.children.array();
 
         for(let i = 0; i < channels.length; i++) {
-            discordServices.blackList.delete(channels[i].id);
+            this.botGuild.blackList.delete(channels[i].id);
             await discordServices.deleteChannel(channels[i]);
         }
 
@@ -418,7 +420,7 @@ class Activity {
      * @param {Boolean} toHide 
      */
     async makeVoiceChannelPrivate(channel, toHide) {
-        channel.updateOverwrite(this.botGuild.roleIDs?.attendeeRole || this.botGuild.roleIDs.everyoneRole, {VIEW_CHANNEL: toHide ? false : true});
+        channel.updateOverwrite(this.botGuild.attendance?.attendeeRoleID || this.botGuild.roleIDs.everyoneRole, {VIEW_CHANNEL: toHide ? false : true});
     }
 }
 
