@@ -5,7 +5,7 @@ const Prompt = require('../../classes/prompt');
 const { Document } = require('mongoose');
 const ActivityManager = require('../../classes/activity-manager');
 
-module.exports = class DistributeStamp extends PermissionCommand {
+module.exports = class PasswordStamp extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'password-stamp',
@@ -115,7 +115,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
 
                         // let role = member.roles.cache.find(role => regex.test(role.name));
                         let role = member.roles.cache.find(role => discordServices.stampRoles.has(role.id));
-                        if (role != undefined) ActivityManager.parseRole(member, role, activityName);
+                        ActivityManager.parseRole(member, role, activityName);
                         correctPassword = true;
                         //discordServices.deleteMessage(msgs);
                         //discordServices.deleteMessage(dmMessage);

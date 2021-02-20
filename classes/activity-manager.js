@@ -33,7 +33,7 @@ class ActivityManager {
         let channels = activity.category.children.filter(channel => channel.type === 'voice' && channel.id != activity.generalVoice.id);
 
         // loop over the groups and channels at the same time using an index, add users for each group in a single voice channel
-        for(var index = 0; index < channels.array().length; index++) {
+        for (var index = 0; index < channels.array().length; index++) {
             groups[index]['members'].forEach(username => {
                 activity.generalVoice.members.find(member => member.user.username === username).voice.setChannel(channels[index]);
             });
@@ -111,12 +111,12 @@ class ActivityManager {
         const promptEmbed = new Discord.MessageEmbed()
             .setColor(botGuild.colors.embedColor)
             .setTitle('React within ' + time + ' seconds of the posting of this message to get a stamp for ' + activity.name + '!');
-        
+
         let promptMsg = await activity.generalText.send(promptEmbed);
         promptMsg.react('👍');
 
         // reaction collector, time is needed in milliseconds, we have it in seconds
-        const collector = promptMsg.createReactionCollector((reaction, user) => !user.bot, {time: (1000 * time)});
+        const collector = promptMsg.createReactionCollector((reaction, user) => !user.bot, { time: (1000 * time) });
 
         collector.on('collect', async (reaction, user) => {
             // grab the member object of the reacted user
@@ -152,10 +152,20 @@ class ActivityManager {
      * @private
      */
     static parseRole(member, role, activityName) {
+        if (role === undefined) {
+            if (member.roles.cache.find(role => (role.id === discordServices.roleIDs.mentorRole) || (role.id === discordServices.roleIDs.sponsorRole) || (role.id === discordServices.roleIDs.staffRole)) === undefined) {
+                //TODO: change this line to give them stamp0 or stamp1
+                //discordServices.addRoleToMember(member, stamp0/stamp1 role)
+                discordServices.sendMessageToMember(member, 'I did not find an existing stamp role for you so I gave you one for attending '
+                    + activityName + '. Please contact an admin if there was a problem.', true);
+            }
+            return;
+        }
         let stampNumber = discordServices.stampRoles.get(role.id);
-        console.log(stampNumber);
+        if (stampNumber === discordServices.stampRoles.size - 1) {
+            discordServices.sendMessageToMember(member, 'You already have the maximum allowed number of stamps!', true);
+        }
         let newRoleID = discordServices.stampRoles.findKey(number => number === (stampNumber + 1));
-        console.log(newRoleID);
 
         if (newRoleID != undefined) {
             discordServices.replaceRoleToMember(member, role.id, newRoleID);
