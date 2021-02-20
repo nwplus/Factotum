@@ -29,7 +29,10 @@ module.exports = class Attend extends PermissionCommand {
 
     /**
      * Attends a member.
+<<<<<<< HEAD
      * @param {Document} botGuild
+=======
+>>>>>>> develop
      * @param {Discord.Message} message 
      * @param {String} guildId 
      */

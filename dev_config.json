@@ -10,6 +10,7 @@
     "guestRoleID" : "778651193362481213",
     "welcomeChannelID" : "811741918253547540",
     "welcomeChannelSupportID" : "811741919008784454",
+<<<<<<< HEAD
     "verificationRoles" : [
         {
             "type" : "cmd-f hacker",
@@ -20,6 +21,8 @@
             "roleId" : "812441385630040086"
         }
     ],
+=======
+>>>>>>> develop
 
     "isAttendanceOn" : true,
     "attendeeRoleID" : "738519785028976741",
