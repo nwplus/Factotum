@@ -148,13 +148,13 @@ class Activity {
         return this.guild.channels.create(this.name, {
             type: 'category',
             position: position >= 0 ? position : 0,
-            permissionOverwrites: discordServices.roleIDs?.attendeeRole ? [ // only lock the activity if the attendance role is in use
+            permissionOverwrites: discordServices.roleIDs?.memberRole ? [ // only lock the activity if the attendance role is in use
                 {
                     id: discordServices.roleIDs.everyoneRole,
                     deny: ['VIEW_CHANNEL']
                 },
                 {
-                    id: discordServices.roleIDs.attendeeRole,
+                    id: discordServices.roleIDs.memberRole,
                     allow: ['VIEW_CHANNEL']
                 },
                 {
@@ -227,7 +227,7 @@ class Activity {
             }, 
             [
                 {
-                    roleID: discordServices.roleIDs.hackerRole,
+                    roleID: discordServices.roleIDs.memberRole,
                     permissions: {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true},
                 },
             ]);
@@ -276,7 +276,7 @@ class Activity {
         this.addChannel('🎮' + 'game-codes', {
             type: 'text',
             topic: 'This channel is only intended to send game codes for others to join!',
-        }, [{roleID: discordServices.roleIDs.hackerRole, permissions: {VIEW_CHANNEL: false}}]);
+        }, [{roleID: discordServices.roleIDs.attendeeRole, permissions: {VIEW_CHANNEL: false}}]);
 
         this.addVoiceChannels(numOfChannels, true, 12);
 
@@ -317,7 +317,7 @@ class Activity {
      */
     async makeWorkshop() {
         // update the voice channel permission to no speaking for attendees
-        this.generalVoice.updateOverwrite(discordServices.roleIDs.hackerRole, {
+        this.generalVoice.updateOverwrite(discordServices.roleIDs.memberRole, {
             SPEAK: false,
         });
         this.generalVoice.updateOverwrite(discordServices.roleIDs.staffRole, {

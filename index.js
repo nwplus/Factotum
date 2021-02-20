@@ -33,7 +33,7 @@ const nwFirebase = firebase.initializeApp(nwFirebaseConfig, 'nwFirebase');
 
 const discordServices = require('./discord-services');
 const Prompt = require('./classes/prompt');
-const firebaseServices = require('./firebase-services/firebase-services');
+const Verification = require('./classes/verification');
 
 
 const config = {
@@ -66,7 +66,7 @@ bot.once('ready', async () => {
     bot.user.setActivity('Ready to hack!');
 });
 
-bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */ (guild) => {
+bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
     bot.registry.groups.forEach((group, key, map) => {
         if (!group.guarded) guild.setGroupEnabled(group, false);
     });
@@ -77,17 +77,17 @@ bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */ (guild) => {
 // Listeners for the bot
 
 // error event
-bot.on('error', (error) => {
-    console.log(error)
-    discordServices.discordLog(bot.guilds.cache.first(), )
-});
+// bot.on('error', (error) => {
+//     console.log(error)
+//     discordServices.discordLog(bot.guilds.cache.first(), )
+// });
 
 bot.on('commandError', (command, error) => {
     console.log(
-        'Error on command: ' + command.name + 
-        'Uncaught Rejection, reason: ' + error.name + 
+        'Error on command: ' + command.name +
+        'Uncaught Rejection, reason: ' + error.name +
         '\nmessage: ' + error.message +
-        '\nfile: ' + error.fileName + 
+        '\nfile: ' + error.fileName +
         '\nline number: ' + error.lineNumber +
         '\nstack: ' + error.stack
     );
@@ -95,61 +95,61 @@ bot.on('commandError', (command, error) => {
     discordServices.discordLog(bot.guilds.cache.first(),
         new Discord.MessageEmbed().setColor('#ed3434')
             .setTitle('Command Error')
-            .setDescription('Error on command: ' + command.name +  
-            'Uncaught Rejection, reason: ' + error.name + 
-            '\nmessage: ' + error.message +
-            '\nfile: ' + error.fileName + 
-            '\nline number: ' + error.lineNumber +
-            '\nstack: ' + error.stack)
+            .setDescription('Error on command: ' + command.name +
+                'Uncaught Rejection, reason: ' + error.name +
+                '\nmessage: ' + error.message +
+                '\nfile: ' + error.fileName +
+                '\nline number: ' + error.lineNumber +
+                '\nstack: ' + error.stack)
             .setTimestamp()
     );
 });
 
 process.on('uncaughtException', (error, origin) => {
     console.log(
-        'Uncaught Rejection, reason: ' + error.name + 
+        'Uncaught Rejection, reason: ' + error.name +
         '\nmessage: ' + error.message +
-        '\nfile: ' + error.fileName + 
+        '\nfile: ' + error.fileName +
         '\nline number: ' + error.lineNumber +
-        '\nstack: ' + error.stack + 
+        '\nstack: ' + error.stack +
         `Exception origin: ${origin}`
     );
     discordServices.discordLog(bot.guilds.cache.first(),
         new Discord.MessageEmbed().setColor('#ed3434')
             .setTitle('Uncaught Rejection')
-            .setDescription('Uncaught Rejection, reason: ' + error.name + 
-            '\nmessage: ' + error.message +
-            '\nfile: ' + error.fileName + 
-            '\nline number: ' + error.lineNumber +
-            '\nstack: ' + error.stack + 
-            `\nException origin: ${origin}`)
+            .setDescription('Uncaught Rejection, reason: ' + error.name +
+                '\nmessage: ' + error.message +
+                '\nfile: ' + error.fileName +
+                '\nline number: ' + error.lineNumber +
+                '\nstack: ' + error.stack +
+                `\nException origin: ${origin}`)
             .setTimestamp()
     );
 });
 
 process.on('unhandledRejection', (error, promise) => {
-    console.log('Unhandled Rejection at:', promise, 
-        'Unhandled Rejection, reason: ' + error.name + 
+    console.log('Unhandled Rejection at:', promise,
+        'Unhandled Rejection, reason: ' + error.name +
         '\nmessage: ' + error.message +
-        '\nfile: ' + error.fileName + 
+        '\nfile: ' + error.fileName +
         '\nline number: ' + error.lineNumber +
         '\nstack: ' + error.stack
     );
     discordServices.discordLog(bot.guilds.cache.first(),
         new Discord.MessageEmbed().setColor('#ed3434')
             .setTitle('Unhandled Rejection')
-            .setDescription('Unhandled Rejection, reason: ' + error.name + 
-            '\nmessage: ' + error.message +
-            '\nfile: ' + error.fileName + 
-            '\nline number: ' + error.lineNumber)
+            .setDescription('Unhandled Rejection, reason: ' + error.name +
+                '\nmessage: ' + error.message +
+                '\nfile: ' + error.fileName +
+                '\nline number: ' + error.lineNumber)
             .setTimestamp()
     );
 });
 
 process.on('exit', () => {
     console.log('Node is exiting!');
-    discordServices.discordLog(bot.guilds.cache.first(), 
-    new Discord.MessageEmbed().setColor('#ed3434')
+    discordServices.discordLog(bot.guilds.cache.first(),
+        new Discord.MessageEmbed().setColor('#ed3434')
             .setTitle('Unhandled Rejection')
             .setDescription('The program is shutting down!')
             .setTimestamp());
@@ -179,8 +179,6 @@ bot.on('guildMemberAdd', async member => {
 bot.login(config.token).catch(console.error);
 
 
-
-
 /**
  * Greets a member!
  * @param {Discord.GuildMember} member - the member to greet
@@ -196,8 +194,8 @@ async function greetNewMember(member) {
         .addField('Want to learn more about what I can do?', 'Use the !help command anywhere and I will send you a message!')
         .setColor(discordServices.colors.embedColor);
 
-    if (discordServices.roleIDs?.guestRole) embed.addField('Gain more access by verifying yourself!', 'React to this message with ' + verifyEmoji + ' and follow my instructions!');
-    
+    if (discordServices.roleIDs?.guestRole) embed
+        .addField('Gain more access by verifying yourself!', 'React to this message with ' + verifyEmoji + ' and follow my instructions!\n');
     let msg = await member.send(embed);
 
     // if verification is on then give guest role and let user verify
@@ -205,29 +203,29 @@ async function greetNewMember(member) {
         discordServices.addRoleToMember(member, discordServices.roleIDs.guestRole);
 
         msg.react(verifyEmoji);
-
         let verifyCollector = msg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === verifyEmoji);
 
         verifyCollector.on('collect', async (reaction, user) => {
             try {
-                var email = (await Prompt.messagePrompt({prompt: 'What email did you get accepted to this event? Please send it now!', channel: member.user.dmChannel, userId: member.id}, 'string',  25)).content;
+                var email = (await Prompt.messagePrompt({prompt: 'What email did you get accepted with? Please send it now!', channel: member.user.dmChannel, userId: member.id}, 'string', 30)).content;
             } catch (error) {
                 discordServices.sendEmbedToMember(member, {
                     title: 'Verification Error',
                     description: 'Email was not provided, please try again!'
                 }, true);
-                return; 
-            }
-            reaction.users.remove(user.id);
-
-            let success = await verify(member, email, member.guild);
-
-            if (success) {
-                verifyCollector.stop();
+                return;
             }
 
+            try {
+                Verification.verify(member, email, member.guild);
+            } catch (error) {
+                discordServices.sendEmbedToMember(member, {
+                    title: 'Verification Error',
+                    description: 'Email provided is not valid! Please try again.'
+                }, true);
+            }
         });
-    } 
+    }
     // if verification is off, then just ive member role
     else {
         discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
@@ -242,14 +240,14 @@ async function greetNewMember(member) {
  */
 async function fixDMIssue(error, member) {
     if (error.code === 50007) {
-        let channelID = discordServices.channelIDs?.welcomeChannel || discordServices.channelIDs.botSupportChannel;
+        let channelID = discordServices.channelIDs?.welcomeSupport || discordServices.channelIDs.botSupportChannel;
 
-        member.guild.channels.resolve(channelID).send('<@' + member.id + '> I couldn\'t reach you :(.' + 
-            '\n* Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-' + 
+        member.guild.channels.resolve(channelID).send('<@' + member.id + '> I couldn\'t reach you :(.' +
+            '\n* Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-' +
             '\n* Once this is done, please react to this message with 🤖 to let me know!').then(msg => {
                 msg.react('🤖');
                 const collector = msg.createReactionCollector((reaction, user) => user.id === member.id && reaction.emoji.name === '🤖');
-                
+
                 collector.on('collect', (reaction, user) => {
                     reaction.users.remove(user.id);
                     try {
@@ -257,99 +255,11 @@ async function fixDMIssue(error, member) {
                         collector.stop();
                         msg.delete();
                     } catch (error) {
-                        member.guild.channels.resolve(channelID).send('<@' + member.id + '> Are you sure you made the changes? I couldn\'t reach you again 😕').then(msg => msg.delete({timeout: 8000}));
+                        member.guild.channels.resolve(channelID).send('<@' + member.id + '> Are you sure you made the changes? I couldn\'t reach you again 😕').then(msg => msg.delete({ timeout: 8000 }));
                     }
                 });
             });
     } else {
         throw error;
     }
-}
-
-
-/**
- * Verifies a guild member into a guild.
- * @param {Discord.GuildMember} member - member to verify
- * @param {String} email - email to verify with
- * @param {Discord.Guild} guild - guild to verify member in
- * @returns {Promise<Boolean>} - true if successful
- * @private
- * @async
- */
-async function verify(member, email, guild) {
-    // make email lowercase
-    email = email.toLowerCase();
-
-    // regex to validate email
-    const re = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-
-    // let user know he has used the command incorrectly and exit
-    if (email === '' || !re.test(email)) {
-        discordServices.sendMessageToMember(member, 'The email you sent me is not valid, please try again!');
-        return;
-    }
-
-    // check if the user needs to verify, else warn and return
-    if (!discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
-        discordServices.sendEmbedToMember(member, {
-            title: 'Verify Error',
-            description: 'You do not need to verify, you are already more than a guest!'
-        }, true);
-        return;
-    }
-
-    // Call the verify function to get status
-    var status = await firebaseServices.verifyUser(email, member.id);
-
-    // embed to send
-    const embed = new Discord.MessageEmbed()
-        .setTitle('Verification Process')
-        .setColor(discordServices.colors.specialDMEmbedColor);
-
-    switch(status) {
-        case firebaseServices.status.HACKER_SUCCESS:
-            embed.addField('You Have Been Verified!', 'Thank you for verifying your status with us, you now have access to most of the server.')
-                .addField('Don\'t Forget!', 'Remember you need to !attend <your email> in the attend channel that will open a few hours before the hackathon begins.');
-            discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.hackerRole);
-            if (discordServices.stampRoles.has(0)) discordServices.addRoleToMember(member,discordServices.stampRoles.get(0));
-            discordServices.addRoleToMember(member,discordServices.roleIDs.memberRole);
-            discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + member.id + "> Verified email: " + email + " successfully and they are now a hacker!");
-            break;
-        case firebaseServices.status.SPONSOR_SUCCESS:
-            if (discordServices.roleIDs?.sponsorRole) {
-                embed.addField('You Have Been Verified!', 'Hi there sponsor, thank you very much for being part of nwhacks 2021 and for joining our discord!');
-                discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.sponsorRole);
-                discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
-                discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + message.author.id + "> Verified email: " + email + " successfully and they are now a sponsor!");
-            }
-            break;
-        case firebaseServices.status.MENTOR_SUCCESS:
-            if (discordServices.roleIDs?.mentorRole) {
-                embed.addField('You Have Been Verified!', 'Hi there mentor, thank you very much for being part of nwhacks 2021 and for joining our discord!');
-                discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.mentorRole);
-                discordServices.addRoleToMember(member,discordServices.roleIDs.memberRole);
-                discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + member.id + "> Verified email: " + email + " successfully and he is now a mentor!");
-            }
-            break;
-        case firebaseServices.status.STAFF_SUCCESS:
-            embed.addField('Welcome To Your Server!', 'Welcome to your discord server! If you need to know more about what I can do please call !help.');
-            discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.staffRole);
-            discordServices.discordLog(guild, "VERIFY SUCCESS : <@" + member.id + "> Verified email: " + email + " successfully and he is now a staff!");
-            break;
-        case firebaseServices.status.FAILURE:
-            embed.addField('ERROR 404', 'Hi there, the email you tried to verify yourself with is not' +
-            ' in our system, please make sure your email is well typed. If you think this is an error' +
-            ' please contact us in the welcome-support channel.')
-                .setColor('#fc1403');
-            discordServices.discordLog(guild, 'VERIFY ERROR : <@' + member.id + '> Tried to verify email: ' + email + ' and failed! I couldn\'t find that email!');
-            break;
-        default:
-            embed.addField('ERROR 401', 'Hi there, it seems the email you tried to verify with is already in use or you were not accepted! Please make ' +
-                'sure that you have the correct email. If you think this is an error please contact us in the welcome-support channel.')
-                .setColor('#fc1403');
-                discordServices.discordLog(guild, 'VERIFY WARNING : <@' + member.id + '> Tried to verify email: ' + email + ' and failed! He already verified or was not accepted!');
-            break;
-    }
-    discordServices.sendMessageToMember(member, embed);
-    return true;
 }

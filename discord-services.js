@@ -3,6 +3,15 @@ const Discord = require('discord.js');
 // Available Roles
 
 /**
+ * @type {Discord.Collection<String, String>} - <type, roleId>
+ */
+const verificationRoles = new Discord.Collection();
+verificationRoles.set('cmd-f Hacker', '812441340888612924');
+verificationRoles.set('Learn Hacker', '812441385630040086')
+
+ module.exports.verificationRoles = verificationRoles
+
+/**
  * All the available roles from server creation.
  */
 module.exports.roleIDs = {
@@ -306,3 +315,24 @@ function randomColor() {
     return Math.floor(Math.random()*16777215).toString(16);
 }
 module.exports.randomColor = randomColor;
+
+/**
+ * Validates an email using a reg exp.
+ * @param {String} email - the email to validate
+ * @returns {Boolean} true if valid email, false otherwise
+ */
+function validateEmail(email) {
+    // make email lowercase
+    email = email.toLowerCase();
+
+    // regex to validate email
+    const re = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+
+    // let user know he has used the command incorrectly and exit
+    if (email === '' || !re.test(email)) {
+        return false;
+    } else {
+        return true;
+    }
+}
+module.exports.validateEmail = validateEmail;

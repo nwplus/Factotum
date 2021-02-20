@@ -73,12 +73,12 @@ module.exports = class HideUnhide extends Command {
         // update overwrites
         if (toHide) {
             // category = await category.setName('HIDDEN-' + category.name);
-            category.updateOverwrite(discordServices.roleIDs.attendeeRole, {VIEW_CHANNEL: false});
+            category.updateOverwrite(discordServices.roleIDs.memberRole, {VIEW_CHANNEL: false});
             category.updateOverwrite(discordServices.roleIDs.mentorRole, {VIEW_CHANNEL: false});
             category.updateOverwrite(discordServices.roleIDs.sponsorRole, {VIEW_CHANNEL: false});
         } else {
             // category = await category.setName(category.name.replace('HIDDEN-', ''));
-            category.updateOverwrite(discordServices.roleIDs.attendeeRole, {VIEW_CHANNEL: true});
+            category.updateOverwrite(discordServices.roleIDs.memberRole, {VIEW_CHANNEL: true});
             category.updateOverwrite(discordServices.roleIDs.mentorRole, {VIEW_CHANNEL: true});
             category.updateOverwrite(discordServices.roleIDs.sponsorRole, {VIEW_CHANNEL: true});
         }

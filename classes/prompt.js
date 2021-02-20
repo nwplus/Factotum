@@ -20,7 +20,7 @@ class Prompt {
      * @param {String} responseType - the type of response, one of string, number, boolean, mention
      * @param {Number} time - the time in seconds to wait for the response, if 0 then wait forever
      * @returns {Promise<Message>} - the message response to the prompt or false if it timed out!
-     * @throws Will throw an error if the user cancels the Prompt or it times out.
+     * @throws Will throw an error if the user cancels the Prompt or it times out. Name: Cancel or Timeout
      * @async
      */
     static async messagePrompt({prompt, channel, userId}, responseType, time = 0) {
@@ -33,22 +33,27 @@ class Prompt {
 
         try {
             var msgs = await channel.awaitMessages(message => message.author.id === userId, {max: 1, time: time == 0 ? null : time * 1000, errors: ['time']});
-            let msg = msgs.first();
-
-            discordServices.deleteMessage(promptMsg);
-            if (msg.channel.type != 'dm') discordServices.deleteMessage(msg);
-
-            // check if they responded with cancel
-            if (msg.content.toLowerCase() === 'cancel') {
-                throw new Error("The prompt has been canceled.");
-            }
-
-            return msg;
         } catch (error) {
             channel.send('<@' + userId + '> Time is up, please try again once you are ready, we recommend you write the text, then react, then send!').then(msg => msg.delete({timeout: 10000}));
             discordServices.deleteMessage(promptMsg);
-            throw new Error('Prompt timed out.');
+            let timeoutError = new Error('Prompt timed out.');
+            timeoutError.name = 'Timeout'
+            throw timeoutError;
         }
+
+        let msg = msgs.first();
+
+        discordServices.deleteMessage(promptMsg);
+        if (msg.channel.type != 'dm') discordServices.deleteMessage(msg);
+
+        // check if they responded with cancel
+        if (msg.content.toLowerCase() === 'cancel') {
+            let cancelError = new Error("The prompt has been canceled.");
+            cancelError.name = 'Cancel'
+            throw cancelError;
+        }
+
+        return msg;
     }
 
 

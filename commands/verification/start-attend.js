@@ -2,6 +2,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt');
+const Verification = require('../../classes/verification');
 
 /**
  * StartAttend makes a new channel called #attend, or uses an existing channel of the user's choice, as the channel where the attend
@@ -90,13 +91,8 @@ module.exports = class StartAttend extends PermissionCommand {
             let member = message.guild.member(user.id);
 
             // check if user needs to attend
-            if (discordServices.checkForRole(member, discordServices.roleIDs.hackerRole) && 
-                !discordServices.checkForRole(member, discordServices.roleIDs.attendeeRole)) {
-                    discordServices.addRoleToMember(member, discordServices.roleIDs.attendeeRole)
-                    discordServices.sendEmbedToMember(user, {
-                        title: 'Attend Success!',
-                        description: 'You have been marked as attending! Happy hacking!!!'
-                    });
+            if (!discordServices.checkForRole(member, discordServices.roleIDs.attendeeRole)) {
+                   Verification.attend(member);
             } else {
                 discordServices.sendEmbedToMember(member, {
                     title: 'Attend Error',
