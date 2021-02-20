@@ -48,6 +48,10 @@ const BotGuildSchema = new Schema({
         welcomeSupportChannelID: {
             type: String,
         },
+        verificationRoles: {
+            type: Map,
+            default: new Map(),
+        }
     },
 
     attendance: {

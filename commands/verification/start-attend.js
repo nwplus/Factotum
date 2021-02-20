@@ -94,7 +94,11 @@ module.exports = class StartAttend extends PermissionCommand {
             let member = message.guild.member(user.id);
 
             // check if user needs to attend
+<<<<<<< HEAD
+            if (!discordServices.checkForRole(member, botGuild.attendance.attendeeRoleID)) {
+=======
             if (!discordServices.checkForRole(member, botGuild.roleIDs.attendeeRole)) {
+>>>>>>> develop
                    Verification.attend(member);
             } else {
                 discordServices.sendEmbedToMember(member, {

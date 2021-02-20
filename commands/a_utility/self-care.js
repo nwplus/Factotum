@@ -3,8 +3,7 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const { numberPrompt, yesNoPrompt, rolePrompt } = require('../../classes/prompt');
 const { getReminder } = require('../../firebase-services/firebase-services');
-
-var interval;
+const { Document } = require('mongoose');
 
 // Automated self-care reminders, send messages in set intervals.
 module.exports = class SelfCareReminders extends PermissionCommand {
@@ -23,9 +22,12 @@ module.exports = class SelfCareReminders extends PermissionCommand {
     }
 
     /**
+     * @param {Document} botGuild
      * @param {Discord.Message} message - the message in which this command was called
      */
-    async runCommand(message) {
+    async runCommand(botGuild, message) {
+        var interval;
+
         // helpful vars
         let channel = message.channel;
         let userId = message.author.id;
@@ -50,7 +52,7 @@ module.exports = class SelfCareReminders extends PermissionCommand {
         var paused = false;        
 
         const startEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('To encourage healthy hackathon habits, we will be sending hourly self-care reminders!')
             // temp
             .setDescription('For Staff:\n' +
@@ -63,7 +65,7 @@ module.exports = class SelfCareReminders extends PermissionCommand {
             msg.react('▶️');
 
             //filters so that it will only respond to Staff who reacted with one of the 3 emojis 
-            const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '⏸️' || reaction.emoji.name === '▶️') && message.guild.member(user).roles.cache.has(discordServices.roleIDs.staffRole);
+            const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '⏸️' || reaction.emoji.name === '▶️') && message.guild.member(user).roles.cache.has(botGuild.roleIDs.staffRole);
             const emojiCollector = msg.createReactionCollector(emojiFilter);
             
             emojiCollector.on('collect', (reaction, user) => {
@@ -101,7 +103,7 @@ module.exports = class SelfCareReminders extends PermissionCommand {
             //report in admin logs that there are no more messages
             //TODO: consider having it just loop through the db again?
             if (data === null) {
-                discordServices.discordLog(message.guild, "<@&" + discordServices.roleIDs.staffRole + "> HI, PLEASE FEED ME more self-care messages!!");
+                discordServices.discordLog(message.guild, "<@&" + botGuild.roleIDs.staffRole + "> HI, PLEASE FEED ME more self-care messages!!");
                 clearInterval(interval);
                 return;
             }
@@ -109,7 +111,7 @@ module.exports = class SelfCareReminders extends PermissionCommand {
             let reminder = data.reminder;
 
             const qEmbed = new Discord.MessageEmbed()
-                .setColor(discordServices.colors.embedColor)
+                .setColor(botGuild.colors.embedColor)
                 .setTitle(reminder)
                 // .setDescription(reminder);
             

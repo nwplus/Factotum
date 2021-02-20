@@ -1,13 +1,9 @@
 require('dotenv-flow').config();
+const mongoUtil = require('./db/mongoUtil');
+const { Document } = require('mongoose');
 const Commando = require('discord.js-commando');
 const Discord = require('discord.js');
 const firebase = require('firebase/app');
-const discordServices = require('./discord-services');
-const Prompt = require('./classes/prompt');
-const mongoUtil = require('./db/mongoUtil');
-const BotGuild = require('./db/botGuildDBObject');
-const { Document } = require('mongoose');
-const Verification = require('./classes/verification');
 
 const admin = require('firebase-admin');
 
@@ -31,6 +27,11 @@ admin.initializeApp({
     credential: admin.credential.cert(adminSDK),
     databaseURL: "https://nwplus-bot.firebaseio.com",
 });
+
+const discordServices = require('./discord-services');
+const Prompt = require('./classes/prompt');
+const BotGuild = require('./db/botGuildDBObject');
+const Verification = require('./classes/verification');
 
 const config = {
     token: process.env.TOKEN,
