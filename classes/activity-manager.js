@@ -123,9 +123,7 @@ class ActivityManager {
             const member = activity.generalText.guild.member(user);
 
             if (!seenUsers.has(user.id)) {
-                // const regex = RegExp(/^.+\s#\d{1,2}$/);
 
-                // let role = member.roles.cache.find(role => regex.test(role.name));
                 let role = member.roles.cache.find(role => discordServices.stampRoles.has(role.id));
 
                 if (role != undefined) this.parseRole(member, role, activity.name, botGuild);

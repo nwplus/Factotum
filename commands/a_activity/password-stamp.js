@@ -111,14 +111,11 @@ module.exports = class PasswordStamp extends PermissionCommand {
                 pwdCollector.on('collect', async m => {
                     //update role and stop collecting if password matches
                     if (m.content.toLowerCase() === password.toLowerCase()) {
-                        // const regex = RegExp(/^.+\s#\d{1,2}$/);
-
-                        // let role = member.roles.cache.find(role => regex.test(role.name));
                         let role = member.roles.cache.find(role => discordServices.stampRoles.has(role.id));
+
                         ActivityManager.parseRole(member, role, activityName);
+                        
                         correctPassword = true;
-                        //discordServices.deleteMessage(msgs);
-                        //discordServices.deleteMessage(dmMessage);
                         pwdCollector.stop();
                     } else if (incorrectPasswords < 2) {
                         //add 1 to number of incorrect guesses and prompts user to try again
