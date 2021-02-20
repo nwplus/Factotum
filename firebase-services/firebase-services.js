@@ -1,3 +1,5 @@
+const { GuildMember, } = require('discord.js');
+
 // Firebase requirements
 const admin = require('firebase-admin');
 
@@ -159,32 +161,25 @@ module.exports.checkName = checkName;
  * Adds new document in Firebase members collection for manually verified member
  * @param {String} email - email of member verified
  * @param {GuildMember} member - member verified
- * @param {String} type - type of participant verified
+ * @param {String[]} types - types this user might verify for
  */
-async function addUserData(email, member, type) {
+function addUserData(email, member, types) {
     var newDocument = db.collection('members').doc();
-    if (type === 'hacker') {
-        var verifyLearn = false;
-        if (new Date() < new Date(2021, 1, 28)) {
-            verifyLearn = true;
-        }
-        newDocument.set({
-            'email': email,
-            'type': 'hacker',
-            'discord-id': member.id,
-            'canVerifyLearn': true,
-            'canVerifycmdf': true,
-            'verifiedLearn': verifyLearn,
-            'verifiedcmdf': !verifyLearn,
-        });
-    } else {
-        newDocument.set({
-            'email': email,
-            'type': type,
-            'discord-id': member.id,
-            'verified': true,
-        });
-    }
+    /** @type {FirebaseUser} */
+    let data = {
+        email: email,
+        discordId: member.id,
+        types: types.map((type, index, array) => {
+            /** @type {UserType} */
+            let type = {
+                type: type,
+                isVerified: false,
+            }
+            return type;
+        }),
+    };
+
+    newDocument.set(data);
 }
 module.exports.addUserData = addUserData;
 /**

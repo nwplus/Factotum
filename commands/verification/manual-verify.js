@@ -4,9 +4,11 @@ const firebaseServices = require('../../firebase-services/firebase-services');
 const discordServices = require('../../discord-services');
 const { Message } = require('discord.js');
 const Prompt = require('../../classes/prompt');
+const Verification = require('../../classes/verification');
+const { messagePrompt } = require('../../classes/prompt');
 
 // Command export
-module.exports = class Verification extends PermissionCommand {
+module.exports = class ManualVerify extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'manual-verify',
@@ -33,30 +35,32 @@ module.exports = class Verification extends PermissionCommand {
             let channel = message.channel;
             let userId = message.author.id;
 
+            let availableTypes = discordServices.verificationRoles.array().join();
+
             let guestId = (await Prompt.numberPrompt({ prompt: 'What is the ID of the member you would like to verify?', channel, userId}))[0];
-            let newRoles = (await Prompt.rolePrompt({ prompt: 'Aside from Member, which role would you like to verify them to?', channel, userId }));
-            let email = (await Prompt.messagePrompt({ prompt: 'What is their email?', channel, userId }, 'string', 20)).content;
             var member = message.guild.members.cache.get(guestId.toString()); // get member object by id
-            // if they are a guest, verify them to the specified role, otherwise print that they are already verified
-            if (!discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
-                message.channel.send('<@' + guestId.toString() + '> is not a guest!').then(msg => msg.delete({ timeout: 3000 }));
-            } else {
-                discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.memberRole);
-                newRoles.each(role => {
-                    discordServices.addRoleToMember(member, role);
-                });
-                var type = 'hacker';
-                var newRoleArray = newRoles.array();
-                if (newRoleArray.includes(discordServices.roleIDs.staffRole)) {
-                    type = 'staff';
-                } else if (newRoleArray.includes(discordServices.roleIDs.sponsorRole)) {
-                    type = 'sponsor';
-                } else if (newRoleArray.includes(discordServices.roleIDs.mentorRole)) {
-                    type = 'mentor';
-                }
-                firebaseServices.addUserData(email, member, type);
-                message.channel.send('Verification complete!').then(msg => msg.delete({ timeout: 3000 }));
+            
+            // check for valid ID
+            if (!member) {
+                discordServices.sendMsgToChannel(channel, userId, `${guestId.toString()} is an invalid ID!`, 5);
+                return;
             }
+            // check for member to have guest role
+            if (!discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
+                discordServices.sendMsgToChannel(channel, userId, `<@${guestId.toString()}> does not have the guest role! Cant verify!`, 5);
+                return;
+            }
+            
+            let types = (await Prompt.messagePrompt({ prompt: `These are the available types: ${availableTypes}, please respond with the types you want this user to verify separated by commas.`, channel, userId })).content.split(',');
+            types = types.filter((type, index, array) => discordServices.verificationRoles.has(type)); // filter types for those valid
+
+            let email = (await Prompt.messagePrompt({ prompt: 'What is their email?', channel, userId }, 'string', 20)).content;
+            
+            firebaseServices.addUserData(email, member, types);
+            await Verification.verify(member, email, message.guild);
+            
+            message.channel.send('Verification complete!').then(msg => msg.delete({ timeout: 3000 }));
+            
         } catch (error) {
             return;
         }
