@@ -14,18 +14,11 @@ class Verification {
      * @param {Guild} guild
      * @async
      * @static
+     * @throws Error if email is not valid!
      */
     static async verify(member, email, guild) {
-        // make email lowercase
-        email = email.toLowerCase();
-
-        // regex to validate email
-        const re = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-
-        // let user know he has used the command incorrectly and exit
-        if (email === '' || !re.test(email)) {
-            discordServices.sendMessageToMember(member, 'The email you sent me is not valid, please try again!', true);
-            return;
+        if (!discordServices.validateEmail(email)) {
+            throw new Error('Email is not valid!!');
         }
 
         // try to get member types, error will mean no email was found

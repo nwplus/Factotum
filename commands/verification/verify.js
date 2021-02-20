@@ -47,14 +47,8 @@ module.exports = class Verify extends PermissionCommand {
             return;
         }
 
-        // make email lowercase
-        email = email.toLowerCase();
-
-        // regex to validate email
-        const re = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-
         // let user know he has used the command incorrectly and exit
-        if (email === '' || !re.test(email)) {
+        if (!discordServices.validateEmail(email)) {
             discordServices.sendMessageToMember(message.author, 'You have used the verify command incorrectly! \nPlease write a valid email after the command like this: !verify email@gmail.com');
             return;
         }
@@ -70,7 +64,14 @@ module.exports = class Verify extends PermissionCommand {
         let member = guild.member(message.author.id);
 
         // Call the verify function
-        Verification.verify(member, email, guild);
+        try {
+            Verification.verify(member, email, guild);
+        } catch (error) {
+            discordServices.sendEmbedToMember(member, {
+                title: 'Verification Error',
+                description: 'Email provided is not valid!'
+            }, true);
+        }
 
     }
 

@@ -216,7 +216,14 @@ async function greetNewMember(member) {
                 return;
             }
 
-            Verification.verify(member, email, member.guild);
+            try {
+                Verification.verify(member, email, member.guild);
+            } catch (error) {
+                discordServices.sendEmbedToMember(member, {
+                    title: 'Verification Error',
+                    description: 'Email provided is not valid! Please try again.'
+                }, true);
+            }
         });
     }
     // if verification is off, then just ive member role

@@ -55,9 +55,18 @@ module.exports = class ManualVerify extends PermissionCommand {
             types = types.filter((type, index, array) => discordServices.verificationRoles.has(type)); // filter types for those valid
 
             let email = (await Prompt.messagePrompt({ prompt: 'What is their email?', channel, userId }, 'string', 20)).content;
+            // validate the email
+            if(!discordServices.validateEmail(email)) {
+                discordServices.sendMsgToChannel(channel, userId, 'The email is not valid!', 5);
+                return;
+            }
             
             firebaseServices.addUserData(email, member, types);
-            await Verification.verify(member, email, message.guild);
+            try {
+                await Verification.verify(member, email, guild);
+            } catch (error) {
+                discordServices.sendMsgToChannel(channel, userId, 'Email provided is not valid!', 5);
+            }
             
             message.channel.send('Verification complete!').then(msg => msg.delete({ timeout: 3000 }));
             

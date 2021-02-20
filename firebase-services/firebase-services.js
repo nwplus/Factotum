@@ -167,7 +167,7 @@ function addUserData(email, member, types) {
     var newDocument = db.collection('members').doc();
     /** @type {FirebaseUser} */
     let data = {
-        email: email,
+        email: email.toLowerCase(),
         discordId: member.id,
         types: types.map((type, index, array) => {
             /** @type {UserType} */
@@ -191,7 +191,7 @@ module.exports.addUserData = addUserData;
  * @throws Error if the email provided was not found.
  */
 async function verify(email, id) {
-    var userRef = db.collection('members').where('email', '==', email).limit(1);
+    var userRef = db.collection('members').where('email', '==', email.toLowerCase()).limit(1);
     var user = (await userRef.get()).docs[0];
 
     if (user) {
