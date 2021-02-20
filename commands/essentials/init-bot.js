@@ -74,7 +74,7 @@ module.exports = class InitBot extends Command {
             });
 
             if (data.isVerificationOn) {
-                await botGuild.setUpVerification(this.client, data.guestRoleID, {
+                await botGuild.setUpVerification(this.client, data.guestRoleID, data.types, {
                     welcomeChannelID: data.welcomeChannelID,
                     welcomeChannelSupportID: data.welcomeChannelSupportID,
                 });
@@ -153,7 +153,9 @@ module.exports = class InitBot extends Command {
                     return this.setVerification(channel, userId, guild, everyoneRole);
                 }
 
-                await botGuild.setUpVerification(this.client, guestRole.id);
+                let types = await this.getVerificationTypes(channel, userId);
+
+                await botGuild.setUpVerification(this.client, guestRole.id, types);
                 discordServices.sendMsgToChannel(channel, userId, 'The verification service has been set up correctly!', 60);
             }
         } catch (error) {
@@ -230,6 +232,39 @@ module.exports = class InitBot extends Command {
         botGuild.save();
 
         discordServices.sendMsgToChannel(channel, userId, 'The bot is set and ready to hack!', 10);
+    }
+
+    /**
+     * @typedef TypeInfo
+     * @property {String} type
+     * @property {String} roleId
+     */
+
+    /**
+     * Prompts the user for a verification type and if they want to add more. Will call itself if true 
+     * for a recursive call.
+     * @param {Discord.TextChannel} channel 
+     * @param {String} userId 
+     * @returns {Promise<TypeInfo[]>}
+     * @async
+     */
+    async getVerificationTypes(channel, userId) {
+
+        let typeMsg = await Prompt.messagePrompt({ prompt: 'Please tell me the type and mention the role for a verification option. Type should be equal to the firebase type. Add nothing more but type and role mention.', channel, userId });
+        let type = typeMsg.content.toLowerCase();
+        let role = typeMsg.mentions.roles.first();
+
+        if (await Prompt.yesNoPrompt({ prompt: 'Would you like to add another verification option?', channel, userId })) {
+            return (await this.getVerificationTypes(channel, userId)).concat([{
+                type: type,
+                roleId: role.id,
+            }])
+        } else {
+            return [{
+                type: type,
+                roleId: role.id,
+            }];
+        }
     }
 
     /**

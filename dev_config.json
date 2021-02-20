@@ -10,6 +10,16 @@
     "guestRoleID" : "778651193362481213",
     "welcomeChannelID" : "811741918253547540",
     "welcomeChannelSupportID" : "811741919008784454",
+    "verificationRoles" : [
+        {
+            "type" : "cmd-f hacker",
+            "roleId" : "812441340888612924"
+        },
+        {
+            "type" : "learn hacker",
+            "roleId" : "812441385630040086"
+        }
+    ],
 
     "isAttendanceOn" : true,
     "attendeeRoleID" : "738519785028976741",

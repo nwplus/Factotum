@@ -203,14 +203,21 @@ module.exports = class BotGuild {
      */
 
     /**
+     * @typedef TypeInfo
+     * @property {String} type
+     * @property {String} roleId
+     */
+
+    /**
      * Will set up the verification process.
      * @param {CommandoClient} client 
      * @param {String} guestRoleID
+     * @param {TypeInfo[]} types
      * @param {VerificationChannels} [verificationChannels]
      * @return {Promise<BotGuild>}
      * @async
      */
-    async setUpVerification(client, guestRoleID, verificationChannels = null) {
+    async setUpVerification(client, guestRoleID, types, verificationChannels = null) {
         /** @type {CommandoGuild} */
         let guild = await client.guilds.fetch(this._id);
 
@@ -263,6 +270,11 @@ module.exports = class BotGuild {
             this.verification.welcomeChannelID = welcomeChannel.id;
             this.verification.welcomeSupportChannelID = welcomeChannelSupport.id;
         }
+
+        // add the types to the type map.
+        types.forEach((type, index, list) => {
+            this.verification.verificationRoles.set(type.type.toLowerCase(), type.roleId);
+        });
 
         const embed = new MessageEmbed().setTitle('Welcome to the ' + guild.name + ' Discord server!')
             .setDescription('In order to verify that you have registered for ' + guild.name + ', please respond to the bot (me) via DM!')
