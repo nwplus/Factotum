@@ -4,6 +4,8 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Activity = require('../../classes/activity');
 const { numberPrompt } = require('../../classes/prompt');
+const { Document } = require('mongoose');
+
 
 // Command export
 module.exports = class NewActivity extends PermissionCommand {
@@ -30,7 +32,11 @@ module.exports = class NewActivity extends PermissionCommand {
         });
     }
 
-    async runCommand(message, {activityName}) {
+    /**
+     * @param {Document} botGuild
+     * @param {Discord.Message} message - the message in which the command was run
+     */
+    async runCommand(botGuild, message, {activityName}) {
 
         let activity = await new Activity(activityName, message.guild).init();
 
@@ -40,7 +46,7 @@ module.exports = class NewActivity extends PermissionCommand {
         // send message to console with emoji commands
         // message embed
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('Activity: ' + activity.name + ' console.')
             .setDescription('This activity\'s information is below. For any changes you can use the emojis or direct commands.\n' + 
                 '🧑🏽‍💼 Will make this activity a workshop.\n' + 
@@ -52,7 +58,7 @@ module.exports = class NewActivity extends PermissionCommand {
                 '🔃 Will callback all users from all channels to the general channel.\n' + 
                 '👨‍👩‍👧‍👦 Will shuffle all the groups around the available channels.\n' + 
                 '🦜 Will shuffle all the mentors around the available channels.\n' +
-                '🏕️ Will activate a stamp distribution that will be open for ' + discordServices.stampCollectTime + ' seconds.\n' +
+                '🏕️ Will activate a stamp distribution that will be open for ' + botGuild.stamps.stampCollectionTime + ' seconds.\n' +
                 '🏎️ [FOR WORKSHOPS] Will send an embedded message asking how the speed is.\n' +
                 '✍️ [FOR WORKSHOPS] Will send an embedded message asking how the difficulty is.\n' +
                 '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.\n' + 
@@ -127,7 +133,7 @@ module.exports = class NewActivity extends PermissionCommand {
             } else if (emojiName === emojis[8]) {
                 commandRegistry.findCommands('shuffle-mentors', true)[0].runActivityCommand(message, activity);
             } else if (emojiName === emojis[9]) {
-                commandRegistry.findCommands('distribute-stamp', true)[0].runActivityCommand(message, activity, { timeLimit: discordServices.stampCollectTime });
+                commandRegistry.findCommands('distribute-stamp', true)[0].runActivityCommand(message, activity, { timeLimit: botGuild.stamps.stampCollectionTime });
             } else if (emojiName === emojis[10]) {
                 commandRegistry.findCommands('workshop-polls',true)[0].runActivityCommand(message, activity, { question: 'speed' });
             } else if (emojiName === emojis[11]) {

@@ -1,7 +1,9 @@
 const { Collection, Guild, CategoryChannel, TextChannel, VoiceChannel } = require("discord.js");
+const BotGuild = require("../db/botGuildDBObject");
 const discordServices = require('../discord-services');
 const firebaseActivity = require('../firebase-services/firebase-services-activities');
 const firebaseCoffeeChats = require('../firebase-services/firebase-services-coffeechats');
+const { Document } = require('mongoose');
 
 
 /**
@@ -95,6 +97,12 @@ class Activity {
          */
         this.activityInfo = {};
         this.validateActivityInfo(activityInfo || {});
+
+        /**
+         * The mongoose BotGuild Object
+         * @type {Document}
+         */
+        this.botGuild;
     }
 
 
@@ -122,6 +130,7 @@ class Activity {
      * @returns {Promise<Activity>}
      */
     async init() {
+        this.botGuild = await BotGuild.findById(this.guild.id);
         let position = await this.guild.channels.cache.filter(channel => channel.type === 'category').array().length;
         this.category = await this.createCategory(position);
         this.generalText =  await this.addChannel(this.activityInfo.generalTextChannelName, {
@@ -148,17 +157,17 @@ class Activity {
         return this.guild.channels.create(this.name, {
             type: 'category',
             position: position >= 0 ? position : 0,
-            permissionOverwrites: discordServices.roleIDs?.memberRole ? [ // only lock the activity if the attendance role is in use
+            permissionOverwrites: this.botGuild.attendance.isEnabled ? [ // only lock the activity if the attendance role is in use
                 {
-                    id: discordServices.roleIDs.everyoneRole,
+                    id: this.botGuild.roleIDs.everyoneRole,
                     deny: ['VIEW_CHANNEL']
                 },
                 {
-                    id: discordServices.roleIDs.memberRole,
+                    id: this.botGuild.attendance.attendeeRoleID,
                     allow: ['VIEW_CHANNEL']
                 },
                 {
-                    id: discordServices.roleIDs.staffRole,
+                    id: this.botGuild.roleIDs.staffRole,
                     allow: ['VIEW_CHANNEL']
                 }
             ] : []
@@ -227,7 +236,7 @@ class Activity {
             }, 
             [
                 {
-                    roleID: discordServices.roleIDs.memberRole,
+                    roleID: this.botGuild.roleIDs.memberRole,
                     permissions: {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true},
                 },
             ]);
@@ -276,7 +285,7 @@ class Activity {
         this.addChannel('🎮' + 'game-codes', {
             type: 'text',
             topic: 'This channel is only intended to send game codes for others to join!',
-        }, [{roleID: discordServices.roleIDs.attendeeRole, permissions: {VIEW_CHANNEL: false}}]);
+        }, [{roleID: this.botGuild.roleIDs.memberRole, permissions: {VIEW_CHANNEL: false}}]);
 
         this.addVoiceChannels(numOfChannels, true, 12);
 
@@ -317,10 +326,10 @@ class Activity {
      */
     async makeWorkshop() {
         // update the voice channel permission to no speaking for attendees
-        this.generalVoice.updateOverwrite(discordServices.roleIDs.memberRole, {
+        this.generalVoice.updateOverwrite(this.botGuild.roleIDs.memberRole, {
             SPEAK: false,
         });
-        this.generalVoice.updateOverwrite(discordServices.roleIDs.staffRole, {
+        this.generalVoice.updateOverwrite(this.botGuild.roleIDs.staffRole, {
             SPEAK: true,
             MOVE_MEMBERS: true,
         });
@@ -330,7 +339,7 @@ class Activity {
             type: 'text', 
             topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
         },[
-            { roleID: discordServices.roleIDs?.attendeeRole || discordServices.roleIDs.everyoneRole, permissions: {VIEW_CHANNEL: false} },
+            { roleID: this.botGuild.attendance?.attendeeRoleID || this.botGuild.roleIDs.everyoneRole, permissions: {VIEW_CHANNEL: false} },
         ]);
 
         // create and blacklist an assistance channel
@@ -338,7 +347,8 @@ class Activity {
             type: 'text', 
             topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
         });
-        discordServices.blackList.set(assistanceChannel.id, 5000);
+        this.botGuild.blackList.set(assistanceChannel.id, 5000);
+        this.botGuild.save();
         
         return {taChannel, assistanceChannel};
     }
@@ -358,10 +368,11 @@ class Activity {
         let channels = this.category.children.array();
 
         for(let i = 0; i < channels.length; i++) {
-            discordServices.blackList.delete(channels[i].id);
+            this.botGuild.blackList.delete(channels[i].id);
             await discordServices.deleteChannel(channels[i]);
         }
 
+        this.botGuild.save();
         await discordServices.deleteChannel(this.category);
 
         firebaseActivity.remove(this.name);
@@ -410,7 +421,7 @@ class Activity {
      * @param {Boolean} toHide 
      */
     async makeVoiceChannelPrivate(channel, toHide) {
-        channel.updateOverwrite(discordServices.roleIDs?.attendeeRole || discordServices.roleIDs.everyoneRole, {VIEW_CHANNEL: toHide ? false : true});
+        channel.updateOverwrite(this.botGuild.attendance?.attendeeRoleID || this.botGuild.roleIDs.everyoneRole, {VIEW_CHANNEL: toHide ? false : true});
     }
 }
 

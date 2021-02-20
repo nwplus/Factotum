@@ -27,7 +27,7 @@ module.exports = class StartTeamFormation extends PermissionCommand {
      * 
      * @param {Discord.Message} message - the message in which the command was run
      */
-    async runCommand(message) {
+    async runCommand(botGuild, message) {
         // helpful prompt vars
         let channel = message.channel;
         let userId = message.author.id;

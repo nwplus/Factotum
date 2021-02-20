@@ -3,6 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Verification = require('../../classes/verification');
+const { Document } = require('mongoose');
 
 // Command export
 module.exports = class Verify extends PermissionCommand {
@@ -32,11 +33,12 @@ module.exports = class Verify extends PermissionCommand {
     }
 
     /**
-     * 
+     * DOES NOT WORK !!!! TODO REMOVE OR ADD ABILITY TO GIVE GUILD ID FOR IT TO WORK!
+     * @param {Document} botGuild
      * @param {Discord.Message} message 
      * @param {String} email 
      */
-    async runCommand(message, { email, guildId }) {
+    async runCommand(botGuild, message, { email, guildId }) {
 
         // check if the user needs to verify, else warn and return
         if (!discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
@@ -72,7 +74,5 @@ module.exports = class Verify extends PermissionCommand {
                 description: 'Email provided is not valid!'
             }, true);
         }
-
     }
-
 };

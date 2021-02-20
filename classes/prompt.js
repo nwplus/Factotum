@@ -18,7 +18,7 @@ class Prompt {
      * Prompt the user for some text.
      * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
      * @param {String} responseType - the type of response, one of string, number, boolean, mention
-     * @param {Number} time - the time in seconds to wait for the response, if 0 then wait forever
+     * @param {Number} [time] - the time in seconds to wait for the response, if 0 then wait forever
      * @returns {Promise<Message>} - the message response to the prompt or false if it timed out!
      * @throws Will throw an error if the user cancels the Prompt or it times out. Name: Cancel or Timeout
      * @async
@@ -83,7 +83,7 @@ class Prompt {
     /**
      * Prompts the user to respond to a message with an emoji.
      * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
-     * @param {Collection<String, Emoji>} unavailableEmojis - <emoji name, emoji>, the emojis the user can't select, re-prompt if necessary
+     * @param {Collection<String, Emoji>} [unavailableEmojis] - <emoji name, emoji>, the emojis the user can't select, re-prompt if necessary
      * @async
      * @returns {Promise<GuildEmoji | ReactionEmoji>} - the message reaction
      */

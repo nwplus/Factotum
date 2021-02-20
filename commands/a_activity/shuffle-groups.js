@@ -20,7 +20,7 @@ module.exports = class GroupShuffle extends ActivityCommand {
      * @param {Message} message 
      * @param {Activity} activity 
      */
-    async activityCommand(message, activity) {
+    async activityCommand(botGuild, message, activity) {
 
         await ActivityManager.groupShuffle(activity);
 
