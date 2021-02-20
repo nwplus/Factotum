@@ -4,6 +4,7 @@ const discordServices = require('../discord-services');
 const Activity = require('./activity');
 const Discord = require('discord.js');
 const BotGuild = require('../db/botGuildDBObject');
+const {Document} = require('mongoose');
 
 
 /**
