@@ -35,7 +35,7 @@ module.exports = class ManualVerify extends PermissionCommand {
             let channel = message.channel;
             let userId = message.author.id;
 
-            let availableTypes = discordServices.verificationRoles.array().join();
+            let availableTypes = botGuild.verification.verificationRoles.array().join();
 
             let guestId = (await Prompt.numberPrompt({ prompt: 'What is the ID of the member you would like to verify?', channel, userId}))[0];
             var member = message.guild.members.cache.get(guestId.toString()); // get member object by id
@@ -52,7 +52,7 @@ module.exports = class ManualVerify extends PermissionCommand {
             }
             
             let types = (await Prompt.messagePrompt({ prompt: `These are the available types: ${availableTypes}, please respond with the types you want this user to verify separated by commas.`, channel, userId })).content.split(',');
-            types = types.filter((type, index, array) => discordServices.verificationRoles.has(type)); // filter types for those valid
+            types = types.filter((type, index, array) => botGuild.verification.verificationRoles.has(type)); // filter types for those valid
 
             let email = (await Prompt.messagePrompt({ prompt: 'What is their email?', channel, userId }, 'string', 20)).content;
             // validate the email

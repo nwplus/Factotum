@@ -50,8 +50,8 @@ class Verification {
         
         // check for correct types with botGuild verification info and give the roles
         types.forEach((type, index, array) => {
-            if (discordServices.verificationRoles.has(type)) {
-                discordServices.addRoleToMember(member, discordServices.verificationRoles.get(type));
+            if (botGuild.verification.verificationRoles.has(type)) {
+                discordServices.addRoleToMember(member, botGuild.verification.verificationRoles.get(type));
                 correctTypes.push(type);
             }
         });
