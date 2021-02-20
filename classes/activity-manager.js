@@ -158,6 +158,8 @@ class ActivityManager {
                 //discordServices.addRoleToMember(member, stamp0/stamp1 role)
                 discordServices.sendMessageToMember(member, 'I did not find an existing stamp role for you so I gave you one for attending '
                     + activityName + '. Please contact an admin if there was a problem.', true);
+            } else {
+                discordServices.sendMessageToMember(member, 'It appears that you are not a hacker, and only hackers can get stamps!', false);
             }
             return;
         }
