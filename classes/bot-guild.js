@@ -358,7 +358,7 @@ module.exports = class BotGuild {
 
         if (stampRoleIDs.length > 0) {
             stampRoleIDs.forEach((ID, index, array) => {
-                this.stamps.stampRoleIDs.set(index.toString(), ID);
+                this.addStamp(ID, index);
             });
         } else {
             for (let i = 0; i < stampAmount; i++) {
@@ -369,7 +369,8 @@ module.exports = class BotGuild {
                         color: discordServices.randomColor(),
                     }
                 });
-                this.stamps.stampRoleIDs.set(role.id, i.toString());
+
+                this.addStamp(role.id, i);
             }
         }
 
@@ -377,6 +378,16 @@ module.exports = class BotGuild {
         this.stamps.isEnabled = true;
 
         return this;
+    }
+
+    /**
+     * Adds a stamp to the stamp collection. Does not save the mongoose document!
+     * @param {String} roleId 
+     * @param {Number} stampNumber 
+     */
+    addStamp(roleId, stampNumber) {
+        if (stampNumber === 0) this.stamps.stamp0thRoleId = roleId;
+        this.stamps.stampRoleIDs.set(roleId, stampNumber);
     }
 
     /**

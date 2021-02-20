@@ -123,9 +123,8 @@ class ActivityManager {
             const member = activity.generalText.guild.member(user);
 
             if (!seenUsers.has(user.id)) {
-                let role = member.roles.cache.find(role => discordServices.stampRoles.has(role.id));
 
-                if (role != undefined) this.parseRole(member, role, activity.name, botGuild);
+                if (role != undefined) this.parseRole(member, activity.name, botGuild);
 
                 seenUsers.set(user.id, user.username);
             }
@@ -143,25 +142,25 @@ class ActivityManager {
     /**
      * Upgrade the stamp role of a member.
      * @param {Discord.GuildMember} member - the member to add the new role to
-     * @param {Discord.Role} role - the current role
      * @param {String} activityName - the name of the activity
      * @param {Document} botGuild
      * @private
      */
-    static parseRole(member, role, activityName) {
+    static parseRole(member, activityName, botGuild) {
+        let role = member.roles.cache.find(role => botGuild.stamps.stampRoleIDs.has(role.id));
+
         if (role === undefined) {
-            //TODO: change this line to give them stamp0 or stamp1
-            //discordServices.addRoleToMember(member, stamp0/stamp1 role)
+            discordServices.addRoleToMember(member, botGuild.stamps.stamp0thRoleId);
             discordServices.sendMessageToMember(member, 'I did not find an existing stamp role for you so I gave you one for attending '
                 + activityName + '. Please contact an admin if there was a problem.', true);
             return;
         }
 
-        let stampNumber = discordServices.stampRoles.get(role.id);
-        if (stampNumber === discordServices.stampRoles.size - 1) {
+        let stampNumber = botGuild.stamps.stampRoleIDs.get(role.id);
+        if (stampNumber === botGuild.stamps.stampRoleIDs.size - 1) {
             discordServices.sendMessageToMember(member, 'You already have the maximum allowed number of stamps!', true);
         }
-        let newRoleID = discordServices.stampRoles.findKey(number => number === (stampNumber + 1));
+        let newRoleID = botGuild.stamps.stampRoleIDs.findKey(number => number === (stampNumber + 1));
 
         if (newRoleID != undefined) {
             discordServices.replaceRoleToMember(member, role.id, newRoleID);

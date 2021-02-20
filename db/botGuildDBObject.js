@@ -69,11 +69,15 @@ const BotGuildSchema = new Schema({
             type: Boolean,
             default: false,
         },
+        /** @type {Collection<String, Number>} - <RoleId, Stamp Number> */
         stampRoleIDs: {
             type: Map,
             default: new Map(),
         },
-        /** @type {Collection<String, Number>} - <RoleId, Stamp Number> */
+        /** @type {Number} - the first stamp role Id given to all users */
+        stamp0thRoleId: {
+            type: Number,
+        },
         stampCollectionTime: {
             type: Number,
             default: 60,

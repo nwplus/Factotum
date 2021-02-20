@@ -133,7 +133,7 @@ module.exports = class NewActivity extends PermissionCommand {
             } else if (emojiName === emojis[8]) {
                 commandRegistry.findCommands('shuffle-mentors', true)[0].runActivityCommand(message, activity);
             } else if (emojiName === emojis[9]) {
-                commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(message, activity, { timeLimit: discordServices.stampCollectTime });
+                commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(message, activity, { timeLimit: botGuild.stamps.stampCollectTime });
             } else if (emojiName === emojis[10]) {
                 commandRegistry.findCommands('workshop-polls',true)[0].runCommand(message, activity, { questionType: 'speed' });
             } else if (emojiName === emojis[11]) {

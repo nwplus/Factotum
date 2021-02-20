@@ -111,9 +111,8 @@ module.exports = class PasswordStamp extends PermissionCommand {
                 pwdCollector.on('collect', async m => {
                     //update role and stop collecting if password matches
                     if (m.content.toLowerCase() === password.toLowerCase()) {
-                        let role = member.roles.cache.find(role => discordServices.stampRoles.has(role.id));
 
-                        ActivityManager.parseRole(member, role, activityName);
+                        ActivityManager.parseRole(member, activityName, botGuild);
                         
                         correctPassword = true;
                         pwdCollector.stop();
