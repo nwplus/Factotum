@@ -4,6 +4,7 @@ const firebaseServices = require('../../firebase-services/firebase-services');
 const Discord = require('discord.js');
 const discordServices = require('../../discord-services');
 const Verification = require('../../classes/verification');
+const { Document } = require('mongoose');
 
 // Command export
 module.exports = class Attend extends PermissionCommand {
@@ -28,12 +29,13 @@ module.exports = class Attend extends PermissionCommand {
 
     /**
      * Attends a member.
+     * @param {Document} botGuild
      * @param {Discord.Message} message 
      * @param {String} guildId 
      */
     async runCommand(botGuild, message, { guildId }) {
         // check if the user needs to attend, else warn and return
-        if (discordServices.checkForRole(message.author, discordServices.roleIDs.attendeeRole)) {
+        if (discordServices.checkForRole(message.author, botGuild.attendance.attendeeRoleID)) {
             discordServices.sendEmbedToMember(message.author, {
                 title: 'Attend Error',
                 description: 'You do not need to attend! Happy hacking!!!'
@@ -52,7 +54,7 @@ module.exports = class Attend extends PermissionCommand {
         let member = guild.member(message.author.id);
         
         // call the firebase services attendHacker function
-        Verification.attend(member);
+        Verification.attend(member, botGuild);
     }
 
 };

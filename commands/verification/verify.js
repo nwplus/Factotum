@@ -41,7 +41,7 @@ module.exports = class Verify extends PermissionCommand {
     async runCommand(botGuild, message, { email, guildId }) {
 
         // check if the user needs to verify, else warn and return
-        if (!discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
+        if (!discordServices.checkForRole(member, botGuild.roleIDs.guestRole)) {
             discordServices.sendEmbedToMember(member, {
                 title: 'Verify Error',
                 description: 'You do not need to verify, you are already more than a guest!'

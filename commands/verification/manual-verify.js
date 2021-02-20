@@ -5,7 +5,7 @@ const discordServices = require('../../discord-services');
 const { Message } = require('discord.js');
 const Prompt = require('../../classes/prompt');
 const Verification = require('../../classes/verification');
-const { messagePrompt } = require('../../classes/prompt');
+const { Document } = require('mongoose');
 
 // Command export
 module.exports = class ManualVerify extends PermissionCommand {
@@ -26,10 +26,10 @@ module.exports = class ManualVerify extends PermissionCommand {
     }
 
     /**
-     * 
+     * @param {Document} botGuild
      * @param {Message} message 
      */
-    async runCommand(message) {
+    async runCommand(botGuild, message) {
         try {
             // helpful vars
             let channel = message.channel;
@@ -46,7 +46,7 @@ module.exports = class ManualVerify extends PermissionCommand {
                 return;
             }
             // check for member to have guest role
-            if (!discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
+            if (!discordServices.checkForRole(member, botGuild.roleIDs.guestRole)) {
                 discordServices.sendMsgToChannel(channel, userId, `<@${guestId.toString()}> does not have the guest role! Cant verify!`, 5);
                 return;
             }
