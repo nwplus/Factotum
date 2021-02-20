@@ -130,7 +130,7 @@ class Activity {
      * @returns {Promise<Activity>}
      */
     async init() {
-    this.botGuild = await BotGuild.findById(this.guild.id);
+        this.botGuild = await BotGuild.findById(this.guild.id);
         let position = this.guild.channels.cache.filter(channel => channel.type === 'category').size;
         this.category = await this.createCategory(position);
         this.generalText =  await this.addChannel(this.activityInfo.generalTextChannelName, {
