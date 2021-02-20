@@ -33,7 +33,7 @@ class ActivityManager {
         let channels = activity.category.children.filter(channel => channel.type === 'voice' && channel.id != activity.generalVoice.id);
 
         // loop over the groups and channels at the same time using an index, add users for each group in a single voice channel
-        for (var index = 0; index < channels.array().length; index++) {
+        for (var index = 0; index < channels.size; index++) {
             groups[index]['members'].forEach(username => {
                 activity.generalVoice.members.find(member => member.user.username === username).voice.setChannel(channels[index]);
             });
@@ -54,7 +54,7 @@ class ActivityManager {
 
         let channels = activity.category.children.filter(channel => channel.type === 'voice' && channel.id != activity.generalVoice.id);
 
-        let channelsLength = channels.array().length;
+        let channelsLength = channels.size;
         let channelIndex = 0;
         mentors.forEach(mentor => {
             mentor.voice.setChannel(channels[channelIndex % channelsLength]);
@@ -74,7 +74,7 @@ class ActivityManager {
 
         let channels = activity.category.children.filter(channel => channel.type === 'voice' && channel.id != activity.generalVoice.id);
 
-        let channelsLength = channels.array().length;
+        let channelsLength = channels.size;
         let channelIndex = 0;
         members.forEach(member => {
             member.voice.setChannel(channels[channelIndex % channelsLength]);
@@ -153,16 +153,13 @@ class ActivityManager {
      */
     static parseRole(member, role, activityName) {
         if (role === undefined) {
-            if (member.roles.cache.find(role => (role.id === discordServices.roleIDs.mentorRole) || (role.id === discordServices.roleIDs.sponsorRole) || (role.id === discordServices.roleIDs.staffRole)) === undefined) {
-                //TODO: change this line to give them stamp0 or stamp1
-                //discordServices.addRoleToMember(member, stamp0/stamp1 role)
-                discordServices.sendMessageToMember(member, 'I did not find an existing stamp role for you so I gave you one for attending '
-                    + activityName + '. Please contact an admin if there was a problem.', true);
-            } else {
-                discordServices.sendMessageToMember(member, 'It appears that you are not a hacker, and only hackers can get stamps!', false);
-            }
+            //TODO: change this line to give them stamp0 or stamp1
+            //discordServices.addRoleToMember(member, stamp0/stamp1 role)
+            discordServices.sendMessageToMember(member, 'I did not find an existing stamp role for you so I gave you one for attending '
+                + activityName + '. Please contact an admin if there was a problem.', true);
             return;
         }
+
         let stampNumber = discordServices.stampRoles.get(role.id);
         if (stampNumber === discordServices.stampRoles.size - 1) {
             discordServices.sendMessageToMember(member, 'You already have the maximum allowed number of stamps!', true);

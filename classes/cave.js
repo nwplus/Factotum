@@ -593,7 +593,7 @@ class Cave {
         initialRoles.each(async role => {
             let emoji = await this.promptAndCheckReaction('React with emoji for role named: ', role.name, adminConsole, userId);
 
-            let activeUsers = role.members.array().length;
+            let activeUsers = role.members.size;
             this.addRole(role, emoji, activeUsers);
         });
     }

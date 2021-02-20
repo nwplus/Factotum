@@ -148,7 +148,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 discordServices.sendMessageToMember(user, 'You are already on the TA wait list! A TA will get to you soon!', true);
                 return;
             } else {
-                var position = waitlist.array().length;
+                var position = waitlist.size;
                 // add user to wait list
                 waitlist.set(user.id, user.username);
             }
@@ -192,7 +192,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
             reaction.users.remove(user.id);
 
             // check that there is someone to help
-            if (waitlist.array().length === 0) {
+            if (waitlist.size === 0) {
                 taChannel.send('<@' + user.id + '> No one to help right now!').then(msg => msg.delete({ timeout: 5000 }));
                 return;
             }
