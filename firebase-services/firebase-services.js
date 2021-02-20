@@ -171,11 +171,11 @@ function addUserData(email, member, types) {
         discordId: member.id,
         types: types.map((type, index, array) => {
             /** @type {UserType} */
-            let type = {
+            let userType = {
                 type: type,
                 isVerified: false,
             }
-            return type;
+            return userType;
         }),
     };
 
