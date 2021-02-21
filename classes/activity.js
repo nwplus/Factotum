@@ -1,4 +1,5 @@
-const { Collection, Guild, CategoryChannel, TextChannel, VoiceChannel } = require("discord.js");
+const { Collection, Guild, CategoryChannel, TextChannel, VoiceChannel, DiscordAPIError, Message } = require("discord.js");
+const Prompt = require("./prompt");
 const BotGuild = require("../db/BotGuild");
 const discordServices = require('../discord-services');
 const firebaseActivity = require('../firebase-services/firebase-services-activities');
@@ -23,10 +24,11 @@ class Activity {
      * Constructor for an activity, will create the category, voice and text channel.
      * @param {string} activityName - the name of this activity!
      * @param {Guild} guild - the guild where the new activity lives
+     * @param {Collection<Snowflake, Role>} permissions - roles allowed to view activity
      * @param {ActivityInfo} activityInfo 
      * @constructor
      */
-    constructor(activityName, guild, activityInfo) {
+    constructor(activityName, guild, permissions, activityInfo) {
         /**
          * The name of this activity. Will remove all leading and trailing whitespace and
          * switch spaces for '-'. Will also replace all character except for numbers, letters and '-' 
@@ -40,13 +42,19 @@ class Activity {
          * @type {Guild}
          */
         this.guild = guild;
+        
+        /**
+         * Roles allowed to view activity.
+         * @type {Collection<Snowflake, Role}
+         */
+        this.permissions = permissions;
 
         /**
          * The category where this activity lives.
          * @type {CategoryChannel}
          */
         this.category;
-        
+
         /**
          * The general text for the activity
          * @type {TextChannel}
@@ -116,7 +124,7 @@ class Activity {
      * 
      * @param {ActivityInfo} activityInfo - the activityInfo to validate
      */
-    validateActivityInfo(activityInfo){
+    validateActivityInfo(activityInfo) {
         this.activityInfo.voiceChannelName = activityInfo.voiceChannelName || '🔊Room-';
         this.activityInfo.generalTextChannelName = activityInfo.generalTextChannelName || '🖌️activity-banter';
         this.activityInfo.generalVoiceChannelName = activityInfo.generalVoiceChannelName || '🗣️activity-room';
@@ -132,12 +140,12 @@ class Activity {
         this.botGuild = await BotGuild.findById(this.guild.id);
         let position = this.guild.channels.cache.filter(channel => channel.type === 'category').size;
         this.category = await this.createCategory(position);
-        this.generalText =  await this.addChannel(this.activityInfo.generalTextChannelName, {
+        this.generalText = await this.addChannel(this.activityInfo.generalTextChannelName, {
             type: 'text',
             topic: 'A general banter channel to be used to communicate with other members, mentors, or staff. The !ask command is available for questions.',
         });
         this.generalVoice = await this.addChannel(this.activityInfo.generalVoiceChannelName, {
-            type: 'voice', 
+            type: 'voice',
         });
 
         return this;
@@ -153,23 +161,20 @@ class Activity {
      * @returns {Promise<CategoryChannel>} - a category with the activity name
      */
     async createCategory(position) {
+        let overwrites = [
+            {
+                id: discordServices.roleIDs.everyoneRole,
+                deny: ['VIEW_CHANNEL']
+            },
+            {
+                id: discordServices.roleIDs.staffRole,
+                allow: ['VIEW_CHANNEL']
+            }];
+        this.permissions.each(role => overwrites.push({ id: role.id, allow: ['VIEW_CHANNEL'] }));
         return this.guild.channels.create(this.name, {
             type: 'category',
             position: position >= 0 ? position : 0,
-            permissionOverwrites: this.botGuild.attendance.isEnabled ? [ // only lock the activity if the attendance role is in use
-                {
-                    id: this.botGuild.roleIDs.everyoneRole,
-                    deny: ['VIEW_CHANNEL']
-                },
-                {
-                    id: this.botGuild.attendance.attendeeRoleID,
-                    allow: ['VIEW_CHANNEL']
-                },
-                {
-                    id: this.botGuild.roleIDs.staffRole,
-                    allow: ['VIEW_CHANNEL']
-                }
-            ] : []
+            permissionOverwrites: overwrites
         });
     }
 
@@ -228,17 +233,17 @@ class Activity {
         let total = current + number;
 
         for (let index = current; index < total; index++) {
-            this.addChannel(this.activityInfo.voiceChannelName + index, 
-            {
-                type: 'voice', 
-                userLimit: maxUsers === 0 ? undefined : maxUsers,
-            }, 
-            [
+            this.addChannel(this.activityInfo.voiceChannelName + index,
                 {
-                    roleID: this.botGuild.roleIDs.memberRole,
-                    permissions: {VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true},
+                    type: 'voice',
+                    userLimit: maxUsers === 0 ? undefined : maxUsers,
                 },
-            ]);
+                [
+                    {
+                        roleID: discordServices.roleIDs.hackerRole,
+                        permissions: { VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true },
+                    },
+                ]);
         }
         return total;
     }
@@ -284,7 +289,7 @@ class Activity {
         this.addChannel('🎮' + 'game-codes', {
             type: 'text',
             topic: 'This channel is only intended to send game codes for others to join!',
-        }, [{roleID: this.botGuild.roleIDs.memberRole, permissions: {VIEW_CHANNEL: false}}]);
+        }, [{roleID: this.botGuild.roleIDs.memberRole, permissions: {VIEW_CHANNEL: false}}]); // members cant see this channel until they emoji a message to accept to the game rules
 
         this.addVoiceChannels(numOfChannels, true, 12);
 
@@ -321,35 +326,46 @@ class Activity {
     /**
      * Will make this activity a workshop activity.
      * @async
+     * @param {Collection<Snowflake, Role>} TARoles - roles with TA permissions aside from Staff
      * @returns {Promise<{taChannel : TextChannel, assistanceChannel : TextChannel}>} - an object with two text channels, taChannel, assistanceChannel
      */
-    async makeWorkshop() {
+    async makeWorkshop(TARoles) {
         // update the voice channel permission to no speaking for attendees
-        this.generalVoice.updateOverwrite(this.botGuild.roleIDs.memberRole, {
+        this.generalVoice.updateOverwrite(this.botGuild.roleIDs.everyoneRole, {
             SPEAK: false,
         });
         this.generalVoice.updateOverwrite(this.botGuild.roleIDs.staffRole, {
             SPEAK: true,
             MOVE_MEMBERS: true,
         });
+        TARoles.each(role => {
+            this.generalVoice.updateOverwrite(role, {
+                SPEAK: true,
+                MOVE_MEMBERS: true,
+            });
+        })
+
+        // make TA channel private and give each TA role permission to view it
+        let TAChannelPermissions = [
+            { roleID: this.botGuild.roleIDs.everyoneRole, permissions: { VIEW_CHANNEL: false } },
+        ];
+        TARoles.each(role => TAChannelPermissions.push({roleID: role, permissions: {VIEW_CHANNEL: true}}));
 
         // create ta console
         let taChannel = await this.addChannel(':🧑🏽‍🏫:' + 'ta-console', {
-            type: 'text', 
+            type: 'text',
             topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
-        },[
-            { roleID: this.botGuild.attendance?.attendeeRoleID || this.botGuild.roleIDs.everyoneRole, permissions: {VIEW_CHANNEL: false} },
-        ]);
+        }, TAChannelPermissions);
 
         // create and blacklist an assistance channel
-        let assistanceChannel = await this.addChannel('🙋🏽' + 'assistance', { 
-            type: 'text', 
+        let assistanceChannel = await this.addChannel('🙋🏽' + 'assistance', {
+            type: 'text',
             topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
         });
         this.botGuild.blackList.set(assistanceChannel.id, 5000);
         this.botGuild.save();
         
-        return {taChannel, assistanceChannel};
+        return { taChannel, assistanceChannel };
     }
 
 
@@ -383,7 +399,7 @@ class Activity {
      */
     async delete() {
         var listOfChannels = this.category.children.array();
-        for(var i = 0; i < listOfChannels.length; i++) {
+        for (var i = 0; i < listOfChannels.length; i++) {
             await discordServices.deleteChannel(listOfChannels[i]);
         }
 
@@ -400,18 +416,8 @@ class Activity {
      */
     async addLimitToVoiceChannels(limit) {
         this.voiceChannels.forEach(async (channel) => {
-            await channel.edit({userLimit: limit});
+            await channel.edit({ userLimit: limit });
         });
-    }
-
-    /**
-     * Will make all voice channels except the general one private to attendees and sponsors
-     * @param {Boolean} toHide - true if you want to hide the channels from attendees and sponsors, false otherwise
-     */
-    async makeVoiceChannelsButGeneralPrivate(toHide) {
-        this.voiceChannels.forEach((channel) => {
-            this.makeVoiceChannelPrivate(channel, toHide);
-        })
     }
 
     /**
@@ -420,7 +426,7 @@ class Activity {
      * @param {Boolean} toHide 
      */
     async makeVoiceChannelPrivate(channel, toHide) {
-        channel.updateOverwrite(this.botGuild.attendance?.attendeeRoleID || this.botGuild.roleIDs.everyoneRole, {VIEW_CHANNEL: toHide ? false : true});
+        channel.updateOverwrite(this.botGuild.roleIDs.everyoneRole, {VIEW_CHANNEL: toHide ? false : true});
     }
 }
 

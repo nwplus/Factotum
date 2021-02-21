@@ -3,6 +3,7 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Activity = require('../../classes/activity');
 const ActivityCommand = require('../../classes/activity-command');
+const Prompt = require('../../classes/prompt');
 
 // Command export
 module.exports = class InitWorkshop extends ActivityCommand {
@@ -21,9 +22,25 @@ module.exports = class InitWorkshop extends ActivityCommand {
      * @param {Discord.Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
      */
-    async activityCommand(botGuild, message, activity) {
+    async activityCommand(message, activity) {
+        // prompt user for roles that will have access to the TA side of the workshop
+        let TARoles;
+        try {
+            if (await Prompt.yesNoPrompt({prompt: 'Aside from Staff, are there other roles you would like to allow access to the TA channels?', 
+                channel: message.channel, userId: message.author.id})) {
+                TARoles = await Prompt.rolePrompt({prompt: 'Mention the role(s) here now!', channel: message.channel, userId: message.author.id});
+            };
+        } catch (error) {
+            TARoles = new Discord.Collection();
+        }
+        TARoles.each(role => {
+            activity.generalText.updateOverwrite(role, {VIEW_CHANNEL: true});
+            activity.generalVoice.updateOverwrite(role, {VIEW_CHANNEL: true, SPEAK: true, MOVE_MEMBERS: true});
+            activity.category.updateOverwrite(role, {VIEW_CHANNEL: true});
+        });
 
-        let channels = await activity.makeWorkshop();
+        
+        let channels = await activity.makeWorkshop(TARoles);
 
         let taChannel = channels.taChannel;
         let assistanceChannel = channels.assistanceChannel;
