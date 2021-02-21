@@ -1,9 +1,10 @@
 const { Collection, Guild, CategoryChannel, TextChannel, VoiceChannel, DiscordAPIError, Message } = require("discord.js");
+const Prompt = require("./prompt");
+const BotGuild = require("../db/BotGuild");
 const discordServices = require('../discord-services');
 const firebaseActivity = require('../firebase-services/firebase-services-activities');
 const firebaseCoffeeChats = require('../firebase-services/firebase-services-coffeechats');
-const Prompt = require("./prompt");
-
+const BotGuildModel = require('../classes/bot-guild');
 
 /**
  * The activity class represents a discord activity, it holds important information like
@@ -103,6 +104,12 @@ class Activity {
          */
         this.activityInfo = {};
         this.validateActivityInfo(activityInfo || {});
+
+        /**
+         * The mongoose BotGuildModel Object
+         * @type {BotGuildModel}
+         */
+        this.botGuild;
     }
 
 
@@ -130,7 +137,8 @@ class Activity {
      * @returns {Promise<Activity>}
      */
     async init() {
-        let position = await this.guild.channels.cache.filter(channel => channel.type === 'category').array().length;
+        this.botGuild = await BotGuild.findById(this.guild.id);
+        let position = this.guild.channels.cache.filter(channel => channel.type === 'category').size;
         this.category = await this.createCategory(position);
         this.generalText = await this.addChannel(this.activityInfo.generalTextChannelName, {
             type: 'text',
@@ -221,7 +229,7 @@ class Activity {
      * @returns {Number} - total number of channels
      */
     addVoiceChannels(number, isPrivate, maxUsers = 0) {
-        let current = this.voiceChannels.array().length;
+        let current = this.voiceChannels.size;
         let total = current + number;
 
         for (let index = current; index < total; index++) {
@@ -247,7 +255,7 @@ class Activity {
      * @returns {Number} - the final number of voice channels
      */
     removeVoiceChannels(numberOfChannels) {
-        let total = this.voiceChannels.array().length;
+        let total = this.voiceChannels.size;
         let final = total - numberOfChannels;
 
         if (final < 0) final = 0;
@@ -281,7 +289,7 @@ class Activity {
         this.addChannel('🎮' + 'game-codes', {
             type: 'text',
             topic: 'This channel is only intended to send game codes for others to join!',
-        });
+        }, [{roleID: this.botGuild.roleIDs.memberRole, permissions: {VIEW_CHANNEL: false}}]); // members cant see this channel until they emoji a message to accept to the game rules
 
         this.addVoiceChannels(numOfChannels, true, 12);
 
@@ -318,19 +326,19 @@ class Activity {
     /**
      * Will make this activity a workshop activity.
      * @async
-     * @param {Collection<Snowflake, Role>} TAroles - roles with TA permissions aside from Staff
+     * @param {Collection<Snowflake, Role>} TARoles - roles with TA permissions aside from Staff
      * @returns {Promise<{taChannel : TextChannel, assistanceChannel : TextChannel}>} - an object with two text channels, taChannel, assistanceChannel
      */
-    async makeWorkshop(TAroles) {
+    async makeWorkshop(TARoles) {
         // update the voice channel permission to no speaking for attendees
-        this.generalVoice.updateOverwrite(discordServices.roleIDs.everyoneRole, {
+        this.generalVoice.updateOverwrite(this.botGuild.roleIDs.everyoneRole, {
             SPEAK: false,
         });
-        this.generalVoice.updateOverwrite(discordServices.roleIDs.staffRole, {
+        this.generalVoice.updateOverwrite(this.botGuild.roleIDs.staffRole, {
             SPEAK: true,
             MOVE_MEMBERS: true,
         });
-        TAroles.each(role => {
+        TARoles.each(role => {
             this.generalVoice.updateOverwrite(role, {
                 SPEAK: true,
                 MOVE_MEMBERS: true,
@@ -339,9 +347,9 @@ class Activity {
 
         // make TA channel private and give each TA role permission to view it
         let TAChannelPermissions = [
-            { roleID: discordServices.roleIDs.everyoneRole, permissions: { VIEW_CHANNEL: false } },
+            { roleID: this.botGuild.roleIDs.everyoneRole, permissions: { VIEW_CHANNEL: false } },
         ];
-        TAroles.each(role => TAChannelPermissions.push({roleID: role, permissions: {VIEW_CHANNEL: true}}));
+        TARoles.each(role => TAChannelPermissions.push({roleID: role, permissions: {VIEW_CHANNEL: true}}));
 
         // create ta console
         let taChannel = await this.addChannel(':🧑🏽‍🏫:' + 'ta-console', {
@@ -354,8 +362,9 @@ class Activity {
             type: 'text',
             topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
         });
-        discordServices.blackList.set(assistanceChannel.id, 5000);
-
+        this.botGuild.blackList.set(assistanceChannel.id, 5000);
+        this.botGuild.save();
+        
         return { taChannel, assistanceChannel };
     }
 
@@ -373,14 +382,15 @@ class Activity {
         // remove all channels in the category one at a time to not get a UI glitch
         let channels = this.category.children.array();
 
-        for (let i = 0; i < channels.length; i++) {
-            discordServices.blackList.delete(channels[i].id);
+        for(let i = 0; i < channels.length; i++) {
+            this.botGuild.blackList.delete(channels[i].id);
             await discordServices.deleteChannel(channels[i]);
         }
 
+        this.botGuild.save();
         await discordServices.deleteChannel(this.category);
 
-        firebaseActivity.remove(this.name);
+        //firebaseActivity.remove(this.name);
     }
 
     /**
@@ -395,7 +405,7 @@ class Activity {
 
         await this.category.delete();
 
-        firebaseActivity.remove(this.name);
+        //firebaseActivity.remove(this.name);
     }
 
     /**
@@ -411,22 +421,12 @@ class Activity {
     }
 
     /**
-     * Will make all voice channels except the general one private to attendees and sponsors
-     * @param {Boolean} toHide - true if you want to hide the channels from attendees and sponsors, false otherwise
-     */
-    async makeVoiceChannelsButGeneralPrivate(toHide) {
-        this.voiceChannels.forEach((channel) => {
-            this.makeVoiceChannelPrivate(channel, toHide);
-        })
-    }
-
-    /**
      * Will hide the voice channel given.
      * @param {TextChannel} channel 
      * @param {Boolean} toHide 
      */
     async makeVoiceChannelPrivate(channel, toHide) {
-        channel.updateOverwrite(discordServices.roleIDs?.attendeeRole || discordServices.roleIDs.everyoneRole, { VIEW_CHANNEL: toHide ? false : true });
+        channel.updateOverwrite(this.botGuild.roleIDs.everyoneRole, {VIEW_CHANNEL: toHide ? false : true});
     }
 }
 

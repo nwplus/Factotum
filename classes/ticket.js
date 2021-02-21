@@ -159,7 +159,7 @@ class Ticket {
             type: 'category',
             permissionOverwrites: [
                 {
-                    id: discordServices.roleIDs.everyoneRole,
+                    id: this.cave.botGuild.roleIDs.everyoneRole,
                     deny: ['VIEW_CHANNEL'],
                 }
             ]
@@ -192,7 +192,7 @@ class Ticket {
 
         // if ticket has not been accepted after the specified time, it will send a reminder to the incoming tickets channel tagging all mentors
         var timeout = setTimeout(() => {
-            this.cave.privateChannels.incomingTickets.send('Hello <@&' + discordServices.roleIDs.mentorRole + '> ticket number ' + this.ticketNumber + ' still needs help!');
+            this.cave.privateChannels.incomingTickets.send('Hello <@&' + this.cave.caveOptions.role + '> ticket number ' + this.ticketNumber + ' still needs help!');
         }, this.cave.caveOptions.times.reminderTime * 60 * 1000);
 
         // let user know that ticket was submitted and give option to remove ticket
@@ -381,7 +381,9 @@ class Ticket {
         activityListener.on('end', async collected => {
             //don't start deletion sequence if the text/voice channel got deleted while the collector was listening
             if (!this.mentorDeletionSequence && !this.category.deleted && !this.text.deleted && !this.voice.deleted) {
-                await this.askToDelete('inactivity');
+                if (this.voice.members.array().length === 0) {
+                    await this.askToDelete('inactivity');
+                }
                 this.createActivityListener(); // start listening again for inactivity if they asked for more time
             }
         });

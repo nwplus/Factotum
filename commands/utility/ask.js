@@ -2,6 +2,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class AskQuestion extends PermissionCommand {
@@ -20,15 +21,11 @@ module.exports = class AskQuestion extends PermissionCommand {
                     default: '',
                 }
             ],
-        },
-        {
-            roleID: discordServices.roleIDs.memberRole,
-            roleMessage: 'This command is only available for attendees!',
         });
     }
 
     // Run function -> command body
-    async runCommand(message, {question}) {
+    async runCommand(botGuild, message, {question}) {
 
         // if question is blank let user know via DM and exit
         if (question === '') {
@@ -37,13 +34,12 @@ module.exports = class AskQuestion extends PermissionCommand {
             return;
         }
         
-        
         // get current channel
         var curChannel = message.channel;
 
         // message embed to be used for question
         const qEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.questionEmbedColor)
+            .setColor(botGuild.colors.questionEmbedColor)
             .setTitle('Question from ' + message.author.username)
             .setDescription(question);
         
@@ -85,7 +81,7 @@ module.exports = class AskQuestion extends PermissionCommand {
                             // if cancel then do nothing
                             if (response.content.toLowerCase() != 'cancel') {
                                 // if user has a mentor role, they get a special title
-                                if (discordServices.checkForRole(response.member, discordServices.roleIDs?.mentorRole)) {
+                                if (discordServices.checkForRole(response.member, botGuild.roleIDs.staffRole)) {
                                     msg.edit(msg.embeds[0].addField('🤓 ' + user.username + ' Responded:', response.content));
                                 } else {
                                     // add a field to the message embed with the response
@@ -118,7 +114,7 @@ module.exports = class AskQuestion extends PermissionCommand {
                 // remove emoji will remove the message
                 else if (reaction.emoji.name === '⛔') {
                     // check that user is staff
-                    if (discordServices.checkForRole(msg.guild.member(user), discordServices.roleIDs.staffRole)) {
+                    if (discordServices.checkForRole(msg.guild.member(user), botGuild.roleIDs.staffRole)) {
                         msg.delete();
                     } else {
                         discordServices.sendMessageToMember(user, 'Deleting a question is only available to staff!', true);

@@ -2,8 +2,10 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const PermissionCommand = require('../../classes/permission-command');
 const Prompt = require('../../classes/prompt');
+const BotGuildModel = require('../../classes/bot-guild');
+const ActivityManager = require('../../classes/activity-manager');
 
-module.exports = class DistributeStamp extends PermissionCommand {
+module.exports = class PasswordStamp extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'password-stamp',
@@ -39,14 +41,13 @@ module.exports = class DistributeStamp extends PermissionCommand {
     }
 
     /**
-     * 
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message
      */
-    async runCommand(message, {activityName, password, stopTime}) {
+    async runCommand(botGuild, message, {activityName, password, stopTime}) {
         // helpful vars
         let channel = message.channel;
         let userId = message.author.id;
-
         // check if arguments have been given and prompt for the channel to use
         try {
             if (activityName === '') {
@@ -66,7 +67,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
         }
 
         const qEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('React with anything to claim a stamp for attending ' + activityName)
             .setDescription('Once you react to this message, check for a DM from this bot. **You can only emoji this message once!**')
             .addField('A Password Is Required!', 'Through the Bot\'s DM, you will have 3 attempts in the first 60 seconds to enter the correct password.');
@@ -109,11 +110,11 @@ module.exports = class DistributeStamp extends PermissionCommand {
 
                 pwdCollector.on('collect', async m => {
                     //update role and stop collecting if password matches
-                    if (m.content === password) {
-                        member.roles.cache.forEach(async role => (await this.parseRole(member, user, role, message, activityName)));
+                    if (m.content.toLowerCase() === password.toLowerCase()) {
+
+                        ActivityManager.parseRole(member, activityName, botGuild);
+                        
                         correctPassword = true;
-                        //discordServices.deleteMessage(msgs);
-                        discordServices.deleteMessage(dmMessage);
                         pwdCollector.stop();
                     } else if (incorrectPasswords < 2) {
                         //add 1 to number of incorrect guesses and prompts user to try again
@@ -149,42 +150,4 @@ module.exports = class DistributeStamp extends PermissionCommand {
             });
         });
     }
-
-    //replaces user's current role with the next one
-    async parseRole(member,user,curRole,message,activityName) {
-        var stampNumber; //keep track of which role should be next based on number of stamps
-        var newRole; //next role based on stampNumber
-        
-        
-        //case for if curRole ends in 2 digits
-        if (!isNaN(curRole.name.substring(curRole.name.length - 2, curRole.name.length))) {
-            stampNumber = parseInt(curRole.name.substring(curRole.name.length - 2));
-            stampNumber++;
-            
-            if (stampNumber === 6) {
-                //manually set newRole to Stamp - 6 if stampNumber = 6 because otherwise it will end up being MEE6
-                newRole = message.guild.roles.cache.find(role => role.id === discordServices.stampRoles.stamp6Role);
-            }
-            newRole = message.guild.roles.cache.find(role => 
-                !isNaN(role.name.substring(role.name.length - 2)) &&
-                parseInt(role.name.substring(role.name.length - 2)) === stampNumber);
-        } else {
-            //if role doesn't end in a digit then return
-            return;
-        }
-        //shouldn't happen but check just in case something goes wrong and no matching role was found
-        //then remain at the same role. most likely case would be getting more than the number of stamps 
-        //we have provided
-        if (newRole == null) {
-            newRole = curRole;
-            await discordServices.sendMessageToMember(user, 'A problem occurred. Please contact an organizer/admin.', true);
-        } 
-        //replace curRole with newRole and send dm with details
-        discordServices.replaceRoleToMember(member, curRole, newRole);
-        await discordServices.sendEmbedToMember(user, {
-            title: 'Stamp Collector for ' + activityName,
-            description: 'You have been upgraded from ' + curRole.name + ' to ' + newRole.name + ' for attending ' + activityName + '\'s booth!',
-            color: '#b2ff2e',
-        });
-    } 
 }

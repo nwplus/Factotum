@@ -3,6 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class StartChannelCreation extends PermissionCommand {
@@ -23,10 +24,10 @@ module.exports = class StartChannelCreation extends PermissionCommand {
     }
 
     /**
-     *  
-     * @param {Discord.Message} message 
+     * @param {BotGuildModel} botGuild
+     * @param {Discord.Message} message - the message in which the command was run
      */
-    async runCommand(message) {
+    async runCommand(botGuild, message) {
 
         try {
             // grab current channel
@@ -38,18 +39,18 @@ module.exports = class StartChannelCreation extends PermissionCommand {
 
         // grab channel creation category and update permissions
         var category = channel.parent;
-        category.updateOverwrite(discordServices.roleIDs.everyoneRole, {
+        category.updateOverwrite(botGuild.roleIDs.everyoneRole, {
             VIEW_CHANNEL: false,
         });
 
-        channel.updateOverwrite(discordServices.roleIDs.everyoneRole, {
+        channel.updateOverwrite(botGuild.roleIDs.everyoneRole, {
             VIEW_CHANNEL: true,
         });
 
         
         // create and send embed message to channel with emoji collector
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('Private Channel Creation')
             .setDescription('Do you need a private channel to work with your friends? Or a voice channel to get to know a mentor, here you can create private text or voice channels.' +
                 ' However do know that server admins will have access to these channels, and the bot will continue to monitor for bad language, so please follow the rules!')

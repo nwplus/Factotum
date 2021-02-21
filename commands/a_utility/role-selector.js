@@ -3,6 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class RoleSelector extends PermissionCommand {
@@ -22,10 +23,10 @@ module.exports = class RoleSelector extends PermissionCommand {
 
 
     /**
-     * 
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message - the command message
      */
-    async runCommand (message) {
+    async runCommand (botGuild, message) {
 
         // the emoji for staff to add new transfers
         let newTransferEmoji = '🆕';
@@ -43,7 +44,7 @@ module.exports = class RoleSelector extends PermissionCommand {
          */
         let transfers = new Discord.Collection();
 
-        const cardEmbed = new Discord.MessageEmbed().setColor(discordServices.colors.embedColor)
+        const cardEmbed = new Discord.MessageEmbed().setColor(botGuild.colors.embedColor)
             .setTitle('Role Selector!')
             .setDescription('React to the specified emoji to get the role, un-react to remove the role.');
 
@@ -56,7 +57,7 @@ module.exports = class RoleSelector extends PermissionCommand {
         // add role or a transfer depending on the emoji
         reactionCollector.on('collect', async (reaction, user) => {
             // admin add new transfer
-            if (reaction.emoji.name === newTransferEmoji && discordServices.checkForRole(message.guild.member(user), discordServices.roleIDs.staffRole)) {
+            if (reaction.emoji.name === newTransferEmoji && discordServices.checkForRole(message.guild.member(user), botGuild.roleIDs.staffRole)) {
                 
                 try {
                     var newTransferMsg = await Prompt.messagePrompt({prompt: 'What new transfer do you want to add? Your response should have (in this order, not including <>): @role <transfer name> - <transfer description>',

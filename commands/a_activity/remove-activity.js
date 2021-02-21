@@ -19,7 +19,7 @@ module.exports = class RemoveActivity extends ActivityCommand {
      * @param {Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
      */
-    async activityCommand(message, activity) {
+    async activityCommand(botGuild, message, activity) {
         
         activity.delete();
 

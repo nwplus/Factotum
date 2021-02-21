@@ -4,6 +4,8 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Activity = require('../../classes/activity');
 const { numberPrompt, rolePrompt } = require('../../classes/prompt');
+const BotGuildModel = require('../../classes/bot-guild');
+
 
 // Command export
 module.exports = class NewActivity extends PermissionCommand {
@@ -30,7 +32,13 @@ module.exports = class NewActivity extends PermissionCommand {
         });
     }
 
-    async runCommand(message, {activityName}) {
+    /**
+     * @param {BotGuildModel} botGuild
+     * @param {Discord.Message} message - the message in which the command was run
+     */
+    async runCommand(botGuild, message, {activityName}) {
+
+        // prompt user for roles that will be allowed to see this activity.
         let allowedRoles;
         try {
             allowedRoles = await rolePrompt({ prompt: 'What roles, aside from Staff, will be allowed to view this activity? (Type "cancel" if none)',
@@ -46,7 +54,7 @@ module.exports = class NewActivity extends PermissionCommand {
         // send message to console with emoji commands
         // message embed
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('Activity: ' + activity.name + ' console.')
             .setDescription('This activity\'s information is below. For any changes you can use the emojis or direct commands.\n' + 
                 '🧑🏽‍💼 Will make this activity a workshop.\n' + 
@@ -58,7 +66,7 @@ module.exports = class NewActivity extends PermissionCommand {
                 '🔃 Will callback all users from all channels to the general channel.\n' + 
                 '👨‍👩‍👧‍👦 Will shuffle all the groups around the available channels.\n' + 
                 '🦜 Will shuffle all the mentors around the available channels.\n' +
-                '🏕️ Will activate a stamp distribution that will be open for ' + discordServices.stampCollectTime + ' seconds.\n' +
+                '🏕️ Will activate a stamp distribution that will be open for ' + botGuild.stamps.stampCollectionTime + ' seconds.\n' +
                 '🏎️ [FOR WORKSHOPS] Will send an embedded message asking how the speed is.\n' +
                 '✍️ [FOR WORKSHOPS] Will send an embedded message asking how the difficulty is.\n' +
                 '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.\n' + 
@@ -133,13 +141,13 @@ module.exports = class NewActivity extends PermissionCommand {
             } else if (emojiName === emojis[8]) {
                 commandRegistry.findCommands('shuffle-mentors', true)[0].runActivityCommand(message, activity);
             } else if (emojiName === emojis[9]) {
-                commandRegistry.findCommands('distribute-stamp', true)[0].runActivityCommand(message, activity, { timeLimit: discordServices.stampCollectTime });
+                commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(message, activity, { timeLimit: botGuild.stamps.stampCollectTime });
             } else if (emojiName === emojis[10]) {
-                commandRegistry.findCommands('workshop-polls',true)[0].runActivityCommand(message, activity, { question: 'speed' });
+                commandRegistry.findCommands('workshop-polls',true)[0].runCommand(message, activity, { questionType: 'speed' });
             } else if (emojiName === emojis[11]) {
-                commandRegistry.findCommands('workshop-polls',true)[0].runActivityCommand(message, activity, { question: 'difficulty' });
+                commandRegistry.findCommands('workshop-polls',true)[0].runCommand(message, activity, { questionType: 'difficulty' });
             } else if (emojiName === emojis[12]) {
-                commandRegistry.findCommands('workshop-polls',true)[0].runActivityCommand(message, activity, { question: 'explanations' });
+                commandRegistry.findCommands('workshop-polls',true)[0].runCommand(message, activity, { questionType: 'explanations' });
             } else if (emojiName === emojis[13] && activity.isRegularActivity()) {
                 activity.state.isAmongUs = true;
                 await activity.addLimitToVoiceChannels(12);

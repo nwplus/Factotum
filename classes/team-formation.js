@@ -1,6 +1,7 @@
 const { GuildEmoji, ReactionEmoji, Role, TextChannel, MessageEmbed, Guild, GuildChannelManager, User, Message, RoleManager } = require('discord.js');
 const { messagePrompt } = require('./prompt');
 const discordServices = require('../discord-services');
+const BotGuild = require('../db/BotGuild');
 
 /**
  * @class TeamFormation
@@ -207,7 +208,7 @@ module.exports = class TeamFormation {
             embed = signupEmbedCreator(this.teamInfo.emoji, this.prospectInfo.emoji, this.isNotificationEnabled);
         } else {
             embed = new MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor((await (BotGuildModel.findById(this.guild.id))).colors.embedColor)
             .setTitle('Team Formation Information')
             .setDescription('Welcome to the team formation section! If you are looking for a team or need a few more members to complete your ultimate group, you are in the right place!')
             .addField('How does this work?', '* Once you react to this message, I will send you a template you need to fill out and send back to me via DM. \n* Then I will post your information in the channels below. \n* Then, other members, teams, or yourself can browse these channels and reach out via DM!')

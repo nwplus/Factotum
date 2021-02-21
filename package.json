@@ -14,7 +14,10 @@
     "dotenv-flow": "^3.2.0",
     "firebase": "^7.19.0",
     "firebase-admin": "^9.5.0",
+    "jsdoc": "^3.6.6",
     "jsonfile": "^6.1.0",
-    "lokijs": "^1.5.11"
+    "lokijs": "^1.5.11",
+    "mongodb": "^3.6.4",
+    "mongoose": "^5.11.17"
   }
 }

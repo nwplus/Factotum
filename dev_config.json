@@ -1,26 +1,36 @@
 {
     "adminRoleID" : "738491577596641311",
-    "adminConsoleID" : "808454476116787230",
-    "adminLogsID" : "743197503884755045",
+    "adminConsoleID" : "811741804406767666",
+    "adminLogsID" : "811741805077856316",
     "staffRoleID" : "738519363904077916",
     "memberRoleID" : "808409937373298700",
     "everyoneRoleID" : "738475671977722058",
 
     "isVerificationOn" : true,
     "guestRoleID" : "778651193362481213",
-    "welcomeChannelID" : "808454570418110484",
-    "welcomeChannelSupportID" : "808454571172954202",
+    "welcomeChannelID" : "811741918253547540",
+    "welcomeChannelSupportID" : "811741919008784454",
+    "verificationRoles" : [
+        {
+            "type" : "cmd-f hacker",
+            "roleId" : "812441340888612924"
+        },
+        {
+            "type" : "learn hacker",
+            "roleId" : "812441385630040086"
+        }
+    ],
 
     "isAttendanceOn" : true,
-    "attendeeRoleID" : "742896999556448357",
+    "attendeeRoleID" : "738519785028976741",
 
     "isAnnouncementOn" : false,
 
     "isStampOn" : true,
     "stamps" : [
-        "808451225930039316",
-        "808451226148405259",
-        "808451227230535700"
+        "811743390572085269",
+        "811743394165817344",
+        "811743395001270312"
     ],
 
     "botSupportChannelID" : "806586723483385857",

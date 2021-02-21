@@ -2,6 +2,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const Discord = require('discord.js');
 const discordServices = require('../../discord-services');
 const Prompt = require('../../classes/prompt');
+const BotGuildModel = require('../../classes/bot-guild');
 
 module.exports = class BoothDirectory extends PermissionCommand {
     constructor(client) {
@@ -27,7 +28,7 @@ module.exports = class BoothDirectory extends PermissionCommand {
  * 
  * @param {Discord.Message} message - messaged that called this command
  */
-    async runCommand(message) {
+    async runCommand(botGuild, message) {
 
         // helpful vars
         let channel = message.channel;
@@ -64,8 +65,7 @@ module.exports = class BoothDirectory extends PermissionCommand {
             msg.react(emoji);
             //only listen for the door react from Staff and Sponsors
             const emojiFilter = (reaction, user) => (reaction.emoji.name === emoji.name) && 
-                (discordServices.checkForRole(message.guild.member(user), discordServices.roleIDs.staffRole) || 
-                    discordServices.checkForRole(message.guild.member(user), discordServices.roleIDs?.sponsorRole));
+                discordServices.checkForRole(message.guild.member(user), botGuild.roleIDs.staffRole);
             const emojiCollector = msg.createReactionCollector(emojiFilter);
             
             var announcementMsg;
