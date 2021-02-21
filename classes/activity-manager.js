@@ -1,4 +1,3 @@
-const firebaseActivity = require('../firebase-services/firebase-services-activities');
 const firebaseCoffeeChats = require('../firebase-services/firebase-services-coffeechats');
 const discordServices = require('../discord-services');
 const Activity = require('./activity');

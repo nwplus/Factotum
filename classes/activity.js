@@ -2,7 +2,6 @@ const { Collection, Guild, CategoryChannel, TextChannel, VoiceChannel, DiscordAP
 const Prompt = require("./prompt");
 const BotGuild = require("../db/BotGuild");
 const discordServices = require('../discord-services');
-const firebaseActivity = require('../firebase-services/firebase-services-activities');
 const firebaseCoffeeChats = require('../firebase-services/firebase-services-coffeechats');
 const BotGuildModel = require('../classes/bot-guild');
 
@@ -66,9 +65,6 @@ class Activity {
          * @type {VoiceChannel}
          */
         this.generalVoice;
-
-        // create workshop in db
-        // firebaseActivity.create(this.name);
 
         /**
          * The state of this activity
@@ -389,8 +385,6 @@ class Activity {
 
         this.botGuild.save();
         await discordServices.deleteChannel(this.category);
-
-        //firebaseActivity.remove(this.name);
     }
 
     /**
@@ -404,8 +398,6 @@ class Activity {
         }
 
         await this.category.delete();
-
-        //firebaseActivity.remove(this.name);
     }
 
     /**
