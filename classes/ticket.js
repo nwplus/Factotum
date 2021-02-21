@@ -381,7 +381,9 @@ class Ticket {
         activityListener.on('end', async collected => {
             //don't start deletion sequence if the text/voice channel got deleted while the collector was listening
             if (!this.mentorDeletionSequence && !this.category.deleted && !this.text.deleted && !this.voice.deleted) {
-                await this.askToDelete('inactivity');
+                if (this.voice.members.array().length === 0) {
+                    await this.askToDelete('inactivity');
+                }
                 this.createActivityListener(); // start listening again for inactivity if they asked for more time
             }
         });
