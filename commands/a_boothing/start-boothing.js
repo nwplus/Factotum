@@ -4,7 +4,7 @@ const firebaseServices = require('../../firebase-services/firebase-services');
 const firebaseBoothing = require('../../firebase-services/firebase-services-boothing')
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
-const { Document } = require('mongoose');
+const BotGuildModel = require('../../classes/bot-guild');
 
 
 // Command export
@@ -26,7 +26,7 @@ module.exports = class StartBoothing extends PermissionCommand {
 
     /**
      * 
-     * @param {Document} botGuild 
+     * @param {BotGuildModel} botGuild 
      * @param {Discord.Message} message 
      */
     async runCommand(botGuild, message) {

@@ -3,7 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Verification = require('../../classes/verification');
-const { Document } = require('mongoose');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class Verify extends PermissionCommand {
@@ -34,7 +34,7 @@ module.exports = class Verify extends PermissionCommand {
 
     /**
      * DOES NOT WORK !!!! TODO REMOVE OR ADD ABILITY TO GIVE GUILD ID FOR IT TO WORK!
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message 
      * @param {String} email 
      */

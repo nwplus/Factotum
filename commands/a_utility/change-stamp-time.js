@@ -1,7 +1,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const { Message } = require('discord.js');
-const { Document } = require('mongoose');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class ChangeStampTime extends PermissionCommand {
@@ -28,7 +28,7 @@ module.exports = class ChangeStampTime extends PermissionCommand {
 
     /**
      * 
-     * @param {Document} botGuild 
+     * @param {BotGuildModel} botGuild 
      * @param {Message} message 
      * @param {*} param2 
      */

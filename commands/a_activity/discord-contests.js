@@ -3,7 +3,7 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const { numberPrompt, yesNoPrompt, rolePrompt, memberPrompt } = require('../../classes/prompt');
 const { getQuestion } = require('../../firebase-services/firebase-services');
-const { Document } = require('mongoose');
+const BotGuildModel = require('../../classes/bot-guild');
 
 
 var interval;
@@ -34,7 +34,7 @@ module.exports = class DiscordContests extends PermissionCommand {
      * Stores a map which keeps the questions (strings) as keys and an array of possible answers (strings) as values. It iterates through
      * each key in order and asks them in the Discord channel in which it was called at the given intervals. It also listens for emojis
      * that tell it to pause, resume, or remove a specified question. 
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message - the message in which this command was called
      */
     async runCommand(botGuild, message) {

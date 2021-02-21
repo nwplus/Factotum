@@ -2,7 +2,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const Discord = require('discord.js');
 const discordServices = require('../../discord-services');
 const Prompt = require('../../classes/prompt');
-const BotGuild = require('../../db/botGuildDBObject');
+const BotGuildModel = require('../../classes/bot-guild');
 
 module.exports = class BoothDirectory extends PermissionCommand {
     constructor(client) {

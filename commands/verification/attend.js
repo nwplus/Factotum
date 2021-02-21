@@ -4,7 +4,7 @@ const firebaseServices = require('../../firebase-services/firebase-services');
 const Discord = require('discord.js');
 const discordServices = require('../../discord-services');
 const Verification = require('../../classes/verification');
-const { Document } = require('mongoose');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class Attend extends PermissionCommand {
@@ -29,7 +29,7 @@ module.exports = class Attend extends PermissionCommand {
 
     /**
      * Attends a member.
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message 
      * @param {String} guildId 
      */

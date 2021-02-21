@@ -1,6 +1,5 @@
 require('dotenv-flow').config();
 const mongoUtil = require('./db/mongoUtil');
-const { Document } = require('mongoose');
 const Commando = require('discord.js-commando');
 const Discord = require('discord.js');
 const firebase = require('firebase/app');
@@ -30,7 +29,8 @@ admin.initializeApp({
 
 const discordServices = require('./discord-services');
 const Prompt = require('./classes/prompt');
-const BotGuild = require('./db/botGuildDBObject');
+const BotGuild = require('./db/BotGuild');
+const BotGuildModel = require('./classes/bot-guild');
 const Verification = require('./classes/verification');
 
 const config = {
@@ -201,7 +201,7 @@ bot.login(config.token).catch(console.error);
 /**
  * Greets a member!
  * @param {Discord.GuildMember} member - the member to greet
- * @param {Document} botGuild
+ * @param {BotGuildModel} botGuild
  * @throws Error if the user has server DMs off
  */
 async function greetNewMember(member, botGuild) {
@@ -256,7 +256,7 @@ async function greetNewMember(member, botGuild) {
  * Will let the member know how to fix their DM issue.
  * @param {Error} error - the error
  * @param {Discord.GuildMember} member - the member with the error
- * @param {Document} botGuild
+ * @param {BotGuildModel} botGuild
  * @throws Error if the given error is not a DM error
  */
 async function fixDMIssue(error, member, botGuild) {

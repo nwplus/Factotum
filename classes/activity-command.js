@@ -2,8 +2,8 @@ const PermissionCommand = require('./permission-command');
 const discordServices = require('../discord-services');
 const Activity = require('./activity');
 const { Message } = require('discord.js');
-const { Document } = require('mongoose');
-const BotGuild = require('../db/botGuildDBObject');
+const BotGuild = require('../db/BotGuild');
+const BotGuildModel = require('./bot-guild');
 
 /**
  * The ActivityCommand class is a special class used for activity commands. It extends
@@ -56,7 +56,7 @@ class ActivityCommand extends PermissionCommand {
 
     /**
      * Required class by children, should contain the command code.
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @param {Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
      * @abstract

@@ -2,7 +2,7 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const PermissionCommand = require('../../classes/permission-command');
 const Prompt = require('../../classes/prompt');
-const { Document } = require('mongoose');
+const BotGuildModel = require('../../classes/bot-guild');
 const ActivityManager = require('../../classes/activity-manager');
 
 module.exports = class PasswordStamp extends PermissionCommand {
@@ -41,7 +41,7 @@ module.exports = class PasswordStamp extends PermissionCommand {
     }
 
     /**
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message
      */
     async runCommand(botGuild, message, {activityName, password, stopTime}) {

@@ -5,7 +5,7 @@ const discordServices = require('../../discord-services');
 const { Message } = require('discord.js');
 const Prompt = require('../../classes/prompt');
 const Verification = require('../../classes/verification');
-const { Document } = require('mongoose');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class ManualVerify extends PermissionCommand {
@@ -26,7 +26,7 @@ module.exports = class ManualVerify extends PermissionCommand {
     }
 
     /**
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @param {Message} message 
      */
     async runCommand(botGuild, message) {

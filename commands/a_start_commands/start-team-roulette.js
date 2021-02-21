@@ -4,8 +4,7 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt.js');
 const Team = require('../../classes/team');
-const BotGuild = require('../../db/botGuildDBObject');
-const {Document} = require('mongoose');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class StartTeamRoulette extends PermissionCommand {
@@ -30,7 +29,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
     }
 
     /**
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message - the message in which the command was run
      */
     async runCommand(botGuild, message) {

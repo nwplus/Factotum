@@ -1,6 +1,9 @@
-import {Document, Model } from 'mongoose'
+import { Document } from 'mongoose'
 import Cave from '../classes/cave'
 
+/**
+ * @interface BotGuild
+ */
 interface BotGuild extends Document {
     /**
      * The basic roles for any botGuild. Given as snowflakes (ids).
@@ -94,8 +97,35 @@ interface BotGuild extends Document {
      * True if the bot has been set up and its ready to hack!
      */
     isSetUpComplete: Boolean,
+
+    /**
+     * Will set the minimum required information for the bot to work on this guild.
+     * @param {BotGuildInfo} botGuildInfo 
+     * @param {CommandoClient} client
+     * @returns {Promise<BotGuild>}
+     * @async
+     */
+    async readyUp(client, botGuildInfo);
+
+    /**
+     * Staff role permissions.
+     * @static
+     */
+    static staffPermissions: String[];
+
+    /**
+     * Admin role permissions.
+     * @static
+     */
+    static adminPermissions: String[];
+
+    /**
+     * The regular member perms.
+     * @static
+     */
+    static memberPermissions: String[];
 }
 
-let botGuild: Model<BotGuild>;
+let botGuild: BotGuild;
 
 export = botGuild;

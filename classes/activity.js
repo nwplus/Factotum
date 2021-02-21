@@ -1,10 +1,9 @@
 const { Collection, Guild, CategoryChannel, TextChannel, VoiceChannel } = require("discord.js");
-const BotGuild = require("../db/botGuildDBObject");
+const BotGuild = require("../db/BotGuild");
 const discordServices = require('../discord-services');
 const firebaseActivity = require('../firebase-services/firebase-services-activities');
 const firebaseCoffeeChats = require('../firebase-services/firebase-services-coffeechats');
-const { Document } = require('mongoose');
-
+const BotGuildModel = require('../classes/bot-guild');
 
 /**
  * The activity class represents a discord activity, it holds important information like
@@ -99,8 +98,8 @@ class Activity {
         this.validateActivityInfo(activityInfo || {});
 
         /**
-         * The mongoose BotGuild Object
-         * @type {Document}
+         * The mongoose BotGuildModel Object
+         * @type {BotGuildModel}
          */
         this.botGuild;
     }

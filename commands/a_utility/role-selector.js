@@ -3,7 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt');
-const { Document } = require('mongoose');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class RoleSelector extends PermissionCommand {
@@ -23,7 +23,7 @@ module.exports = class RoleSelector extends PermissionCommand {
 
 
     /**
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message - the command message
      */
     async runCommand (botGuild, message) {

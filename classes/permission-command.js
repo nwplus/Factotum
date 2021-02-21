@@ -1,9 +1,8 @@
 const Discord = require('discord.js');
 const { Command, CommandoMessage } = require('discord.js-commando');
-const BotGuild = require('../db/botGuildDBObject');
+const BotGuild = require('../db/BotGuild');
+const BotGuildModel = require('./bot-guild');
 const discordServices = require('../discord-services');
-const { Document } = require('mongoose');
-
 
 /**
  * The PermissionCommand is a custom command that extends the discord js commando Command class.
@@ -67,6 +66,7 @@ class PermissionCommand extends Command {
         // delete the message
         discordServices.deleteMessage(message);
 
+        /** @type {BotGuildModel} */
         let botGuild;
         if (message?.guild) botGuild = await BotGuild.findById(message.guild.id);
         else botGuild = null;
@@ -110,7 +110,7 @@ class PermissionCommand extends Command {
 
     /**
      * Required class by children, will throw error if not implemented!
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @param {CommandoMessage} message
      * @param {*} args
      * @param {Boolean} fromPattern
