@@ -131,7 +131,7 @@ class Activity {
      */
     async init() {
         this.botGuild = await BotGuild.findById(this.guild.id);
-        let position = await this.guild.channels.cache.filter(channel => channel.type === 'category').array().length;
+        let position = this.guild.channels.cache.filter(channel => channel.type === 'category').size;
         this.category = await this.createCategory(position);
         this.generalText =  await this.addChannel(this.activityInfo.generalTextChannelName, {
             type: 'text',
@@ -225,7 +225,7 @@ class Activity {
      * @returns {Number} - total number of channels
      */
     addVoiceChannels(number, isPrivate, maxUsers = 0) {
-        let current = this.voiceChannels.array().length;
+        let current = this.voiceChannels.size;
         let total = current + number;
 
         for (let index = current; index < total; index++) {
@@ -251,7 +251,7 @@ class Activity {
      * @returns {Number} - the final number of voice channels
      */
     removeVoiceChannels(numberOfChannels) {
-        let total = this.voiceChannels.array().length;
+        let total = this.voiceChannels.size;
         let final = total - numberOfChannels;
 
         if (final < 0) final = 0;
@@ -375,7 +375,7 @@ class Activity {
         this.botGuild.save();
         await discordServices.deleteChannel(this.category);
 
-        firebaseActivity.remove(this.name);
+        //firebaseActivity.remove(this.name);
     }
 
     /**
@@ -390,7 +390,7 @@ class Activity {
 
         await this.category.delete();
 
-        firebaseActivity.remove(this.name);
+        //firebaseActivity.remove(this.name);
     }
 
     /**

@@ -47,7 +47,7 @@ module.exports = class CreatePrivates extends PermissionCommand {
         });
 
         // number of channels
-        var amount = channels.array().length;
+        var amount = channels.size;
 
         var total = amount + number;                
 

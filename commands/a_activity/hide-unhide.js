@@ -36,21 +36,12 @@
 //     async run(message, {activityName, toHide, categoryChannelKey}) {
 //         discordServices.deleteMessage(message);
 
-<<<<<<< HEAD
 //         // make sure command is only used in the admin console
 //         // only members with the staff tag can run this command!
 //         if (!(discordServices.checkForRole(message.member, discordServices.roleIDs.staffRole))) {
 //             discordServices.replyAndDelete(message, 'You do not have permission for this command, only staff can use it!');
 //             return;             
 //         }
-=======
-        // make sure command is only used in the admin console
-        // only members with the staff tag can run this command!
-        if (!(discordServices.checkForRole(message.member, discordServices.roleIDs.staffRole))) {
-            discordServices.replyAndDelete(message, 'You do not have permission for this command, only staff can use it!');
-            return;             
-        }
->>>>>>> develop
 
 //         // get category
 //         var category;

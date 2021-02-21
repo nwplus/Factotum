@@ -59,7 +59,7 @@ class Verification {
         // extra check to see if types were found, give stamp role if available and let user know of success
         if (correctTypes.length > 0) {
             discordServices.replaceRoleToMember(member, botGuild.verification.guestRoleID, botGuild.roleIDs.memberRole);
-            if (botGuild.stamps.stampRoleIDs.has(0)) discordServices.addRoleToMember(member, botGuild.stamps.stampRoleIDs.get(0));
+            if (botGuild.stamps.isEnabled) discordServices.addRoleToMember(member, botGuild.stamps.stamp0thRoleId);
             discordServices.sendEmbedToMember(member, {
                 title: 'cmd-f 2021 Verification Success',
                 description: `You have been verified as a ${correctTypes.join()}, good luck and have fun!`,

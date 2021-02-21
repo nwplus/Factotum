@@ -138,7 +138,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 groupMembers.delete(newTeam.leader);
 
                 // check if they have more than 4 team members
-                if (groupMembers.array().length > 2) {
+                if (groupMembers.size > 2) {
                     discordServices.sendEmbedToMember(teamLeaderUser, {
                         title: 'Team Roulette',
                         description: 'You just tried to use the team roulette, but you mentioned more than 2 members. That should mean you have a team of 4 already! If you mentioned yourself by accident, try again!',

@@ -47,7 +47,7 @@ module.exports = class RemovePrivates extends PermissionCommand {
         });
 
         // number of channels
-        var amount = channels.array().length;
+        var amount = channels.size;
 
         // make sure there are enough channels to remove
         if (amount < number) {

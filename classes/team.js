@@ -118,7 +118,7 @@ class Team {
             this.members.set(user.id, user);
             await this.addUserToTextChannel(user);
 
-            if (this.members.array().length === 1) {
+            if (this.members.size === 1) {
                 this.leader = user.id;
                 
             }
@@ -152,7 +152,7 @@ class Team {
      * @returns {Number}
      */
     size() {
-        return this.members.array().length;
+        return this.members.size;
     }
 
     /**

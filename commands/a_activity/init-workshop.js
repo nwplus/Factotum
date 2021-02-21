@@ -28,7 +28,6 @@ module.exports = class InitWorkshop extends ActivityCommand {
 
         let taChannel = channels.taChannel;
         let assistanceChannel = channels.assistanceChannel;
-        let helpChannel = activity.generalText;
 
     // important variables and embeds
         // pullInFunctionality is default to true
@@ -63,7 +62,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 // let TAs know about the change!
                 taChannel.send('Low tech solution has been turned on!').then(msg => msg.delete({timeout: 5000}));
                 msg.edit(msg.embeds[0].addField('Low Tech Solution Is On', 'To give assistance: \n* Send a DM to the highers member on the wait list \n* Then click on the emoji to remove them from the list!'));
-                helpChannel.send(new Discord.MessageEmbed().setColor(botGuild.colors.embedColor).setTitle('Quick Update!').setDescription('You do not need to join the ' +  activity.activityInfo.generalVoiceChannelName + ' voice channel. TAs will send you a DM when they are ready to assist you!'));
+                assistanceChannel.send(new Discord.MessageEmbed().setColor(discordServices.colors.embedColor).setTitle('Quick Update!').setDescription('You do not need to join the ' +  activity.activityInfo.generalVoiceChannelName + ' voice channel. TAs will send you a DM when they are ready to assist you!'));
             });
         });
         
@@ -149,13 +148,13 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 discordServices.sendMessageToMember(user, 'You are already on the TA wait list! A TA will get to you soon!', true);
                 return;
             } else {
-                var position = waitlist.array().length;
+                var position = waitlist.size;
                 // add user to wait list
                 waitlist.set(user.id, user.username);
             }
 
             // collect the question the hacker has
-            var qPrompt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond').catch(console.error);
+            var qPrompt = await assistanceChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond').catch(console.error);
 
             assistanceChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000, error:['time'] }).then(async msgs => {
                 // get question
@@ -181,7 +180,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 msgs.each(msg => msg.delete());
             }).catch(() => {
                 qPrompt.delete();
-                helpChannel.send('<@' + user.id + '> Time is up! Write up your message and react again!').then(msg => msg.delete({timeout: 3000}));
+                assistanceChannel.send('<@' + user.id + '> Time is up! Write up your message and react again!').then(msg => msg.delete({timeout: 3000}));
             });
         });
 
@@ -193,7 +192,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
             reaction.users.remove(user.id);
 
             // check that there is someone to help
-            if (waitlist.array().length === 0) {
+            if (waitlist.size === 0) {
                 taChannel.send('<@' + user.id + '> No one to help right now!').then(msg => msg.delete({ timeout: 5000 }));
                 return;
             }

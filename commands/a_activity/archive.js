@@ -31,7 +31,7 @@ module.exports = class InitAmongUs extends ActivityCommand {
         if (archiveCategory === undefined) {
             
             // position is used to create archive at the very bottom!
-            var position = (await message.guild.channels.cache.filter(channel => channel.type === 'category')).array().length;
+            var position = (await message.guild.channels.cache.filter(channel => channel.type === 'category')).size;
             archiveCategory = await message.guild.channels.create('💼archive', {
                 type: 'category', 
                 position: position + 1,
