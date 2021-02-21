@@ -3,9 +3,8 @@ const firebaseCoffeeChats = require('../firebase-services/firebase-services-coff
 const discordServices = require('../discord-services');
 const Activity = require('./activity');
 const Discord = require('discord.js');
-const BotGuild = require('../db/botGuildDBObject');
-const {Document} = require('mongoose');
-
+const BotGuild = require('../db/BotGuild');
+const BotGuildModel = require('./bot-guild');
 
 /**
  * The ActivityManager class has static variables to play with activities.
@@ -101,7 +100,7 @@ class ActivityManager {
      * Will let hackers get a stamp for attending an activity.
      * @param {Activity} activity - activity to use
      * @param {Number} [time] - time to wait till collector closes, in seconds
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @async
      */
     static async distributeStamp(activity, botGuild, time = 60) {
@@ -144,7 +143,7 @@ class ActivityManager {
      * Upgrade the stamp role of a member.
      * @param {Discord.GuildMember} member - the member to add the new role to
      * @param {String} activityName - the name of the activity
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @private
      */
     static parseRole(member, activityName, botGuild) {
@@ -176,7 +175,7 @@ class ActivityManager {
      * @param {String} title - the title of the poll
      * @param {String} question - the question to poll for
      * @param {Discord.Collection<String, String>} response - <Emoji, Response> A collection, in order of emojis with its response
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      */
     static sendPoll(activity, title, question, response, botGuild){
         // create poll

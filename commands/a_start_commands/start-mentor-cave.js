@@ -24,7 +24,7 @@ module.exports = class StartMentors extends PermissionCommand {
     }
 
     /**
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message - the message in which the command was run
      */
     async runCommand(botGuild, message) {

@@ -1,6 +1,5 @@
 const { Collection } = require("discord.js");
 const Discord = require("discord.js");
-const BotGuild = require("../db/botGuildDBObject");
 const discordServices = require('../discord-services');
 const Cave = require("./cave");
 

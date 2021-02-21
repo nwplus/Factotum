@@ -1,7 +1,7 @@
 // Discord.js commando requirements
 const Activity = require('../../classes/activity');
 const ActivityCommand = require('../../classes/activity-command');
-const BotGuild = require('../../db/botGuildDBObject');
+const BotGuildModel = require('../../db/BotGuild');
 const discordServices = require('../../discord-services');
 const { Message } = require('discord.js');
 
@@ -21,10 +21,13 @@ module.exports = class InitAmongUs extends ActivityCommand {
     /**
      * Command code.
      * @param {Message} message 
-     * @param {Activity} activity 
+     * @param {Activity} activity
+     * @param {BotGuildModel} botGuild 
      */
     async activityCommand(botGuild, message, activity) {
         
+        botGuild.find
+
         // get the archive category or create it
         var archiveCategory = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name === '💼archive');
 

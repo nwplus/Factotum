@@ -3,7 +3,7 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const { numberPrompt, yesNoPrompt, rolePrompt } = require('../../classes/prompt');
 const { getReminder } = require('../../firebase-services/firebase-services');
-const { Document } = require('mongoose');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Automated self-care reminders, send messages in set intervals.
 module.exports = class SelfCareReminders extends PermissionCommand {
@@ -22,7 +22,7 @@ module.exports = class SelfCareReminders extends PermissionCommand {
     }
 
     /**
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message - the message in which this command was called
      */
     async runCommand(botGuild, message) {

@@ -1,7 +1,7 @@
 const { GuildMember, Guild } = require('discord.js');
 const discordServices = require('../discord-services');
 const firebaseServices = require('../firebase-services/firebase-services');
-const { Document } = require('mongoose');
+const BotGuildModel = require('./bot-guild');
 
 /**
  * @class Verification
@@ -13,7 +13,7 @@ class Verification {
      * @param {GuildMember} member - member to verify
      * @param {String} email - email to verify with
      * @param {Guild} guild
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @async
      * @static
      * @throws Error if email is not valid!
@@ -80,7 +80,7 @@ class Verification {
     /**
      * Will attend the user and give it the attendee role.
      * @param {GuildMember} member 
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      */
     static async attend(member, botGuild) {
         try {

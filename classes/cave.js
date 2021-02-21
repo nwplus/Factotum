@@ -2,8 +2,8 @@ const Discord = require("discord.js");
 const discordServices = require('../discord-services');
 const Prompt = require('../classes/prompt');
 const Ticket = require('../classes/ticket');
-const BotGuild = require("../db/botGuildDBObject");
-const { Document } = require('mongoose');
+const BotGuild = require("../db/BotGuild");
+const BotGuildModel = require('./bot-guild');
 
 class Cave {
 
@@ -125,7 +125,7 @@ class Cave {
         this.tickets = new Discord.Collection();
 
         /**
-         * @type {Document}
+         * @type {BotGuildModel}
          */
         this.botGuild;
     }
@@ -138,7 +138,6 @@ class Cave {
      */
     async init(guildChannelManager) {
         this.botGuild = await BotGuild.findById(guildChannelManager.guild.id);
-
         await this.initPrivate(guildChannelManager);
         await this.initPublic(guildChannelManager);
     }

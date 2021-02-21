@@ -3,7 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt');
-const BotGuild = require('../../db/botGuildDBObject');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class StartChannelCreation extends PermissionCommand {
@@ -24,7 +24,7 @@ module.exports = class StartChannelCreation extends PermissionCommand {
     }
 
     /**
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message - the message in which the command was run
      */
     async runCommand(botGuild, message) {

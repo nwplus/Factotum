@@ -4,10 +4,9 @@ const Discord = require('discord.js');
 const discordServices = require('../../discord-services');
 const Prompt = require('../../classes/prompt');
 const jsonfile = require('jsonfile');
-const BotGuild = require('../../classes/bot-guild');
-const mongoUtil = require('../../db/mongoUtil');
+const BotGuildModel = require('../../classes/bot-guild');
 
-const BotGuildDB = require('../../db/botGuildDBObject');
+const BotGuild = require('../../db/BotGuild');
 
 // Command export
 module.exports = class InitBot extends Command {
@@ -43,7 +42,7 @@ module.exports = class InitBot extends Command {
         const guild = message.guild;
         const everyoneRole = message.guild.roles.everyone;
 
-        const botGuild = await BotGuildDB.findById(guild.id);
+        const botGuild = await BotGuild.findById(guild.id);
 
         // make sure the user had manage server permission
         if (!message.member.hasPermission('MANAGE_GUILD')) {

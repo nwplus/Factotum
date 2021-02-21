@@ -3,7 +3,7 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt');
 const Verification = require('../../classes/verification');
-const { Document } = require('mongoose');
+const BotGuildModel = require('../../classes/bot-guild');
 
 /**
  * StartAttend makes a new channel called #attend, or uses an existing channel of the user's choice, as the channel where the attend
@@ -31,7 +31,7 @@ module.exports = class StartAttend extends PermissionCommand {
      * If existsChannel is true, asks user to indicate the channel to use. Else asks user to indicate the category under which the
      * channel should be created, and then creates it. In both cases it will send an embed containing the instructions for hackers to 
      * check in.
-     * @param {Document} botGuild
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message - message containing command
      */
     async runCommand(botGuild, message) {

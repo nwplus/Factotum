@@ -2,6 +2,9 @@ const { Collection, Snowflake, Guild, TextChannel, Role, GuildAuditLogs, Message
 const { CommandoClient, CommandoGuild } = require('discord.js-commando');
 const discordServices = require('../discord-services');
 
+/**
+ * @class
+ */
 module.exports = class BotGuild {
 
     

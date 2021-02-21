@@ -2,7 +2,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
-const BotGuild = require('../../db/botGuildDBObject');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class AskQuestion extends PermissionCommand {

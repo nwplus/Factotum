@@ -3,7 +3,6 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Activity = require('../../classes/activity');
 const ActivityCommand = require('../../classes/activity-command');
-const BotGuild = require('../../db/botGuildDBObject');
 
 // Command export
 module.exports = class InitWorkshop extends ActivityCommand {
