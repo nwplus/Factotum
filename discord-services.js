@@ -118,10 +118,11 @@ module.exports.sendEmbedToMember = sendEmbedToMember;
  */
 function addRoleToMember(member, addRole) {
     member.roles.add(addRole).catch(error => {
+        console.log(error);
         // try one more time
         member.roles.add(addRole).catch(error => {
             // now send error to admins
-            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role ' + member.guild.roles.cache.get(addRole) +' please help me!');
+            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role <@&' + member.guild.roles.cache.get(addRole).id +'> please help me!');
         });
     });
 }
@@ -137,7 +138,7 @@ function removeRolToMember(member, removeRole) {
         // try one more time
         member.roles.remove(removeRole).catch(error => {
             // now send error to admins
-            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not loose the role ' + member.guild.roles.cache.get(removeRole) + ', please help me!');
+            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not loose the role ' + member.guild.roles.cache.get(removeRole).id + ', please help me!');
         });
     });
 }
