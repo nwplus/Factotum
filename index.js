@@ -50,7 +50,7 @@ const customLoggerLevels = {
 }
 
 // the main logger to use for general errors
-const mainLogger = createALogger('main', 'main');
+const mainLogger = createALogger('main', 'main', true, true);
 winston.addColors(customLoggerLevels.colors);
 
 
@@ -267,9 +267,11 @@ process.on('exit', () => {
  * Will create a default logger to use.
  * @param {String} loggerName
  * @param {String} [loggerLabel=''] - usually a more readable logger name
+ * @param {Boolean} [handleRejectionsExceptions=false] - will handle rejections and exceptions if true
+ * @param {Boolean} [LogToConsole=false] - will log all levels to console if true
  * @returns {winston.Logger}
  */
-function createALogger(loggerName, loggerLabel = '') {
+function createALogger(loggerName, loggerLabel = '', handelRejectionsExceptions = false, logToConsole = false) {
     // custom format
     let format = winston.format.printf(info => `${info.timestamp} [${info.label}] ${info.level} : ${info.message} ${info.splat ? '- info.splat' : '' }`)
 
@@ -285,14 +287,19 @@ function createALogger(loggerName, loggerLabel = '') {
             new winston.transports.File({ filename: `./logs/${loggerName}/event.log`, level: 'event' }),
             new winston.transports.File({ filename: `./logs/${loggerName}/command.log`, level: 'command' }),
             new winston.transports.File({ filename: `./logs/${loggerName}/warning.log`, level: 'warning' }),
-            new winston.transports.File({ filename: `./logs/${loggerName}/error.log`, level: 'error' }),
-            new winston.transports.Console({ level: 'silly', format: winston.format.combine(
-                winston.format.colorize({ level: true }),
-                winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-                winston.format.splat(),
-                winston.format.label({ label: loggerLabel}),
-                format,
-            ) }),
+            new winston.transports.File({ filename: `./logs/${loggerName}/error.log`, level: 'error', handleExceptions: handelRejectionsExceptions, handleRejections: handelRejectionsExceptions, }),
+            ...(logToConsole ? [new winston.transports.Console({ 
+                level: 'silly', 
+                format: winston.format.combine(
+                    winston.format.colorize({ level: true }),
+                    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+                    winston.format.splat(),
+                    winston.format.label({ label: loggerLabel}),
+                    format,
+                ),
+                handleExceptions: true,
+                handleRejections: true,
+            })] : []),
         ],
         exitOnError: false,
         format: winston.format.combine(
