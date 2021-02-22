@@ -20,7 +20,7 @@ class ActivityManager {
             channel.members.forEach(member => member.voice.setChannel(activity.generalVoice));
         });
 
-        winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} had its voice channels called backs.`);
+        winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} had its voice channels called backs.`, {event: "Activity Manager"});
     }
 
 
@@ -40,7 +40,7 @@ class ActivityManager {
             });
         }
 
-        winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} had its groups shuffled.`);
+        winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} had its groups shuffled.`, {event: "Activity Manager"});
     }
 
 
@@ -64,7 +64,7 @@ class ActivityManager {
             channelIndex++;
         });
 
-        winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} had its mentors shuffled.`);
+        winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} had its mentors shuffled.`, {event: "Activity Manager"});
     }
 
 
@@ -86,7 +86,7 @@ class ActivityManager {
             channelIndex++;
         });
 
-        winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} had its voice channel members shuffled around!`);
+        winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} had its voice channel members shuffled around!`, {event: "Activity Manager"});
     }
 
 
@@ -112,7 +112,7 @@ class ActivityManager {
      */
     static async distributeStamp(activity, botGuild, time = 60) {
 
-        winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} is distributing stamps.`);
+        winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} is distributing stamps.`, {event: "Activity Manager"});
         
         // The users already seen by this stamp distribution.
         let seenUsers = new Discord.Collection();
@@ -139,7 +139,7 @@ class ActivityManager {
 
         // edit the message to closed when the collector ends
         collector.on('end', collected => {
-            winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} stamp distribution has stopped.`);
+            winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} stamp distribution has stopped.`, {event: "Activity Manager"});
             if (!promptMsg.deleted) {
                 promptMsg.edit(promptEmbed.setTitle('Time\'s up! No more responses are being collected. Thanks for participating in ' + activity.name + '!'));
             }
@@ -161,14 +161,14 @@ class ActivityManager {
             discordServices.addRoleToMember(member, botGuild.stamps.stamp0thRoleId);
             discordServices.sendMessageToMember(member, 'I did not find an existing stamp role for you so I gave you one for attending '
                 + activityName + '. Please contact an admin if there was a problem.', true);
-            winston.loggers.get(botGuild._id).userStats(`Activity named ${activityName} tried to give a stamp to the user with id ${user.id} but he has no stamp, I gave them the first stamp!`);
+            winston.loggers.get(botGuild._id).userStats(`Activity named ${activityName} tried to give a stamp to the user with id ${user.id} but he has no stamp, I gave them the first stamp!`, {event: "Activity Manager"});
             return;
         }
 
         let stampNumber = botGuild.stamps.stampRoleIDs.get(role.id);
         if (stampNumber === botGuild.stamps.stampRoleIDs.size - 1) {
             discordServices.sendMessageToMember(member, 'You already have the maximum allowed number of stamps!', true);
-            winston.loggers.get(botGuild._id).userStats(`Activity named ${activityName} tried to give a stamp to the user with id ${user.id} but he is already in the max stamp ${stampNumber}`);
+            winston.loggers.get(botGuild._id).userStats(`Activity named ${activityName} tried to give a stamp to the user with id ${user.id} but he is already in the max stamp ${stampNumber}`, {event: "Activity Manager"});
             return;
         }
         let newRoleID;
@@ -180,7 +180,7 @@ class ActivityManager {
         if (newRoleID != undefined) {
             discordServices.replaceRoleToMember(member, role.id, newRoleID);
             discordServices.sendMessageToMember(member, 'You have received a higher stamp for attending ' + activityName + '!', true);
-            winston.loggers.get(botGuild._id).userStats(`Activity named ${activityName} gave a stamp to the user with id ${member.id} going from stamp number ${stampNumber} to ${stampNumber + 1}`);
+            winston.loggers.get(botGuild._id).userStats(`Activity named ${activityName} gave a stamp to the user with id ${member.id} going from stamp number ${stampNumber} to ${stampNumber + 1}`, {event: "Activity Manager"});
         }
     }
 
@@ -210,7 +210,7 @@ class ActivityManager {
             response.forEach((value, key) => msg.react(key));
         });
 
-        winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} sent a poll with title: ${title} and question ${question}.`);
+        winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} sent a poll with title: ${title} and question ${question}.`, {event: "Activity Manager"});
     }
 }
 

@@ -145,7 +145,7 @@ class Activity {
         this.generalVoice = await this.addChannel(this.activityInfo.generalVoiceChannelName, {
             type: 'voice',
         });
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was initialized.`);
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was initialized.`, {event: "Activity"});
         return this;
     }
 
@@ -201,7 +201,7 @@ class Activity {
         if (info.type == 'text') this.textChannels.set(channel.name, channel);
         else this.voiceChannels.set(channel.name, channel);
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} had a channel named ${name} added to it of type ${info?.type || 'text'}.`);
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} had a channel named ${name} added to it of type ${info?.type || 'text'}.`, {event: "Activity"});
 
         return channel;
     }
@@ -264,7 +264,7 @@ class Activity {
             let channelName = this.activityInfo.voiceChannelName + index;
             let channel = this.voiceChannels.get(channelName);
             if (channel != undefined) {
-                winston.loggers.get(this.guild.id).event(`The activity ${this.name} lost a voice channel named ${channelName}`);
+                winston.loggers.get(this.guild.id).event(`The activity ${this.name} lost a voice channel named ${channelName}`, {event: "Activity"});
                 discordServices.deleteChannel(channel);
             }
         }
@@ -297,7 +297,7 @@ class Activity {
 
         this.addVoiceChannels(numOfChannels, true, 12);
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was transformed to a among us activity.`);
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was transformed to a among us activity.`, {event: "Activity"});
 
         return channel;
     }
@@ -330,7 +330,7 @@ class Activity {
          */
         this.groups = new Collection();
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was transformed to a coffee chats.`);
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was transformed to a coffee chats.`, {event: "Activity"});
 
         return channel;
     }
@@ -378,7 +378,7 @@ class Activity {
         this.botGuild.blackList.set(assistanceChannel.id, 5000);
         this.botGuild.save();
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was transformed to a workshop.`);
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was transformed to a workshop.`, {event: "Activity"});
         
         return { taChannel, assistanceChannel };
     }
@@ -405,7 +405,7 @@ class Activity {
         this.botGuild.save();
         await discordServices.deleteChannel(this.category);
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was archived!`);
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was archived!`, {event: "Activity"});
     }
 
     /**
@@ -420,7 +420,7 @@ class Activity {
 
         await this.category.delete();
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was deleted!`);
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was deleted!`, {event: "Activity"});
     }
 
     /**
@@ -433,7 +433,7 @@ class Activity {
         this.voiceChannels.forEach(async (channel) => {
             await channel.edit({ userLimit: limit });
         });
-        winston.loggers.get(this.guild.id).verbose(`The activity ${this.name} had its voice channels added a limit of ${limit}`);
+        winston.loggers.get(this.guild.id).verbose(`The activity ${this.name} had its voice channels added a limit of ${limit}`, {event: "Activity"});
     }
 
     /**
@@ -443,7 +443,7 @@ class Activity {
      */
     async makeVoiceChannelPrivate(channel, toHide) {
         channel.updateOverwrite(this.botGuild.roleIDs.everyoneRole, {VIEW_CHANNEL: toHide ? false : true});
-        winston.loggers.get(this.guild.id).verbose(`The activity ${this.name} had its channel ${channel.name} made ${toHide ? 'private' : 'public'}.`);
+        winston.loggers.get(this.guild.id).verbose(`The activity ${this.name} had its channel ${channel.name} made ${toHide ? 'private' : 'public'}.`, {event: "Activity"});
     }
 }
 
