@@ -106,7 +106,7 @@ module.exports = class InitBot extends Command {
 
         // grab the admin role
         const adminRole = await this.askOrCreate('admin', channel, userId, guild, '#008369');
-        discordServices.addRoleToMember(message.author, adminRole);
+        discordServices.addRoleToMember(message.member, adminRole);
 
         // create the admin channel package
         let {adminConsole, adminLog} = await BotGuild.createAdminChannels(guild, adminRole, everyoneRole);
@@ -193,7 +193,7 @@ module.exports = class InitBot extends Command {
         // ask if the stamps will be used
         try {
             if (await Prompt.yesNoPrompt({prompt: 'Will you be using the stamp service?', channel, userId})) {
-                let numberOfStamps = await Prompt.numberPrompt({prompt: 'How many stamps do you want?', channel, userId})[0];
+                let numberOfStamps = (await Prompt.numberPrompt({prompt: 'How many stamps do you want?', channel, userId}))[0];
 
                 await botGuild.setUpStamps(this.client, numberOfStamps);
                 discordServices.sendMsgToChannel(channel, userId, 'The stamp roles have been created, you can change their name and/or color, but their stamp number is final!', 60);
