@@ -183,6 +183,16 @@ bot.on('guildMemberAdd', async member => {
     }
 });
 
+bot.on('commandRun', (command, promise, message, args) => {
+    winston.loggers.get(message.guild.id).command(`The command ${command.name} with args ${args} is being run from the channel ${message.channel} with id ${message.channel.id} 
+        triggered by the message with id ${message.id} by the user with id ${message.author.id}`);
+})
+
+/**
+ * Runs when an unknown command is triggered.
+ */
+bot.on('unknownCommand', (message) => winston.loggers.get(message.guild.id).command(`An unknown command has been triggered in the channel ${message.channel.name} with id ${message.channel.id}. The message had the content ${message.cleanContent}.`));
+
 /**
  * Logs in the bot 
  */
