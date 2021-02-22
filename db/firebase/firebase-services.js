@@ -1,8 +1,30 @@
 const { GuildMember, } = require('discord.js');
 const admin = require('firebase-admin');
 
-const db = admin.firestore();
-module.exports.db = db;
+/**
+ * All the firebase apps in play stored by their name.
+ * @type {Map<String, admin.app.App>}
+ */
+this.apps = Map();
+module.exports.apps = apps;
+
+/**
+ * Will start an admin connection with the given name
+ * @param {String} name - name of the connection
+ * @param {JSON} adminSDK - the JSON file with admin config
+ */
+function initializeFirebaseAdmin(name, adminSDK) {
+    let app = admin.initializeApp({
+    credential: admin.credential.cert(adminSDK),
+    databaseURL: "https://nwplus-bot.firebaseio.com",
+    }, name);
+
+    apps.push(name, app);
+
+}
+module.exports.initializeFirebaseAdmin = initializeFirebaseAdmin;
+
+
 
 /**
  * @typedef UserType
