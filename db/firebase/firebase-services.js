@@ -12,11 +12,12 @@ module.exports.apps = apps;
  * Will start an admin connection with the given name
  * @param {String} name - name of the connection
  * @param {JSON} adminSDK - the JSON file with admin config
+ * @param {String} databaseURL - the database URL
  */
-function initializeFirebaseAdmin(name, adminSDK) {
+function initializeFirebaseAdmin(name, adminSDK, databaseURL) {
     let app = admin.initializeApp({
     credential: admin.credential.cert(adminSDK),
-    databaseURL: "https://nwplus-bot.firebaseio.com",
+    databaseURL: databaseURL,
     }, name);
 
     apps.set(name, app);
