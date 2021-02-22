@@ -2,7 +2,6 @@ const { Collection, Guild, CategoryChannel, TextChannel, VoiceChannel, DiscordAP
 const Prompt = require("./prompt");
 const BotGuild = require("../db/BotGuild");
 const discordServices = require('../discord-services');
-const firebaseCoffeeChats = require('../firebase-services/firebase-services-coffeechats');
 const BotGuildModel = require('../classes/bot-guild');
 
 /**
@@ -299,7 +298,12 @@ class Activity {
      * @returns {Promise<TextChannel>} - the join-activity text channel
      */
     async makeCoffeeChats(numOfGroups) {
-        firebaseCoffeeChats.initCoffeeChat(this.name);
+        
+        /**
+         * The list of teams for the coffee chat!
+         * @type {Object[]}
+         */
+        this.teams = []
 
         this.addVoiceChannels(numOfGroups, true);
 
