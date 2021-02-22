@@ -101,7 +101,7 @@ bot.on('commandError', (command, error, message) => {
             .setTitle('Command Error')
             .setDescription('Error on command: ' + command.name +
                 'Uncaught Rejection, reason: ' + error.name +
-                '\nmessage: ' + error.message +
+               '\nmessage: ' + error.message +
                 '\nfile: ' + error.fileName +
                 '\nline number: ' + error.lineNumber +
                 '\nstack: ' + error.stack)
@@ -132,10 +132,14 @@ bot.on('message', async message => {
  */
 bot.on('guildMemberAdd', async member => {
     let botGuild = await BotGuild.findById(member.guild.id);
-    try {
-        await greetNewMember(member, botGuild);
-    } catch (error) {
-        await fixDMIssue(error, member, botGuild);
+
+    // if the guild where the user joined is complete then greet and verify.
+    if (botGuild.isSetUpComplete) {
+        try {
+            await greetNewMember(member, botGuild);
+        } catch (error) {
+            await fixDMIssue(error, member, botGuild);
+        }
     }
 });
 
