@@ -158,7 +158,11 @@ class ActivityManager {
         if (stampNumber === botGuild.stamps.stampRoleIDs.size - 1) {
             discordServices.sendMessageToMember(member, 'You already have the maximum allowed number of stamps!', true);
         }
-        let newRoleID = botGuild.stamps.stampRoleIDs.findKey(number => number === (stampNumber + 1));
+        let newRoleID;
+
+        botGuild.stamps.stampRoleIDs.forEach((num, key, map) => {
+            if (num === stampNumber + 1) newRoleID = key;
+        });
 
         if (newRoleID != undefined) {
             discordServices.replaceRoleToMember(member, role.id, newRoleID);
@@ -181,7 +185,6 @@ class ActivityManager {
         for (const key of response.keys()) {
             description += '**' + response.get(key) + '->** ' + key + '\n\n';
         }
-        console.log(description);
 
         let qEmbed = new Discord.MessageEmbed()
             .setColor(botGuild.colors.embedColor)
