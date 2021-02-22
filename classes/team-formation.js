@@ -1,7 +1,7 @@
 const { GuildEmoji, ReactionEmoji, Role, TextChannel, MessageEmbed, Guild, GuildChannelManager, User, Message, RoleManager } = require('discord.js');
 const { messagePrompt } = require('./prompt');
 const discordServices = require('../discord-services');
-const BotGuild = require('../db/BotGuild');
+const BotGuild = require('../db/mongo/BotGuild');
 
 /**
  * @class TeamFormation

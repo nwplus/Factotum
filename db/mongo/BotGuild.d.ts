@@ -1,5 +1,5 @@
 import {Document, Model } from 'mongoose'
-import Cave from '../classes/cave'
+import Cave from '../../classes/cave'
 
 /**
  * @interface BotGuild

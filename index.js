@@ -1,5 +1,5 @@
 require('dotenv-flow').config();
-const mongoUtil = require('./db/mongoUtil');
+const mongoUtil = require('./db/mongo/mongoUtil');
 const Commando = require('discord.js-commando');
 const Discord = require('discord.js');
 const firebase = require('firebase/app');
@@ -29,7 +29,7 @@ admin.initializeApp({
 
 const discordServices = require('./discord-services');
 const Prompt = require('./classes/prompt');
-const BotGuild = require('./db/BotGuild');
+const BotGuild = require('./db/mongo/BotGuild');
 const BotGuildModel = require('./classes/bot-guild');
 const Verification = require('./classes/verification');
 

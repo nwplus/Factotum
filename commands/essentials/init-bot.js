@@ -6,7 +6,7 @@ const Prompt = require('../../classes/prompt');
 const jsonfile = require('jsonfile');
 const BotGuildModel = require('../../classes/bot-guild');
 
-const BotGuild = require('../../db/BotGuild');
+const BotGuild = require('../../db/mongo/BotGuild');
 
 // Command export
 module.exports = class InitBot extends Command {

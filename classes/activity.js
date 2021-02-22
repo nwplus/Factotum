@@ -1,6 +1,6 @@
 const { Collection, Guild, CategoryChannel, TextChannel, VoiceChannel, DiscordAPIError, Message } = require("discord.js");
 const Prompt = require("./prompt");
-const BotGuild = require("../db/BotGuild");
+const BotGuild = require("../db/mongo/BotGuild");
 const discordServices = require('../discord-services');
 const BotGuildModel = require('../classes/bot-guild');
 

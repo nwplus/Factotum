@@ -2,7 +2,7 @@
 const { Command } = require('discord.js-commando');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
-const BotGuild = require('../../db/BotGuild');
+const BotGuild = require('../../db/mongo/BotGuild');
 
 // Command export
 module.exports = class ClearChat extends Command {

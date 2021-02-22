@@ -1,6 +1,6 @@
 const { Schema, model } = require('mongoose');
 
-const BotGuildClass = require('../classes/bot-guild');
+const BotGuildClass = require('../../classes/bot-guild');
 
 /**
  * @class BotGuild
