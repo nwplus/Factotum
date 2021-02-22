@@ -1,5 +1,6 @@
 const { Collection, Snowflake, Guild, TextChannel, Role, GuildAuditLogs, Message, MessageEmbed } = require('discord.js');
 const { CommandoClient, CommandoGuild } = require('discord.js-commando');
+const winston = require('winston');
 const discordServices = require('../discord-services');
 
 /**
@@ -159,6 +160,8 @@ module.exports = class BotGuild {
             if (group.name.startsWith('a_')) guild.setGroupEnabled(group, true);
         });
 
+        winston.loggers.get(this._id).event(`The botGuild has run the ready up function.`);
+
         return this;
     }
 
@@ -195,6 +198,8 @@ module.exports = class BotGuild {
             type: 'text',
             parent: adminCategory,
         });
+
+        winston.loggers.get(this._id).event(`The botGuild has run the create admin channels function.`);
 
         return {adminConsole: adminConsoleChannel, adminLog: adminLogChannel};
     }
@@ -289,6 +294,8 @@ module.exports = class BotGuild {
         this.verification.isEnabled = true;
         guild.setCommandEnabled('verify', true);
 
+        winston.loggers.get(this._id).event(`The botGuild has set up the verification system. Verification channels ${verificationChannels === null ? 'were created' : 'were given'}. 
+            Guest role id: ${guestRoleId}. The types used are: ${types.join()}`);
         return this;
     }
 
@@ -305,6 +312,8 @@ module.exports = class BotGuild {
         /** @type {CommandoGuild} */
         let guild = await client.guilds.fetch(this._id);
         guild.setCommandEnabled('start-attend', true);
+
+        winston.loggers.get(this._id).event(`The botGuild has set up the attendance functionality. Attendee role id is ${attendeeRoleID}`);
         return this;
     }
 
@@ -323,6 +332,8 @@ module.exports = class BotGuild {
 
         this.announcement.isEnabled = true;
         this.announcement.announcementChannelID = announcementChannelID;
+
+        winston.loggers.get(this._id).event(`The botGuild has set up the announcement functionality with the channel ID ${announcementChannelID}`);
 
         // TODO Firebase setup 
         // start query listener for announcements
@@ -363,6 +374,7 @@ module.exports = class BotGuild {
             stampRoleIDs.forEach((ID, index, array) => {
                 this.addStamp(ID, index);
             });
+            winston.loggers.get(this._id).event(`The botGuild has set up the stamp functionality. The stamp roles were given. Stamp collection time is set at ${stampCollectionTime}.` [{stampIds: stampRoleIDs}]);
         } else {
             for (let i = 0; i < stampAmount; i++) {
                 let role = await guild.roles.create({
@@ -375,6 +387,7 @@ module.exports = class BotGuild {
 
                 this.addStamp(role.id, i);
             }
+            winston.loggers.get(this._id).event(`The botGuild has set up the stamp functionality. Stamps were created by me, I created ${stampAmount} stamps. Stamp collection time is set at ${stampCollectionTime}.`);
         }
 
         this.stamps.stampCollectionTime = stampCollectionTime;
@@ -391,6 +404,7 @@ module.exports = class BotGuild {
     addStamp(roleId, stampNumber) {
         if (stampNumber === 0) this.stamps.stamp0thRoleId = roleId;
         this.stamps.stampRoleIDs.set(roleId, stampNumber);
+        winston.loggers.get(this._id).event(`The botGuild has added a stamp with number ${stampNumber} linked to role id ${roleId}`);
     }
 
     /**
@@ -409,6 +423,7 @@ module.exports = class BotGuild {
 
         guild.setCommandEnabled('report', true);
 
+        winston.loggers.get(this._id).event(`The botGuild has set up the report functionality. It will send reports to the channel id ${incomingReportChannelID}`);
         return this;
     }
 
@@ -420,5 +435,6 @@ module.exports = class BotGuild {
         /** @type {CommandoGuild} */
         let guild = await client.guilds.fetch(this._id);
         guild.setCommandEnabled('ask', true);
+        winston.loggers.get(this._id).event(`The botGuild has enabled the ask command!`);
     }
 }
