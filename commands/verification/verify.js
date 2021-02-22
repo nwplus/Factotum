@@ -33,7 +33,6 @@ module.exports = class Verify extends PermissionCommand {
     }
 
     /**
-     * DOES NOT WORK !!!! TODO REMOVE OR ADD ABILITY TO GIVE GUILD ID FOR IT TO WORK!
      * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message 
      * @param {String} email 
