@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const BotGuild = require('./db/BotGuild');
+const BotGuild = require('./db/mongo/BotGuild');
 
 // where hackers join the wait list to talk to a sponsor
 // at the moment its only one, planned to extend to multiple

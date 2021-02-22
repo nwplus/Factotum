@@ -1,9 +1,7 @@
-const firebaseActivity = require('../firebase-services/firebase-services-activities');
-const firebaseCoffeeChats = require('../firebase-services/firebase-services-coffeechats');
 const discordServices = require('../discord-services');
 const Activity = require('./activity');
 const Discord = require('discord.js');
-const BotGuild = require('../db/BotGuild');
+const BotGuild = require('../db/mongo/BotGuild');
 const BotGuildModel = require('./bot-guild');
 
 /**
@@ -28,7 +26,7 @@ class ActivityManager {
      * @param {Activity} activity - the activity to use
      */
     static async groupShuffle(activity) {
-        let groups = await firebaseCoffeeChats.getGroup(activity.name);
+        let groups = activity.teams;
 
         let channels = activity.category.children.filter(channel => channel.type === 'voice' && channel.id != activity.generalVoice.id);
 

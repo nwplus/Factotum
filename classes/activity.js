@@ -1,9 +1,7 @@
 const { Collection, Guild, CategoryChannel, TextChannel, VoiceChannel, DiscordAPIError, Message } = require("discord.js");
 const Prompt = require("./prompt");
-const BotGuild = require("../db/BotGuild");
+const BotGuild = require("../db/mongo/BotGuild");
 const discordServices = require('../discord-services');
-const firebaseActivity = require('../firebase-services/firebase-services-activities');
-const firebaseCoffeeChats = require('../firebase-services/firebase-services-coffeechats');
 const BotGuildModel = require('../classes/bot-guild');
 
 /**
@@ -66,9 +64,6 @@ class Activity {
          * @type {VoiceChannel}
          */
         this.generalVoice;
-
-        // create workshop in db
-        // firebaseActivity.create(this.name);
 
         /**
          * The state of this activity
@@ -303,7 +298,12 @@ class Activity {
      * @returns {Promise<TextChannel>} - the join-activity text channel
      */
     async makeCoffeeChats(numOfGroups) {
-        firebaseCoffeeChats.initCoffeeChat(this.name);
+        
+        /**
+         * The list of teams for the coffee chat!
+         * @type {Object[]}
+         */
+        this.teams = []
 
         this.addVoiceChannels(numOfGroups, true);
 
@@ -389,8 +389,6 @@ class Activity {
 
         this.botGuild.save();
         await discordServices.deleteChannel(this.category);
-
-        //firebaseActivity.remove(this.name);
     }
 
     /**
@@ -404,8 +402,6 @@ class Activity {
         }
 
         await this.category.delete();
-
-        //firebaseActivity.remove(this.name);
     }
 
     /**

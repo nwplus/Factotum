@@ -1,35 +1,17 @@
 require('dotenv-flow').config();
-const mongoUtil = require('./db/mongoUtil');
+const mongoUtil = require('./db/mongo/mongoUtil');
 const Commando = require('discord.js-commando');
 const Discord = require('discord.js');
-const firebase = require('firebase/app');
-
-const admin = require('firebase-admin');
-
-const nwFirebaseConfig = {
-    apiKey: process.env.NWFIREBASEAPIKEY,
-    authDomain: process.env.NWFIREBASEAUTHDOMAIN,
-    databaseURL: process.env.NWFIREBASEURL,
-    projectId: process.env.NWFIREBASEPROJECTID,
-    storageBucket: process.env.NWFIREBASEBUCKET,
-    messagingSenderId: process.env.NWFIREBASESENDERID,
-    appId: process.env.NWFIREBASEAPPID,
-    measurementId: process.env.NWFIREBASEMEASUREMENTID
-}
-// initialize nw firebase
-firebase.initializeApp(nwFirebaseConfig, 'nwFirebase');
+const firebaseServices = require('./db/firebase/firebase-services');
 
 // initialize firebase
-// firebase.initializeApp(firebaseConfig);
-const adminSDK = require('./nwplus-bot-admin-sdk.json');
-admin.initializeApp({
-    credential: admin.credential.cert(adminSDK),
-    databaseURL: "https://nwplus-bot.firebaseio.com",
-});
+const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
+firebaseServices.initializeFirebaseAdmin('nwPlusBotAdmin', adminSDK, "https://nwplus-bot.firebaseio.com");
+
 
 const discordServices = require('./discord-services');
 const Prompt = require('./classes/prompt');
-const BotGuild = require('./db/BotGuild');
+const BotGuild = require('./db/mongo/BotGuild');
 const BotGuildModel = require('./classes/bot-guild');
 const Verification = require('./classes/verification');
 
