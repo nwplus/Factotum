@@ -5,11 +5,6 @@ const Discord = require('discord.js');
 const firebaseServices = require('./db/firebase/firebase-services');
 const winston = require('winston');
 const fs = require('fs');
-
-// initialize firebase
-const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
-firebaseServices.initializeFirebaseAdmin('nwPlusBotAdmin', adminSDK, "https://nwplus-bot.firebaseio.com");
-
 const discordServices = require('./discord-services');
 const Prompt = require('./classes/prompt');
 const BotGuild = require('./db/mongo/BotGuild');
@@ -80,8 +75,14 @@ bot.once('ready', async () => {
     
     bot.user.setActivity('Ready to hack!');
 
+    // initialize firebase
+    const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
+    firebaseServices.initializeFirebaseAdmin('nwPlusBotAdmin', adminSDK, "https://nwplus-bot.firebaseio.com");
+    mainLogger.warning(`Connected to firebase admin sdk successfully!`);
+
     // set mongoose connection
     await mongoUtil.mongooseConnect();
+    mainLogger.warning(`Connected to mongoose successfully!`);
 
     // make sure all guilds have a botGuild, this is in case the bot goes offline and its added
     // to a guild.
