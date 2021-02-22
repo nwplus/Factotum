@@ -5,7 +5,7 @@ const admin = require('firebase-admin');
  * All the firebase apps in play stored by their name.
  * @type {Map<String, admin.app.App>}
  */
-this.apps = Map();
+const apps = new Map();
 module.exports.apps = apps;
 
 /**
@@ -19,7 +19,7 @@ function initializeFirebaseAdmin(name, adminSDK) {
     databaseURL: "https://nwplus-bot.firebaseio.com",
     }, name);
 
-    apps.push(name, app);
+    apps.set(name, app);
 
 }
 module.exports.initializeFirebaseAdmin = initializeFirebaseAdmin;

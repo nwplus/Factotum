@@ -5,7 +5,7 @@ const Discord = require('discord.js');
 const firebaseServices = require('./db/firebase/firebase-services');
 
 // initialize firebase
-const adminSDK = require('./nwplus-bot-admin-sdk.json');
+const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
 firebaseServices.initializeFirebaseAdmin('nwPlusBotAdmin', adminSDK);
 
 
