@@ -107,7 +107,7 @@ class Activity {
          */
         this.botGuild;
 
-        winston.loggers.get(guild.id).event(`An activity named ${this.name} was created.`, [{activityInfo: this.activityInfo}, {permissions: this.permissions}]);
+        winston.loggers.get(guild.id).event(`An activity named ${this.name} was created.`, {data: {activityInfo: this.activityInfo, permissions: this.permissions}});
     }
 
 

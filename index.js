@@ -243,7 +243,7 @@ process.on('exit', () => {
  */
 function createALogger(loggerName, loggerLabel = '', handelRejectionsExceptions = false, logToConsole = false) {
     // custom format
-    let format = winston.format.printf(info => `${info.timestamp} [${info.label}] ${info.level} : ${info.message} ${info.splat ? '- info.splat' : '' }`)
+    let format = winston.format.printf(info => `${info.timestamp} [${info.label}] ${info.level}${info?.event ? ' <' + info.event + '>' : ''} : ${info.message} ${info?.data ? 'DATA : ' + info.data : '' }`);
 
     // create the directory if not present
     if (!fs.existsSync(`./logs/${loggerName}`)) fs.mkdirSync(`./logs/${loggerName}`);

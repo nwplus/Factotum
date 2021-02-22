@@ -130,7 +130,7 @@ class Cave {
          */
         this.botGuild;
 
-        winston.loggers.get(this.botGuild._id).event(`A cave named ${caveOptions.name} was created.`, [{caveOptions: caveOptions}]);
+        winston.loggers.get(this.botGuild._id).event(`A cave named ${caveOptions.name} was created.`, {data: {caveOptions: caveOptions}});
     }
 
 
@@ -182,7 +182,7 @@ class Cave {
             this.publicChannels.outgoingTickets.bulkDelete(100, true);
             this.privateChannels.console.bulkDelete(100, true);
             this.privateChannels.incomingTickets.bulkDelete(100, true);
-            winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} found all the channels necessary created by the user.`, [{privateChannels: this.privateChannels}, {publicChannels: this.publicChannels}]);
+            winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} found all the channels necessary created by the user.`, { data: {privateChannels: this.privateChannels, publicChannels: this.publicChannels}});
         } catch (error) {
             winston.loggers.get(this.botGuild._id).warning(`The cave ${this.caveOptions.name} was finding the channels, but found the error ${error}.`);
             try {
@@ -275,7 +275,7 @@ class Cave {
             this.privateChannels.voiceChannels.push(await guildChannelManager.create('🗣️ Room ' + i, { type: 'voice', parent: this.privateChannels.category }));
         }
 
-        winston.loggers.get(this.botGuild._id).verbose(`The cave ${this.caveOptions.name} created the private channels. `, [{privateChannels: this.privateChannels}]);
+        winston.loggers.get(this.botGuild._id).verbose(`The cave ${this.caveOptions.name} created the private channels. `, { data: {privateChannels: this.privateChannels}});
     }
 
     /**
@@ -301,7 +301,7 @@ class Cave {
         this.botGuild.blackList.set(this.publicChannels.outgoingTickets.id, 5000);
         this.botGuild.save();
 
-        winston.loggers.get(this.botGuild._id).verbose(`The cave ${this.caveOptions.name} created the public channels. `, [{publicChannels: this.publicChannels}]);
+        winston.loggers.get(this.botGuild._id).verbose(`The cave ${this.caveOptions.name} created the public channels. `, { data: {publicChannels: this.publicChannels}});
     }
 
     /**
