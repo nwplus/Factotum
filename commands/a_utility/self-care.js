@@ -2,7 +2,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const { numberPrompt, yesNoPrompt, rolePrompt } = require('../../classes/prompt');
-const { getReminder } = require('../../firebase-services/firebase-services');
+const { getReminder } = require('../../db/firebase/firebase-services');
 const BotGuildModel = require('../../classes/bot-guild');
 
 // Automated self-care reminders, send messages in set intervals.

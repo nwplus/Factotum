@@ -2,7 +2,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const { numberPrompt, yesNoPrompt, rolePrompt, memberPrompt } = require('../../classes/prompt');
-const { getQuestion } = require('../../firebase-services/firebase-services');
+const { getQuestion } = require('../../db/firebase/firebase-services');
 const BotGuildModel = require('../../classes/bot-guild');
 
 
