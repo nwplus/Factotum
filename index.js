@@ -106,7 +106,7 @@ bot.once('ready', async () => {
  * Runs when the bot is added to a guild.
  */
 bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
-    mainLogger.verbose(`The bot was added to a new guild: ${guild.id} - ${guild.name}.`);
+    mainLogger.warning(`The bot was added to a new guild: ${guild.id} - ${guild.name}.`);
 
     // set all non guarded commands to not enabled for the new guild
     bot.registry.groups.forEach((group, key, map) => {
@@ -120,6 +120,17 @@ bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
     // create a logger for this guild
     createALogger(guild.id, guild.name);
 });
+
+/**
+ * Runs when the bot is removed from a server.
+ */
+bot.on('guildDelete', async (guild) => {
+    mainLogger.warning(`The bot was removed from the guild: ${guild.id} - ${guild.name}`);
+
+    let botGuild = await BotGuild.findById(guild.id);
+    botGuild.remove();
+    mainLogger.verbose(`BotGuild with id: ${guild.id} has been removed!`);
+})
 
 /**
  * Runs when the bot runs into an error.
