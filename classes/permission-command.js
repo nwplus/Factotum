@@ -3,6 +3,7 @@ const { Command, CommandoMessage } = require('discord.js-commando');
 const BotGuild = require('../db/mongo/BotGuild');
 const BotGuildModel = require('./bot-guild');
 const discordServices = require('../discord-services');
+const winston = require('winston');
 
 /**
  * The PermissionCommand is a custom command that extends the discord js commando Command class.
@@ -78,6 +79,7 @@ class PermissionCommand extends Command {
                     title: 'Error',
                     description: 'The command you just tried to use is only usable via DM!',
                 });
+                winston.loggers.get(botGuild?._id || 'main').warning(`User ${message.author.id} tried to run a permission command ${this.name} that is only available in DMs in the channel ${message.channel.name}.`);
                 return;
             }
         } else {
@@ -87,6 +89,7 @@ class PermissionCommand extends Command {
 
                 if (channelID && message.channel.id != channelID) {
                     discordServices.sendMessageToMember(message.member, this.permissionInfo.channelMessage, true);
+                    winston.loggers.get(botGuild?._id || 'main').warning(`User ${message.author.id} tried to run a permission command ${this.name} that is only available in the channel ${this.permissionInfo.channel}, in the channel ${message.channel.name}.`);
                     return;
                 }
             }
@@ -100,6 +103,7 @@ class PermissionCommand extends Command {
                     (!discordServices.checkForRole(message.member, roleID) && !discordServices.checkForRole(message.member, botGuild.roleIDs.adminRole))) || 
                     (roleID != botGuild.roleIDs.staffRole && !discordServices.checkForRole(message.member, roleID))) {
                         discordServices.sendMessageToMember(message.member, this.permissionInfo.roleMessage, true);
+                        winston.loggers.get(botGuild?._id || 'main').warning(`User ${message.author.id} tried to run a permission command ${this.name} that is only available for members with role ${this.permissionInfo.role}, but he has roles: ${message.member.roles.cache.array().map((role) => role.name)}`);
                         return;
                 }
             }
