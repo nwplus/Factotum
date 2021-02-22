@@ -117,6 +117,10 @@ module.exports = class InitBot extends Command {
         await discordServices.sendMsgToChannel(channel, userId, 'I am over here!!! Lets continue!');
         const mainConsoleMsg = await channel.send(embedInfo);
 
+        // ask the user to move our role up the list
+        await discordServices.sendMsgToChannel(channel, userId, 'Before we move on, could you please move my role up the role list as high as possible, this will give me the ability to assign roles! I will wait for at least 5 seconds!');
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+
         // grab the staff role
         const staffRole = await this.askOrCreate('staff', channel, userId, guild, '#00D166');
 
