@@ -333,7 +333,7 @@ async function greetNewMember(member, botGuild) {
             }
 
             try {
-                Verification.verify(member, email, member.guild);
+                Verification.verify(member, email, member.guild, botGuild);
             } catch (error) {
                 discordServices.sendEmbedToMember(member, {
                     title: 'Verification Error',

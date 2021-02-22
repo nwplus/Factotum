@@ -113,13 +113,13 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 reaction.users.remove(user.id);
 
                 if (emojiName === emojis[0]) {
-                    commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(message, activity, { timeLimit: botGuild.stamps.stampCollectionTime });
+                    commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(botGuild, message, activity, { timeLimit: botGuild.stamps.stampCollectionTime });
                 } else if (emojiName === emojis[1]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(message, activity, { questionType: 'speed' });
+                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(botGuild, message, activity, { questionType: 'speed' });
                 } else if (emojiName === emojis[2]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(message, activity, { questionType: 'difficulty'});
+                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(botGuild, message, activity, { questionType: 'difficulty'});
                 } else if (emojiName === emojis[3]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(message, activity, { questionType: 'explanations'});
+                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(botGuild, message, activity, { questionType: 'explanations'});
                 }
             });
         });

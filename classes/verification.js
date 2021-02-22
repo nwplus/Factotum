@@ -27,6 +27,7 @@ class Verification {
         try {
             var types = await firebaseServices.verify(email, member.id);
         } catch (error) {
+            console.log(error);
             discordServices.sendEmbedToMember(member, {
                 title: 'Verification Failure',
                 description: 'The email provided was not found! If you need assistance ask an admin for help!',

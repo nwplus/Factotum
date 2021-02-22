@@ -45,10 +45,9 @@ class ActivityCommand extends PermissionCommand {
      * @param {Activity} activity - the activity for this command
      * @async
      */
-    async runActivityCommand(message, activity, args) {
+    async runActivityCommand(botGuild, message, activity, args) {
         if (activity === null) discordServices.replyAndDelete(message, 'This command cannot be called outside an activity console!');
         else {
-            let botGuild = await BotGuild.findById(message.guild.id);
             this.activityCommand(botGuild, message, activity, args);
         }
     }

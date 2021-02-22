@@ -184,7 +184,6 @@ module.exports = class DiscordContests extends PermissionCommand {
                         if (!needAllAnswers) {
                             // for questions that have numbers as answers, the answer has to match at least one of the correct answers exactly
                             if (!isNaN(answers[0])) {
-                                console.log(m.content);
                                 if (answers.some(correctAnswer => m.content === correctAnswer)) {
                                     message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + answers.join(' or ') + ".");
                                     winners.push(m.author.id);

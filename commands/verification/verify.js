@@ -67,7 +67,7 @@ module.exports = class Verify extends PermissionCommand {
 
         // Call the verify function
         try {
-            Verification.verify(member, email, guild);
+            Verification.verify(member, email, guild, botGuild);
         } catch (error) {
             discordServices.sendEmbedToMember(member, {
                 title: 'Verification Error',
