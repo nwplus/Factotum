@@ -8,7 +8,6 @@ const firebaseServices = require('./db/firebase/firebase-services');
 const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
 firebaseServices.initializeFirebaseAdmin('nwPlusBotAdmin', adminSDK, "https://nwplus-bot.firebaseio.com");
 
-
 const discordServices = require('./discord-services');
 const Prompt = require('./classes/prompt');
 const BotGuild = require('./db/mongo/BotGuild');
@@ -40,41 +39,53 @@ bot.registry
     })
     .registerCommandsIn(__dirname + '/commands');
 
+/**
+ * Runs when the bot finishes the set up and is ready to work.
+ */
 bot.once('ready', async () => {
     console.log(`Logged in as ${bot.user.tag}!`);
+    
     bot.user.setActivity('Ready to hack!');
 
+    // set mongoose connection
     await mongoUtil.mongooseConnect();
 
+    // make sure all guilds have a botGuild, this is in case the bot goes offline and its added
+    // to a guild.
     bot.guilds.cache.forEach(async (guild, key, guilds) => {
         let botGuild = await BotGuild.findById(guild.id);
-
         if (!botGuild) {
             BotGuild.create({
                 _id: guild.id,
             });
         }
-
     });
 });
 
+/**
+ * Runs when the bot is added to a guild.
+ */
 bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
+    // set all non guarded commands to not enabled for the new guild
     bot.registry.groups.forEach((group, key, map) => {
         if (!group.guarded) guild.setGroupEnabled(group, false);
     });
-
+    // create a botGuild object for this new guild.
     BotGuild.create({
         _id: guild.id,
     });
 });
 
-// Listeners for the bot
-
-// error event
+/**
+ * Runs when the bot runs into an error.
+ */
 bot.on('error', (error) => {
     console.log(error)
 });
 
+/**
+ * Runs when the bot runs into an error when running a command.
+ */
 bot.on('commandError', (command, error, message) => {
     console.log(
         'Error on command: ' + command.name +
@@ -98,6 +109,44 @@ bot.on('commandError', (command, error, message) => {
     );
 });
 
+/**
+ * Runs when a message is sent in any server the bot is running in.
+ */
+bot.on('message', async message => {
+    if (message?.guild) {
+        let botGuild = await BotGuild.findById(message.guild.id);
+
+        // Deletes all messages to any channel in the black list with the specified timeout
+        // this is to make sure that if the message is for the bot, it is able to get it
+        // bot and staff messages are not deleted
+        if (botGuild.blackList.has(message.channel.id)) {
+            if (!message.author.bot && !discordServices.checkForRole(message.member, botGuild.roleIDs.staffRole)) {
+                (new Promise(res => setTimeout(res, botGuild.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
+            }
+        }
+    }
+});
+
+/**
+ * Runs when a new member joins a guild the bot is running in.
+ */
+bot.on('guildMemberAdd', async member => {
+    let botGuild = await BotGuild.findById(member.guild.id);
+    try {
+        await greetNewMember(member, botGuild);
+    } catch (error) {
+        await fixDMIssue(error, member, botGuild);
+    }
+});
+
+/**
+ * Logs in the bot 
+ */
+bot.login(config.token).catch(console.error);
+
+/**
+ * Runs when the node process has an uncaught exception.
+ */
 process.on('uncaughtException', (error) => {
     console.log(
         'Uncaught Rejection, reason: ' + error.name +
@@ -120,6 +169,9 @@ process.on('uncaughtException', (error) => {
     );
 });
 
+/**
+ * Runs when the node process has an unhandled rejection.
+ */
 process.on('unhandledRejection', (error, promise) => {
     console.log('Unhandled Rejection at:', promise,
         'Unhandled Rejection, reason: ' + error.name +
@@ -139,6 +191,9 @@ process.on('unhandledRejection', (error, promise) => {
     );
 });
 
+/**
+ * Runs when the node process is about to exit and quit.
+ */
 process.on('exit', () => {
     console.log('Node is exiting!');
     discordServices.discordLog(bot.guilds.cache.first(),
@@ -147,38 +202,6 @@ process.on('exit', () => {
             .setDescription('The program is shutting down!')
             .setTimestamp());
 });
-
-bot.on('message', async message => {
-    if (message?.guild) {
-        let botGuild = await BotGuild.findById(message.guild.id);
-
-        // Deletes all messages to any channel in the black list with the specified timeout
-        // this is to make sure that if the message is for the bot, it is able to get it
-        // bot and staff messages are not deleted
-        if (botGuild.blackList.has(message.channel.id)) {
-            if (!message.author.bot && !discordServices.checkForRole(message.member, botGuild.roleIDs.staffRole)) {
-                (new Promise(res => setTimeout(res, botGuild.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
-            }
-        }
-    }
-
-
-    
-
-});
-
-// If someone joins the server they get the guest role!
-bot.on('guildMemberAdd', async member => {
-    let botGuild = await BotGuild.findById(member.guild.id);
-    try {
-        await greetNewMember(member, botGuild);
-    } catch (error) {
-        await fixDMIssue(error, member, botGuild);
-    }
-});
-
-bot.login(config.token).catch(console.error);
-
 
 /**
  * Greets a member!
