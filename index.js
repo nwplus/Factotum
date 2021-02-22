@@ -23,6 +23,9 @@ const bot = new Commando.Client({
     owner: config.owner,
 });
 
+/**
+ * Register all the commands except for help and unknown since we have our own.
+ */
 bot.registry
     .registerDefaultTypes()
     .registerGroup('a_boothing', 'boothing group for admins')
