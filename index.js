@@ -15,7 +15,6 @@ const Prompt = require('./classes/prompt');
 const BotGuild = require('./db/mongo/BotGuild');
 const BotGuildModel = require('./classes/bot-guild');
 const Verification = require('./classes/verification');
-const { createLogger } = require('winston');
 
 const config = {
     token: process.env.TOKEN,
@@ -136,33 +135,14 @@ bot.on('guildDelete', async (guild) => {
  * Runs when the bot runs into an error.
  */
 bot.on('error', (error) => {
-    console.log(error)
+    mainLogger.error(`Bot Error: ${error.name} - ${error.message}.`);
 });
 
 /**
  * Runs when the bot runs into an error when running a command.
  */
 bot.on('commandError', (command, error, message) => {
-    console.log(
-        'Error on command: ' + command.name +
-        'Uncaught Rejection, reason: ' + error.name +
-        '\nmessage: ' + error.message +
-        '\nfile: ' + error.fileName +
-        '\nline number: ' + error.lineNumber +
-        '\nstack: ' + error.stack
-    );
-
-    discordServices.discordLog(message.guild,
-        new Discord.MessageEmbed().setColor('#ed3434')
-            .setTitle('Command Error')
-            .setDescription('Error on command: ' + command.name +
-                'Uncaught Rejection, reason: ' + error.name +
-               '\nmessage: ' + error.message +
-                '\nfile: ' + error.fileName +
-                '\nline number: ' + error.lineNumber +
-                '\nstack: ' + error.stack)
-            .setTimestamp()
-    );
+    winston.loggers.get(message.guild.id).error(`Command Error: In command ${command.name} got uncaught rejection ${error.name} : ${error.message}`);
 });
 
 /**
@@ -177,6 +157,7 @@ bot.on('message', async message => {
         // bot and staff messages are not deleted
         if (botGuild.blackList.has(message.channel.id)) {
             if (!message.author.bot && !discordServices.checkForRole(message.member, botGuild.roleIDs.staffRole)) {
+                winston.loggers.get(message.guild.id).verbose(`Deleting message from user ${message.author.id} due to being in the blacklisted channel ${message.channel.name}.`);
                 (new Promise(res => setTimeout(res, botGuild.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
             }
         }
@@ -192,10 +173,13 @@ bot.on('guildMemberAdd', async member => {
     // if the guild where the user joined is complete then greet and verify.
     if (botGuild.isSetUpComplete) {
         try {
+            winston.loggers.get(member.guild.id).userStats(`A new user joined the guild and is getting greeted!`)
             await greetNewMember(member, botGuild);
         } catch (error) {
             await fixDMIssue(error, member, botGuild);
         }
+    } else {
+        winston.loggers.get(member.guild.id).warning(`A new user joined the guild but was not greeted because the bot is not set up!`);
     }
 });
 
@@ -216,17 +200,6 @@ process.on('uncaughtException', (error) => {
         '\nstack: ' + error.stack +
         `Exception origin: ${origin}`
     );
-    discordServices.discordLog(bot.guilds.cache.first(),
-        new Discord.MessageEmbed().setColor('#ed3434')
-            .setTitle('Uncaught Rejection')
-            .setDescription('Uncaught Rejection, reason: ' + error.name +
-                '\nmessage: ' + error.message +
-                '\nfile: ' + error.fileName +
-                '\nline number: ' + error.lineNumber +
-                '\nstack: ' + error.stack +
-                `\nException origin: ${origin}`)
-            .setTimestamp()
-    );
 });
 
 /**
@@ -240,27 +213,13 @@ process.on('unhandledRejection', (error, promise) => {
         '\nline number: ' + error.lineNumber +
         '\nstack: ' + error.stack
     );
-    discordServices.discordLog(bot.guilds.cache.first(),
-        new Discord.MessageEmbed().setColor('#ed3434')
-            .setTitle('Unhandled Rejection')
-            .setDescription('Unhandled Rejection, reason: ' + error.name +
-                '\nmessage: ' + error.message +
-                '\nfile: ' + error.fileName +
-                '\nline number: ' + error.lineNumber)
-            .setTimestamp()
-    );
 });
 
 /**
  * Runs when the node process is about to exit and quit.
  */
 process.on('exit', () => {
-    console.log('Node is exiting!');
-    discordServices.discordLog(bot.guilds.cache.first(),
-        new Discord.MessageEmbed().setColor('#ed3434')
-            .setTitle('Unhandled Rejection')
-            .setDescription('The program is shutting down!')
-            .setTimestamp());
+    mainLogger.warning(`Node is exiting!`);
 });
 
 /**
@@ -375,8 +334,8 @@ async function greetNewMember(member, botGuild) {
  */
 async function fixDMIssue(error, member, botGuild) {
     if (error.code === 50007) {
-        let botGuild = await BotGuild.findById(member.guild.id);
-
+        let logger = winston.loggers.get(member.guild.id);
+        logger.warning(`A new user with id ${member.id} joined the guild but was not able to be greeted, we have asked him to fix the issues!`);
         let channelID = botGuild.verification?.welcomeSupportChannelID || botGuild.channelIDs.botSupportChannel;
 
         member.guild.channels.resolve(channelID).send('<@' + member.id + '> I couldn\'t reach you :(.' +
@@ -391,6 +350,7 @@ async function fixDMIssue(error, member, botGuild) {
                         greetNewMember(member);
                         collector.stop();
                         msg.delete();
+                        logger.userStats(`A user with id ${member.id} was able to fix the DM issue and was greeted!`);
                     } catch (error) {
                         member.guild.channels.resolve(channelID).send('<@' + member.id + '> Are you sure you made the changes? I couldn\'t reach you again 😕').then(msg => msg.delete({ timeout: 8000 }));
                     }
