@@ -2,7 +2,8 @@ const Discord = require("discord.js");
 const discordServices = require('../discord-services');
 const Prompt = require('../classes/prompt');
 const Ticket = require('../classes/ticket');
-const { messagePrompt } = require("../classes/prompt");
+const BotGuild = require("../db/mongo/BotGuild");
+const BotGuildModel = require('./bot-guild');
 
 class Cave {
 
@@ -122,6 +123,11 @@ class Cave {
         this.ticketCount = 0;
 
         this.tickets = new Discord.Collection();
+
+        /**
+         * @type {BotGuildModel}
+         */
+        this.botGuild;
     }
 
 
@@ -131,6 +137,7 @@ class Cave {
      * @async
      */
     async init(guildChannelManager) {
+        this.botGuild = await BotGuild.findById(guildChannelManager.guild.id);
         await this.initPrivate(guildChannelManager);
         await this.initPublic(guildChannelManager);
     }
@@ -164,7 +171,8 @@ class Cave {
             }
     
             // add request ticket channel to black list
-            discordServices.blackList.set(this.publicChannels.outgoingTickets.id, 5000);
+            this.botGuild.blackList.set(this.publicChannels.outgoingTickets.id, 5000);
+            this.botGuild.save();
             
             // delete everything from incoming outgoing and console
             this.publicChannels.outgoingTickets.bulkDelete(100, true);
@@ -213,7 +221,7 @@ class Cave {
             type: 'category',  
             permissionOverwrites: [
                 {
-                    id: discordServices.roleIDs.everyoneRole,
+                    id: this.botGuild.roleIDs.everyoneRole,
                     deny: ['VIEW_CHANNEL']
                 },
                 {
@@ -222,7 +230,7 @@ class Cave {
                     deny: ['SEND_MESSAGES'],
                 },
                 {
-                    id: discordServices.roleIDs.staffRole,
+                    id: this.botGuild.roleIDs.staffRole,
                     allow: ['VIEW_CHANNEL'],
                 }
             ]
@@ -276,7 +284,8 @@ class Cave {
         });
 
         // add request ticket channel to black list
-        discordServices.blackList.set(this.publicChannels.outgoingTickets.id, 5000);
+        this.botGuild.blackList.set(this.publicChannels.outgoingTickets.id, 5000);
+        this.botGuild.save();
     }
 
     /**
@@ -300,7 +309,7 @@ class Cave {
     async sendRequestConsole() {
         // cave request ticket embed
         const requestTicketEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(this.botGuild.colors.embedColor)
             .setTitle('Ticket Request System')
             .setDescription('If you or your team want to talk with a ' + this.caveOptions.name + ' follow the instructions below:' +
                 '\n* React to this message with the correct emoji and follow instructions' +
@@ -417,7 +426,7 @@ class Cave {
     async sendAdminConsole(adminConsole) {
         // admin console embed
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(this.botGuild.colors.embedColor)
             .setTitle(this.caveOptions.name + ' Cave Console')
             .setDescription(this.caveOptions.name + ' cave options are found below.')
             .addField('Add a role', 'To add a role please click the ' + this.caveOptions.emojis.addRoleEmoji.toString() + ' emoji.')
@@ -583,7 +592,7 @@ class Cave {
         initialRoles.each(async role => {
             let emoji = await this.promptAndCheckReaction('React with emoji for role named: ', role.name, adminConsole, userId);
 
-            let activeUsers = role.members.array().length;
+            let activeUsers = role.members.size;
             this.addRole(role, emoji, activeUsers);
         });
     }

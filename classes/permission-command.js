@@ -1,7 +1,8 @@
 const Discord = require('discord.js');
-const { Command } = require('discord.js-commando');
+const { Command, CommandoMessage } = require('discord.js-commando');
+const BotGuild = require('../db/mongo/BotGuild');
+const BotGuildModel = require('./bot-guild');
 const discordServices = require('../discord-services');
-
 
 /**
  * The PermissionCommand is a custom command that extends the discord js commando Command class.
@@ -65,6 +66,11 @@ class PermissionCommand extends Command {
         // delete the message
         discordServices.deleteMessage(message);
 
+        /** @type {BotGuildModel} */
+        let botGuild;
+        if (message?.guild) botGuild = await BotGuild.findById(message.guild.id);
+        else botGuild = null;
+
         // check for DM only, when true, all other checks should not happen!
         if (this.permissionInfo.dmOnly) {
             if (message.channel.type != 'dm') {
@@ -77,7 +83,7 @@ class PermissionCommand extends Command {
         } else {
             // Make sure it is only used in the permitted channel
             if (this.permissionInfo?.channel) {
-                let channelID = discordServices.channelIDs[this.permissionInfo.channel];
+                let channelID = botGuild.channelIDs[this.permissionInfo.channel];
 
                 if (channelID && message.channel.id != channelID) {
                     discordServices.sendMessageToMember(message.member, this.permissionInfo.channelMessage, true);
@@ -87,26 +93,31 @@ class PermissionCommand extends Command {
             // Make sure only the permitted role can call it
             else if (this.permissionInfo?.role) {
 
-                let roleID = discordServices.roleIDs[this.permissionInfo.role];
+                let roleID = botGuild.roleIDs[this.permissionInfo.role];
 
                 // if staff role then check for staff and admin, else check the given role
-                if (roleID && (roleID === discordServices.roleIDs.staffRole && 
-                    (!discordServices.checkForRole(message.member, roleID) && !discordServices.checkForRole(message.member, discordServices.roleIDs.adminRole))) || 
-                    (roleID != discordServices.roleIDs.staffRole && !discordServices.checkForRole(message.member, roleID))) {
+                if (roleID && (roleID === botGuild.roleIDs.staffRole && 
+                    (!discordServices.checkForRole(message.member, roleID) && !discordServices.checkForRole(message.member, botGuild.roleIDs.adminRole))) || 
+                    (roleID != botGuild.roleIDs.staffRole && !discordServices.checkForRole(message.member, roleID))) {
                         discordServices.sendMessageToMember(message.member, this.permissionInfo.roleMessage, true);
                         return;
                 }
             }
         }
-        this.runCommand(message, args, fromPattern, result);
+        this.runCommand(botGuild, message, args, fromPattern, result);
     }
 
 
     /**
      * Required class by children, will throw error if not implemented!
+     * @param {BotGuildModel} botGuild
+     * @param {CommandoMessage} message
+     * @param {*} args
+     * @param {Boolean} fromPattern
+     * @param {Promise<*>} result
      * @abstract
      */
-    runCommand(message, args, fromPattern, result) {
+    runCommand(botGuild, message, args, fromPattern, result) {
         throw new Error('You need to implement the runCommand method!');
     }
 }
@@ -121,7 +132,7 @@ class PermissionCommand extends Command {
 PermissionCommand.FLAGS = {
     ADMIN_ROLE: 'adminRole',
     STAFF_ROLE: 'staffRole',
-    ADMIN_CONSOLE: 'adminConsoleChannel',
+    ADMIN_CONSOLE: 'adminConsole',
 }
 
 module.exports = PermissionCommand;

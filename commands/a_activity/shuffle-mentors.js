@@ -19,7 +19,7 @@ module.exports = class MentorShuffle extends ActivityCommand {
      * @param {Message} message 
      * @param {Activity} activity 
      */
-    async activityCommand(message, activity) {
+    async activityCommand(botGuild, message, activity) {
 
         ActivityManager.mentorShuffle(activity);
 

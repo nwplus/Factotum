@@ -24,10 +24,10 @@ module.exports = class StartMentors extends PermissionCommand {
     }
 
     /**
-     * 
-     * @param {Discord.Message} message - a message
+     * @param {BotGuildModel} botGuild
+     * @param {Discord.Message} message - the message in which the command was run
      */
-    async runCommand(message) {
+    async runCommand(botGuild, message) {
         try {
             // helpful prompt vars
             let channel = message.channel;
@@ -93,7 +93,7 @@ module.exports = class StartMentors extends PermissionCommand {
             });
 
 
-            let adminConsole = message.guild.channels.resolve(discordServices.channelIDs.adminConsoleChannel);
+            let adminConsole = message.guild.channels.resolve(botGuild.channelIDs.adminConsole);
 
             try {
                 let isCreated = await Prompt.yesNoPrompt({prompt: 'Are the categories and channels already created?', channel, userId});

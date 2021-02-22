@@ -1,7 +1,9 @@
 // Discord.js commando requirements
 const Activity = require('../../classes/activity');
 const ActivityCommand = require('../../classes/activity-command');
+const BotGuildModel = require('../../classes/bot-guild');
 const discordServices = require('../../discord-services');
+const { Message } = require('discord.js');
 
 
 // Command export
@@ -19,34 +21,36 @@ module.exports = class InitAmongUs extends ActivityCommand {
     /**
      * Command code.
      * @param {Message} message 
-     * @param {Activity} activity 
+     * @param {Activity} activity
+     * @param {BotGuildModel} botGuild 
      */
-    async activityCommand(message, activity) {
-
+    async activityCommand(botGuild, message, activity) {
+        
         // get the archive category or create it
-        var archiveCategory = await message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name === '💼archive');
+        var archiveCategory = message.guild.channels.cache.find(channel => channel.type === 'category' && channel.name === '💼archive');
 
         if (archiveCategory === undefined) {
-            
+            let overwrites = [
+                {
+                    id: botGuild.roleIDs.everyoneRole,
+                    deny: ['VIEW_CHANNEL']
+                },
+                {
+                    id: botGuild.roleIDs.memberRole,
+                    allow: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: botGuild.roleIDs.staffRole,
+                    allow: ['VIEW_CHANNEL'],
+                }
+            ];
+
             // position is used to create archive at the very bottom!
-            var position = (await message.guild.channels.cache.filter(channel => channel.type === 'category')).array().length;
+            var position = (message.guild.channels.cache.filter(channel => channel.type === 'category')).size;
             archiveCategory = await message.guild.channels.create('💼archive', {
                 type: 'category', 
                 position: position + 1,
-                permissionOverwrites: discordServices.roleIDs?.memberRole ? [
-                    {
-                        id: discordServices.roleIDs.everyoneRole,
-                        deny: ['VIEW_CHANNEL'],
-                    },
-                    {
-                        id: discordServices.roleIDs.memberRole,
-                        allow: ['VIEW_CHANNEL'],
-                    },
-                    {
-                        id: discordServices.roleIDs.staffRole,
-                        allow: ['VIEW_CHANNEL'],
-                    }
-                ] : []
+                permissionOverwrites: overwrites,
             });
         }
 

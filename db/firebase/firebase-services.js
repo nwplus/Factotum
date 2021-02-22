@@ -1,12 +1,31 @@
 const { GuildMember, } = require('discord.js');
-
-// Firebase requirements
 const admin = require('firebase-admin');
 
-// var to hold firestore
-// const db = firebase.firestore()
-const db = admin.firestore();
-module.exports.db = db;
+/**
+ * All the firebase apps in play stored by their name.
+ * @type {Map<String, admin.app.App>}
+ */
+const apps = new Map();
+module.exports.apps = apps;
+
+/**
+ * Will start an admin connection with the given name
+ * @param {String} name - name of the connection
+ * @param {JSON} adminSDK - the JSON file with admin config
+ * @param {String} databaseURL - the database URL
+ */
+function initializeFirebaseAdmin(name, adminSDK, databaseURL) {
+    let app = admin.initializeApp({
+    credential: admin.credential.cert(adminSDK),
+    databaseURL: databaseURL,
+    }, name);
+
+    apps.set(name, app);
+
+}
+module.exports.initializeFirebaseAdmin = initializeFirebaseAdmin;
+
+
 
 /**
  * @typedef UserType
@@ -103,6 +122,7 @@ module.exports.checkEmail = checkEmail;
  * @param {String} searchEmail - email to search for similar emails for
  * @param {String} dbEmail - email from db to compare to searchEmail
  * @returns {Boolean} - Whether the two emails are similar
+ * @private
  */
 function compareEmails(searchEmail, dbEmail) {
     // matrix to track Levenshtein Distance with
@@ -144,6 +164,7 @@ function compareEmails(searchEmail, dbEmail) {
  * @param {String} firstName - first name of member to match with database
  * @param {String} lastName - last name of member to match with database
  * @returns {String} - email of given member
+ * @private
  */
 async function checkName(firstName, lastName) {
     const snapshot = (await db.collection('members').get()).docs; // snapshot of Firestore as array of documents

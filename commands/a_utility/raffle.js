@@ -1,6 +1,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
+const BotGuildModel = require('../../classes/bot-guild');
 
 /**
  * The Raffle class randomly picks a set number of winners from all members in a Discord server that have a role ending in a 1-2 digit 
@@ -37,12 +38,13 @@ module.exports = class Raffle extends PermissionCommand {
      * into an array. Then it chooses random numbers and picks the id corresponding to that index until it has numberOfWinners unique 
      * winners.
      * 
-     * @param {message} message - message used to call the command
+     * @param {Discord.Message} message - message used to call the command
      * @param {integer} numberOfWinners - number of winners to be drawn
      */
-    async runCommand(message, {numberOfWinners}) {
+    async runCommand(botGuild, message, {numberOfWinners}) {
+
         //check that numberOfWinners is less than the number of people with stamp roles or it will infinite loop
-        var memberCount = message.guild.members.cache.filter(member => member.roles.cache.has(discordServices.roleIDs.memberRole)).size;
+        var memberCount = message.guild.members.cache.filter(member => member.roles.cache.has(botGuild.roleIDs.memberRole)).size;
         if (memberCount <= numberOfWinners) {
             message.channel.send("Whoa there, you have more winners than hackers!").then((msg) => {
                 msg.delete({ timeout: 5000 })
@@ -70,7 +72,7 @@ module.exports = class Raffle extends PermissionCommand {
         }
         winners = Array.from(winners);
         const embed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('The winners of the raffle draw are:')
             .setDescription('<@' + winners.join('><@') + '>');
         await message.channel.send(embed);

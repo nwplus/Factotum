@@ -2,6 +2,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class ClearChat extends PermissionCommand {
@@ -33,8 +34,11 @@ module.exports = class ClearChat extends PermissionCommand {
         });
     }
 
-
-  async runCommand (message, {keepPinned, isCommands}) {
+    /**
+     * @param {BotGuildModel} botGuild
+     * @param {Discord.Message} message - the message in which the command was run
+     */
+    async runCommand (botGuild, message, {keepPinned, isCommands}) {
 
         if (keepPinned) {
             // other option is to get all channel messages, filter of the pined channels and pass those to bulkDelete, might be to costly?
@@ -52,11 +56,11 @@ module.exports = class ClearChat extends PermissionCommand {
         // only proceed if we want the commands
         if (isCommands) {
             // if in the verify channel <welcome>
-            if (message.channel.id === discordServices.channelIDs.welcomeChannel) {
+            if (message.channel.id === botGuild.verification?.welcomeChannelID) {
                 commands = this.client.registry.findCommands('verify');
             } 
             // admin console
-            else if (discordServices.isAdminConsole(message.channel)) {
+            else if (message.channel.id === botGuild.channelIDs.adminConsole) {
                 // grab all the admin command groups
                 var commandGroups = this.client.registry.findGroups('a_');
                 // add all the commands from the command groups
@@ -74,7 +78,7 @@ module.exports = class ClearChat extends PermissionCommand {
             var length = commands.length;
 
             const textEmbed = new Discord.MessageEmbed()
-                .setColor(discordServices.colors.embedColor)
+                .setColor(botGuild.colors.embedColor)
                 .setTitle('Commands Available in this Channel')
                 .setDescription('The following are all the available commands in this channel, for more information about a specific command please call !help <command_name>.')
                 .setTimestamp();

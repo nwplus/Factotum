@@ -1,4 +1,3 @@
-const firebaseCoffeeChats = require('../../firebase-services/firebase-services-coffeechats');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Activity = require('../../classes/activity');
@@ -29,7 +28,7 @@ module.exports = class InitCoffeeChats extends ActivityCommand {
      * @param {Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
      */
-    async activityCommand(message, activity, { numOfGroups }) {
+    async activityCommand(botGuild, message, activity, { numOfGroups }) {
 
         let joinActivityChannel = await activity.makeCoffeeChats(numOfGroups);
 
@@ -38,7 +37,7 @@ module.exports = class InitCoffeeChats extends ActivityCommand {
 
         // send embed and react with emoji
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('Join the activity!')
             .setDescription('If you want to join this activity, please react to this message with ' + emoji +' and follow my instructions!\n If the emojis are not working' +
             ' it means the activity is full. Check the activity text channel for other activity times!');
@@ -50,7 +49,7 @@ module.exports = class InitCoffeeChats extends ActivityCommand {
         const emojiCollector = joinMsg.createReactionCollector(emojiFilter, {max: numOfGroups});
 
         emojiCollector.on('collect', async (reaction, user) => {
-            await this.createGroup(user, joinActivityChannel, activity.name);
+            await this.createGroup(user, joinActivityChannel, activity);
         });
 
         // report success of coffee chat creation
@@ -62,10 +61,10 @@ module.exports = class InitCoffeeChats extends ActivityCommand {
      * Will create a group for the coffee chats to firebase.
      * @param {Discord.User} user - the user that created the group
      * @param {Discord.TextChannel} joinActivityChannel - the text channel where the user will send group members
-     * @param {String} activityName - the activity name for firebase
+     * @param {Activity} activity - the activity
      * @private
      */
-    async createGroup(user, joinActivityChannel, activityName) {
+    async createGroup(user, joinActivityChannel, activity) {
         // filter for message await
         const msgFilter = m => m.author.id === user.id;
 
@@ -85,8 +84,7 @@ module.exports = class InitCoffeeChats extends ActivityCommand {
                 groupMembers.push(member.user.username);
             });
 
-            // add group to activity list
-            firebaseCoffeeChats.addGroup(activityName, groupMembers);
+            activity.teams.push({members: groupMembers});
 
             prompt.delete();
             joinActivityChannel.send('<@' + user.id + '> Your team has been added to the activity! Make sure you follow the instructions in the main channel.').then(msg => {

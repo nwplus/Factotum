@@ -22,7 +22,7 @@ module.exports = class ActivityCallback extends ActivityCommand {
      * @param {Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
      */
-    async activityCommand(message, activity, args, fromPattern, result) {
+    async activityCommand(botGuild, message, activity, args, fromPattern, result) {
 
         ActivityManager.voiceCallBack(activity);
 

@@ -1,6 +1,7 @@
 const { GuildMember, Guild } = require('discord.js');
 const discordServices = require('../discord-services');
-const firebaseServices = require('../firebase-services/firebase-services');
+const firebaseServices = require('../db/firebase/firebase-services');
+const BotGuildModel = require('./bot-guild');
 
 /**
  * @class Verification
@@ -12,11 +13,12 @@ class Verification {
      * @param {GuildMember} member - member to verify
      * @param {String} email - email to verify with
      * @param {Guild} guild
+     * @param {BotGuildModel} botGuild
      * @async
      * @static
      * @throws Error if email is not valid!
      */
-    static async verify(member, email, guild) {
+    static async verify(member, email, guild, botGuild) {
         if (!discordServices.validateEmail(email)) {
             throw new Error('Email is not valid!!');
         }
@@ -48,20 +50,20 @@ class Verification {
         
         // check for correct types with botGuild verification info and give the roles
         types.forEach((type, index, array) => {
-            if (discordServices.verificationRoles.has(type)) {
-                discordServices.addRoleToMember(member, discordServices.verificationRoles.get(type));
+            if (botGuild.verification.verificationRoles.has(type)) {
+                discordServices.addRoleToMember(member, botGuild.verification.verificationRoles.get(type));
                 correctTypes.push(type);
             }
         });
 
         // extra check to see if types were found, give stamp role if available and let user know of success
         if (correctTypes.length > 0) {
-            discordServices.replaceRoleToMember(member, discordServices.roleIDs.guestRole, discordServices.roleIDs.memberRole);
-            if (discordServices.stampRoles.has(0)) discordServices.addRoleToMember(member, discordServices.stampRoles.get(0));
+            discordServices.replaceRoleToMember(member, botGuild.verification.guestRoleID, botGuild.roleIDs.memberRole);
+            if (botGuild.stamps.isEnabled) discordServices.addRoleToMember(member, botGuild.stamps.stamp0thRoleId);
             discordServices.sendEmbedToMember(member, {
                 title: 'cmd-f 2021 Verification Success',
                 description: `You have been verified as a ${correctTypes.join()}, good luck and have fun!`,
-                color: discordServices.colors.specialDMEmbedColor,
+                color: botGuild.colors.specialDMEmbedColor,
             });
             discordServices.discordLog(guild, `VERIFY SUCCESS : <@${member.id}> Verified email: ${email} successfully as ${correctTypes.join()}`);
         } else {
@@ -78,16 +80,17 @@ class Verification {
     /**
      * Will attend the user and give it the attendee role.
      * @param {GuildMember} member 
+     * @param {BotGuildModel} botGuild
      */
-    static async attend(member) {
+    static async attend(member, botGuild) {
         try {
             // wait for attend to end, then give role
             await firebaseServices.attend(member.id);
-            discordServices.addRoleToMember(member, discordServices.roleIDs.attendeeRole);
+            discordServices.addRoleToMember(member, botGuild.attendance.attendeeRoleID);
             discordServices.sendEmbedToMember(member, {
                 title: 'Attendance Success',
                 description: 'You have been marked as attending, thank you and good luck!',
-                color: discordServices.colors.specialDMEmbedColor,
+                color: botGuild.colors.specialDMEmbedColor,
             });
             discordServices.discordLog(member.guild, `ATTEND SUCCESS : <@${member.id}> has been marked as attending!`);
         } catch (error) {

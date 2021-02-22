@@ -3,6 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Verification = require('../../classes/verification');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class Verify extends PermissionCommand {
@@ -32,14 +33,15 @@ module.exports = class Verify extends PermissionCommand {
     }
 
     /**
-     * 
+     * DOES NOT WORK !!!! TODO REMOVE OR ADD ABILITY TO GIVE GUILD ID FOR IT TO WORK!
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message 
      * @param {String} email 
      */
-    async runCommand(message, { email, guildId }) {
+    async runCommand(botGuild, message, { email, guildId }) {
 
         // check if the user needs to verify, else warn and return
-        if (!discordServices.checkForRole(member, discordServices.roleIDs.guestRole)) {
+        if (!discordServices.checkForRole(member, botGuild.roleIDs.guestRole)) {
             discordServices.sendEmbedToMember(member, {
                 title: 'Verify Error',
                 description: 'You do not need to verify, you are already more than a guest!'
@@ -72,7 +74,5 @@ module.exports = class Verify extends PermissionCommand {
                 description: 'Email provided is not valid!'
             }, true);
         }
-
     }
-
 };

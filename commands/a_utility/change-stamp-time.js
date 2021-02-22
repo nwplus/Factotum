@@ -1,5 +1,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
+const { Message } = require('discord.js');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class ChangeStampTime extends PermissionCommand {
@@ -24,9 +26,16 @@ module.exports = class ChangeStampTime extends PermissionCommand {
         });
     }
 
-    async runCommand(message, {newTime}) {
+    /**
+     * 
+     * @param {BotGuildModel} botGuild 
+     * @param {Message} message 
+     * @param {*} param2 
+     */
+    async runCommand(botGuild, message, {newTime}) {
 
-        discordServices.stampCollectTime = newTime;
+        botGuild.stamps.stampCollectionTime = newTime;
+        botGuild.save()
 
         discordServices.replyAndDelete(message, 'Stamp collection will now give hackers ' + newTime + ' seconds to collect stamp.');
     }

@@ -39,7 +39,7 @@ module.exports = class CreatePrivatesFor extends ActivityCommand {
      * @param {Message} message 
      * @param {Activity} activity 
      */
-    async activityCommand(message, activity, {number, isPrivate, maxUsers}) {
+    async activityCommand(botGuild, message, activity, {number, isPrivate, maxUsers}) {
         let final = activity.addVoiceChannels(number, isPrivate, maxUsers);
 
         // report success of workshop creation

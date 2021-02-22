@@ -3,6 +3,7 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Activity = require('../../classes/activity');
 const ActivityCommand = require('../../classes/activity-command');
+const Prompt = require('../../classes/prompt');
 
 // Command export
 module.exports = class InitWorkshop extends ActivityCommand {
@@ -18,16 +19,31 @@ module.exports = class InitWorkshop extends ActivityCommand {
 
     /**
      * Required class by children, should contain the command code.
-     * @param {Message} message - the message that has the command
+     * @param {Discord.Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
      */
     async activityCommand(message, activity) {
+        // prompt user for roles that will have access to the TA side of the workshop
+        let TARoles;
+        try {
+            if (await Prompt.yesNoPrompt({prompt: 'Aside from Staff, are there other roles you would like to allow access to the TA channels?', 
+                channel: message.channel, userId: message.author.id})) {
+                TARoles = await Prompt.rolePrompt({prompt: 'Mention the role(s) here now!', channel: message.channel, userId: message.author.id});
+            };
+        } catch (error) {
+            TARoles = new Discord.Collection();
+        }
+        TARoles.each(role => {
+            activity.generalText.updateOverwrite(role, {VIEW_CHANNEL: true});
+            activity.generalVoice.updateOverwrite(role, {VIEW_CHANNEL: true, SPEAK: true, MOVE_MEMBERS: true});
+            activity.category.updateOverwrite(role, {VIEW_CHANNEL: true});
+        });
 
-        let channels = await activity.makeWorkshop();
+        
+        let channels = await activity.makeWorkshop(TARoles);
 
         let taChannel = channels.taChannel;
         let assistanceChannel = channels.assistanceChannel;
-        let helpChannel = activity.generalText;
 
     // important variables and embeds
         // pullInFunctionality is default to true
@@ -35,7 +51,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
 
         ////// TA Side
         // embed color for mentors
-        var mentorColor = (await message.guild.roles.fetch(discordServices.roleIDs?.mentorRole))?.color || discordServices.randomColor();
+        var mentorColor = (await message.guild.roles.fetch(botGuild.roleIDs?.mentorRole))?.color || discordServices.randomColor();
 
         const taInfoEmbed = new Discord.MessageEmbed()
             .setTitle('TA Information')
@@ -62,7 +78,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 // let TAs know about the change!
                 taChannel.send('Low tech solution has been turned on!').then(msg => msg.delete({timeout: 5000}));
                 msg.edit(msg.embeds[0].addField('Low Tech Solution Is On', 'To give assistance: \n* Send a DM to the highers member on the wait list \n* Then click on the emoji to remove them from the list!'));
-                helpChannel.send(new Discord.MessageEmbed().setColor(discordServices.colors.embedColor).setTitle('Quick Update!').setDescription('You do not need to join the ' +  activity.activityInfo.generalVoiceChannelName + ' voice channel. TAs will send you a DM when they are ready to assist you!'));
+                assistanceChannel.send(new Discord.MessageEmbed().setColor(discordServices.colors.embedColor).setTitle('Quick Update!').setDescription('You do not need to join the ' +  activity.activityInfo.generalVoiceChannelName + ' voice channel. TAs will send you a DM when they are ready to assist you!'));
             });
         });
         
@@ -70,7 +86,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
             .setColor(mentorColor)
             .setTitle('Polling and Stamp Console')
             .setDescription('Here are some common polls you might want to use!')
-            .addField('Stamp Distribution', '📇 Will activate a stamp distribution that will be open for ' + discordServices.stampCollectTime + ' seconds.')
+            .addField('Stamp Distribution', '📇 Will activate a stamp distribution that will be open for ' + botGuild.stamps.stampCollectionTime + ' seconds.')
             .addField('Speed Poll', '🏎️ Will send an embedded message asking how the speed is.')
             .addField('Difficulty Poll', '🎓 Will send an embedded message asking how the difficulty is.')
             .addField('Explanation Poll', '🧑‍🏫 Will send an embedded message asking how good the explanations are.');
@@ -95,7 +111,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 reaction.users.remove(user.id);
 
                 if (emojiName === emojis[0]) {
-                    commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(message, activity, { timeLimit: discordServices.stampCollectTime });
+                    commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(message, activity, { timeLimit: botGuild.stamps.stampCollectionTime });
                 } else if (emojiName === emojis[1]) {
                     commandRegistry.findCommands('workshop-polls', true)[0].runCommand(message, activity, { questionType: 'speed' });
                 } else if (emojiName === emojis[2]) {
@@ -120,7 +136,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
     // Hacker Side
         // message embed for helpChannel
         const helpEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle(activity.name + ' Help Desk')
             .setDescription('Welcome to the ' + activity.name + ' help desk. There are two ways to get help explained below:')
             .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, use the !ask command on the text channel ' + '<#' + activity.generalText.id + '>' + '!')
@@ -148,20 +164,20 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 discordServices.sendMessageToMember(user, 'You are already on the TA wait list! A TA will get to you soon!', true);
                 return;
             } else {
-                var position = waitlist.array().length;
+                var position = waitlist.size;
                 // add user to wait list
                 waitlist.set(user.id, user.username);
             }
 
             // collect the question the hacker has
-            var qPrompt = await helpChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond').catch(console.error);
+            var qPrompt = await assistanceChannel.send('<@' + user.id + '> Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond').catch(console.error);
 
             assistanceChannel.awaitMessages(m => m.author.id === user.id, { max: 1, time: 20000, error:['time'] }).then(async msgs => {
                 // get question
                 var question = msgs.first().content;
 
                 const hackerEmbed = new Discord.MessageEmbed()
-                    .setColor(discordServices.colors.embedColor)
+                    .setColor(botGuild.colors.embedColor)
                     .setTitle('Hey there! We got you signed up to talk to a TA!')
                     .setDescription('You are number: ' + position + ' in the wait list.')
                     .addField(pullInFunctionality ? 'JOIN THE VOICE CHANNEL!' : 'KEEP AN EYE ON YOUR DMs', 
@@ -180,7 +196,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 msgs.each(msg => msg.delete());
             }).catch(() => {
                 qPrompt.delete();
-                helpChannel.send('<@' + user.id + '> Time is up! Write up your message and react again!').then(msg => msg.delete({timeout: 3000}));
+                assistanceChannel.send('<@' + user.id + '> Time is up! Write up your message and react again!').then(msg => msg.delete({timeout: 3000}));
             });
         });
 
@@ -192,7 +208,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
             reaction.users.remove(user.id);
 
             // check that there is someone to help
-            if (waitlist.array().length === 0) {
+            if (waitlist.size === 0) {
                 taChannel.send('<@' + user.id + '> No one to help right now!').then(msg => msg.delete({ timeout: 5000 }));
                 return;
             }

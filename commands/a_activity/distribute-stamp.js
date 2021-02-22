@@ -15,13 +15,13 @@ module.exports = class DistributeStamp extends PermissionCommand {
                     key: 'timeLimit',
                     prompt: 'How many seconds will the reactions be open for',
                     type: 'integer',
-                    default: discordServices.stampCollectTime,
+                    default: 60,
                 },
             ],
         },
         {
             role: PermissionCommand.FLAGS.STAFF_ROLE,
-            roleMessage: 'Hey there, the command !contests is only available to Staff!',
+            roleMessage: 'Hey there, the command !distribute-stamp is only available to Staff!',
         });
     }
 
@@ -30,7 +30,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
      * @param {Message} message 
      * @param {Activity} activity 
      */
-    async runCommand(message, activity, {timeLimit}) {
-        ActivityManager.distributeStamp(activity, timeLimit);
+    async runCommand(botGuild, message, activity, {timeLimit}) {
+        ActivityManager.distributeStamp(activity, botGuild, timeLimit);
     }
 };

@@ -1,40 +1,19 @@
+require('dotenv-flow').config();
+const mongoUtil = require('./db/mongo/mongoUtil');
 const Commando = require('discord.js-commando');
 const Discord = require('discord.js');
-
-
-require('dotenv-flow').config();
-
-// Firebase requirements
-var firebase = require('firebase/app');
-
-const admin = require('firebase-admin');
-
-const nwFirebaseConfig = {
-    apiKey: process.env.NWFIREBASEAPIKEY,
-    authDomain: process.env.NWFIREBASEAUTHDOMAIN,
-    databaseURL: process.env.NWFIREBASEURL,
-    projectId: process.env.NWFIREBASEPROJECTID,
-    storageBucket: process.env.NWFIREBASEBUCKET,
-    messagingSenderId: process.env.NWFIREBASESENDERID,
-    appId: process.env.NWFIREBASEAPPID,
-    measurementId: process.env.NWFIREBASEMEASUREMENTID
-}
+const firebaseServices = require('./db/firebase/firebase-services');
 
 // initialize firebase
-// firebase.initializeApp(firebaseConfig);
-const adminSDK = require('./nwplus-bot-admin-sdk.json');
-admin.initializeApp({
-    credential: admin.credential.cert(adminSDK),
-    databaseURL: "https://nwplus-bot.firebaseio.com",
-});
+const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
+firebaseServices.initializeFirebaseAdmin('nwPlusBotAdmin', adminSDK, "https://nwplus-bot.firebaseio.com");
 
-// initialize nw firebase
-const nwFirebase = firebase.initializeApp(nwFirebaseConfig, 'nwFirebase');
 
 const discordServices = require('./discord-services');
 const Prompt = require('./classes/prompt');
+const BotGuild = require('./db/mongo/BotGuild');
+const BotGuildModel = require('./classes/bot-guild');
 const Verification = require('./classes/verification');
-
 
 const config = {
     token: process.env.TOKEN,
@@ -64,6 +43,19 @@ bot.registry
 bot.once('ready', async () => {
     console.log(`Logged in as ${bot.user.tag}!`);
     bot.user.setActivity('Ready to hack!');
+
+    await mongoUtil.mongooseConnect();
+
+    bot.guilds.cache.forEach(async (guild, key, guilds) => {
+        let botGuild = await BotGuild.findById(guild.id);
+
+        if (!botGuild) {
+            BotGuild.create({
+                _id: guild.id,
+            });
+        }
+
+    });
 });
 
 bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
@@ -71,18 +63,19 @@ bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
         if (!group.guarded) guild.setGroupEnabled(group, false);
     });
 
-    console.log('inside guild create!');
+    BotGuild.create({
+        _id: guild.id,
+    });
 });
 
 // Listeners for the bot
 
 // error event
-// bot.on('error', (error) => {
-//     console.log(error)
-//     discordServices.discordLog(bot.guilds.cache.first(), )
-// });
+bot.on('error', (error) => {
+    console.log(error)
+});
 
-bot.on('commandError', (command, error) => {
+bot.on('commandError', (command, error, message) => {
     console.log(
         'Error on command: ' + command.name +
         'Uncaught Rejection, reason: ' + error.name +
@@ -92,7 +85,7 @@ bot.on('commandError', (command, error) => {
         '\nstack: ' + error.stack
     );
 
-    discordServices.discordLog(bot.guilds.cache.first(),
+    discordServices.discordLog(message.guild,
         new Discord.MessageEmbed().setColor('#ed3434')
             .setTitle('Command Error')
             .setDescription('Error on command: ' + command.name +
@@ -105,7 +98,7 @@ bot.on('commandError', (command, error) => {
     );
 });
 
-process.on('uncaughtException', (error, origin) => {
+process.on('uncaughtException', (error) => {
     console.log(
         'Uncaught Rejection, reason: ' + error.name +
         '\nmessage: ' + error.message +
@@ -156,23 +149,31 @@ process.on('exit', () => {
 });
 
 bot.on('message', async message => {
-    // Deletes all messages to any channel in the black list with the specified timeout
-    // this is to make sure that if the message is for the bot, it is able to get it
-    // bot and staff messages are not deleted
-    if (discordServices.blackList.has(message.channel.id)) {
-        if (!message.author.bot && !discordServices.checkForRole(message.member, discordServices.roleIDs.staffRole)) {
-            (new Promise(res => setTimeout(res, discordServices.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
+    if (message?.guild) {
+        let botGuild = await BotGuild.findById(message.guild.id);
+
+        // Deletes all messages to any channel in the black list with the specified timeout
+        // this is to make sure that if the message is for the bot, it is able to get it
+        // bot and staff messages are not deleted
+        if (botGuild.blackList.has(message.channel.id)) {
+            if (!message.author.bot && !discordServices.checkForRole(message.member, botGuild.roleIDs.staffRole)) {
+                (new Promise(res => setTimeout(res, botGuild.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
+            }
         }
     }
+
+
+    
 
 });
 
 // If someone joins the server they get the guest role!
 bot.on('guildMemberAdd', async member => {
+    let botGuild = await BotGuild.findById(member.guild.id);
     try {
-        await greetNewMember(member);
+        await greetNewMember(member, botGuild);
     } catch (error) {
-        await fixDMIssue(error, member);
+        await fixDMIssue(error, member, botGuild);
     }
 });
 
@@ -182,9 +183,10 @@ bot.login(config.token).catch(console.error);
 /**
  * Greets a member!
  * @param {Discord.GuildMember} member - the member to greet
+ * @param {BotGuildModel} botGuild
  * @throws Error if the user has server DMs off
  */
-async function greetNewMember(member) {
+async function greetNewMember(member, botGuild) {
     let verifyEmoji = '🍀';
 
     var embed = new Discord.MessageEmbed()
@@ -192,15 +194,15 @@ async function greetNewMember(member) {
         .setDescription('We are very excited to have you here!')
         .addField('Have a question?', 'Go to the welcome-assistance channel to talk with our staff!')
         .addField('Want to learn more about what I can do?', 'Use the !help command anywhere and I will send you a message!')
-        .setColor(discordServices.colors.embedColor);
+        .setColor(botGuild.colors.embedColor);
 
-    if (discordServices.roleIDs?.guestRole) embed
-        .addField('Gain more access by verifying yourself!', 'React to this message with ' + verifyEmoji + ' and follow my instructions!\n');
+    if (botGuild.verification.isEnabled) embed.addField('Gain more access by verifying yourself!', 'React to this message with ' + verifyEmoji + ' and follow my instructions!');
+    
     let msg = await member.send(embed);
 
     // if verification is on then give guest role and let user verify
-    if (discordServices.roleIDs?.guestRole) {
-        discordServices.addRoleToMember(member, discordServices.roleIDs.guestRole);
+    if (botGuild.verification.isEnabled) {
+        discordServices.addRoleToMember(member, botGuild.verification.guestRoleID);
 
         msg.react(verifyEmoji);
         let verifyCollector = msg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === verifyEmoji);
@@ -228,7 +230,7 @@ async function greetNewMember(member) {
     }
     // if verification is off, then just ive member role
     else {
-        discordServices.addRoleToMember(member, discordServices.roleIDs.memberRole);
+        discordServices.addRoleToMember(member, botGuild.roleIDs.memberRole);
     }
 }
 
@@ -236,11 +238,14 @@ async function greetNewMember(member) {
  * Will let the member know how to fix their DM issue.
  * @param {Error} error - the error
  * @param {Discord.GuildMember} member - the member with the error
+ * @param {BotGuildModel} botGuild
  * @throws Error if the given error is not a DM error
  */
-async function fixDMIssue(error, member) {
+async function fixDMIssue(error, member, botGuild) {
     if (error.code === 50007) {
-        let channelID = discordServices.channelIDs?.welcomeSupport || discordServices.channelIDs.botSupportChannel;
+        let botGuild = await BotGuild.findById(member.guild.id);
+
+        let channelID = botGuild.verification?.welcomeSupportChannelID || botGuild.channelIDs.botSupportChannel;
 
         member.guild.channels.resolve(channelID).send('<@' + member.id + '> I couldn\'t reach you :(.' +
             '\n* Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-' +
