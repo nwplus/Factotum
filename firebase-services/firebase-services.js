@@ -1,10 +1,6 @@
 const { GuildMember, } = require('discord.js');
-
-// Firebase requirements
 const admin = require('firebase-admin');
 
-// var to hold firestore
-// const db = firebase.firestore()
 const db = admin.firestore();
 module.exports.db = db;
 
@@ -103,6 +99,7 @@ module.exports.checkEmail = checkEmail;
  * @param {String} searchEmail - email to search for similar emails for
  * @param {String} dbEmail - email from db to compare to searchEmail
  * @returns {Boolean} - Whether the two emails are similar
+ * @private
  */
 function compareEmails(searchEmail, dbEmail) {
     // matrix to track Levenshtein Distance with
@@ -144,6 +141,7 @@ function compareEmails(searchEmail, dbEmail) {
  * @param {String} firstName - first name of member to match with database
  * @param {String} lastName - last name of member to match with database
  * @returns {String} - email of given member
+ * @private
  */
 async function checkName(firstName, lastName) {
     const snapshot = (await db.collection('members').get()).docs; // snapshot of Firestore as array of documents
