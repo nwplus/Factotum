@@ -3,6 +3,8 @@ const mongoUtil = require('./db/mongo/mongoUtil');
 const Commando = require('discord.js-commando');
 const Discord = require('discord.js');
 const firebaseServices = require('./db/firebase/firebase-services');
+const winston = require('winston');
+const fs = require('fs');
 
 // initialize firebase
 const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
@@ -13,6 +15,7 @@ const Prompt = require('./classes/prompt');
 const BotGuild = require('./db/mongo/BotGuild');
 const BotGuildModel = require('./classes/bot-guild');
 const Verification = require('./classes/verification');
+const { createLogger } = require('winston');
 
 const config = {
     token: process.env.TOKEN,
@@ -22,6 +25,34 @@ const bot = new Commando.Client({
     commandPrefix: '!',
     owner: config.owner,
 });
+
+const customLoggerLevels = {
+    levels: {
+        error: 0,
+        warning: 1,
+        command: 2,
+        event: 3,
+        userStats: 4,
+        verbose: 5,
+        debug: 6,
+        silly: 7,
+    },
+    colors: {
+        error: 'red',
+        warning: 'yellow',
+        command: 'blue',
+        event: 'green',
+        userStats: 'magenta',
+        verbose: 'cyan',
+        debug: 'orange',
+        silly: 'black',
+    }
+}
+
+// the main logger to use for general errors
+const mainLogger = createALogger('main', 'main');
+winston.addColors(customLoggerLevels.colors);
+
 
 /**
  * Register all the commands except for help and unknown since we have our own.
@@ -46,7 +77,7 @@ bot.registry
  * Runs when the bot finishes the set up and is ready to work.
  */
 bot.once('ready', async () => {
-    console.log(`Logged in as ${bot.user.tag}!`);
+    mainLogger.warning('The bot has started and is ready to hack!');
     
     bot.user.setActivity('Ready to hack!');
 
@@ -61,7 +92,13 @@ bot.once('ready', async () => {
             BotGuild.create({
                 _id: guild.id,
             });
+            mainLogger.verbose(`Created a new botGuild for the guild ${guild.id} - ${guild.name} on bot ready.`);
+        } else {
+            mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`);
         }
+
+        // create the logger for the guild
+        createALogger(guild.id, guild.name);
     });
 });
 
@@ -69,6 +106,8 @@ bot.once('ready', async () => {
  * Runs when the bot is added to a guild.
  */
 bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
+    mainLogger.verbose(`The bot was added to a new guild: ${guild.id} - ${guild.name}.`);
+
     // set all non guarded commands to not enabled for the new guild
     bot.registry.groups.forEach((group, key, map) => {
         if (!group.guarded) guild.setGroupEnabled(group, false);
@@ -77,6 +116,9 @@ bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
     BotGuild.create({
         _id: guild.id,
     });
+
+    // create a logger for this guild
+    createALogger(guild.id, guild.name);
 });
 
 /**
@@ -209,6 +251,48 @@ process.on('exit', () => {
             .setDescription('The program is shutting down!')
             .setTimestamp());
 });
+
+/**
+ * Will create a default logger to use.
+ * @param {String} loggerName
+ * @param {String} [loggerLabel=''] - usually a more readable logger name
+ * @returns {winston.Logger}
+ */
+function createALogger(loggerName, loggerLabel = '') {
+    // custom format
+    let format = winston.format.printf(info => `${info.timestamp} [${info.label}] ${info.level} : ${info.message} ${info.splat ? '- info.splat' : '' }`)
+
+    // create the directory if not present
+    if (!fs.existsSync(`./logs/${loggerName}`)) fs.mkdirSync(`./logs/${loggerName}`);
+    let logger = winston.loggers.add(loggerName, {
+        levels: customLoggerLevels.levels,
+        transports: [
+            new winston.transports.File({ filename: `./logs/${loggerName}/logs.log`, level: 'silly' }),
+            new winston.transports.File({ filename: `./logs/${loggerName}/debug.log`, level: 'debug' }),
+            new winston.transports.File({ filename: `./logs/${loggerName}/verbose.log`, level: 'verbose' }),
+            new winston.transports.File({ filename: `./logs/${loggerName}/userStats.log`, level: 'userStats' }),
+            new winston.transports.File({ filename: `./logs/${loggerName}/event.log`, level: 'event' }),
+            new winston.transports.File({ filename: `./logs/${loggerName}/command.log`, level: 'command' }),
+            new winston.transports.File({ filename: `./logs/${loggerName}/warning.log`, level: 'warning' }),
+            new winston.transports.File({ filename: `./logs/${loggerName}/error.log`, level: 'error' }),
+            new winston.transports.Console({ level: 'silly', format: winston.format.combine(
+                winston.format.colorize({ level: true }),
+                winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+                winston.format.splat(),
+                winston.format.label({ label: loggerLabel}),
+                format,
+            ) }),
+        ],
+        exitOnError: false,
+        format: winston.format.combine(
+            winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+            winston.format.splat(),
+            winston.format.label({ label: loggerLabel}),
+            format,
+        )
+    });
+    return logger;
+}
 
 /**
  * Greets a member!
