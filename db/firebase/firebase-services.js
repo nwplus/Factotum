@@ -48,7 +48,7 @@ module.exports.initializeFirebaseAdmin = initializeFirebaseAdmin;
  */
 async function getQuestion() {
     //checks that the question has not been asked
-    var qref = db.collection('questions').where('asked', '==', false).limit(1);
+    var qref = apps.get('nwPlusBotAdmin').firestore().collection('questions').where('asked', '==', false).limit(1);
     var question = (await qref.get()).docs[0];
     //if there exists an unasked question, change its status to asked
     if (question != undefined) {
@@ -68,7 +68,7 @@ module.exports.getQuestion = getQuestion;
  */
 async function getReminder() {
     //checks that the reminder has not been sent
-    var qref = db.collection('reminders').where('sent', '==', false).limit(1);
+    var qref = apps.get('nwPlusBotAdmin').firestore().collection('reminders').where('sent', '==', false).limit(1);
     var reminder = (await qref.get()).docs[0];
     //if there reminder unsent, change its status to asked
     if (reminder != undefined) {
@@ -97,7 +97,7 @@ module.exports.getReminder = getReminder;
  * @returns {Promise<Array<Member>>} - array of members with similar emails to parameter email
  */
 async function checkEmail(email) {
-    const snapshot = (await db.collection('members').get()).docs; // retrieve snapshot as an array of documents in the Firestore
+    const snapshot = (await apps.get('nwPlusBotAdmin').firestore().collection('members').get()).docs; // retrieve snapshot as an array of documents in the Firestore
     var foundEmails = [];
     snapshot.forEach(memberDoc => {
         // compare each member's email with the given email
@@ -167,7 +167,7 @@ function compareEmails(searchEmail, dbEmail) {
  * @private
  */
 async function checkName(firstName, lastName) {
-    const snapshot = (await db.collection('members').get()).docs; // snapshot of Firestore as array of documents
+    const snapshot = (await apps.get('nwPlusBotAdmin').firestore().collection('members').get()).docs; // snapshot of Firestore as array of documents
     snapshot.forEach(memberDoc => {
         if (memberDoc.get('firstName') != null && memberDoc.get('lastName') != null && memberDoc.get('firstName').toLowerCase() === firstName.toLowerCase()
             && memberDoc.get('lastName').toLowerCase() === lastName.toLowerCase()) { // for each document, check if first and last names match given names
@@ -185,7 +185,7 @@ module.exports.checkName = checkName;
  * @param {String[]} types - types this user might verify for
  */
 function addUserData(email, member, types) {
-    var newDocument = db.collection('members').doc();
+    var newDocument = apps.get('nwPlusBotAdmin').firestore().collection('members').doc();
     /** @type {FirebaseUser} */
     let data = {
         email: email.toLowerCase(),
@@ -212,9 +212,9 @@ module.exports.addUserData = addUserData;
  * @throws Error if the email provided was not found.
  */
 async function verify(email, id) {
-    var userRef = db.collection('members').where('email', '==', email.toLowerCase()).limit(1);
+    let emailLowerCase = email.toLowerCase()
+    var userRef = apps.get('nwPlusBotAdmin').firestore().collection('members').where('email', '==', emailLowerCase).limit(1);
     var user = (await userRef.get()).docs[0];
-
     if (user) {
         let returnTypes = [];
 
@@ -248,7 +248,7 @@ module.exports.verify = verify;
  * @throws Error if the email provided was not found.
  */
 async function attend(id) {
-    var userRef = db.collection('members').where('discordId', '==', id).limit(1);
+    var userRef = apps.get('nwPlusBotAdmin').firestore().collection('members').where('discordId', '==', id).limit(1);
     var user = (await userRef.get()).docs[0];
 
     if (user) {
