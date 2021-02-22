@@ -158,11 +158,11 @@ class Activity {
     async createCategory(position) {
         let overwrites = [
             {
-                id: discordServices.roleIDs.everyoneRole,
+                id: this.botGuild.roleIDs.everyoneRole,
                 deny: ['VIEW_CHANNEL']
             },
             {
-                id: discordServices.roleIDs.staffRole,
+                id: this.botGuild.roleIDs.staffRole,
                 allow: ['VIEW_CHANNEL']
             }];
         this.permissions.each(role => overwrites.push({ id: role.id, allow: ['VIEW_CHANNEL'] }));
@@ -235,7 +235,7 @@ class Activity {
                 },
                 [
                     {
-                        roleID: discordServices.roleIDs.hackerRole,
+                        roleID: this.botGuild.roleIDs.hackerRole,
                         permissions: { VIEW_CHANNEL: isPrivate ? false : true, USE_VAD: true, SPEAK: true },
                     },
                 ]);
