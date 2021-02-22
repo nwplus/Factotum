@@ -3,6 +3,7 @@ const Prompt = require("./prompt");
 const BotGuild = require("../db/mongo/BotGuild");
 const discordServices = require('../discord-services');
 const BotGuildModel = require('../classes/bot-guild');
+const winston = require("winston");
 
 /**
  * The activity class represents a discord activity, it holds important information like
@@ -105,6 +106,8 @@ class Activity {
          * @type {BotGuildModel}
          */
         this.botGuild;
+
+        winston.loggers.get(guild.id).activity(`An activity named ${this.name} was created.`, [{activityInfo: this.activityInfo}, {permissions: this.permissions}]);
     }
 
 
@@ -142,7 +145,7 @@ class Activity {
         this.generalVoice = await this.addChannel(this.activityInfo.generalVoiceChannelName, {
             type: 'voice',
         });
-
+        winston.loggers.get(this.guild.id).activity(`The activity ${this.name} was initialized.`);
         return this;
     }
 
@@ -182,7 +185,7 @@ class Activity {
      */
 
     /**
-     * Add voice channels to this activity. Will automatically set the parent and add it to the correct collection.
+     * Adds a channels to this activity. Will automatically set the parent and add it to the correct collection.
      * @param {String} name - name of the channel to create
      * @param {import("discord.js").GuildCreateChannelOptions} info - one of voice or text
      * @param {Array<RolePermission>} permissions - the permissions per role to be added to this channel after creation.
@@ -197,6 +200,8 @@ class Activity {
 
         if (info.type == 'text') this.textChannels.set(channel.name, channel);
         else this.voiceChannels.set(channel.name, channel);
+
+        winston.loggers.get(this.guild.id).activity(`The activity ${this.name} had a channel named ${name} added to it of type ${info?.type || 'text'}.`);
 
         return channel;
     }
@@ -258,8 +263,12 @@ class Activity {
         for (let index = total - 1; index >= final; index--) {
             let channelName = this.activityInfo.voiceChannelName + index;
             let channel = this.voiceChannels.get(channelName);
-            if (channel != undefined) discordServices.deleteChannel(channel);
+            if (channel != undefined) {
+                winston.loggers.get(this.guild.id).activity(`The activity ${this.name} lost a voice channel named ${channelName}`);
+                discordServices.deleteChannel(channel);
+            }
         }
+
         return final;
     }
 
@@ -287,6 +296,8 @@ class Activity {
         }, [{roleID: this.botGuild.roleIDs.memberRole, permissions: {VIEW_CHANNEL: false}}]); // members cant see this channel until they emoji a message to accept to the game rules
 
         this.addVoiceChannels(numOfChannels, true, 12);
+
+        winston.loggers.get(this.guild.id).activity(`The activity ${this.name} was transformed to a among us activity.`);
 
         return channel;
     }
@@ -318,6 +329,8 @@ class Activity {
          * @type {Collection<Number, Array>} - <group number, group members as array>
          */
         this.groups = new Collection();
+
+        winston.loggers.get(this.guild.id).activity(`The activity ${this.name} was transformed to a coffee chats.`);
 
         return channel;
     }
@@ -364,6 +377,8 @@ class Activity {
         });
         this.botGuild.blackList.set(assistanceChannel.id, 5000);
         this.botGuild.save();
+
+        winston.loggers.get(this.guild.id).activity(`The activity ${this.name} was transformed to a workshop.`);
         
         return { taChannel, assistanceChannel };
     }
@@ -389,6 +404,8 @@ class Activity {
 
         this.botGuild.save();
         await discordServices.deleteChannel(this.category);
+
+        winston.loggers.get(this.guild.id).activity(`The activity ${this.name} was archived!`);
     }
 
     /**
@@ -402,6 +419,8 @@ class Activity {
         }
 
         await this.category.delete();
+
+        winston.loggers.get(this.guild.id).activity(`The activity ${this.name} was deleted!`);
     }
 
     /**
@@ -414,6 +433,7 @@ class Activity {
         this.voiceChannels.forEach(async (channel) => {
             await channel.edit({ userLimit: limit });
         });
+        winston.loggers.get(this.guild.id).verbose(`The activity ${this.name} had its voice channels added a limit of ${limit}`);
     }
 
     /**
@@ -423,6 +443,7 @@ class Activity {
      */
     async makeVoiceChannelPrivate(channel, toHide) {
         channel.updateOverwrite(this.botGuild.roleIDs.everyoneRole, {VIEW_CHANNEL: toHide ? false : true});
+        winston.loggers.get(this.guild.id).verbose(`The activity ${this.name} had its channel ${channel.name} made ${toHide ? 'private' : 'public'}.`);
     }
 }
 
