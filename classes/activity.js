@@ -1,4 +1,4 @@
-const { Collection, Guild, CategoryChannel, TextChannel, VoiceChannel, DiscordAPIError, Message } = require("discord.js");
+const { Collection, Guild, CategoryChannel, TextChannel, VoiceChannel, DiscordAPIError, Message, Role } = require("discord.js");
 const Prompt = require("./prompt");
 const BotGuild = require("../db/mongo/BotGuild");
 const discordServices = require('../discord-services');
@@ -339,7 +339,7 @@ class Activity {
     /**
      * Will make this activity a workshop activity.
      * @async
-     * @param {Collection<Snowflake, Role>} TARoles - roles with TA permissions aside from Staff
+     * @param {Collection<String, Role>} TARoles - roles with TA permissions aside from Staff
      * @returns {Promise<{taChannel : TextChannel, assistanceChannel : TextChannel}>} - an object with two text channels, taChannel, assistanceChannel
      */
     async makeWorkshop(TARoles) {
@@ -355,6 +355,7 @@ class Activity {
             this.generalVoice.updateOverwrite(role, {
                 SPEAK: true,
                 MOVE_MEMBERS: true,
+                VIEW_CHANNEL: true,
             });
         })
 
@@ -362,7 +363,8 @@ class Activity {
         let TAChannelPermissions = [
             { roleID: this.botGuild.roleIDs.everyoneRole, permissions: { VIEW_CHANNEL: false } },
         ];
-        TARoles.each(role => TAChannelPermissions.push({roleID: role, permissions: {VIEW_CHANNEL: true}}));
+        this.permissions.forEach(role => TAChannelPermissions.push({roleID: role.id, permissions: {VIEW_CHANNEL: false}}))
+        TARoles.each(role => TAChannelPermissions.push({roleID: role.id, permissions: {VIEW_CHANNEL: true}}));
 
         // create ta console
         let taChannel = await this.addChannel(':🧑🏽‍🏫:' + 'ta-console', {
