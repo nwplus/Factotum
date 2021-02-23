@@ -1,6 +1,6 @@
 const discordServices = require('../discord-services');
 const Activity = require('./activity');
-const Discord = require('discord.js');
+const { GuildMember, Collection, MessageEmbed, Role} = require('discord.js');
 const BotGuild = require('../db/mongo/BotGuild');
 const BotGuildModel = require('./bot-guild');
 const winston = require('winston');
@@ -45,26 +45,28 @@ class ActivityManager {
 
 
     /**
-     * Shuffle mentors from the general voice channel to all the other voice channels
+     * Shuffle users with a role from the general voice channel to all the other voice channels
      * @param {Activity} activity - the activity to use
+     * @param {Role} role
      */
-    static async mentorShuffle(activity) {
-        let botGuild = await BotGuild.findById(activity.guild.id);
+    static async roleShuffle(activity, role) {
 
-        if (!botGuild.roleIDs?.mentorRole) return;
+        let usersToShuffle = activity.generalVoice.members.filter(member => discordServices.checkForRole(member, role.id));
 
-        let mentors = activity.generalVoice.members.filter(member => discordServices.checkForRole(member, botGuild.roleIDs.mentorRole));
-
-        let channels = activity.category.children.filter(channel => channel.type === 'voice' && channel.id != activity.generalVoice.id);
+        let channels = activity.voiceChannels;
 
         let channelsLength = channels.size;
         let channelIndex = 0;
-        mentors.forEach(mentor => {
-            mentor.voice.setChannel(channels[channelIndex % channelsLength]);
-            channelIndex++;
+        usersToShuffle.forEach(mentor => {
+            try {
+                mentor.voice.setChannel(channels[channelIndex % channelsLength]);
+                channelIndex++;
+            } catch (error) {
+                winston.loggers.get(role.guild.id).warning(`Could not set a users voice channel when shuffling an activity by role. Error: ${error}`, { event: "Activity Manager" });
+            }
         });
 
-        winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} had its mentors shuffled.`, {event: "Activity Manager"});
+        winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} had users in its general voice channel with role ${role.name} with id ${role.id} shuffled.`, {event: "Activity Manager"});
     }
 
 
@@ -115,9 +117,9 @@ class ActivityManager {
         winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} is distributing stamps.`, {event: "Activity Manager"});
         
         // The users already seen by this stamp distribution.
-        let seenUsers = new Discord.Collection();
+        let seenUsers = new Collection();
 
-        const promptEmbed = new Discord.MessageEmbed()
+        const promptEmbed = new MessageEmbed()
             .setColor(botGuild.colors.embedColor)
             .setTitle('React within ' + time + ' seconds of the posting of this message to get a stamp for ' + activity.name + '!');
 
@@ -149,7 +151,7 @@ class ActivityManager {
 
     /**
      * Upgrade the stamp role of a member.
-     * @param {Discord.GuildMember} member - the member to add the new role to
+     * @param {GuildMember} member - the member to add the new role to
      * @param {String} activityName - the name of the activity
      * @param {BotGuildModel} botGuild
      * @private
@@ -190,7 +192,7 @@ class ActivityManager {
      * @param {Activity} activity - activity to use
      * @param {String} title - the title of the poll
      * @param {String} question - the question to poll for
-     * @param {Discord.Collection<String, String>} response - <Emoji, Response> A collection, in order of emojis with its response
+     * @param {Collection<String, String>} response - <Emoji, Response> A collection, in order of emojis with its response
      * @param {BotGuildModel} botGuild
      */
     static sendPoll(activity, title, question, response, botGuild){
@@ -200,7 +202,7 @@ class ActivityManager {
             description += '**' + response.get(key) + '->** ' + key + '\n\n';
         }
 
-        let qEmbed = new Discord.MessageEmbed()
+        let qEmbed = new MessageEmbed()
             .setColor(botGuild.colors.embedColor)
             .setTitle(title)
             .setDescription(description);
