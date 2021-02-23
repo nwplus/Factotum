@@ -190,9 +190,9 @@ async function greetNewMember(member, botGuild) {
     let verifyEmoji = '🍀';
 
     var embed = new Discord.MessageEmbed()
-        .setTitle('Welcome to the nwHacks 2021 Server!')
+        .setTitle('Welcome to the cmd-f 2021 Server!')
         .setDescription('We are very excited to have you here!')
-        .addField('Have a question?', 'Go to the welcome-assistance channel to talk with our staff!')
+        .addField('Have a question?', 'Visit the #welcome-support channel to talk with our staff!')
         .addField('Want to learn more about what I can do?', 'Use the !help command anywhere and I will send you a message!')
         .setColor(botGuild.colors.embedColor);
 
