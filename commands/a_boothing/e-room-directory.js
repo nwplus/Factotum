@@ -1,5 +1,5 @@
 const PermissionCommand = require('../../classes/permission-command');
-const Discord = require('discord.js');
+const { Message, MessageEmbed, Role, Collection} = require('discord.js');
 const discordServices = require('../../discord-services');
 const Prompt = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
@@ -26,7 +26,8 @@ module.exports = class BoothDirectory extends PermissionCommand {
  * on that emoji, the embed changes to the other state. When a booth goes from Closed to Open, it will also notify a role (specified by 
  * the user) that it is open.
  * 
- * @param {Discord.Message} message - messaged that called this command
+ * @param {Message} message - messaged that called this command
+ * @param {BotGuildModel} botGuild
  */
     async runCommand(botGuild, message) {
 
@@ -48,13 +49,26 @@ module.exports = class BoothDirectory extends PermissionCommand {
             return;
         }
 
+        /**
+         * prompt for roles that can open/close the room
+         * @type {Collection<String, Role>}
+         */
+        var roomRoles;
+        try {
+            roomRoles = await Prompt.rolePrompt({ prompt: "What other roles can open/close the room? (Apart form staff) (Reply to cancel for none).", channel, userId });
+        } catch (error) {
+
+        }
+        // add staff role
+        roomRoles.set(botGuild.roleIDs.staffRole, message.guild.roles.resolve(botGuild.roleIDs.staffRole));
+
         // prompt user for emoji to use
         let emoji = await Prompt.reactionPrompt({prompt: 'What emoji do you want to use?', channel, userId});
     
         //variable to keep track of state (Open vs Closed)
         var closed = true;
         //embed for closed state
-        const embed = new Discord.MessageEmbed()
+        const embed = new MessageEmbed()
             .setColor('#FF0000')
             .setTitle(sponsorName + ' \'s Booth is Currently Closed')
             .setDescription(sponsorName + ' \'s Zoom link: ' + link);
@@ -63,9 +77,12 @@ module.exports = class BoothDirectory extends PermissionCommand {
         channel.send(embed).then((msg) => {
             msg.pin();
             msg.react(emoji);
-            //only listen for the door react from Staff and Sponsors
-            const emojiFilter = (reaction, user) => (reaction.emoji.name === emoji.name) && 
-                discordServices.checkForRole(message.guild.member(user), botGuild.roleIDs.staffRole);
+
+            //only listen for the door react from users that have one of the roles in the room roles collection
+            const emojiFilter = (reaction, user) => {
+                let member = message.guild.member(user);
+                return !user.bot && reaction.emoji.name === emoji.name && roomRoles.some(role => member.roles.cache.has(role.id));
+            }
             const emojiCollector = msg.createReactionCollector(emojiFilter);
             
             var announcementMsg;
@@ -74,7 +91,7 @@ module.exports = class BoothDirectory extends PermissionCommand {
                 reaction.users.remove(user);
                 if (closed) {
                     //embed for open state
-                    const openEmbed = new Discord.MessageEmbed()
+                    const openEmbed = new MessageEmbed()
                         .setColor('#008000')
                         .setTitle(sponsorName + ' \'s Booth is Currently Open')
                         .setDescription('Please visit this Zoom link to join: ' + link);
@@ -83,7 +100,7 @@ module.exports = class BoothDirectory extends PermissionCommand {
                     closed = false;
                     //notify people of the given role that booth is open and delete notification after 5 mins
                     announcementMsg = await channel.send('<@&' + role + '> ' + sponsorName + ' \'s booth has just opened!');
-                    announcementMsg.delete({timeout:300 * 1000});
+                    announcementMsg.delete({timeout: 300 * 1000});
                 } else {
                     //change to closed state embed if closed is false
                     msg.edit(embed);
