@@ -3,6 +3,7 @@ const { Message, MessageEmbed, Role, Collection} = require('discord.js');
 const discordServices = require('../../discord-services');
 const Prompt = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
+const winston = require('winston');
 
 module.exports = class BoothDirectory extends PermissionCommand {
     constructor(client) {
@@ -36,14 +37,14 @@ module.exports = class BoothDirectory extends PermissionCommand {
         let userId = message.author.id;
 
         try {
-            var sponsorName = await Prompt.messagePrompt({prompt: 'What is the sponsor name?', channel, userId}, 'string');
+            var sponsorName = await Prompt.messagePrompt({prompt: 'What is the room name?', channel, userId}, 'string');
             sponsorName = sponsorName.content;
 
-            var link = await Prompt.messagePrompt({prompt: 'What is the sponsor link?', channel, userId}, 'string');
+            var link = await Prompt.messagePrompt({prompt: 'What is the room link? We will add no words to it! (ex. <Room Name> is Currently Open).', channel, userId}, 'string');
             link = link.content;
 
             //ask user for role and save its id in the role variable
-            var role = (await Prompt.rolePrompt({prompt: 'What role will get pinged when booths open?', channel, userId})).first().id;
+            var role = (await Prompt.rolePrompt({prompt: 'What role will get pinged when the rooms open?', channel, userId})).first().id;
         } catch (error) {
             channel.send('<@' + userId + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;
@@ -57,21 +58,22 @@ module.exports = class BoothDirectory extends PermissionCommand {
         try {
             roomRoles = await Prompt.rolePrompt({ prompt: "What other roles can open/close the room? (Apart form staff) (Reply to cancel for none).", channel, userId });
         } catch (error) {
-
+            // do nothing as this is fine
+            winston.loggers.get(message.guild.id).warning(`Got an error: ${error} but I let it go since we expected it from the prompt.`, { event: "E-Room-Directory Command" });
         }
         // add staff role
         roomRoles.set(botGuild.roleIDs.staffRole, message.guild.roles.resolve(botGuild.roleIDs.staffRole));
 
         // prompt user for emoji to use
-        let emoji = await Prompt.reactionPrompt({prompt: 'What emoji do you want to use?', channel, userId});
+        let emoji = await Prompt.reactionPrompt({prompt: 'What emoji do you want to use to open/close the room?', channel, userId});
     
         //variable to keep track of state (Open vs Closed)
         var closed = true;
         //embed for closed state
         const embed = new MessageEmbed()
             .setColor('#FF0000')
-            .setTitle(sponsorName + ' \'s Booth is Currently Closed')
-            .setDescription(sponsorName + ' \'s Zoom link: ' + link);
+            .setTitle(sponsorName + ' is Currently Closed')
+            .setDescription('Room link: ' + link);
         
         //send closed embed at beginning (default is Closed)
         channel.send(embed).then((msg) => {
