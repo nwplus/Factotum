@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const winston = require("winston");
 const discordServices = require("../discord-services");
 
 
@@ -42,8 +43,7 @@ class Team {
          * True if the team has been deleted, else false.
          * @type {Boolean}
          */
-        this.deleted = false;
-        
+        this.deleted = false;        
     }
 
     /**

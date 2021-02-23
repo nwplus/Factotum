@@ -43,7 +43,7 @@ interface BotGuild extends Document {
         /** <RoleId, Stamp Number> */
         stampRoleIDs: Map<String, Number>,
         /** The first stamp role Id given to all users */
-        stamp0thRoleId: Number,
+        stamp0thRoleId: String,
         stampCollectionTime: Number,
     },
 

@@ -4,6 +4,7 @@ const Discord = require('discord.js');
 const Activity = require('../../classes/activity');
 const ActivityCommand = require('../../classes/activity-command');
 const Prompt = require('../../classes/prompt');
+const BotGuildModel = require('../../classes/bot-guild')
 
 // Command export
 module.exports = class InitWorkshop extends ActivityCommand {
@@ -19,10 +20,11 @@ module.exports = class InitWorkshop extends ActivityCommand {
 
     /**
      * Required class by children, should contain the command code.
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
      */
-    async activityCommand(message, activity) {
+    async activityCommand(botGuild, message, activity) {
         // prompt user for roles that will have access to the TA side of the workshop
         let TARoles;
         try {
@@ -78,7 +80,7 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 // let TAs know about the change!
                 taChannel.send('Low tech solution has been turned on!').then(msg => msg.delete({timeout: 5000}));
                 msg.edit(msg.embeds[0].addField('Low Tech Solution Is On', 'To give assistance: \n* Send a DM to the highers member on the wait list \n* Then click on the emoji to remove them from the list!'));
-                assistanceChannel.send(new Discord.MessageEmbed().setColor(discordServices.colors.embedColor).setTitle('Quick Update!').setDescription('You do not need to join the ' +  activity.activityInfo.generalVoiceChannelName + ' voice channel. TAs will send you a DM when they are ready to assist you!'));
+                assistanceChannel.send(new Discord.MessageEmbed().setColor(botGuild.colors.embedColor).setTitle('Quick Update!').setDescription('You do not need to join the ' +  activity.activityInfo.generalVoiceChannelName + ' voice channel. TAs will send you a DM when they are ready to assist you!'));
             });
         });
         
@@ -111,13 +113,13 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 reaction.users.remove(user.id);
 
                 if (emojiName === emojis[0]) {
-                    commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(message, activity, { timeLimit: botGuild.stamps.stampCollectionTime });
+                    commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(botGuild, message, activity, { timeLimit: botGuild.stamps.stampCollectionTime });
                 } else if (emojiName === emojis[1]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(message, activity, { questionType: 'speed' });
+                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(botGuild, message, activity, { questionType: 'speed' });
                 } else if (emojiName === emojis[2]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(message, activity, { questionType: 'difficulty'});
+                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(botGuild, message, activity, { questionType: 'difficulty'});
                 } else if (emojiName === emojis[3]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(message, activity, { questionType: 'explanations'});
+                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(botGuild, message, activity, { questionType: 'explanations'});
                 }
             });
         });

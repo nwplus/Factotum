@@ -2,7 +2,6 @@ const PermissionCommand = require('./permission-command');
 const discordServices = require('../discord-services');
 const Activity = require('./activity');
 const { Message } = require('discord.js');
-const BotGuild = require('../db/mongo/BotGuild');
 const BotGuildModel = require('./bot-guild');
 
 /**
@@ -45,10 +44,9 @@ class ActivityCommand extends PermissionCommand {
      * @param {Activity} activity - the activity for this command
      * @async
      */
-    async runActivityCommand(message, activity, args) {
+    async runActivityCommand(botGuild, message, activity, args) {
         if (activity === null) discordServices.replyAndDelete(message, 'This command cannot be called outside an activity console!');
         else {
-            let botGuild = await BotGuild.findById(message.guild.id);
             this.activityCommand(botGuild, message, activity, args);
         }
     }

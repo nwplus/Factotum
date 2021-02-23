@@ -63,7 +63,7 @@ module.exports = class ManualVerify extends PermissionCommand {
             
             firebaseServices.addUserData(email, member, types);
             try {
-                await Verification.verify(member, email, guild);
+                await Verification.verify(member, email, guild, botGuild);
             } catch (error) {
                 discordServices.sendMsgToChannel(channel, userId, 'Email provided is not valid!', 5);
             }
