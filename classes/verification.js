@@ -71,7 +71,7 @@ class Verification {
             discordServices.replaceRoleToMember(member, botGuild.verification.guestRoleID, botGuild.roleIDs.memberRole);
             if (botGuild.stamps.isEnabled) discordServices.addRoleToMember(member, botGuild.stamps.stamp0thRoleId);
             discordServices.sendEmbedToMember(member, {
-                title: 'cmd-f 2021 Verification Success',
+                title: `${guild.name} Verification Success`,
                 description: `You have been verified as a ${correctTypes.join()}, good luck and have fun!`,
                 color: botGuild.colors.specialDMEmbedColor,
             });
