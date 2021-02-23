@@ -78,11 +78,11 @@ bot.once('ready', async () => {
     // initialize firebase
     const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
     firebaseServices.initializeFirebaseAdmin('nwPlusBotAdmin', adminSDK, "https://nwplus-bot.firebaseio.com");
-    mainLogger.warning(`Connected to firebase admin sdk successfully!`);
+    mainLogger.warning(`Connected to firebase admin sdk successfully!`, { event: "Ready Event "});
 
     // set mongoose connection
     await mongoUtil.mongooseConnect();
-    mainLogger.warning(`Connected to mongoose successfully!`);
+    mainLogger.warning(`Connected to mongoose successfully!`, { event: "Ready Event" });
 
     // make sure all guilds have a botGuild, this is in case the bot goes offline and its added
     // to a guild.
@@ -92,9 +92,9 @@ bot.once('ready', async () => {
             BotGuild.create({
                 _id: guild.id,
             });
-            mainLogger.verbose(`Created a new botGuild for the guild ${guild.id} - ${guild.name} on bot ready.`);
+            mainLogger.verbose(`Created a new botGuild for the guild ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event "});
         } else {
-            mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`);
+            mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event "});
         }
 
         // create the logger for the guild
