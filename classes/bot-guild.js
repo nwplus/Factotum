@@ -199,7 +199,7 @@ module.exports = class BotGuild {
             parent: adminCategory,
         });
 
-        winston.loggers.get(this._id).event(`The botGuild has run the create admin channels function.`, {event: "Bot Guild"});
+        winston.loggers.get(guild.id).event(`The botGuild has run the create admin channels function.`, {event: "Bot Guild"});
 
         return {adminConsole: adminConsoleChannel, adminLog: adminLogChannel};
     }
