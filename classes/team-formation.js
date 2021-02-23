@@ -2,6 +2,7 @@ const { GuildEmoji, ReactionEmoji, Role, TextChannel, MessageEmbed, Guild, Guild
 const { messagePrompt } = require('./prompt');
 const discordServices = require('../discord-services');
 const BotGuild = require('../db/mongo/BotGuild');
+const winston = require('winston');
 
 /**
  * @class TeamFormation
@@ -109,6 +110,9 @@ module.exports = class TeamFormation {
          * @type {SignupEmbedCreator}
          */
         this.signupEmbedCreator = teamFormationInfo?.signupEmbedCreator || null;
+
+        winston.loggers.get(this.guild.id).event(`A Team formation has been created!`, { event: "Team Formation"});
+        winston.loggers.get(this.guild.id).verbose(`A Team formation has been created!`, { event: "Team Formation", data: {teamFormationInfo: teamFormationInfo}});
     }
 
     /**
@@ -160,6 +164,7 @@ module.exports = class TeamFormation {
             topic: 'Channel for teams to post about themselves and who they are looking for! Expect people to send you private messages.',
         });
 
+        winston.loggers.get(guildChannelManager.guild.id).verbose(`Team formation channels have been created!`, { event: "Team Formation" });
         return channels;
     }
 
@@ -171,6 +176,7 @@ module.exports = class TeamFormation {
      * @async
      */
     static async createTeamRole(roleManager) {
+        winston.loggers.get(roleManager.guild.id).verbose(`Team formation team role has been created!`, { event: "Team Formation" });
         return await roleManager.create({
             data: {
                 name: 'tf-team-leader',
@@ -187,6 +193,7 @@ module.exports = class TeamFormation {
      * @async
      */
     static async createProspectRole(roleManager) {
+        winston.loggers.get(roleManager.guild.id).verbose(`Team formation prospect role has been created!`, { event: "Team Formation" });
         return await roleManager.create({
             data: {
                 name: 'tf-prospect',
@@ -221,11 +228,14 @@ module.exports = class TeamFormation {
         signupMsg.react(this.teamInfo.emoji);
         signupMsg.react(this.prospectInfo.emoji);
 
+        winston.loggers.get(this.guild.id).event(`The team formation has started. ${signupEmbedCreator ? 'A custom embed creator was used' : 'The default embed was used.'}`, { event: "Team Formation"});
+        winston.loggers.get(this.guild.id).verbose(`The team formation has started. ${signupEmbedCreator ? 'A custom embed creator was used' : 'The default embed was used.'}`, { event: "Team Formation", data: { embed: embed }});
+
         const signupCollector = signupMsg.createReactionCollector((reaction, user) => !user.bot && (reaction.emoji.name === this.teamInfo.emoji.name || reaction.emoji.name === this.prospectInfo.emoji.name));
 
         signupCollector.on('collect', (reaction, user) => {
             let isTeam = reaction.emoji.name === this.teamInfo.emoji.name;
-
+            winston.loggers.get(this.guild.id).userStats(`The user ${user.id} is signing up to the team formation as a ${isTeam ? "team" : "prospect"}.`, { event: "Team Formation" })
             this.reachOutToUser(user, isTeam);
         });
     }
@@ -237,9 +247,11 @@ module.exports = class TeamFormation {
      * @async
      */
     async reachOutToUser(user, isTeam) {
+        let logger = winston.loggers.get(this.guild.id);
 
         // try to set the embed to the given ones, else create one and add the form
         var dmMessage = isTeam ? this.teamInfo?.signupEmbed : this.prospectInfo?.signupEmbed;
+        logger.verbose(`${dmMessage ? 'A custom DM message' : 'The default DM message'} is being used to contact a team formation signee with id ${user.id}`);
 
         if (!dmMessage) dmMessage = new MessageEmbed().setTitle('Team Formation -' + (isTeam ? ' Team Format' : ' Prospect Format'))
         .setDescription('We are very excited for you to find your perfect ' + (isTeam ? 'team members.' : 'team.') + '\n* Please **copy and paste** the following format in your next message. ' +
@@ -266,7 +278,9 @@ module.exports = class TeamFormation {
             
             try {
                 var catalogueMsg = await this.gatherForm(user, isTeam);
+                logger.verbose(`I was able to get the user's team formation response: ${catalogueMsg.cleanContent}`, { event: "Team Formation" });
             } catch (error) {
+                logger.warning(`While waiting for a user's team formation response I found an error: ${error}`, { event: "Team Formation" });
                 user.dmChannel.send('You have canceled the prompt. You can try again at any time!').then(msg => msg.delete({timeout: 10000}));
                 isResponding = !isResponding;
                 return;
@@ -280,6 +294,7 @@ module.exports = class TeamFormation {
                 'Thanks for sending me your information, you should see it pop up in the respective channel under the team formation category.' +
                 'Once you find your ideal team please react to my original message with ⛔ so I can remove your post. Good luck!!!',
             });
+            logger.event(`The user ${user.id} has successfully sent their information to the team formation feature.`, { event: "Team Formation" });
     
             // stop the first collector to add a new one for removal
             dmCollector.stop();
@@ -304,6 +319,8 @@ module.exports = class TeamFormation {
     
                 // remove this message
                 dmMsg.delete();
+
+                logger.event(`The user ${user.id} has found a team and has been removed from the team formation feature.`, { event: "Team Formation" });
             });
         });
     }
@@ -332,6 +349,8 @@ module.exports = class TeamFormation {
         let catalogueMsg = await channel.send(
             (this.isNotificationEnabled ? '<@&' + (isTeam ? this.prospectInfo.role.id : this.teamInfo.role.id) + '>, ' : '') + 
             '<@' + user.id + (isTeam ? '> and their team are looking for more team members!' : '>  is looking for a team to join!'), {embed: embed});
+
+        winston.loggers.get(channel.guild.id).verbose(`A message with the user's information has been sent to the channel ${channel.name} with id ${channel.id}.`, { event: "Team Formation", data: embed});
 
         return catalogueMsg;
     }
