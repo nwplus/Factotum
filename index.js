@@ -59,6 +59,7 @@ bot.registry
     .registerGroup('a_utility', 'utility commands for admins')
     .registerGroup('utility', 'utility commands for users')
     .registerGroup('verification', 'verification commands')
+    .registerGroup('stamps', 'stamp related commands')
     .registerGroup('essentials', 'essential commands for any guild', true)
     .registerDefaultGroups()
     .registerDefaultCommands({
@@ -92,9 +93,9 @@ bot.once('ready', async () => {
             BotGuild.create({
                 _id: guild.id,
             });
-            mainLogger.verbose(`Created a new botGuild for the guild ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event "});
+            mainLogger.verbose(`Created a new botGuild for the guild ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event" });
         } else {
-            mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event "});
+            mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event" });
         }
 
         // create the logger for the guild

@@ -13,7 +13,7 @@ module.exports = class Raffle extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'raffle',
-            group: 'a_utility',
+            group: 'stamps',
             memberName: 'draw raffle winners',
             description: 'parses each hacker for their stamps and draws winners from them, one entry per stamp',
             guildOnly: true,
