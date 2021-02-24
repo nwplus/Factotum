@@ -113,7 +113,8 @@ module.exports = class InitWorkshop extends ActivityCommand {
                 reaction.users.remove(user.id);
 
                 if (emojiName === emojis[0]) {
-                    commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(botGuild, message, activity, { timeLimit: botGuild.stamps.stampCollectionTime });
+                    if (botGuild.stamps.isEnabled) commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(botGuild, message, activity, { timeLimit: botGuild.stamps.stampCollectTime });
+                    else discordServices.sendMsgToChannel(message.channel, user.id, "The distribute stamp command is not available because stamps are disabled in this server.");
                 } else if (emojiName === emojis[1]) {
                     commandRegistry.findCommands('workshop-polls', true)[0].runCommand(botGuild, message, activity, { questionType: 'speed' });
                 } else if (emojiName === emojis[2]) {
