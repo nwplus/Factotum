@@ -39,35 +39,24 @@ fs.createReadStream('registrations.csv') // requires a registrations.csv file in
     .pipe(csv())
     .on('data', (data) => results.push(data))
     .on('end', () => {
-        const processed = results.map((row) => {
+        results.forEach((row) => { // grab email from each csv entry and save to all_regs
             const email = row['What is your primary email that can we contact you with?'] || row['Email Address']
 
             const r = new Registration(email)
-            return r
+            all_regs[email] = r;
         })
-
-        processed.forEach(r => {
-            all_regs[r.email] = r
-        })
-
 
         var db = app.firestore();
 
         var all = db.collection("members").get().then(snapshot => {
             // get all ids and types of members already in collections and store in idMap
-            let ids = snapshot.docs.map(doc => doc.id)
-            let types = snapshot.docs.map(doc => doc.get('types'))
-            let idMap = new Map(); // Map<string, array<Type>> where Type is an object consisting of the fields type and isVerified
-            var i = 0;
-            ids.forEach(id => {
-                idMap.set(id, types[i]);
-                i++;
-            })
+            let idMap = new Map();
+            snapshot.docs.forEach(doc => idMap.set(doc.id, doc.get('types'))) // keys are doc ids, values are member types
 
             let iterable = Object.entries(all_regs)
             console.log(`found ${iterable.length} registrations total!!`)
 
-            console.log(`found ${ids.length} existing registrations, actually patching ${iterable.length - ids.length} new registrations`)
+            console.log(`found ${idMap.size} existing registrations, actually patching ${iterable.length - idMap.size} new registrations`)
             while (iterable.length > 0) {
                 var batch = db.batch()
 
