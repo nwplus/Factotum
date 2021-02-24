@@ -35,7 +35,7 @@ module.exports = {
     },
 
     async mongooseConnect() {
-        let db = await mongoose.connect(mongooseUrl, {useNewUrlParser: true, useUnifiedTopology: true});
+        _db = await mongoose.connect(mongooseUrl, {useNewUrlParser: true, useUnifiedTopology: true});
     }
 
 }

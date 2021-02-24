@@ -207,7 +207,6 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
             leaderDM.react(destroyTeamEmoji);
 
             // reaction to destroy the team only works before the team is completed
-            //console.log(newTeam.hasBeenComplete);
             const destroyTeamCollector = leaderDM.createReactionCollector((reaction,user) => !user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === destroyTeamEmoji, {max: 1});
             this.destroyCollectors.set(teamLeaderUser.id, destroyTeamCollector);
             destroyTeamCollector.on('collect', (reaction, leader) => {

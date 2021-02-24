@@ -33,7 +33,6 @@ module.exports = class Verify extends PermissionCommand {
     }
 
     /**
-     * DOES NOT WORK !!!! TODO REMOVE OR ADD ABILITY TO GIVE GUILD ID FOR IT TO WORK!
      * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message 
      * @param {String} email 
@@ -67,7 +66,7 @@ module.exports = class Verify extends PermissionCommand {
 
         // Call the verify function
         try {
-            Verification.verify(member, email, guild);
+            Verification.verify(member, email, guild, botGuild);
         } catch (error) {
             discordServices.sendEmbedToMember(member, {
                 title: 'Verification Error',

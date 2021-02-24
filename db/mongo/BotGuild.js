@@ -74,7 +74,7 @@ const BotGuildSchema = new Schema({
             default: new Map(),
         },
         stamp0thRoleId: {
-            type: Number,
+            type: String,
         },
         stampCollectionTime: {
             type: Number,

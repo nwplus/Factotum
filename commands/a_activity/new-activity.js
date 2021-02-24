@@ -105,7 +105,7 @@ module.exports = class NewActivity extends PermissionCommand {
                 activity.state.isWorkshop = true;
 
                 // init workshop command
-                commandRegistry.findCommands('init-workshop', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('init-workshop', true)[0].runActivityCommand(botGuild, message, activity);
                 //activity.changeVoiceChannelPermissions(true); // TODO check if this is necessary
                 
                 // update embed
@@ -119,42 +119,42 @@ module.exports = class NewActivity extends PermissionCommand {
                     var numOfGroups = 0;
                 }
 
-                commandRegistry.findCommands('init-coffee-chats', true)[0].runActivityCommand(message, activity, { numOfGroups: numOfGroups });
+                commandRegistry.findCommands('init-coffee-chats', true)[0].runActivityCommand(botGuild, message, activity, { numOfGroups: numOfGroups });
                 activity.changeVoiceChannelPermissions(true); // TODO check if this is necessary
 
                 // update embed
                 msgEmbed.addField('Update', 'The activity is now a Coffee Chat!');
                 msgConsole.edit(msgEmbed);
             } else if (emojiName === emojis[4]) {
-                commandRegistry.findCommands('remove-activity', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('remove-activity', true)[0].runActivityCommand(botGuild, message, activity);
                 msgConsole.delete({timeout: 3000});
             } else if (emojiName === emojis[2]) {
-                commandRegistry.findCommands('add-voice-channels', true)[0].runActivityCommand(message, activity, { number: 1, isPrivate: !activity.isRegularActivity() || activity.isHidden, maxUsers: activity.state.isAmongUs ? 12 : 0});
+                commandRegistry.findCommands('add-voice-channels', true)[0].runActivityCommand(botGuild, message, activity, { number: 1, isPrivate: !activity.isRegularActivity() || activity.isHidden, maxUsers: activity.state.isAmongUs ? 12 : 0});
             } else if (emojiName === emojis[3]) {
-                commandRegistry.findCommands('remove-voice-channels', true)[0].runActivityCommand(message, activity, { number: 1 });
+                commandRegistry.findCommands('remove-voice-channels', true)[0].runActivityCommand(botGuild, message, activity, { number: 1 });
             } else if (emojiName === emojis[5]) {
-                commandRegistry.findCommands('shuffle', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('shuffle', true)[0].runActivityCommand(botGuild, message, activity);
             } else if (emojiName === emojis[6]) {
-                commandRegistry.findCommands('callback', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('callback', true)[0].runActivityCommand(botGuild, message, activity);
             } else if (emojiName === emojis[7]) {
-                commandRegistry.findCommands('shuffle-groups', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('shuffle-groups', true)[0].runActivityCommand(botGuild, message, activity);
             } else if (emojiName === emojis[8]) {
-                commandRegistry.findCommands('shuffle-mentors', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('shuffle-mentors', true)[0].runActivityCommand(botGuild, message, activity);
             } else if (emojiName === emojis[9]) {
-                commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(message, activity, { timeLimit: botGuild.stamps.stampCollectTime });
+                commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(botGuild, message, activity, { timeLimit: botGuild.stamps.stampCollectTime });
             } else if (emojiName === emojis[10]) {
-                commandRegistry.findCommands('workshop-polls',true)[0].runCommand(message, activity, { questionType: 'speed' });
+                commandRegistry.findCommands('workshop-polls',true)[0].runCommand(botGuild, message, activity, { questionType: 'speed' });
             } else if (emojiName === emojis[11]) {
-                commandRegistry.findCommands('workshop-polls',true)[0].runCommand(message, activity, { questionType: 'difficulty' });
+                commandRegistry.findCommands('workshop-polls',true)[0].runCommand(botGuild, message, activity, { questionType: 'difficulty' });
             } else if (emojiName === emojis[12]) {
-                commandRegistry.findCommands('workshop-polls',true)[0].runCommand(message, activity, { questionType: 'explanations' });
+                commandRegistry.findCommands('workshop-polls',true)[0].runCommand(botGuild, message, activity, { questionType: 'explanations' });
             } else if (emojiName === emojis[13] && activity.isRegularActivity()) {
                 activity.state.isAmongUs = true;
                 await activity.addLimitToVoiceChannels(12);
-                commandRegistry.findCommands('init-among-us', true)[0].runActivityCommand(message, activity, { numOfChannels: 3 });
+                commandRegistry.findCommands('init-among-us', true)[0].runActivityCommand(botGuild, message, activity, { numOfChannels: 3 });
                 //activity.changeVoiceChannelPermissions(true);
             } else if (emojiName === emojis[14]) {
-                commandRegistry.findCommands('archive', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('archive', true)[0].runActivityCommand(botGuild, message, activity);
                 msgConsole.delete({timeout: 3000});
                 emojiCollector.stop();
             } 

@@ -31,7 +31,7 @@ module.exports = class Verification extends PermissionCommand {
             });
     }
 
-    async runCommand(message, { emailOrName }) {
+    async runCommand(botGuild, message, { emailOrName }) {
         if (emailOrName.split('-').length === 1) { // check for similar emails if given argument is an email
             var result = await firebaseServices.checkEmail(emailOrName);
             if (result.length > 0) { // if similar emails were found, print them
