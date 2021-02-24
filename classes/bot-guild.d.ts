@@ -59,6 +59,11 @@ interface BotGuild extends Document {
         announcementChannelID: String,
     },
 
+    ask: {
+        /** @required */
+        isEnabled: Boolean,
+    },
+
     /**
      * This is some text
      */

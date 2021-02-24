@@ -102,6 +102,13 @@ const BotGuildSchema = new Schema({
         },
     },
 
+    ask: {
+        isEnabled: {
+            type: Boolean,
+            default: false,
+        },
+    },
+
     blackList: {
         type: Map,
         default: new Map(),

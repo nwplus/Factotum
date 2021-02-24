@@ -156,10 +156,6 @@ module.exports = class BotGuild {
 
         this.isSetUpComplete = true;
 
-        client.registry.groups.forEach((group, key, map) => {
-            if (group.name.startsWith('a_')) guild.setGroupEnabled(group, true);
-        });
-
         winston.loggers.get(this._id).event(`The botGuild has run the ready up function.`, {event: "Bot Guild"});
 
         return this;
@@ -312,6 +308,7 @@ module.exports = class BotGuild {
         /** @type {CommandoGuild} */
         let guild = await client.guilds.fetch(this._id);
         guild.setCommandEnabled('start-attend', true);
+        guild.setCommandEnabled('attend', true);
 
         winston.loggers.get(this._id).event(`The botGuild has set up the attendance functionality. Attendee role id is ${attendeeRoleID}`, {event: "Bot Guild"});
         return this;
@@ -434,7 +431,31 @@ module.exports = class BotGuild {
     async setUpAsk(client) {
         /** @type {CommandoGuild} */
         let guild = await client.guilds.fetch(this._id);
+        this.ask.isEnabled = true;
         guild.setCommandEnabled('ask', true);
         winston.loggers.get(this._id).event(`The botGuild has enabled the ask command!`, {event: "Bot Guild"});
+    }
+
+    /**
+     * Will enable and disable the appropriate commands by looking at what is enabled in the botGuild.
+     * @param {CommandoClient} client
+     * @async 
+     */
+    async setCommandStatus(client) {
+        /** @type {CommandoGuild} */
+        let guild = await client.guilds.fetch(this._id);
+        if (this.verification.isEnabled) guild.setCommandEnabled('verify', true);
+        if (this.attendance.isEnabled) {
+            guild.setCommandEnabled('start-attend', true);
+            guild.setCommandEnabled('attend', true);
+        }
+        if (this.stamps.isEnabled) guild.setGroupEnabled('stamps', true);
+        if (this.report.isEnabled) guild.setCommandEnabled('report', true);
+        if (this.ask.isEnabled) guild.setCommandEnabled('ask', true);
+        if (this.isSetUpComplete) {
+            client.registry.groups.forEach((group, key, map) => {
+                if (group.name.startsWith('a_')) guild.setGroupEnabled(group, true);
+            });
+        }
     }
 }

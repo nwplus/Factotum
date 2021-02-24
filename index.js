@@ -86,19 +86,20 @@ bot.once('ready', async () => {
     mainLogger.warning(`Connected to mongoose successfully!`, { event: "Ready Event" });
 
     // make sure all guilds have a botGuild, this is in case the bot goes offline and its added
-    // to a guild.
+    // to a guild. If botGuild is found, make sure only the correct commands are enabled.
     bot.guilds.cache.forEach(async (guild, key, guilds) => {
         let botGuild = await BotGuild.findById(guild.id);
         if (!botGuild) {
             newGuild(guild);
             mainLogger.verbose(`Created a new botGuild for the guild ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event" });
         } else {
-            if (!botGuild.isSetUpComplete) {
-                // set all non guarded commands to not enabled for the new guild
-                bot.registry.groups.forEach((group, key, map) => {
-                    if (!group.guarded) guild.setGroupEnabled(group, false);
-                });
-            }
+            // set all non guarded commands to not enabled for the guild
+            bot.registry.groups.forEach((group, key, map) => {
+                if (!group.guarded) guild.setGroupEnabled(group, false);
+            });
+
+            botGuild.setCommandStatus(bot);
+            
             mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event" });
         }
 
