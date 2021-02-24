@@ -152,9 +152,13 @@ class ActivityManager {
      * @param {Discord.GuildMember} member - the member to add the new role to
      * @param {String} activityName - the name of the activity
      * @param {BotGuildModel} botGuild
-     * @private
+     * @throws Error if the botGuild has stamps disabled
      */
     static parseRole(member, activityName, botGuild) {
+        if (!botGuild.stamps.isEnabled) {
+            throw Error(`Stamp system is turned of for guild ${botGuild._id} but I was asked to parse a role for member ${member.id} for activity ${activityName}.`);
+        }
+
         let role = member.roles.cache.find(role => botGuild.stamps.stampRoleIDs.has(role.id));
 
         if (role === undefined) {
