@@ -7,7 +7,7 @@ module.exports = class DistributeStamp extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'distribute-stamp',
-            group: 'a_activity',
+            group: 'stamps',
             memberName: 'gives stamps',
             description: 'gives a stamp to everyone who reacted within the time-frame, if targetChannelKey not give, it will send it to the message channel.',
             args: [

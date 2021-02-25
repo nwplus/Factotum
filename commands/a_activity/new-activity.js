@@ -141,7 +141,8 @@ module.exports = class NewActivity extends PermissionCommand {
             } else if (emojiName === emojis[8]) {
                 commandRegistry.findCommands('shuffle-mentors', true)[0].runActivityCommand(botGuild, message, activity);
             } else if (emojiName === emojis[9]) {
-                commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(botGuild, message, activity, { timeLimit: botGuild.stamps.stampCollectTime });
+                if (botGuild.stamps.isEnabled) commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(botGuild, message, activity, { timeLimit: botGuild.stamps.stampCollectTime });
+                else discordServices.sendMsgToChannel(message.channel, user.id, "The distribute stamp command is not available because stamps are disabled in this server.");
             } else if (emojiName === emojis[10]) {
                 commandRegistry.findCommands('workshop-polls',true)[0].runCommand(botGuild, message, activity, { questionType: 'speed' });
             } else if (emojiName === emojis[11]) {
@@ -152,7 +153,6 @@ module.exports = class NewActivity extends PermissionCommand {
                 activity.state.isAmongUs = true;
                 await activity.addLimitToVoiceChannels(12);
                 commandRegistry.findCommands('init-among-us', true)[0].runActivityCommand(botGuild, message, activity, { numOfChannels: 3 });
-                //activity.changeVoiceChannelPermissions(true);
             } else if (emojiName === emojis[14]) {
                 commandRegistry.findCommands('archive', true)[0].runActivityCommand(botGuild, message, activity);
                 msgConsole.delete({timeout: 3000});

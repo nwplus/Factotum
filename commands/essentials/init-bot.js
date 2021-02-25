@@ -200,6 +200,7 @@ module.exports = class InitBot extends Command {
                 let numberOfStamps = (await Prompt.numberPrompt({prompt: 'How many stamps do you want?', channel, userId}))[0];
 
                 await botGuild.setUpStamps(this.client, numberOfStamps);
+                guild.setGroupEnabled('stamps', true);
                 discordServices.sendMsgToChannel(channel, userId, 'The stamp roles have been created, you can change their name and/or color, but their stamp number is final!', 60);
             } else {
                 discordServices.sendMsgToChannel(channel, userId, 'The stamp functionality was not set up.', 10);
