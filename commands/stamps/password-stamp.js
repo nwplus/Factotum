@@ -9,7 +9,7 @@ module.exports = class PasswordStamp extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'password-stamp',
-            group: 'a_activity',
+            group: 'stamps',
             memberName: 'gives stamps requiring passwords',
             description: 'gives a stamp to everyone who reacted and gave the correct password',
             args: [

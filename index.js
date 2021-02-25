@@ -59,6 +59,7 @@ bot.registry
     .registerGroup('a_utility', 'utility commands for admins')
     .registerGroup('utility', 'utility commands for users')
     .registerGroup('verification', 'verification commands')
+    .registerGroup('stamps', 'stamp related commands')
     .registerGroup('essentials', 'essential commands for any guild', true)
     .registerDefaultGroups()
     .registerDefaultCommands({
@@ -78,23 +79,28 @@ bot.once('ready', async () => {
     // initialize firebase
     const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
     firebaseServices.initializeFirebaseAdmin('nwPlusBotAdmin', adminSDK, "https://nwplus-bot.firebaseio.com");
-    mainLogger.warning(`Connected to firebase admin sdk successfully!`, { event: "Ready Event "});
+    mainLogger.warning(`Connected to firebase admin sdk successfully!`, { event: "Ready Event" });
 
     // set mongoose connection
     await mongoUtil.mongooseConnect();
     mainLogger.warning(`Connected to mongoose successfully!`, { event: "Ready Event" });
 
     // make sure all guilds have a botGuild, this is in case the bot goes offline and its added
-    // to a guild.
+    // to a guild. If botGuild is found, make sure only the correct commands are enabled.
     bot.guilds.cache.forEach(async (guild, key, guilds) => {
         let botGuild = await BotGuild.findById(guild.id);
         if (!botGuild) {
-            BotGuild.create({
-                _id: guild.id,
-            });
-            mainLogger.verbose(`Created a new botGuild for the guild ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event "});
+            newGuild(guild);
+            mainLogger.verbose(`Created a new botGuild for the guild ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event" });
         } else {
-            mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event "});
+            // set all non guarded commands to not enabled for the guild
+            bot.registry.groups.forEach((group, key, map) => {
+                if (!group.guarded) guild.setGroupEnabled(group, false);
+            });
+
+            botGuild.setCommandStatus(bot);
+            
+            mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event" });
         }
 
         // create the logger for the guild
@@ -106,20 +112,30 @@ bot.once('ready', async () => {
  * Runs when the bot is added to a guild.
  */
 bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
-    mainLogger.warning(`The bot was added to a new guild: ${guild.id} - ${guild.name}.`);
+    mainLogger.warning(`The bot was added to a new guild: ${guild.id} - ${guild.name}.`, { event: "Guild Create Event" });
 
-    // set all non guarded commands to not enabled for the new guild
-    bot.registry.groups.forEach((group, key, map) => {
-        if (!group.guarded) guild.setGroupEnabled(group, false);
-    });
-    // create a botGuild object for this new guild.
-    BotGuild.create({
-        _id: guild.id,
-    });
+    newGuild(guild);
 
     // create a logger for this guild
     createALogger(guild.id, guild.name);
 });
+
+
+/**
+ * Will set up a new guild.
+ * @param {Commando.CommandoGuild} guild
+ * @private
+ */
+function newGuild(guild) {
+        // set all non guarded commands to not enabled for the new guild
+        bot.registry.groups.forEach((group, key, map) => {
+            if (!group.guarded) guild.setGroupEnabled(group, false);
+        });
+        // create a botGuild object for this new guild.
+        BotGuild.create({
+            _id: guild.id,
+        });
+}
 
 /**
  * Runs when the bot is removed from a server.
