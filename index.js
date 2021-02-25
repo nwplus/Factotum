@@ -152,7 +152,7 @@ bot.on('guildDelete', async (guild) => {
  * Runs when the bot runs into an error.
  */
 bot.on('error', (error) => {
-    mainLogger.error(`Bot Error: ${error.name} - ${error.message}.`);
+    mainLogger.error(`Bot Error: ${error.name} - ${error.message}.`, { event: "Error", data: error});
 });
 
 /**
@@ -160,7 +160,7 @@ bot.on('error', (error) => {
  */
 bot.on('commandError', (command, error, message) => {
     winston.loggers.get(message.guild.id).error(`Command Error: In command ${command.name} got uncaught rejection ${error.name} : ${error.message}`);
-    mainLogger.error(`Command Error: In command ${command.name} got uncaught rejection ${error.name} : ${error.message}`);
+    mainLogger.error(`Command Error: In command ${command.name} got uncaught rejection ${error.name} : ${error.message}`, { event: "Error", data: error});
 });
 
 /**
