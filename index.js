@@ -38,7 +38,7 @@ const customLoggerLevels = {
         event: 'green',
         userStats: 'magenta',
         verbose: 'cyan',
-        debug: 'orange',
+        debug: 'white',
         silly: 'black',
     }
 }
@@ -88,6 +88,9 @@ bot.once('ready', async () => {
     // make sure all guilds have a botGuild, this is in case the bot goes offline and its added
     // to a guild. If botGuild is found, make sure only the correct commands are enabled.
     bot.guilds.cache.forEach(async (guild, key, guilds) => {
+        // create the logger for the guild
+        createALogger(guild.id, guild.name);
+
         let botGuild = await BotGuild.findById(guild.id);
         if (!botGuild) {
             newGuild(guild);
@@ -96,15 +99,16 @@ bot.once('ready', async () => {
             // set all non guarded commands to not enabled for the guild
             bot.registry.groups.forEach((group, key, map) => {
                 if (!group.guarded) guild.setGroupEnabled(group, false);
+                mainLogger.debug("Inside for each");
             });
+            mainLogger.debug("Finished for each");
 
-            botGuild.setCommandStatus(bot);
+            await botGuild.setCommandStatus(bot);
+
+            mainLogger.debug("Finished set command status!");
             
             mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event" });
         }
-
-        // create the logger for the guild
-        createALogger(guild.id, guild.name);
     });
 });
 

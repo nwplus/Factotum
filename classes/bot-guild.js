@@ -454,8 +454,9 @@ module.exports = class BotGuild {
         if (this.ask.isEnabled) guild.setCommandEnabled('ask', true);
         if (this.isSetUpComplete) {
             client.registry.groups.forEach((group, key, map) => {
-                if (group.name.startsWith('a_')) guild.setGroupEnabled(group, true);
+                if (group.id.startsWith('a_')) guild.setGroupEnabled(group, true);
             });
         }
+        winston.loggers.get(guild.id).verbose(`Set the command status of guild ${guild.name} with id ${guild.id}`);
     }
 }
