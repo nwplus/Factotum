@@ -1,6 +1,7 @@
 const { Collection, Snowflake, Guild, TextChannel, Role, GuildAuditLogs, Message, MessageEmbed } = require('discord.js');
 const { CommandoClient, CommandoGuild } = require('discord.js-commando');
 const winston = require('winston');
+const { cli } = require('winston/lib/winston/config');
 const discordServices = require('../discord-services');
 
 /**
@@ -215,24 +216,24 @@ module.exports = class BotGuild {
     /**
      * Will set up the verification process.
      * @param {CommandoClient} client 
-     * @param {String} guestRoleID
+     * @param {String} guestRoleId
      * @param {TypeInfo[]} types
      * @param {VerificationChannels} [verificationChannels]
      * @return {Promise<BotGuild>}
      * @async
      */
-    async setUpVerification(client, guestRoleID, types, verificationChannels = null) {
+    async setUpVerification(client, guestRoleId, types, verificationChannels = null) {
         /** @type {CommandoGuild} */
         let guild = await client.guilds.fetch(this._id);
 
         try {
-            var guestRole = await guild.roles.fetch(guestRoleID);
+            var guestRole = await guild.roles.fetch(guestRoleId);
         } catch (error) {
             throw new Error('The given guest role ID is not valid for this guild!');
         }
         guestRole.setMentionable(false);
         guestRole.setPermissions(0);
-        this.verification.guestRoleID = guestRoleID;
+        this.verification.guestRoleID = guestRoleId;
 
         if (verificationChannels) {
             this.verification.welcomeChannelID = verificationChannels.welcomeChannelID;
@@ -389,6 +390,8 @@ module.exports = class BotGuild {
 
         this.stamps.stampCollectionTime = stampCollectionTime;
         this.stamps.isEnabled = true;
+
+        this.setCommandStatus(client);
 
         return this;
     }
