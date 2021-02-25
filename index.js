@@ -99,13 +99,9 @@ bot.once('ready', async () => {
             // set all non guarded commands to not enabled for the guild
             bot.registry.groups.forEach((group, key, map) => {
                 if (!group.guarded) guild.setGroupEnabled(group, false);
-                mainLogger.debug("Inside for each");
             });
-            mainLogger.debug("Finished for each");
 
             await botGuild.setCommandStatus(bot);
-
-            mainLogger.debug("Finished set command status!");
             
             mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event" });
         }
