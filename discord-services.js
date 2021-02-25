@@ -54,7 +54,7 @@ module.exports.sendMsgToChannel = sendMsgToChannel;
  */
 async function sendMessageToMember(member, message, isDelete = false) {
     return await member.send(message).then(msg => {
-        winston.loggers.get(member.guild.id).verbose(`A DM message was sent to user with id ${member.id}.`);
+        winston.loggers.get(member?.guild?.id || 'main').verbose(`A DM message was sent to user with id ${member.id}.`);
         if (isDelete === true) {
             msg.delete({timeout: 60000})
         }
@@ -129,8 +129,8 @@ function addRoleToMember(member, addRole) {
         // try one more time
         member.roles.add(addRole).catch(error => {
             // now send error to admins
-            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role <@&' + role.id +'> please help me!');
-            winston.loggers.get(member.guild.id).error(`Could not give the member with id ${member.id} the role ${role.name} with id ${role.id}. The following error ocurred: ${error.name} - ${error.message}.`);
+            discordLog(member.guild, '@everyone The member <@' + member.id + '> did not get the role <@&' + role.id +'> please help me!');
+            winston.loggers.get(member.guild.id).error(`Could not give the member with id ${member.id} the role ${role.name} with id ${role.id}. The following error ocurred: ${error.name} - ${error.message}.`, { event: "Error", data: error });
         });
     });
     winston.loggers.get(member.guild.id).verbose(`A member with id ${member.id} was given the role ${role.name} with id ${role.id}`);
