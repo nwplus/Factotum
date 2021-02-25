@@ -4,9 +4,9 @@ const Discord = require('discord.js');
 const discordServices = require('../../discord-services');
 const Prompt = require('../../classes/prompt');
 const jsonfile = require('jsonfile');
-const BotGuildModel = require('../../classes/bot-guild');
 
 const BotGuild = require('../../db/mongo/BotGuild');
+const winston = require('winston');
 
 // Command export
 module.exports = class InitBot extends Command {
@@ -163,6 +163,7 @@ module.exports = class InitBot extends Command {
             }
         } catch (error) {
             discordServices.sendMsgToChannel(channel, userId, 'Verification service was not set due to Prompt cancellation.', 10);
+            winston.loggers.get(guild.id).warning(`Handled an error when setting up verification, and thus was not set up. Error was ${error.name}`, { event: "InitBot Command", data: error });
         }
         
 
