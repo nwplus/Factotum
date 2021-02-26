@@ -4,6 +4,7 @@ const {yesNoPrompt, rolePrompt} = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
 const Workshop = require('../../classes/activities/workshop');
 const PermissionCommand = require('../../classes/permission-command');
+const Activity = require('../../classes/activities/activity');
 
 // Command export
 module.exports = class InitWorkshop extends PermissionCommand {
@@ -40,14 +41,7 @@ module.exports = class InitWorkshop extends PermissionCommand {
 
 
         // prompt user for roles that will be allowed to see this activity.
-        let roleParticipants;
-        try {
-            roleParticipants = await rolePrompt({ prompt: 'What roles, aside from Staff, will be allowed to view this activity? (Type "cancel" if none)',
-                channel: message.channel, userId: message.author.id });
-        } catch (error) {
-            roleParticipants = new Discord.Collection();
-        }
-        roleParticipants.set(botGuild.roleIDs.staffRole, message.guild.roles.resolve(botGuild.roleIDs.staffRole));
+        let roleParticipants = await Activity.promptForRoleParticipants(message.channel, message.author.id, true);
 
 
         // prompt user for roles that will have access to the TA side of the workshop
