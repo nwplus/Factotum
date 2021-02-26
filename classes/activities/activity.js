@@ -24,6 +24,11 @@ const BotGuildModel = require('../bot-guild');
  * @property {PermissionOverwriteOption} permissions - the permissions to set to that role
  */
 
+/**
+ * An activity is a overarching class for any kind of activity. An activity consists of a 
+ * category with voice and text channels. Activities also have roles that have access to it.
+ * @class
+ */
 class Activity {
 
     static voiceChannelName = '🔊Room-';
