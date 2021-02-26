@@ -129,7 +129,7 @@ class CoffeeChats extends Activity {
                     member.voice.setChannel(voiceChannels[index])
                 } catch (error) {
                     // do nothing, sad!
-                winston.loggers.get(this.guild.id).warning(`For activity named ${this.name} I could not pull in user ${member.id} into the voice channel ${}.`, {event: "Coffee Chats"});
+                winston.loggers.get(this.guild.id).warning(`For activity named ${this.name} I could not pull in user ${member.id} into the voice channel ${voiceChannels[index].name}.`, {event: "Coffee Chats"});
                 }
             });
         }
