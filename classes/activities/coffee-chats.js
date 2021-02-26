@@ -49,6 +49,7 @@ class CoffeeChats extends Activity {
 
     /**
      * Initializes the activity by creating the necessary channels.
+     * @returns {CoffeeChats}
      */
     async init(channel, userId) {
         await super.init();
@@ -68,6 +69,8 @@ class CoffeeChats extends Activity {
         });
 
         this.sendConsoles();
+
+        return this;
     }
 
     /**
