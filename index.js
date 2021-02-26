@@ -38,7 +38,7 @@ const customLoggerLevels = {
         event: 'green',
         userStats: 'magenta',
         verbose: 'cyan',
-        debug: 'orange',
+        debug: 'white',
         silly: 'black',
     }
 }
@@ -88,6 +88,9 @@ bot.once('ready', async () => {
     // make sure all guilds have a botGuild, this is in case the bot goes offline and its added
     // to a guild. If botGuild is found, make sure only the correct commands are enabled.
     bot.guilds.cache.forEach(async (guild, key, guilds) => {
+        // create the logger for the guild
+        createALogger(guild.id, guild.name);
+
         let botGuild = await BotGuild.findById(guild.id);
         if (!botGuild) {
             newGuild(guild);
@@ -98,13 +101,10 @@ bot.once('ready', async () => {
                 if (!group.guarded) guild.setGroupEnabled(group, false);
             });
 
-            botGuild.setCommandStatus(bot);
+            await botGuild.setCommandStatus(bot);
             
             mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event" });
         }
-
-        // create the logger for the guild
-        createALogger(guild.id, guild.name);
     });
 });
 
@@ -152,7 +152,7 @@ bot.on('guildDelete', async (guild) => {
  * Runs when the bot runs into an error.
  */
 bot.on('error', (error) => {
-    mainLogger.error(`Bot Error: ${error.name} - ${error.message}.`);
+    mainLogger.error(`Bot Error: ${error.name} - ${error.message}.`, { event: "Error", data: error});
 });
 
 /**
@@ -160,7 +160,7 @@ bot.on('error', (error) => {
  */
 bot.on('commandError', (command, error, message) => {
     winston.loggers.get(message.guild.id).error(`Command Error: In command ${command.name} got uncaught rejection ${error.name} : ${error.message}`);
-    mainLogger.error(`Command Error: In command ${command.name} got uncaught rejection ${error.name} : ${error.message}`);
+    mainLogger.error(`Command Error: In command ${command.name} got uncaught rejection ${error.name} : ${error.message}`, { event: "Error", data: error});
 });
 
 /**
