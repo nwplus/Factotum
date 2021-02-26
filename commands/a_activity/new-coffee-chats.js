@@ -8,7 +8,7 @@ const CoffeeChats = require('../../classes/activities/coffee-chats');
 module.exports = class InitCoffeeChats extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'init-coffee-chats',
+            name: 'new-coffee-chats',
             group: 'a_activity',
             memberName: 'initialize coffee chat functionality for activity',
             description: 'Will initialize the coffee chat functionality for the given workshop.',

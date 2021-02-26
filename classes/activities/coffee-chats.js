@@ -49,7 +49,7 @@ class CoffeeChats extends Activity {
 
     /**
      * Initializes the activity by creating the necessary channels.
-     * @returns {CoffeeChats}
+     * @returns {Promise<CoffeeChats>}
      */
     async init(channel, userId) {
         await super.init();

@@ -9,7 +9,7 @@ const PermissionCommand = require('../../classes/permission-command');
 module.exports = class InitWorkshop extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'init-workshop',
+            name: 'new-workshop',
             group: 'a_activity',
             memberName: 'initialize workshop functionality for activity',
             description: 'Will initialize the workshop functionality for the given workshop. General voice channel will be muted for all hackers.',
