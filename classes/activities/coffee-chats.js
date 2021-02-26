@@ -76,8 +76,9 @@ class CoffeeChats extends Activity {
     /**
      * Will send the console for users to join the activity as a group.
      * @private
+     * @async
      */
-    sendConsoles() {
+    async sendConsoles() {
         // reaction to use
         var emoji = '⛷️';
 
@@ -118,9 +119,8 @@ class CoffeeChats extends Activity {
 
     /**
      * Shuffle users in general voice as groups in firebase
-     * @async
      */
-    async groupShuffle() {
+    groupShuffle() {
 
         let channels = this.channels.voiceChannels;
         let voiceChannels = channels.filter(voiceChannel => voiceChannel.id === this.mainVoiceChannel.id).array();
