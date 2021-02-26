@@ -4,6 +4,8 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Cave = require('../../classes/cave');
 const Prompt = require('../../classes/prompt');
+const winston = require('winston');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class StartMentors extends PermissionCommand {
@@ -90,7 +92,7 @@ module.exports = class StartMentors extends PermissionCommand {
                     reminderTime: (await Prompt.numberPrompt({prompt: 'How long, in minutes, shall a ticket go unaccepted before the bot sends a reminder to all mentors?',
                         channel, userId}))[0],
                 }
-            });
+            }, botGuild);
 
 
             let adminConsole = message.guild.channels.resolve(botGuild.channelIDs.adminConsole);
@@ -110,7 +112,8 @@ module.exports = class StartMentors extends PermissionCommand {
             cave.checkForExistingRoles(message.guild.roles, adminConsole, userId);
           
         } catch (error) {
-            channel.send('Due to a prompt cancel, the mentor cave creation was unsuccessful.').then(msg => msg.delete({timeout: 5000})); 
+            message.channel.send('Due to a prompt cancel, the mentor cave creation was unsuccessful.').then(msg => msg.delete({timeout: 5000}));
+            winston.loggers.get(message.guild.id).warning(`An error was found but it was handled by not setting up the mentor cave. Error: ${error}`, { event: "StartMentorCave Command" });
         }
     }
 

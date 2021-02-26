@@ -26,7 +26,7 @@ class Prompt {
      */
     static async messagePrompt({prompt, channel, userId}, responseType, time = 0) {
 
-        winston.loggers.get(channel.guild.id).event(`The message prompt has been used in channel ${channel.name} for user ${userId}`, {event: "Prompt"});
+        winston.loggers.get(channel?.guild?.id || 'main').event(`The message prompt has been used in channel ${channel.name} for user ${userId}`, {event: "Prompt"});
 
         let finalPrompt = '<@' + userId + '> ' + prompt + (responseType == 'number' ? ' Respond with a number only!' : responseType == 'boolean' ? ' (yes/no)' : responseType == 'mention' ? ' To make a mention use the @ or # for a user or channel respectively!' : '' + 
                         (time === 0 ? '' : '\n* Respond within ' + time + ' seconds.') + '\n* Respond with cancel to cancel.');
@@ -39,7 +39,7 @@ class Prompt {
         } catch (error) {
             channel.send('<@' + userId + '> Time is up, please try again once you are ready, we recommend you write the text, then react, then send!').then(msg => msg.delete({timeout: 10000}));
             discordServices.deleteMessage(promptMsg);
-            winston.loggers.get(channel.guild.id).verbose(`Prompt in ${channel.name} with id ${channel.id} for user ${userId} timed out!`, {event: "Prompt"});
+            winston.loggers.get(channel?.guild?.id || 'main').verbose(`Prompt in ${channel.name} with id ${channel.id} for user ${userId} timed out!`, {event: "Prompt"});
             let timeoutError = new Error('Prompt timed out.');
             timeoutError.name = 'Timeout'
             throw timeoutError;
@@ -52,13 +52,13 @@ class Prompt {
 
         // check if they responded with cancel
         if (msg.content.toLowerCase() === 'cancel') {
-            winston.loggers.get(channel.guild.id).verbose(`Prompt in ${channel.name} with id ${channel.id} for user ${userId} was canceled!`, {event: "Prompt"});
+            winston.loggers.get(channel?.guild?.id || 'main').verbose(`Prompt in ${channel.name} with id ${channel.id} for user ${userId} was canceled!`, {event: "Prompt"});
             let cancelError = new Error("The prompt has been canceled.");
             cancelError.name = 'Cancel'
             throw cancelError;
         }
 
-        winston.loggers.get(channel.guild.id).verbose(`A prompt has been sent to ${channel.name} with id ${channel.id} for user ${userId} of type ${responseType}. Message: ${prompt}. The response was ${msg.cleanContent}.`, {event: "Prompt"});
+        winston.loggers.get(channel?.guild?.id || 'main').verbose(`A prompt has been sent to ${channel.name} with id ${channel.id} for user ${userId} of type ${responseType}. Message: ${prompt}. The response was ${msg.cleanContent}.`, {event: "Prompt"});
 
         return msg;
     }

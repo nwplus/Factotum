@@ -134,7 +134,7 @@ class ActivityManager {
             const member = activity.generalText.guild.member(user);
 
             if (!seenUsers.has(user.id)) {
-                if (role != undefined) this.parseRole(member, activity.name, botGuild);
+                this.parseRole(member, activity.name, botGuild);
                 seenUsers.set(user.id, user.username);
             }
         });
@@ -168,14 +168,14 @@ class ActivityManager {
             discordServices.addRoleToMember(member, botGuild.stamps.stamp0thRoleId);
             discordServices.sendMessageToMember(member, 'I did not find an existing stamp role for you so I gave you one for attending '
                 + activityName + '. Please contact an admin if there was a problem.', true);
-            winston.loggers.get(botGuild._id).userStats(`Activity named ${activityName} tried to give a stamp to the user with id ${user.id} but he has no stamp, I gave them the first stamp!`, {event: "Activity Manager"});
+            winston.loggers.get(botGuild._id).userStats(`Activity named ${activityName} tried to give a stamp to the user with id ${member.id} but he has no stamp, I gave them the first stamp!`, {event: "Activity Manager"});
             return;
         }
 
         let stampNumber = botGuild.stamps.stampRoleIDs.get(role.id);
         if (stampNumber === botGuild.stamps.stampRoleIDs.size - 1) {
             discordServices.sendMessageToMember(member, 'You already have the maximum allowed number of stamps!', true);
-            winston.loggers.get(botGuild._id).userStats(`Activity named ${activityName} tried to give a stamp to the user with id ${user.id} but he is already in the max stamp ${stampNumber}`, {event: "Activity Manager"});
+            winston.loggers.get(botGuild._id).userStats(`Activity named ${activityName} tried to give a stamp to the user with id ${member.id} but he is already in the max stamp ${stampNumber}`, {event: "Activity Manager"});
             return;
         }
         let newRoleID;
