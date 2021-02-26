@@ -1,7 +1,6 @@
 const { Collection, Snowflake, Guild, TextChannel, Role, GuildAuditLogs, Message, MessageEmbed } = require('discord.js');
 const { CommandoClient, CommandoGuild } = require('discord.js-commando');
 const winston = require('winston');
-const { cli } = require('winston/lib/winston/config');
 const discordServices = require('../discord-services');
 
 /**
