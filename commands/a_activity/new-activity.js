@@ -3,13 +3,15 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Activity = require('../../classes/activity');
-const { numberPrompt } = require('../../classes/prompt');
+const { numberPrompt, rolePrompt } = require('../../classes/prompt');
+const BotGuildModel = require('../../classes/bot-guild');
+
 
 // Command export
 module.exports = class NewActivity extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'newactivity',
+            name: 'new-activity',
             group: 'a_activity',
             memberName: 'create a new activity',
             description: 'Will create a category, a text channel and voice channel for the given activity name.',
@@ -23,24 +25,36 @@ module.exports = class NewActivity extends PermissionCommand {
             ],
         },
         {
-            channelID: discordServices.adminConsoleChannel,
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
             channelMessage: 'This command can only be used in the admin console!',
-            roleID: discordServices.adminRole,
-            roleMessage: 'You do not have permision for this command, only admins can use it!',
+            role: PermissionCommand.FLAGS.ADMIN_ROLE,
+            roleMessage: 'You do not have permission for this command, only admins can use it!',
         });
     }
 
-    async runCommand(message, {activityName}) {
+    /**
+     * @param {BotGuildModel} botGuild
+     * @param {Discord.Message} message - the message in which the command was run
+     */
+    async runCommand(botGuild, message, {activityName}) {
 
-        let activity = await new Activity(activityName, message.guild).init();
+        // prompt user for roles that will be allowed to see this activity.
+        let allowedRoles;
+        try {
+            allowedRoles = await rolePrompt({ prompt: 'What roles, aside from Staff, will be allowed to view this activity? (Type "cancel" if none)',
+                channel: message.channel, userId: message.author.id });
+        } catch (error) {
+            allowedRoles = new Discord.Collection();
+        }
+        let activity = await new Activity(activityName, message.guild, allowedRoles).init();
 
         // report success of activity creation
-        discordServices.replyAndDelete(message,'Activity session named: ' + activity.name + ' created succesfully. Any other commands will require this name as paramter.');
+        discordServices.replyAndDelete(message,'Activity session named: ' + activity.name + ' created successfully. Any other commands will require this name as paramter.');
 
         // send message to console with emoji commands
         // message embed
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('Activity: ' + activity.name + ' console.')
             .setDescription('This activity\'s information is below. For any changes you can use the emojis or direct commands.\n' + 
                 '🧑🏽‍💼 Will make this activity a workshop.\n' + 
@@ -52,7 +66,7 @@ module.exports = class NewActivity extends PermissionCommand {
                 '🔃 Will callback all users from all channels to the general channel.\n' + 
                 '👨‍👩‍👧‍👦 Will shuffle all the groups around the available channels.\n' + 
                 '🦜 Will shuffle all the mentors around the available channels.\n' +
-                '🏕️ Will activate a stamp distribution that will be open for ' + discordServices.stampCollectTime + ' seconds.\n' +
+                '🏕️ Will activate a stamp distribution that will be open for ' + botGuild.stamps.stampCollectionTime + ' seconds.\n' +
                 '🏎️ [FOR WORKSHOPS] Will send an embedded message asking how the speed is.\n' +
                 '✍️ [FOR WORKSHOPS] Will send an embedded message asking how the difficulty is.\n' +
                 '🧑‍🏫 [FOR WORKSHOPS] Will send an embedded message asking how good the explanations are.\n' + 
@@ -91,52 +105,56 @@ module.exports = class NewActivity extends PermissionCommand {
                 activity.state.isWorkshop = true;
 
                 // init workshop command
-                commandRegistry.findCommands('initw', true)[0].runActivityCommand(message, activity);
-                discordServices.changeVoiceChannelPermissions(activity.name, activity.category, true); // TODO check if this is necessary
+                commandRegistry.findCommands('init-workshop', true)[0].runActivityCommand(botGuild, message, activity);
+                //activity.changeVoiceChannelPermissions(true); // TODO check if this is necessary
                 
                 // update embed
                 msgConsole.edit(msgConsole.embeds[0].addField('Update', 'The activity is now a Workshop!'));
             } else if (emojiName === emojis[1] && activity.isRegularActivity()) {
                 activity.state.isCoffeeChats = true;
 
-                let numOfGroups = await numberPrompt('How many groups do you want?', message.channel, user.id);
+                try {
+                    var numOfGroups = (await numberPrompt({prompt: 'How many groups do you want?', channel: message.channel, userId: user.id}))[0];
+                } catch (error) {
+                    var numOfGroups = 0;
+                }
 
-                commandRegistry.findCommands('initcc', true)[0].runActivityCommand(message, activity, { numOfGroups: numOfGroups });
-                discordServices.changeVoiceChannelPermissions(activity.name, category, true); // TODO check if this is necessary
+                commandRegistry.findCommands('init-coffee-chats', true)[0].runActivityCommand(botGuild, message, activity, { numOfGroups: numOfGroups });
+                activity.changeVoiceChannelPermissions(true); // TODO check if this is necessary
 
                 // update embed
                 msgEmbed.addField('Update', 'The activity is now a Coffee Chat!');
                 msgConsole.edit(msgEmbed);
             } else if (emojiName === emojis[4]) {
-                commandRegistry.findCommands('removeactivity', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('remove-activity', true)[0].runActivityCommand(botGuild, message, activity);
                 msgConsole.delete({timeout: 3000});
             } else if (emojiName === emojis[2]) {
-                commandRegistry.findCommands('addvoiceto', true)[0].runActivityCommand(message, activity, { number: 1, isPrivate: !activity.isRegularActivity() || activity.isHidden, maxUsers: activity.state.isAmongUs ? 12 : 0});
+                commandRegistry.findCommands('add-voice-channels', true)[0].runActivityCommand(botGuild, message, activity, { number: 1, isPrivate: !activity.isRegularActivity() || activity.isHidden, maxUsers: activity.state.isAmongUs ? 12 : 0});
             } else if (emojiName === emojis[3]) {
-                commandRegistry.findCommands('removevoiceto', true)[0].runActivityCommand(message, activity, { number: 1 });
+                commandRegistry.findCommands('remove-voice-channels', true)[0].runActivityCommand(botGuild, message, activity, { number: 1 });
             } else if (emojiName === emojis[5]) {
-                commandRegistry.findCommands('shuffle', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('shuffle', true)[0].runActivityCommand(botGuild, message, activity);
             } else if (emojiName === emojis[6]) {
-                commandRegistry.findCommands('callback', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('callback', true)[0].runActivityCommand(botGuild, message, activity);
             } else if (emojiName === emojis[7]) {
-                commandRegistry.findCommands('gshuffle', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('shuffle-groups', true)[0].runActivityCommand(botGuild, message, activity);
             } else if (emojiName === emojis[8]) {
-                commandRegistry.findCommands('mshuffle', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('shuffle-mentors', true)[0].runActivityCommand(botGuild, message, activity);
             } else if (emojiName === emojis[9]) {
-                commandRegistry.findCommands('distribute-stamp', true)[0].runActivityCommand(message, activity, { timeLimit: discordServices.stampCollectTime });
+                if (botGuild.stamps.isEnabled) commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(botGuild, message, activity, { timeLimit: botGuild.stamps.stampCollectTime });
+                else discordServices.sendMsgToChannel(message.channel, user.id, "The distribute stamp command is not available because stamps are disabled in this server.");
             } else if (emojiName === emojis[10]) {
-                commandRegistry.findCommands('workshop-polls',true)[0].runActivityCommand(message, activity, { question: 'speed' });
+                commandRegistry.findCommands('workshop-polls',true)[0].runCommand(botGuild, message, activity, { questionType: 'speed' });
             } else if (emojiName === emojis[11]) {
-                commandRegistry.findCommands('workshop-polls',true)[0].runActivityCommand(message, activity, { question: 'difficulty' });
+                commandRegistry.findCommands('workshop-polls',true)[0].runCommand(botGuild, message, activity, { questionType: 'difficulty' });
             } else if (emojiName === emojis[12]) {
-                commandRegistry.findCommands('workshop-polls',true)[0].runActivityCommand(message, activity, { question: 'explanations' });
+                commandRegistry.findCommands('workshop-polls',true)[0].runCommand(botGuild, message, activity, { questionType: 'explanations' });
             } else if (emojiName === emojis[13] && activity.isRegularActivity()) {
                 activity.state.isAmongUs = true;
-                await discordServices.addLimitToVoiceChannels(activity.name, activity.category, 12);
-                commandRegistry.findCommands('initau', true)[0].runActivityCommand(message, activity, { numOfChannels: 3 });
-                discordServices.changeVoiceChannelPermissions(activity.name, activity.category, true);
+                await activity.addLimitToVoiceChannels(12);
+                commandRegistry.findCommands('init-among-us', true)[0].runActivityCommand(botGuild, message, activity, { numOfChannels: 3 });
             } else if (emojiName === emojis[14]) {
-                commandRegistry.findCommands('archive', true)[0].runActivityCommand(message, activity);
+                commandRegistry.findCommands('archive', true)[0].runActivityCommand(botGuild, message, activity);
                 msgConsole.delete({timeout: 3000});
                 emojiCollector.stop();
             } 

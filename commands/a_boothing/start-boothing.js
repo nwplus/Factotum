@@ -1,9 +1,11 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
-const firebaseServices = require('../../firebase-services/firebase-services');
-const firebaseBoothing = require('../../firebase-services/firebase-services-boothing')
+const firebaseServices = require('../../db/firebase/firebase-services');
+const firebaseBoothing = require('../../db/firebase/firebase-services-boothing')
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
+const BotGuildModel = require('../../classes/bot-guild');
+
 
 // Command export
 module.exports = class StartBoothing extends PermissionCommand {
@@ -17,13 +19,17 @@ module.exports = class StartBoothing extends PermissionCommand {
             args: [],
         },
         {
-            roleID: discordServices.adminRole,
+            roleID: PermissionCommand.FLAGS.ADMIN_ROLE,
             roleMessage: 'This command can only be ran by admins!'
         });
     }
 
-
-    async runCommand(message) {
+    /**
+     * 
+     * @param {BotGuildModel} botGuild 
+     * @param {Discord.Message} message 
+     */
+    async runCommand(botGuild, message) {
 
         // make sure command is only used in the boothing-wait-list channel
         if (message.channel.name != 'boothing-wait-list') {
@@ -34,7 +40,7 @@ module.exports = class StartBoothing extends PermissionCommand {
         ////// hacker side message
         // message to send describing the different emojis
         const textEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('Sponsor Boothing')
             .setDescription('Welcome to our sponsor booth! Please react to one of the emojis below to get started!')
             .addField('Join Wait List Alone', 'If you want to join the wait list by yourself please react to ' + ':sunglasses:')
@@ -49,7 +55,7 @@ module.exports = class StartBoothing extends PermissionCommand {
         var sponsorChannel = await message.guild.channels.resolve(discordServices.sponsorConsoleChannel);
 
         const sponsorEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('The Wait List')
             .setDescription('This is the wait list, it will always stay up to date! To get the next group react to this message with 🤝');
 
@@ -126,7 +132,7 @@ module.exports = class StartBoothing extends PermissionCommand {
 
         // message to be sent to hacker
         const dmEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('Sponsor Boothing Wait List')
             .setDescription('Hey there! We got you signed up to talk to a sponsor! Sit tight in the voice channel. If you ' +
                 'are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!')

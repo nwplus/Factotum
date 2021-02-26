@@ -1,10 +1,10 @@
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Activity = require('../../classes/activity');
-const ActivityCommand = require('../../classes/activity-command');
+const PermissionCommand = require('../../classes/permission-command');
 const ActivityManager = require('../../classes/activity-manager');
 
-module.exports = class DistributeStamp extends ActivityCommand {
+module.exports = class WorkshopPolls extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'workshop-polls',
@@ -19,6 +19,10 @@ module.exports = class DistributeStamp extends ActivityCommand {
                     validate: (value) => value === 'speed' || value === 'difficulty' || value === 'explanations',
                 },
             ],
+        },
+        {
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
+            roleMessage: 'Hey there, the command !contests is only available to Staff!',
         });
     }
 
@@ -28,7 +32,7 @@ module.exports = class DistributeStamp extends ActivityCommand {
      * @param {Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
      */
-    async activityCommand(message, activity, { questionType }) {
+    async runCommand(botGuild, message, activity, { questionType }) {
 
         let responses = new Discord.Collection();
         let title = '';
@@ -54,6 +58,6 @@ module.exports = class DistributeStamp extends ActivityCommand {
             responses.set('🐇', 'Easy to understand?');
         }
 
-        ActivityManager.sendPoll(activity, title, question, responses);
+        ActivityManager.sendPoll(activity, title, question, responses, botGuild);
     }
 }

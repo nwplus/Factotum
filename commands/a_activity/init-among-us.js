@@ -9,9 +9,9 @@ const ActivityCommand = require('../../classes/activity-command');
 module.exports = class InitAmongUs extends ActivityCommand {
     constructor(client) {
         super(client, {
-            name: 'initau',
+            name: 'init-among-us',
             group: 'a_activity',
-            memberName: 'initialize among us funcitonality for activity',
+            memberName: 'initialize among us functionality for activity',
             description: 'Will initialize the among us functionality for the given workshop.',
             guildOnly: true,
             args: [
@@ -31,7 +31,7 @@ module.exports = class InitAmongUs extends ActivityCommand {
      * @param {Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
      */
-    async activityCommand(message, activity, { numOfChannels}) {
+    async activityCommand(botGuild, message, activity, { numOfChannels}) {
 
         let joinActivityTextChannel = await activity.makeAmongUs(numOfChannels);
 
@@ -40,7 +40,7 @@ module.exports = class InitAmongUs extends ActivityCommand {
 
         // send embed and react with emoji
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('Join the activity!')
             .setDescription('Welcome to the Among Us Mini-Event. We have set up some voice channels for hackers to meet each other and play some Among Us. Here is how its going to work:\n' +
             '1. Accept rules listed below by clicking the 🚗 emoji.\n' +
@@ -68,7 +68,7 @@ module.exports = class InitAmongUs extends ActivityCommand {
     }
 
     /**
-     * Gives a user full acccess to the category, that is, all its children!
+     * Gives a user full access to the category, that is, all its children!
      * @param {Discord.User} user - the user give access to
      * @param {Discord.CategoryChannel} category - the category to give access to
      */
