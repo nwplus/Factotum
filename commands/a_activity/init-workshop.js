@@ -26,16 +26,17 @@ module.exports = class InitWorkshop extends ActivityCommand {
      */
     async activityCommand(botGuild, message, activity) {
         // prompt user for roles that will have access to the TA side of the workshop
-        let TARoles;
+        let TARoles = new Discord.Collection();
         try {
             if (await Prompt.yesNoPrompt({prompt: 'Aside from Staff, are there other roles you would like to allow access to the TA channels?', 
                 channel: message.channel, userId: message.author.id})) {
                 TARoles = await Prompt.rolePrompt({prompt: 'Mention the role(s) here now!', channel: message.channel, userId: message.author.id});
             };
         } catch (error) {
-            TARoles = new Discord.Collection();
+            // do nothing
         }
-        TARoles.each(role => {
+
+        TARoles.forEach(role => {
             activity.generalText.updateOverwrite(role, {VIEW_CHANNEL: true});
             activity.generalVoice.updateOverwrite(role, {VIEW_CHANNEL: true, SPEAK: true, MOVE_MEMBERS: true});
             activity.category.updateOverwrite(role, {VIEW_CHANNEL: true});
