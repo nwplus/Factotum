@@ -95,7 +95,7 @@ class CoffeeChats extends Activity {
 
             // check to make sure there are spots left
             if (this.numOfGroups >= this.teams.size) {
-                sendMsgToChannel(this.joinGroupChannel, user.id, "Sorry, but the activity is full!");
+                sendMsgToChannel(this.joinGroupChannel, user.id, "Sorry, but the activity is full!", 10);
                 return;
             }
 
@@ -137,6 +137,23 @@ class CoffeeChats extends Activity {
         winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its groups shuffled.`, {event: "Coffee Chats"});
     }
 
+    /**
+     * Adds voice channels to the coffee chats, more voice channels allow for more groups to join.
+     * @param {Number} number - the number of voice channels to add
+     * @param {Number} maxUsers - max number of users for the voice channels
+     */
+    addVoiceChannels(number, maxUsers) {
+        super.addVoiceChannels(number, maxUsers);
+
+        this.numOfGroups = this.numOfGroups + number;
+    }
+
+    /**
+     * Resets the teams to have no teams.
+     */
+    resetTeams() {
+        this.teams = new Collection();
+    }
     
 
 }
