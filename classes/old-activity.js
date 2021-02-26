@@ -2,7 +2,7 @@ const { Collection, Guild, CategoryChannel, TextChannel, VoiceChannel, DiscordAP
 const Prompt = require("./prompt");
 const BotGuild = require("../db/mongo/BotGuild");
 const discordServices = require('../discord-services');
-const BotGuildModel = require('../classes/bot-guild');
+const BotGuildModel = require('./bot-guild');
 const winston = require("winston");
 
 /**
@@ -147,33 +147,6 @@ class Activity {
         });
         winston.loggers.get(this.guild.id).event(`The activity ${this.name} was initialized.`, {event: "Activity"});
         return this;
-    }
-
-
-    /**
-     * Helper function to create the category 
-     * @param {Number} position - the position of this category on the server
-     * @async
-     * @private
-     * @requires this.name - to be set
-     * @returns {Promise<CategoryChannel>} - a category with the activity name
-     */
-    async createCategory(position) {
-        let overwrites = [
-            {
-                id: this.botGuild.roleIDs.everyoneRole,
-                deny: ['VIEW_CHANNEL']
-            },
-            {
-                id: this.botGuild.roleIDs.staffRole,
-                allow: ['VIEW_CHANNEL']
-            }];
-        this.permissions.each(role => overwrites.push({ id: role.id, allow: ['VIEW_CHANNEL'] }));
-        return this.guild.channels.create(this.name, {
-            type: 'category',
-            position: position >= 0 ? position : 0,
-            permissionOverwrites: overwrites
-        });
     }
 
 
@@ -343,28 +316,39 @@ class Activity {
      * @returns {Promise<{taChannel : TextChannel, assistanceChannel : TextChannel}>} - an object with two text channels, taChannel, assistanceChannel
      */
     async makeWorkshop(TARoles) {
-        // update the voice channel permission to no speaking for attendees
-        this.generalVoice.updateOverwrite(this.botGuild.roleIDs.everyoneRole, {
-            SPEAK: false,
-        });
-        this.generalVoice.updateOverwrite(this.botGuild.roleIDs.staffRole, {
-            SPEAK: true,
-            MOVE_MEMBERS: true,
-        });
+
+        this.TARoles = TARoles;
+
+        /** The permissions for the TA channels */
+        let TAChannelPermissions = [
+            { roleID: this.botGuild.roleIDs.everyoneRole, permissions: { VIEW_CHANNEL: false } },
+            { roleId: this.botGuild.roleIDs.staffRole, permissions: { VIEW_CHANNEL: true } },
+        ];
+
+        // add regular activity members to the TA perms list as non tas, so they cant see that channel
+        this.permissions.forEach(role => {
+            TAChannelPermissions.push({roleID: role.id, permissions: {VIEW_CHANNEL: false}});
+            this.generalVoice.updateOverwrite(role, {
+                SPEAK: false,
+            });
+        })
+
+        // Loop over ta roles, give them voice channel perms and add them to the TA permissions list
         TARoles.each(role => {
             this.generalVoice.updateOverwrite(role, {
                 SPEAK: true,
                 MOVE_MEMBERS: true,
                 VIEW_CHANNEL: true,
             });
-        })
 
-        // make TA channel private and give each TA role permission to view it
-        let TAChannelPermissions = [
-            { roleID: this.botGuild.roleIDs.everyoneRole, permissions: { VIEW_CHANNEL: false } },
-        ];
-        this.permissions.forEach(role => TAChannelPermissions.push({roleID: role.id, permissions: {VIEW_CHANNEL: false}}))
-        TARoles.each(role => TAChannelPermissions.push({roleID: role.id, permissions: {VIEW_CHANNEL: true}}));
+            TAChannelPermissions.push({roleID: role.id, permissions: {VIEW_CHANNEL: true}});
+        });
+
+        // update the voice channel permission to no speaking for attendees
+        this.generalVoice.updateOverwrite(this.botGuild.roleIDs.everyoneRole, {
+            SPEAK: false,
+            VIEW_CHANNEL: false,
+        });
 
         // create ta console
         let taChannel = await this.addChannel(':🧑🏽‍🏫:' + 'ta-console', {
@@ -444,7 +428,11 @@ class Activity {
      * @param {Boolean} toHide 
      */
     async makeVoiceChannelPrivate(channel, toHide) {
-        channel.updateOverwrite(this.botGuild.roleIDs.everyoneRole, {VIEW_CHANNEL: toHide ? false : true});
+        channel.updateOverwrite(this.botGuild.roleIDs.everyoneRole, { VIEW_CHANNEL: toHide ? false : true });
+        if (this.TARoles) {
+            this.permissions.forEach(role => channel.updateOverwrite(role, { VIEW_CHANNEL: toHide ? false : true }));
+            this.TARoles.forEach(role => channel.updateOverwrite(role, { VIEW_CHANNEL: true }));
+        }
         winston.loggers.get(this.guild.id).verbose(`The activity ${this.name} had its channel ${channel.name} made ${toHide ? 'private' : 'public'}.`, {event: "Activity"});
     }
 }

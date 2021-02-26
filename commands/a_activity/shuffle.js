@@ -1,7 +1,7 @@
 // Discord.js commando requirements
 const discordServices = require('../../discord-services');
-const ActivityCommand = require('../../classes/activity-command');
-const ActivityManager = require('../../classes/activity-manager');
+const ActivityCommand = require('../../classes/activities/activity-command');
+const ActivityManager = require('../../classes/activities/activity-manager');
 
 // Command export
 module.exports = class ActivityShuffle extends ActivityCommand {

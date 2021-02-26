@@ -1,8 +1,8 @@
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
-const Activity = require('../../classes/activity');
+const Activity = require('../../classes/activities/activity');
 const PermissionCommand = require('../../classes/permission-command');
-const ActivityManager = require('../../classes/activity-manager');
+const ActivityManager = require('../../classes/activities/activity-manager');
 
 module.exports = class WorkshopPolls extends PermissionCommand {
     constructor(client) {

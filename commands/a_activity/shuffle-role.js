@@ -1,10 +1,10 @@
 const discordServices = require('../../discord-services');
-const ActivityCommand = require('../../classes/activity-command');
-const ActivityManager = require('../../classes/activity-manager');
+const ActivityCommand = require('../../classes/activities/activity-command');
+const ActivityManager = require('../../classes/activities/activity-manager');
 const { Message } = require('discord.js');
 const Prompt = require('../../classes/prompt');
 const winston = require('winston');
-const Activity = require('../../classes/activity');
+const Activity = require('../../classes/activities/activity');
 // Command export
 module.exports = class RoleShuffle extends ActivityCommand {
     constructor(client) {

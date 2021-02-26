@@ -1,8 +1,8 @@
-const discordServices = require('../discord-services');
+const discordServices = require('../../discord-services');
 const Activity = require('./activity');
 const { GuildMember, Collection, MessageEmbed, Role} = require('discord.js');
-const BotGuild = require('../db/mongo/BotGuild');
-const BotGuildModel = require('./bot-guild');
+const BotGuild = require('../../db/mongo/BotGuild');
+const BotGuildModel = require('../bot-guild');
 const winston = require('winston');
 
 /**

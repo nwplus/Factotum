@@ -1,8 +1,8 @@
-const PermissionCommand = require('./permission-command');
-const discordServices = require('../discord-services');
-const Activity = require('./activity');
+const PermissionCommand = require('../permission-command');
+const discordServices = require('../../discord-services');
+const Activity = require('../old-activity');
 const { Message } = require('discord.js');
-const BotGuildModel = require('./bot-guild');
+const BotGuildModel = require('../bot-guild');
 
 /**
  * The ActivityCommand class is a special class used for activity commands. It extends

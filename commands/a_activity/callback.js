@@ -1,8 +1,8 @@
 // Discord.js commando requirements
 const discordServices = require('../../discord-services');
-const ActivityCommand = require('../../classes/activity-command');
-const Activity = require('../../classes/activity');
-const ActivityManager = require('../../classes/activity-manager');
+const ActivityCommand = require('../../classes/activities/activity-command');
+const Activity = require('../../classes/activities/activity');
+const ActivityManager = require('../../classes/activities/activity-manager');
 
 // Command export
 module.exports = class ActivityCallback extends ActivityCommand {

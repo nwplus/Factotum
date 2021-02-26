@@ -1,6 +1,6 @@
 const discordServices = require('../../discord-services');
-const Activity = require('../../classes/activity');
-const ActivityCommand = require('../../classes/activity-command');
+const Activity = require('../../classes/activities/activity');
+const ActivityCommand = require('../../classes/activities/activity-command');
 
 // Command export
 module.exports = class RemoveActivity extends ActivityCommand {

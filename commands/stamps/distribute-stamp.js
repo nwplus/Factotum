@@ -1,7 +1,7 @@
 const discordServices = require('../../discord-services');
 const PermissionCommand = require('../../classes/permission-command');
-const Activity = require('../../classes/activity');
-const ActivityManager = require('../../classes/activity-manager');
+const Activity = require('../../classes/activities/activity');
+const ActivityManager = require('../../classes/activities/activity-manager');
 
 module.exports = class DistributeStamp extends PermissionCommand {
     constructor(client) {

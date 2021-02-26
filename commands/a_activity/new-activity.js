@@ -2,7 +2,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
-const Activity = require('../../classes/activity');
+const Activity = require('../../classes/old-activity');
 const { numberPrompt, rolePrompt } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
 
@@ -46,6 +46,7 @@ module.exports = class NewActivity extends PermissionCommand {
         } catch (error) {
             allowedRoles = new Discord.Collection();
         }
+        allowedRoles.set(botGuild.roleIDs.staffRole, message.guild.roles.resolve(botGuild.roleIDs.staffRole));
         let activity = await new Activity(activityName, message.guild, allowedRoles).init();
 
         // report success of activity creation
