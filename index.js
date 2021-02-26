@@ -203,7 +203,7 @@ bot.on('guildMemberAdd', async member => {
 });
 
 bot.on('commandRun', (command, promise, message, args) => {
-    winston.loggers.get(message.guild.id).command(`The command ${command.name} with args ${args} is being run from the channel ${message.channel} with id ${message.channel.id} 
+    winston.loggers.get(message?.guild?.id || 'main').command(`The command ${command.name} with args ${args} is being run from the channel ${message.channel} with id ${message.channel.id} 
         triggered by the message with id ${message.id} by the user with id ${message.author.id}`);
 })
 
