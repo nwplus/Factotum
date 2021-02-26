@@ -1,4 +1,4 @@
-const { Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable, Emoji, GuildEmoji } = require('discord.js');
+const { Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable, Emoji, GuildEmoji, MessageEmbed, Message } = require('discord.js');
 const winston = require('winston');
 const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../bot-guild');
@@ -112,6 +112,12 @@ class Activity {
         };
 
         /**
+         * The message that holds the admin console.
+         * @type {Message}
+         */
+        this.adminConsoleMsg;
+
+        /**
          * The mongoose BotGuildModel Object
          * @type {BotGuildModel}
          */
@@ -122,6 +128,8 @@ class Activity {
          * @type {Collection<String, ActivityFeature>} - <Feature name, Feature>
          */
         this.features = new Collection();
+
+        this.addDefaultFeatures();
 
         winston.loggers.get(guild.id).event(`An activity named ${this.name} was created.`, {data: {permissions: this.rolesAllowed}});
     }
@@ -166,7 +174,7 @@ class Activity {
     }
 
     /**
-     * Initialize this activity by creating the channels.
+     * Initialize this activity by creating the channels and sending the admin console.
      * @async
      * @returns {Promise<Activity>}
      */
@@ -183,6 +191,8 @@ class Activity {
             parent: this.channels.category,
             type: 'voice',
         });
+
+        await this.sendAdminConsole();
 
         winston.loggers.get(this.guild.id).event(`The activity ${this.name} was initialized.`, {event: "Activity"});
         return this;
@@ -209,6 +219,26 @@ class Activity {
             position: position >= 0 ? position : 0,
             permissionOverwrites: overwrites
         });
+    }
+
+    /**
+     * Creates the admin console containing the features.
+     * @private
+     * @async
+     */
+    async sendAdminConsole() {
+        const adminConsoleEmbed = new MessageEmbed()
+            .setColor(this.botGuild.colors.embedColor)
+            .setTitle(`Activity ${this.name} console.`)
+            .setDescription(`This activity's information can be found below, you can also find the features available.`);
+
+        this.features.forEach((feature, key, map) => {
+            adminConsoleEmbed.addField(feature.name, `${feature.emoji.name} - ${feature.description}`);
+        });
+
+        /** @type {TextChannel} */
+        let adminConsoleChannel = this.guild.channels.resolve(this.botGuild.channelIDs.adminConsole);
+        this.adminConsoleMsg = await adminConsoleChannel.send(adminConsoleEmbed);
     }
 
     /**
