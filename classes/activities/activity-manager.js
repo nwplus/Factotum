@@ -23,27 +23,6 @@ class ActivityManager {
         winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} had its voice channels called backs.`, {event: "Activity Manager"});
     }
 
-
-    /**
-     * Shuffle users in general voice as groups in firebase
-     * @param {Activity} activity - the activity to use
-     */
-    static async groupShuffle(activity) {
-        let groups = activity.teams;
-
-        let channels = activity.category.children.filter(channel => channel.type === 'voice' && channel.id != activity.generalVoice.id);
-
-        // loop over the groups and channels at the same time using an index, add users for each group in a single voice channel
-        for (var index = 0; index < channels.size; index++) {
-            groups[index]['members'].forEach(username => {
-                activity.generalVoice.members.find(member => member.user.username === username).voice.setChannel(channels[index]);
-            });
-        }
-
-        winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} had its groups shuffled.`, {event: "Activity Manager"});
-    }
-
-
     /**
      * Shuffle users with a role from the general voice channel to all the other voice channels
      * @param {Activity} activity - the activity to use
