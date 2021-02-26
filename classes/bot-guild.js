@@ -446,19 +446,22 @@ module.exports = class BotGuild {
     async setCommandStatus(client) {
         /** @type {CommandoGuild} */
         let guild = await client.guilds.fetch(this._id);
-        if (this.verification.isEnabled) guild.setCommandEnabled('verify', true);
-        if (this.attendance.isEnabled) {
-            guild.setCommandEnabled('start-attend', true);
-            guild.setCommandEnabled('attend', true);
-        }
-        if (this.stamps.isEnabled) guild.setGroupEnabled('stamps', true);
-        if (this.report.isEnabled) guild.setCommandEnabled('report', true);
-        if (this.ask.isEnabled) guild.setCommandEnabled('ask', true);
-        if (this.isSetUpComplete) {
-            client.registry.groups.forEach((group, key, map) => {
-                if (group.id.startsWith('a_')) guild.setGroupEnabled(group, true);
-            });
-        }
+
+        guild.setCommandEnabled('verify', this.verification.isEnabled);
+        guild.setCommandEnabled('start-attend', this.attendance.isEnabled);
+        guild.setCommandEnabled('attend',  this.attendance.isEnabled);
+        guild.setGroupEnabled('verification', this.attendance.isEnabled || this.verification.isEnabled);
+
+        guild.setGroupEnabled('stamps', this.stamps.isEnabled);
+
+        guild.setCommandEnabled('report', this.report.isEnabled);
+        guild.setCommandEnabled('ask', this.ask.isEnabled);
+        guild.setGroupEnabled('hacker_utility', this.ask.isEnabled || this.report.isEnabled);
+        
+        client.registry.groups.forEach((group, key, map) => {
+            if (group.id.startsWith('a_')) guild.setGroupEnabled(group, this.isSetUpComplete);
+        });
+
         winston.loggers.get(guild.id).verbose(`Set the command status of guild ${guild.name} with id ${guild.id}`);
     }
 }
