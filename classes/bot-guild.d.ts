@@ -19,6 +19,7 @@ interface BotGuild extends Document {
         adminConsole: String,
         adminLog: String,
         botSupportChannel: String,
+        archiveCategory: String,
     },
 
     verification: {
