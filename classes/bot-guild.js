@@ -215,24 +215,24 @@ module.exports = class BotGuild {
     /**
      * Will set up the verification process.
      * @param {CommandoClient} client 
-     * @param {String} guestRoleID
+     * @param {String} guestRoleId
      * @param {TypeInfo[]} types
      * @param {VerificationChannels} [verificationChannels]
      * @return {Promise<BotGuild>}
      * @async
      */
-    async setUpVerification(client, guestRoleID, types, verificationChannels = null) {
+    async setUpVerification(client, guestRoleId, types, verificationChannels = null) {
         /** @type {CommandoGuild} */
         let guild = await client.guilds.fetch(this._id);
 
         try {
-            var guestRole = await guild.roles.fetch(guestRoleID);
+            var guestRole = await guild.roles.fetch(guestRoleId);
         } catch (error) {
             throw new Error('The given guest role ID is not valid for this guild!');
         }
         guestRole.setMentionable(false);
         guestRole.setPermissions(0);
-        this.verification.guestRoleID = guestRoleID;
+        this.verification.guestRoleID = guestRoleId;
 
         if (verificationChannels) {
             this.verification.welcomeChannelID = verificationChannels.welcomeChannelID;
@@ -390,6 +390,8 @@ module.exports = class BotGuild {
         this.stamps.stampCollectionTime = stampCollectionTime;
         this.stamps.isEnabled = true;
 
+        this.setCommandStatus(client);
+
         return this;
     }
 
@@ -454,8 +456,9 @@ module.exports = class BotGuild {
         if (this.ask.isEnabled) guild.setCommandEnabled('ask', true);
         if (this.isSetUpComplete) {
             client.registry.groups.forEach((group, key, map) => {
-                if (group.name.startsWith('a_')) guild.setGroupEnabled(group, true);
+                if (group.id.startsWith('a_')) guild.setGroupEnabled(group, true);
             });
         }
+        winston.loggers.get(guild.id).verbose(`Set the command status of guild ${guild.name} with id ${guild.id}`);
     }
 }

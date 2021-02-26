@@ -10,7 +10,7 @@
     "guestRoleID" : "778651193362481213",
     "welcomeChannelID" : "811741918253547540",
     "welcomeChannelSupportID" : "811741919008784454",
-    "verificationRoles" : [
+    "types" : [
         {
             "type" : "cmd-f hacker",
             "roleId" : "812441340888612924"
