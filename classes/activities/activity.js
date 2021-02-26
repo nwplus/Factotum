@@ -1,6 +1,8 @@
 const { Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable } = require('discord.js');
 const winston = require('winston');
+const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../bot-guild');
+const { rolePrompt } = require('../prompt');
 
 /**
  * @typedef ActivityChannels
@@ -34,6 +36,35 @@ class Activity {
     static voiceChannelName = '🔊Room-';
     static mainTextChannelName = '🖌️activity-banter';
     static mainVoiceChannelName = '🗣️activity-room';
+
+    /**
+     * Prompts a user for the roles that can have access to an activity.
+     * @param {TextChannel} channel - the channel to prompt in
+     * @param {String} userId - the user id to prompt
+     * @param {Boolean} [isStaffAuto=false] - true if staff are added automatically
+     * @returns {Promise<Collection<String, Role>>}
+     * @async
+     * @static
+     */
+    static async promptForRoleParticipants(channel, userId, isStaffAuto = false) {
+        let allowedRoles = new Collection();
+        
+        try {
+            allowedRoles = await rolePrompt({ prompt: `What roles${isStaffAuto ? ', aside from Staff,' : ''} will be allowed to view this activity? (Type "cancel" if none)`,
+                channel, userId });
+        } catch (error) {
+            // nothing given is an empty collection viewable to admins only
+        }
+
+        // add staff role
+        
+        if (isStaffAuto) {
+            let staffRoleId = (await BotGuild.findById(channel.guild.id)).roleIDs.staffRole;
+            allowedRoles.set(staffRoleId, channel.guild.roles.resolve(staffRoleId));
+        } 
+
+        return allowedRoles;
+    }
 
     /**
      * Constructor for an activity, will create the category, voice and text channel.

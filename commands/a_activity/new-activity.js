@@ -3,12 +3,13 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Activity = require('../../classes/old-activity');
+const NewActivity = require('../../classes/activities/activity');
 const { numberPrompt, rolePrompt } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
 
 
 // Command export
-module.exports = class NewActivity extends PermissionCommand {
+module.exports = class CreateNewActivity extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'new-activity',
@@ -38,15 +39,7 @@ module.exports = class NewActivity extends PermissionCommand {
      */
     async runCommand(botGuild, message, {activityName}) {
 
-        // prompt user for roles that will be allowed to see this activity.
-        let allowedRoles;
-        try {
-            allowedRoles = await rolePrompt({ prompt: 'What roles, aside from Staff, will be allowed to view this activity? (Type "cancel" if none)',
-                channel: message.channel, userId: message.author.id });
-        } catch (error) {
-            allowedRoles = new Discord.Collection();
-        }
-        allowedRoles.set(botGuild.roleIDs.staffRole, message.guild.roles.resolve(botGuild.roleIDs.staffRole));
+        let allowedRoles = await NewActivity.promptForRoleParticipants(message.channel, message.author.id, true);
         let activity = await new Activity(activityName, message.guild, allowedRoles).init();
 
         // report success of activity creation
