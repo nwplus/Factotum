@@ -44,7 +44,7 @@ const customLoggerLevels = {
 }
 
 // the main logger to use for general errors
-const mainLogger = createALogger('main', 'main', true, false);
+const mainLogger = createALogger('main', 'main', true, true);
 winston.addColors(customLoggerLevels.colors);
 
 
@@ -57,9 +57,10 @@ bot.registry
     .registerGroup('a_activity', 'activity group for admins')
     .registerGroup('a_start_commands', 'advanced admin commands')
     .registerGroup('a_utility', 'utility commands for admins')
-    .registerGroup('utility', 'utility commands for users')
+    .registerGroup('hacker_utility', 'utility commands for users')
     .registerGroup('verification', 'verification commands')
     .registerGroup('stamps', 'stamp related commands')
+    .registerGroup('utility', 'utility commands')
     .registerGroup('essentials', 'essential commands for any guild', true)
     .registerDefaultGroups()
     .registerDefaultCommands({

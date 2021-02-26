@@ -9,7 +9,7 @@ module.exports = class AskQuestion extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'ask',
-            group: 'utility',
+            group: 'hacker_utility',
             memberName: 'ask anonymous question with thread',
             description: 'Will send the question to the same channel, and add emoji collector for thread like support.',
             guildOnly: true,
