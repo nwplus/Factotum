@@ -72,7 +72,7 @@ class Prompt {
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      */
     static async numberPrompt({prompt, channel, userId}) {
-        winston.loggers.get(channel.guild.id).event(`The number prompt has been used in channel ${channel.name} for user ${userId}`, {event: "Prompt"});
+        winston.loggers.get(channel?.guild?.id || 'main').event(`The number prompt has been used in channel ${channel.name} for user ${userId}`, {event: "Prompt"});
         let promptMsg = await Prompt.messagePrompt({prompt, channel, userId}, 'number');
         var invalid = false;
         let numbers = promptMsg.content.split(' ');
@@ -82,7 +82,7 @@ class Prompt {
         });
         if (invalid) {
             discordServices.sendMsgToChannel(channel, userId, 'One of the numbers is invalid, please try again, numbers only!', 10);
-            winston.loggers.get(channel.guild.id).verbose(`The number prompt in channel ${channel.name} for user ${userId} had an invalid response.`, {event: "Prompt"});
+            winston.loggers.get(channel?.guild?.id || 'main').verbose(`The number prompt in channel ${channel.name} for user ${userId} had an invalid response.`, {event: "Prompt"});
             return Prompt.numberPrompt({prompt, channel, userId});
         } else {
             return numbers;
@@ -118,12 +118,12 @@ class Prompt {
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      */
     static async yesNoPrompt({prompt, channel, userId}) {
-        winston.loggers.get(channel.guild.id).event(`The yes/no prompt has been used in channel ${channel.name} for user ${userId}`, {event: "Prompt"});
+        winston.loggers.get(channel?.guild?.id || 'main').event(`The yes/no prompt has been used in channel ${channel.name} for user ${userId}`, {event: "Prompt"});
         let promptMsg = await Prompt.messagePrompt({prompt, channel, userId}, 'boolean');
         if (promptMsg.content.toLowerCase() === 'no') return false;
         else if (promptMsg.content.toLowerCase() === 'yes') return true;
         else {
-            winston.loggers.get(channel.guild.id).verbose(`The number prompt in channel ${channel.name} for user ${userId} had an invalid response, yes or no was not returned.`, {event: "Prompt"});
+            winston.loggers.get(channel?.guild?.id || 'main').verbose(`The number prompt in channel ${channel.name} for user ${userId} had an invalid response, yes or no was not returned.`, {event: "Prompt"});
             return Prompt.yesNoPrompt({prompt, channel, userId});
         }
     }
@@ -137,11 +137,11 @@ class Prompt {
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      */
     static async channelPrompt({prompt, channel, userId}) {
-        winston.loggers.get(channel.guild.id).event(`The channel prompt has been used in channel ${channel.name} for user ${userId}`, {event: "Prompt"});
+        winston.loggers.get(channel?.guild?.id || 'main').event(`The channel prompt has been used in channel ${channel.name} for user ${userId}`, {event: "Prompt"});
         let promptMsg = await Prompt.messagePrompt({prompt, channel, userId}, 'mention');
         let channels = promptMsg.mentions.channels;
         if (!channels.first()) {
-            winston.loggers.get(channel.guild.id).verbose(`The channel prompt in channel ${channel.name} for user ${userId} had an invalid response, no channels were mentioned.`, {event: "Prompt"});
+            winston.loggers.get(channel?.guild?.id || 'main').verbose(`The channel prompt in channel ${channel.name} for user ${userId} had an invalid response, no channels were mentioned.`, {event: "Prompt"});
             channel.send('<@' + userId + '> No channel was mentioned, try again!').then(msg => msg.delete({timeout: 8000}));
             return Prompt.channelPrompt({prompt, channel, userId});
         }
@@ -157,11 +157,11 @@ class Prompt {
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      */
     static async rolePrompt({prompt, channel, userId}) {
-        winston.loggers.get(channel.guild.id).event(`The role prompt has been used in channel ${channel.name} for user ${userId}`, {event: "Prompt"});
+        winston.loggers.get(channel?.guild?.id || 'main').event(`The role prompt has been used in channel ${channel.name} for user ${userId}`, {event: "Prompt"});
         let promptMsg = await Prompt.messagePrompt({prompt, channel, userId}, 'mention');
         let roles = promptMsg.mentions.roles;
         if (!roles.first()) {
-            winston.loggers.get(channel.guild.id).verbose(`The role prompt in channel ${channel.name} for user ${userId} had an invalid response, no roles were mentioned.`, {event: "Prompt"});
+            winston.loggers.get(channel?.guild?.id || 'main').verbose(`The role prompt in channel ${channel.name} for user ${userId} had an invalid response, no roles were mentioned.`, {event: "Prompt"});
             channel.send('<@' + userId + '> You did not mention a role, try again!').then(msg => msg.delete({timeout: 8000}));
             return Prompt.rolePrompt({prompt, channel, userId});
         }
@@ -176,11 +176,11 @@ class Prompt {
      * @throws Will throw an error if the user cancels the Prompt or it times out.
      */
     static async memberPrompt({prompt, channel, userId}) {
-        winston.loggers.get(channel.guild.id).event(`The member prompt has been used in channel ${channel.name} for user ${userId}`, {event: "Prompt"});
+        winston.loggers.get(channel?.guild?.id || 'main').event(`The member prompt has been used in channel ${channel.name} for user ${userId}`, {event: "Prompt"});
         let promptMsg = await Prompt.messagePrompt({prompt, channel, userId}, 'mention');
         let members = promptMsg.mentions.members;
         if (!members.first()) {
-            winston.loggers.get(channel.guild.id).verbose(`The member prompt in channel ${channel.name} for user ${userId} had an invalid response, no members were mentioned.`, {event: "Prompt"});
+            winston.loggers.get(channel?.guild?.id || 'main').verbose(`The member prompt in channel ${channel.name} for user ${userId} had an invalid response, no members were mentioned.`, {event: "Prompt"});
             channel.send('<@' + userId + '> You did not mention a member, try again!').then(msg => msg.delete({timeout: 8000}));
             return Prompt.rolePrompt({prompt, channel, userId});
         }

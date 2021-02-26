@@ -61,7 +61,7 @@ async function sendMessageToMember(member, message, isDelete = false) {
         return msg;
     }).catch(async error => {
         if (error.code === 50007) {
-            winston.loggers.get(member.guild.id).warning(`A DM message was sent to user with id ${member.id} but failed, he has been asked to fix this problem!`);
+            winston.loggers.get(member?.guild?.id || 'main').warning(`A DM message was sent to user with id ${member.id} but failed, he has been asked to fix this problem!`);
             let botGuild;
             if (member?.guild) botGuild = await BotGuild.findById(member.guild.id);
             else {
@@ -124,6 +124,8 @@ module.exports.sendEmbedToMember = sendEmbedToMember;
  * @param {Discord.RoleResolvable} addRole - the role to add to the member
  */
 function addRoleToMember(member, addRole) {
+    if (!member?.guild) throw Error('I need a member not a user!!!');
+    
     let role = member.guild.roles.resolve(addRole);
     member.roles.add(addRole).catch(error => {
         // try one more time
