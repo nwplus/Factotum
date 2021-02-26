@@ -268,7 +268,6 @@ class Activity {
                 discordServices.deleteChannel(channel);
             }
         }
-
         return final;
     }
 
