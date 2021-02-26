@@ -1,4 +1,4 @@
-const { Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable } = require('discord.js');
+const { Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable, Emoji, GuildEmoji } = require('discord.js');
 const winston = require('winston');
 const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../bot-guild');
@@ -24,6 +24,14 @@ const { rolePrompt } = require('../prompt');
  * @typedef RolePermission
  * @property {String} roleID - the role snowflake
  * @property {PermissionOverwriteOption} permissions - the permissions to set to that role
+ */
+
+/**
+ * @typedef ActivityFeature
+ * @property {Emoji | GuildEmoji} emoji
+ * @property {String} name
+ * @property {String} description
+ * @property {Function} callback
  */
 
 /**
@@ -109,7 +117,52 @@ class Activity {
          */
         this.botGuild = botGuild;
 
+        /**
+         * All the features this activity has to show in the console.
+         * @type {Collection<String, ActivityFeature>} - <Feature name, Feature>
+         */
+        this.features = new Collection();
+
         winston.loggers.get(guild.id).event(`An activity named ${this.name} was created.`, {data: {permissions: this.rolesAllowed}});
+    }
+
+    /**
+     * @private
+     */
+    addDefaultFeatures() {
+        this.features.set('Add Voice Channel', {
+            name: 'Add Voice Channel',
+            description: 'Add one voice channel to the activity.',
+            emoji: this.guild.emojis.resolve('⏫'),
+            callback: () => {
+                this.addVoiceChannels(1);
+            }
+        });
+        this.features.set('Remove Voice Channel', {
+            name: 'Remove Voice Channel',
+            description: 'Remove one voice channel.',
+            emoji: this.guild.emojis.resolve('⏬'),
+            callback: () => {
+                this.removeVoiceChannels(1);
+            }
+        });
+        this.features.set('Delete', {
+            name: 'Delete', 
+            description: 'Delete this activity and its channels.',
+            emoji: this.guild.emojis.resolve('⛔'),
+            callback: () => {
+                this.delete();
+            }
+        });
+        this.features.set('Archive', {
+            name: 'Archive',
+            description: 'Archive the activity, text channels are saved.',
+            emoji: this.guild.emojis.resolve('💼'),
+            callback: () => {
+                let archiveCategory = this.guild.channels.resolve(this.botGuild.channelIDs.archiveCategory);
+                this.archive(archiveCategory);
+            }
+        });
     }
 
     /**
