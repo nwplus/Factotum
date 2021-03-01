@@ -3,7 +3,7 @@ const winston = require('winston');
 const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../bot-guild');
 const { rolePrompt } = require('../prompt');
-const { deleteChannel, deleteMessage } = require('../../discord-services');
+const { deleteChannel, deleteMessage, chooseChannel } = require('../../discord-services');
 
 /**
  * @typedef ActivityChannels
@@ -174,6 +174,12 @@ class Activity {
                 this.archive(archiveCategory);
             }
         });
+        this.features.set('Callback', {
+            name: 'Callback',
+            description: 'Will move all users in the activity\'s voice channels back to a specified voice channel.',
+            emoji: '🌬️',
+            callback: (user) => this.voiceCallBack(this.adminConsoleMsg.channel, user.id),
+        })
     }
 
     /**
@@ -252,7 +258,7 @@ class Activity {
         adminConsoleCollector.on('collect', (reaction, user) => {
             let feature = this.features.find(feature => feature.emoji === reaction.emoji.name);
 
-            if (feature) feature.callback();
+            if (feature) feature.callback(user);
 
             reaction.users.remove(user);
         });
@@ -382,6 +388,21 @@ class Activity {
             await channel.edit({ userLimit: limit });
         });
         winston.loggers.get(this.guild.id).verbose(`The activity ${this.name} had its voice channels added a limit of ${limit}`, {event: "Activity"});
+    }
+
+    /**
+     * Move all users back to a specified voice channel from the activity's voice channels.
+     * @param {TextChannel} channel - channel to prompt user for specified voice channel
+     * @param {String} userId - user to prompt for specified voice channel
+     */
+    async voiceCallBack(channel, userId) {
+        let mainChannel = await chooseChannel(this.channels.voiceChannels.array(), channel, userId);
+
+        this.channels.voiceChannels.forEach(channel => {
+            channel.members.forEach(member => member.voice.setChannel(mainChannel));
+        });
+
+        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channels called backs to channel ${mainChannel.name}.`, {event: "Activity Manager"});
     }
 }
 
