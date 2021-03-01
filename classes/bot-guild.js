@@ -1,6 +1,7 @@
-const { Collection, Snowflake, Guild, TextChannel, Role, GuildAuditLogs, Message, MessageEmbed } = require('discord.js');
+const { Collection, Snowflake, TextChannel, Role, GuildAuditLogs, Message, MessageEmbed, CategoryChannel, Guild } = require('discord.js');
 const { CommandoClient, CommandoGuild } = require('discord.js-commando');
 const winston = require('winston');
+const { cli } = require('winston/lib/winston/config');
 const discordServices = require('../discord-services');
 
 /**
@@ -154,11 +155,46 @@ module.exports = class BotGuild {
         ]);
         adminCategory.children.forEach(channel => channel.lockPermissions());
 
+        // create the archive category
+        this.channelIDs.archiveCategory = (await this.createArchiveCategory(guild)).id;
+
         this.isSetUpComplete = true;
 
         winston.loggers.get(this._id).event(`The botGuild has run the ready up function.`, {event: "Bot Guild"});
 
         return this;
+    }
+
+    /**
+     * Creates the archive category.
+     * @returns {Promise<CategoryChannel>}
+     * @param {Guild} guild
+     * @private
+     * @async
+     */
+    async createArchiveCategory(guild) {
+        let overwrites = [
+            {
+                id: this.roleIDs.everyoneRole,
+                deny: ['VIEW_CHANNEL']
+            },
+            {
+                id: this.roleIDs.memberRole,
+                allow: ['VIEW_CHANNEL'],
+            },
+            {
+                id: this.roleIDs.staffRole,
+                allow: ['VIEW_CHANNEL'],
+            }
+        ];
+
+        // position is used to create archive at the very bottom!
+        var position = (guild.channels.cache.filter(channel => channel.type === 'category')).size;
+        return await guild.channels.create('💼archive', {
+            type: 'category', 
+            position: position + 1,
+            permissionOverwrites: overwrites,
+        });
     }
 
     /**

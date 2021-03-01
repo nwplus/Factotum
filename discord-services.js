@@ -1,4 +1,4 @@
-const Discord = require('discord.js');
+const { GuildMember, TextChannel, Message, User, MessageEmbed, RoleResolvable } = require('discord.js');
 const winston = require('winston');
 const BotGuild = require('./db/mongo/BotGuild');
 
@@ -17,8 +17,8 @@ module.exports.sponsorCategory = sponsorCategory;
 
 /**
  * Checks if the member has a role, returns true if it does
- * @param {Discord.GuildMember} member - member to check role
- * @param {Discord.Snowflake} role - role ID to check for
+ * @param {GuildMember} member - member to check role
+ * @param {String} role - role ID to check for
  */
 function checkForRole(member, role) {
     winston.loggers.get(member.guild.id).verbose(`A role check was requested. Role ID: ${role}. Member ID: ${member.id}`);
@@ -28,12 +28,12 @@ module.exports.checkForRole = checkForRole;
 
 /**
  * Will send a message to a text channel and ping the user, can be deleted after a timeout.
- * @param {Discord.TextChannel} channel - the channel to send the message to
- * @param {Discord.Snowflake} userId - the user to tag on the message
+ * @param {TextChannel} channel - the channel to send the message to
+ * @param {String} userId - the user to tag on the message
  * @param {String} message - the message to send
  * @param {Number} timeout - timeout before delete if any, in seconds
  * @async
- * @returns {Promise<Discord.Message>}
+ * @returns {Promise<Message>}
  */
 async function sendMsgToChannel(channel, userId, message, timeout = 0) {
     let msg = await channel.send('<@' + userId + '> ' + message);
@@ -46,11 +46,11 @@ module.exports.sendMsgToChannel = sendMsgToChannel;
 
 /**
  * Send a Direct message to a member, option to delete after 10 seconds
- * @param {Discord.User | Discord.GuildMember} member - the user or member to send a DM to
- * @param {String | Discord.MessageEmbed} message - the message to send
+ * @param {User | GuildMember} member - the user or member to send a DM to
+ * @param {String | MessageEmbed} message - the message to send
  * @param {Boolean} isDelete - weather to delete message after 10 seconds
  * @async
- * @return {Promise<Discord.Message>}
+ * @return {Promise<Message>}
  */
 async function sendMessageToMember(member, message, isDelete = false) {
     return await member.send(message).then(msg => {
@@ -95,11 +95,11 @@ module.exports.sendMessageToMember = sendMessageToMember;
 
 /**
  * Sends an embed to a user via DM. Title and description are required, color and fields are optional.
- * @param {Discord.User | Discord.GuildMember} member - member to send embed to
+ * @param {User | GuildMember} member - member to send embed to
  * @param {EmbedOptions} embedOptions - embed information
  * @param {Boolean} isDelete - should the message be deleted after some time?
  * @async
- * @returns {Promise<Discord.Message>}
+ * @returns {Promise<Message>}
  */
 async function sendEmbedToMember(member, embedOptions, isDelete = false) {
     // check embedOptions
@@ -107,7 +107,7 @@ async function sendEmbedToMember(member, embedOptions, isDelete = false) {
     if (embedOptions?.description === undefined || embedOptions?.description === '') throw new Error('A description is needed for the embed!');
     if (embedOptions?.color === undefined || embedOptions?.color === '') embedOptions.color === '#ff0000';
 
-    let embed = new Discord.MessageEmbed().setColor(embedOptions.color)
+    let embed = new MessageEmbed().setColor(embedOptions.color)
                         .setTitle(embedOptions.title)
                         .setDescription(embedOptions.description)
                         .setTimestamp();
@@ -120,8 +120,8 @@ module.exports.sendEmbedToMember = sendEmbedToMember;
 
 /**
  * Add a role to a member
- * @param {Discord.GuildMember} member - the guild member to give a role to
- * @param {Discord.RoleResolvable} addRole - the role to add to the member
+ * @param {GuildMember} member - the guild member to give a role to
+ * @param {RoleResolvable} addRole - the role to add to the member
  */
 function addRoleToMember(member, addRole) {
     if (!member?.guild) throw Error('I need a member not a user!!!');
@@ -141,8 +141,8 @@ module.exports.addRoleToMember = addRoleToMember;
 
 /**
  * Remove a role to a member
- * @param {Discord.GuildMember} member - the guild member to give a role to
- * @param {Discord.RoleResolvable} removeRole - the role to add to the member
+ * @param {GuildMember} member - the guild member to give a role to
+ * @param {RoleResolvable} removeRole - the role to add to the member
  */
 function removeRolToMember(member, removeRole) {
     let role = member.guild.roles.resolve(removeRole);
@@ -160,9 +160,9 @@ module.exports.removeRolToMember = removeRolToMember;
 
 /**
  * Replaces one role for the other
- * @param {Discord.GuildMember} member - member to change roles to
- * @param {Discord.RoleResolvable} removeRole - role to remove
- * @param {Discord.RoleResolvable} addRole - role to add
+ * @param {GuildMember} member - member to change roles to
+ * @param {RoleResolvable} removeRole - role to remove
+ * @param {RoleResolvable} addRole - role to add
  */
 function replaceRoleToMember(member, removeRole, addRole) {
     addRoleToMember(member, addRole);
@@ -172,8 +172,8 @@ module.exports.replaceRoleToMember = replaceRoleToMember;
 
 /**
  * Log a message on the log channel
- * @param {Discord.Guild} guild - the guild being used
- * @param {String | Discord.MessageEmbed} message - message to send to the log channel
+ * @param {Guild} guild - the guild being used
+ * @param {String | MessageEmbed} message - message to send to the log channel
  * @async
  */
 async function discordLog(guild, message) {
@@ -188,7 +188,7 @@ module.exports.discordLog = discordLog;
 
 /**
  * Reply to message and delete 5 seconds later
- * @param {Discord.Message} message - the message to reply to
+ * @param {Message} message - the message to reply to
  * @param {String} reply - the string to reply
  */
 async function replyAndDelete(message, reply) {
@@ -200,16 +200,17 @@ module.exports.replyAndDelete = replyAndDelete;
 
 /**
  * Deletes a message if the message hasn't been deleted already
- * @param {Discord.Message} message - the message to delete
+ * @param {Message} message - the message to delete
  * @param {Number} timeout - the time to wait in milliseconds
+ * @async
  */
-function deleteMessage(message, timeout = 0) {
+async function deleteMessage(message, timeout = 0) {
     if (!message.deleted && message.deletable &&  message.channel.type != 'dm') {
         winston.loggers.get(message.guild.id).verbose(`A message with id ${message.id} in the guild channel ${message.channel.name} with id ${message.channel.id} was deleted.`);
-        message.delete({timeout: timeout});
+        await message.delete({timeout: timeout});
     } else if (message.channel.type === 'dm' && message.author.bot) {
         winston.loggers.get('main').verbose(`A message with id ${message.id} in a DM channel with user id ${message.channel.recipient.id} from the bot was deleted.`);
-        message.delete({timeout: timeout})
+        await message.delete({timeout: timeout})
     } else {
         winston.loggers.get(message?.guild.id | 'main').warning(`A message with id ${message.id} in a DM channel from user with id ${message.author.id} tried to be deleted but was not possible.`);
     }
@@ -218,12 +219,12 @@ module.exports.deleteMessage = deleteMessage;
 
 /**
  * Delete the given channel if it is not deleted already
- * @param {Discord.TextChannel} channel 
+ * @param {TextChannel} channel 
  */
 async function deleteChannel(channel) {
     if (!channel.deleted && channel.deletable) {
         winston.loggers.get(channel.guild.id).verbose(`The channel ${channel.name} with id ${channel.id} was deleted.`);
-        await channel.delete().catch(console.error);
+        await channel.delete();
     } else {
         winston.loggers.get(channel.guild.id).warning(`The channel ${channel?.name} with id ${channel?.id} tried to be deleted but was not possible!`);
     }
@@ -263,3 +264,16 @@ function validateEmail(email) {
     }
 }
 module.exports.validateEmail = validateEmail;
+
+/**
+ * will shuffle an array as best and fast as possible
+ * @param {Array<*>} array - array to shuffle
+ * @private
+ */
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+module.exports.shuffleArray = shuffleArray;
