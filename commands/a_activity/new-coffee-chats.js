@@ -43,9 +43,9 @@ module.exports = class InitCoffeeChats extends PermissionCommand {
 
         let roleParticipants = await Activity.promptForRoleParticipants(message.channel, message.author.id, true);
 
-        let coffeeChats = await new CoffeeChats({activityName: activityName, guild: message.guild, roleParticipants: roleParticipants, botGuild: botGuild}, numOfGroups).init();
+        let coffeeChats = await new CoffeeChats({activityName: activityName, guild: message.guild, roleParticipants: roleParticipants, botGuild: botGuild}, numOfGroups).init(message.channel, message.author.id);
 
         // report success of coffee chat creation
-        discordServices.replyAndDelete(message,'Activity named: ' + activity.name + ' now has coffee chat functionality.');
+        discordServices.replyAndDelete(message,'Activity named: ' + activityName + ' now has coffee chat functionality.');
     }
 };

@@ -76,6 +76,8 @@ class Workshop extends Activity {
          * @type {Collection<String, PollInfo>} - <Poll type, PollInfo>
          */
         this.polls = new Collection;
+
+        this.addDefaultPolls();
     }
 
     async init() {
@@ -442,7 +444,7 @@ class Workshop extends Activity {
         // create poll
         let description = poll.question + '\n\n';
         for (const key of poll.responses.keys()) {
-            description += '**' + poll.response.get(key) + '->** ' + key + '\n\n';
+            description += '**' + poll.responses.get(key) + '->** ' + key + '\n\n';
         }
 
         let qEmbed = new MessageEmbed()

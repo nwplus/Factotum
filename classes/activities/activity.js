@@ -3,7 +3,7 @@ const winston = require('winston');
 const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../bot-guild');
 const { rolePrompt } = require('../prompt');
-const discordServices = require('../../discord-services');
+const { deleteChannel, deleteMessage } = require('../../discord-services');
 
 /**
  * @typedef ActivityChannels
@@ -318,7 +318,7 @@ class Activity {
             let channel = this.channels.voiceChannels.get(channelName);
             if (channel != undefined) {
                 winston.loggers.get(this.guild.id).event(`The activity ${this.name} lost a voice channel named ${channelName}`, {event: "Activity"});
-                discordServices.deleteChannel(channel);
+                deleteChannel(channel);
             }
         }
 
@@ -344,10 +344,10 @@ class Activity {
 
         for(let i = 0; i < channels.length; i++) {
             this.botGuild.blackList.delete(channels[i].id);
-            await discordServices.deleteChannel(channels[i]);
+            await deleteChannel(channels[i]);
         }
 
-        await discordServices.deleteChannel(this.channels.category);
+        await deleteChannel(this.channels.category);
 
         this.botGuild.save();
 
@@ -361,12 +361,12 @@ class Activity {
     async delete() {
         var listOfChannels = this.channels.category.children.array();
         for (var i = 0; i < listOfChannels.length; i++) {
-            await discordServices.deleteChannel(listOfChannels[i]);
+            await deleteChannel(listOfChannels[i]);
         }
 
-        await discordServices.deleteChannel(this.channels.category);
+        await deleteChannel(this.channels.category);
 
-        await discordServices.deleteMessage(this.adminConsoleMsg);
+        await deleteMessage(this.adminConsoleMsg);
 
         winston.loggers.get(this.guild.id).event(`The activity ${this.name} was deleted!`, {event: "Activity"});
     }

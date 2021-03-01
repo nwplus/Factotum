@@ -50,6 +50,8 @@ class CoffeeChats extends Activity {
     /**
      * Initializes the activity by creating the necessary channels.
      * @returns {Promise<CoffeeChats>}
+     * @param {TextChannel} channel
+     * @param {String} userId
      */
     async init(channel, userId) {
         await super.init();
@@ -61,7 +63,7 @@ class CoffeeChats extends Activity {
             this.mainVoiceChannel = this.channels.voiceChannels.find(voiceChannel => voiceChannel.name.toLowerCase().includes(mainRoomName));
         }
 
-        this.addVoiceChannels(this.numOfGroups, true);
+        this.addVoiceChannels(this.numOfGroups);
 
         this.joinGroupChannel = await this.addChannel('☕' + 'join-activity', {
             type: 'text',
@@ -93,7 +95,7 @@ class CoffeeChats extends Activity {
 
         // reactor collector and its filter
         const emojiFilter = (reaction, user) => !user.bot && reaction.emoji.name === emoji;
-        const emojiCollector = joinMsg.createReactionCollector(emojiFilter, {max: numOfGroups});
+        const emojiCollector = joinMsg.createReactionCollector(emojiFilter);
 
         emojiCollector.on('collect', async (reaction, user) => {
 
