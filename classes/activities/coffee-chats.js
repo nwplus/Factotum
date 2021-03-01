@@ -1,8 +1,8 @@
 const Activity = require("./activity");
 const { MessageEmbed, TextChannel, User, GuildMember, Collection, VoiceChannel } = require('discord.js');
-const { memberPrompt, messagePrompt } = require("../prompt");
+const { memberPrompt, chooseChannel } = require("../prompt");
 const winston = require("winston");
-const { sendMsgToChannel, chooseChannel } = require("../../discord-services");
+const { sendMsgToChannel } = require("../../discord-services");
 
 /**
  * A CoffeeChat is a special activity where users join as a team. The teams are then 

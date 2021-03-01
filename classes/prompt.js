@@ -212,6 +212,33 @@ class Prompt {
         embedMsg.delete();
         return options.get(emojiResponse.first().emoji.name);
     }
-}
 
+    /**
+     * Lets a user choose a channel from a list of channels by responding with a number.
+     * @param {String} embedTitle
+     * @param {GuildChannel[]} channels - channels to choose from
+     * @param {TextChannel} channel - channel to prompt in
+     * @param {String} userId - user to prompt to
+     * @returns {Promise<TextChannel | VoiceChannel>}
+     * @async
+     */
+    static async chooseChannel(embedTitle, channels, channel, userId) {
+        let channelList = '';
+
+        channels.forEach((textChannel, index, list) => {
+            channelList += `\n${index} - ${textChannel.name}`;
+        });
+
+        const embed = new MessageEmbed().setTitle(embedTitle).setDescription(channelList);
+
+        let embedMsg = await channel.send(embed);
+
+        let spotChosen = await numberPrompt({ prompt: 'Please respond with the channel number from the list found above!', channel, userId });
+
+        embedMsg.delete();
+
+        if (spotChosen <= channels.length) return channels[spotChosen];
+        else return chooseChannel(channels, channel, userId);
+    }
+}
 module.exports = Prompt;

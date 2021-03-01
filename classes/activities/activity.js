@@ -2,8 +2,8 @@ const { Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, Ove
 const winston = require('winston');
 const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../bot-guild');
-const { rolePrompt, messagePrompt, reactionPicker } = require('../prompt');
-const { deleteChannel, deleteMessage, chooseChannel, shuffleArray, sendMsgToChannel } = require('../../discord-services');
+const { rolePrompt, messagePrompt, reactionPicker, chooseChannel } = require('../prompt');
+const { deleteChannel, deleteMessage, shuffleArray, sendMsgToChannel } = require('../../discord-services');
 const StampsManager = require('../stamps-manager');
 
 /**
