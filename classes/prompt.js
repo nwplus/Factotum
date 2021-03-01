@@ -233,7 +233,7 @@ class Prompt {
 
         let embedMsg = await channel.send(embed);
 
-        let spotChosen = await numberPrompt({ prompt: 'Please respond with the channel number from the list found above!', channel, userId });
+        let spotChosen = await Prompt.numberPrompt({ prompt: 'Please respond with the channel number from the list found above!', channel, userId });
 
         embedMsg.delete();
 
