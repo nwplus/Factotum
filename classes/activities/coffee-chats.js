@@ -60,7 +60,7 @@ class CoffeeChats extends Activity {
 
         this.addVoiceChannels(this.numOfGroups);
 
-        this.joinGroupChannel = await this.addChannel('☕' + 'join-activity', {
+        this.joinGroupChannel = await this.addChannelHelper('☕' + 'join-activity', {
             type: 'text',
             topic: 'This channel is only intended to add your team to the activity list! Please do not use it for anything else!',
         });

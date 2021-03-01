@@ -2,7 +2,7 @@ const { Collection, TextChannel, VoiceChannel, GuildCreateChannelOptions, Messag
 const { CommandoClient } = require('discord.js-commando');
 const winston = require('winston');
 const { randomColor, sendMessageToMember, sendMsgToChannel } = require('../../discord-services');
-const { messagePrompt } = require('../prompt');
+const { messagePrompt, yesNoPrompt } = require('../prompt');
 const Activity = require("./activity");
 
 
@@ -92,7 +92,7 @@ class Workshop extends Activity {
             topic: `For TAs to talk without cluttering the console.`,
         });
 
-        this.assistanceChannel = await super.addChannel(`🙋🏽assistance`, {
+        this.assistanceChannel = await super.addChannelHelper(`🙋🏽assistance`, {
             type: 'text',
             topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
         });
@@ -165,6 +165,25 @@ class Workshop extends Activity {
     }
 
     /**
+     * Adds a channel to the activity, ask if it will be for TAs or not.
+     * @param {TextChannel} channel - channel to prompt user
+     * @param {String} userId - user to prompt for channel info
+     */
+    async addChannel(channel, userId) {
+        // ask if it will be for TA
+        let isTa = await yesNoPrompt({ prompt: 'Is this channel for TAs?', channel, userId });
+
+        if (isTa) {
+            /** @type {TextChannel} */
+            let newChannel = await super.addChannel(channel, userId);
+            this.getTAChannelPermissions().forEach(rolePermission => newChannel.updateOverwrite(rolePermission.id, rolePermission.permissions));
+            this.TAChannels.set(newChannel.name, newChannel);
+        } else {
+            super.addChannel(channel, userId);
+        }
+    }
+
+    /**
      * Creates a channel only available to TAs
      * @param {String} name 
      * @param {GuildCreateChannelOptions} info
@@ -173,35 +192,36 @@ class Workshop extends Activity {
      */
     async addTAChannel(name, info) {
 
-        /** The permissions for the TA channels */
-        let TAChannelPermissions = [
-            { roleID: this.botGuild.roleIDs.everyoneRole, permissions: { VIEW_CHANNEL: false } },
-        ];
-
-        // add regular activity members to the TA perms list as non tas, so they cant see that channel
-        this.rolesAllowed.forEach(role => {
-            TAChannelPermissions.push({roleID: role.id, permissions: {VIEW_CHANNEL: false}});
-            // this.generalVoice.updateOverwrite(role, {
-            //     SPEAK: false,
-            // });
-        });
-
-        // Loop over ta roles, give them voice channel perms and add them to the TA permissions list
-        this.TARoles.forEach(role => {
-            // this.generalVoice.updateOverwrite(role, {
-            //     SPEAK: true,
-            //     MOVE_MEMBERS: true,
-            //     VIEW_CHANNEL: true,
-            // });
-
-            TAChannelPermissions.push({roleID: role.id, permissions: {VIEW_CHANNEL: true}});
-        });
-
-        let channel = await super.addChannel(name, info, TAChannelPermissions);
+        let channel = await super.addChannelHelper(name, info, this.getTAChannelPermissions());
 
         this.TAChannels.set(channel.name, channel);
 
         return channel;
+    }
+
+    /**
+     * Returns the perms for a TA Channel
+     * @protected
+     * @returns {Activity.RolePermission[]}
+     */
+    getTAChannelPermissions() {
+        /** The permissions for the TA channels */
+        let TAChannelPermissions = [
+            { id: this.botGuild.roleIDs.everyoneRole, permissions: { VIEW_CHANNEL: false } },
+        ];
+
+        // add regular activity members to the TA perms list as non tas, so they cant see that channel
+        this.rolesAllowed.forEach(role => {
+            TAChannelPermissions.push({id: role.id, permissions: {VIEW_CHANNEL: false}});
+
+        });
+
+        // Loop over ta roles, give them voice channel perms and add them to the TA permissions list
+        this.TARoles.forEach(role => {
+            TAChannelPermissions.push({id: role.id, permissions: {VIEW_CHANNEL: true}});
+        });
+
+        return TAChannelPermissions;
     }
 
     /**
