@@ -1,6 +1,5 @@
-const { GuildMember, TextChannel, Message, User, MessageEmbed, RoleResolvable, VoiceChannel, GuildChannel } = require('discord.js');
+const { GuildMember, TextChannel, Message, User, MessageEmbed, RoleResolvable } = require('discord.js');
 const winston = require('winston');
-const { numberPrompt } = require('./classes/prompt');
 const BotGuild = require('./db/mongo/BotGuild');
 
 // where hackers join the wait list to talk to a sponsor
