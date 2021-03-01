@@ -3,10 +3,13 @@ const winston = require('winston');
 const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../bot-guild');
 const { rolePrompt } = require('../prompt');
+const discordServices = require('../../discord-services');
 
 /**
  * @typedef ActivityChannels
  * @property {CategoryChannel} category
+ * @property {TextChannel} generalText
+ * @property {VoiceChannel} generalVoice
  * @property {Collection<String, VoiceChannel>} voiceChannels
  * @property {Collection<String, TextChannel>} textChannels
  */
@@ -28,7 +31,7 @@ const { rolePrompt } = require('../prompt');
 
 /**
  * @typedef ActivityFeature
- * @property {Emoji | GuildEmoji} emoji
+ * @property {String} emoji
  * @property {String} name
  * @property {String} description
  * @property {Function} callback
@@ -135,13 +138,13 @@ class Activity {
     }
 
     /**
-     * @private
+     * @protected
      */
     addDefaultFeatures() {
         this.features.set('Add Voice Channel', {
             name: 'Add Voice Channel',
             description: 'Add one voice channel to the activity.',
-            emoji: this.guild.emojis.resolve('⏫'),
+            emoji: '⏫',
             callback: () => {
                 this.addVoiceChannels(1);
             }
@@ -149,7 +152,7 @@ class Activity {
         this.features.set('Remove Voice Channel', {
             name: 'Remove Voice Channel',
             description: 'Remove one voice channel.',
-            emoji: this.guild.emojis.resolve('⏬'),
+            emoji: '⏬',
             callback: () => {
                 this.removeVoiceChannels(1);
             }
@@ -157,7 +160,7 @@ class Activity {
         this.features.set('Delete', {
             name: 'Delete', 
             description: 'Delete this activity and its channels.',
-            emoji: this.guild.emojis.resolve('⛔'),
+            emoji: '⛔',
             callback: () => {
                 this.delete();
             }
@@ -165,7 +168,7 @@ class Activity {
         this.features.set('Archive', {
             name: 'Archive',
             description: 'Archive the activity, text channels are saved.',
-            emoji: this.guild.emojis.resolve('💼'),
+            emoji: '💼',
             callback: () => {
                 let archiveCategory = this.guild.channels.resolve(this.botGuild.channelIDs.archiveCategory);
                 this.archive(archiveCategory);
@@ -182,12 +185,12 @@ class Activity {
         let position = this.guild.channels.cache.filter(channel => channel.type === 'category').size;
         this.channels.category = await this.createCategory(position);
 
-        await this.addChannel(Activity.mainTextChannelName, {
+        this.channels.generalText = await this.addChannel(Activity.mainTextChannelName, {
             parent: this.channels.category,
             type: 'text',
             topic: 'A general banter channel to be used to communicate with other members, mentors, or staff. The !ask command is available for questions.',
         });
-        await this.addChannel(Activity.mainVoiceChannelName, {
+        this.channels.generalVoice = await this.addChannel(Activity.mainVoiceChannelName, {
             parent: this.channels.category,
             type: 'voice',
         });
@@ -232,13 +235,27 @@ class Activity {
             .setTitle(`Activity ${this.name} console.`)
             .setDescription(`This activity's information can be found below, you can also find the features available.`);
 
+        // add all the features
         this.features.forEach((feature, key, map) => {
-            adminConsoleEmbed.addField(feature.name, `${feature.emoji.name} - ${feature.description}`);
+            adminConsoleEmbed.addField(feature.name, `${feature.emoji} - ${feature.description}`);
         });
 
         /** @type {TextChannel} */
         let adminConsoleChannel = this.guild.channels.resolve(this.botGuild.channelIDs.adminConsole);
         this.adminConsoleMsg = await adminConsoleChannel.send(adminConsoleEmbed);
+
+        // add all the feature emojis
+        this.features.forEach((feature, key, map) => this.adminConsoleMsg.react(feature.emoji));
+
+        // reaction collector to call feature callbacks
+        const adminConsoleCollector = this.adminConsoleMsg.createReactionCollector((creation, user) => !user.bot);
+        adminConsoleCollector.on('collect', (reaction, user) => {
+            let feature = this.features.find(feature => feature.emoji === reaction.emoji.name);
+
+            if (feature) feature.callback();
+
+            reaction.users.remove(user);
+        });
     }
 
     /**

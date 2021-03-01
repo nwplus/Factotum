@@ -6,6 +6,19 @@ const { messagePrompt } = require('../prompt');
 const Activity = require("./activity");
 
 
+/**
+ * @typedef PollInfo
+ * @property {String} type
+ * @property {String} title
+ * @property {String} question
+ * @property {Collection<String, String>} responses - <Emoji String, Description>
+ */
+
+/**
+ * The Workshop class extends the Activity class. A workshop has a TA system to help users with 
+ * questions. It also has polls the TAs can send to learn basic knowledge from the audience.
+ * @class
+ */
 class Workshop extends Activity {
 
     /**
@@ -57,6 +70,12 @@ class Workshop extends Activity {
          * @type {Collection<String, String>} - <User Id, Username>
          */
         this.waitlist = new Collection();
+
+        /**
+         * The polls available.
+         * @type {Collection<String, PollInfo>} - <Poll type, PollInfo>
+         */
+        this.polls = new Collection;
     }
 
     async init() {
@@ -82,6 +101,65 @@ class Workshop extends Activity {
         winston.loggers.get(this.guild.id).event(`The activity ${this.name} was transformed to a workshop.`, {event: "Activity"});
 
         return this;
+    }
+
+    /**
+     * Adds extra workshop features, plus the regular features.
+     * @protected
+     * @
+     */
+    addDefaultFeatures() {
+        this.features.set('Speed Poll', {
+            name: 'Speed Poll', 
+            description: 'Will send an embedded message asking how the speed is.',
+            emoji: '🏎️',
+            callback: () => {
+                this.sendPoll('Speed Poll');
+            }
+        });
+        this.features.set('Difficulty Poll', {
+            name: 'Difficulty Poll',
+            description: 'Will send an embedded message asking how the difficulty is.',
+            emoji: '✍️',
+            callback: () => {
+                this.sendPoll('Difficulty Poll');
+            }
+        });
+        this.features.set('Explanation Poll', {
+            name: 'Explanation Poll',
+            description: 'Will send an embedded message asking how good the explanations are.',
+            emoji: '🧑‍🏫',
+            callback: () => {
+                this.sendPoll('Explanation Poll');
+            }
+        });
+
+        super.addDefaultFeatures();
+    }
+
+    /**
+     * Adds the default polls to the polls list.
+     * @protected
+     */
+    addDefaultPolls() {
+        this.polls.set('Speed Poll', {
+            title: 'Speed Poll!',
+            type: 'Speed Poll',
+            question: 'Please react to this poll!',
+            responses: new Collection([['🐢', 'Too Slow?'], ['🐶', 'Just Right?'], ['🐇', 'Too Fast?']]),
+        });
+        this.polls.set('Difficulty Poll', {
+            title: 'Speed Poll!',
+            type: 'Speed Poll',
+            question: 'Please react to this poll! If you need help, go to the assistance channel!',
+            responses: new Collection([['🐢', 'Too Hard?'], ['🐶', 'Just Right?'], ['🐇', 'Too Easy?']]),
+        });
+        this.polls.set('Explanation Poll', {
+            title: 'Explanation Poll!',
+            type: 'Explanation Poll',
+            question: 'Please react to this poll!',
+            responses: new Collection([['🐢', 'Hard to understand?'], ['🐶', 'Meh explanations?'], ['🐇', 'Easy to understand?']]),
+        });
     }
 
     /**
@@ -352,6 +430,35 @@ class Workshop extends Activity {
         }
         winston.loggers.get(this.guild.id).verbose(`The activity ${this.name} had its channel ${channel.name} made ${toHide ? 'private' : 'public'}.`, {event: "Activity"});
     }
+
+    /**
+     * Send a poll to the general text channel
+     * @param {String} type - the type of poll to send
+     */
+    sendPoll(type){
+        let poll = this.polls.get(type);
+        if (!poll) throw new Error('No poll was found of that type!');
+        
+        // create poll
+        let description = poll.question + '\n\n';
+        for (const key of poll.responses.keys()) {
+            description += '**' + poll.response.get(key) + '->** ' + key + '\n\n';
+        }
+
+        let qEmbed = new MessageEmbed()
+            .setColor(this.botGuild.colors.embedColor)
+            .setTitle(poll.title)
+            .setDescription(description);
+
+        // send poll
+        this.channels.generalText.send(qEmbed).then(msg => {
+            poll.responses.forEach((value, key) => msg.react(key));
+        });
+
+        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} sent a poll with title: ${poll.title} and question ${poll.question}.`, { event: "Workshop" });
+    }
+
+
 }
 
 module.exports = Workshop;
