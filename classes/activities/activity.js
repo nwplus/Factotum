@@ -13,6 +13,7 @@ const StampsManager = require('../stamps-manager');
  * @property {VoiceChannel} generalVoice
  * @property {Collection<String, VoiceChannel>} voiceChannels
  * @property {Collection<String, TextChannel>} textChannels
+ * @property {Collection<String, TextChannel | VoiceChannel>} safeChannels - channels that can not be removed
  */
 
 /**
@@ -113,6 +114,7 @@ class Activity {
             generalText: null,
             voiceChannels: new Collection(),
             textChannels: new Collection(),
+            safeChannels: new Collection(),
         };
 
         /**
@@ -133,12 +135,61 @@ class Activity {
          */
         this.features = new Collection();
 
-        this.addDefaultFeatures();
-
         winston.loggers.get(guild.id).event(`An activity named ${this.name} was created.`, {data: {permissions: this.rolesAllowed}});
     }
 
+
     /**
+     * Initialize this activity by creating the channels, adding the features and sending the admin console.
+     * @async
+     * @returns {Promise<Activity>}
+     */
+    async init() {
+        let position = this.guild.channels.cache.filter(channel => channel.type === 'category').size;
+        this.channels.category = await this.createCategory(position);
+
+        this.channels.generalText = await this.addChannelHelper(Activity.mainTextChannelName, {
+            parent: this.channels.category,
+            type: 'text',
+            topic: 'A general banter channel to be used to communicate with other members, mentors, or staff. The !ask command is available for questions.',
+        });
+        this.channels.generalVoice = await this.addChannelHelper(Activity.mainVoiceChannelName, {
+            parent: this.channels.category,
+            type: 'voice',
+        });
+
+        this.addDefaultFeatures();
+
+        await this.sendAdminConsole();
+
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was initialized.`, {event: "Activity"});
+        return this;
+    }
+    /**
+     * Helper function to create the category 
+     * @param {Number} position - the position of this category on the server
+     * @returns {Promise<CategoryChannel>} - a category with the activity name
+     * @async
+     * @private
+     */
+    async createCategory(position) {
+        /** @type {OverwriteResolvable[]} */
+        let overwrites = [
+            {
+                id: this.botGuild.roleIDs.everyoneRole,
+                deny: ['VIEW_CHANNEL'],
+            }];
+        this.rolesAllowed.each(role => overwrites.push({ id: role.id, allow: ['VIEW_CHANNEL'] }));
+        return this.guild.channels.create(this.name, {
+            type: 'category',
+            position: position >= 0 ? position : 0,
+            permissionOverwrites: overwrites
+        });
+    }
+
+
+    /**
+     * Adds the default features to the activity, these features are available to all activities.
      * @protected
      */
     addDefaultFeatures() {
@@ -203,53 +254,6 @@ class Activity {
         });
     }
 
-    /**
-     * Initialize this activity by creating the channels and sending the admin console.
-     * @async
-     * @returns {Promise<Activity>}
-     */
-    async init() {
-        let position = this.guild.channels.cache.filter(channel => channel.type === 'category').size;
-        this.channels.category = await this.createCategory(position);
-
-        this.channels.generalText = await this.addChannelHelper(Activity.mainTextChannelName, {
-            parent: this.channels.category,
-            type: 'text',
-            topic: 'A general banter channel to be used to communicate with other members, mentors, or staff. The !ask command is available for questions.',
-        });
-        this.channels.generalVoice = await this.addChannelHelper(Activity.mainVoiceChannelName, {
-            parent: this.channels.category,
-            type: 'voice',
-        });
-
-        await this.sendAdminConsole();
-
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was initialized.`, {event: "Activity"});
-        return this;
-    }
-
-    /**
-     * Helper function to create the category 
-     * @param {Number} position - the position of this category on the server
-     * @requires this.name - to be set
-     * @returns {Promise<CategoryChannel>} - a category with the activity name
-     * @async
-     * @private
-     */
-    async createCategory(position) {
-        /** @type {OverwriteResolvable[]} */
-        let overwrites = [
-            {
-                id: this.botGuild.roleIDs.everyoneRole,
-                deny: ['VIEW_CHANNEL'],
-            }];
-        this.rolesAllowed.each(role => overwrites.push({ id: role.id, allow: ['VIEW_CHANNEL'] }));
-        return this.guild.channels.create(this.name, {
-            type: 'category',
-            position: position >= 0 ? position : 0,
-            permissionOverwrites: overwrites
-        });
-    }
 
     /**
      * Creates the admin console containing the features.
@@ -288,14 +292,16 @@ class Activity {
         });
     }
 
+
     /**
      * Adds a channels to this activity. Will automatically set the parent and add it to the correct collection.
      * @param {String} name - name of the channel to create
      * @param {import("discord.js").GuildCreateChannelOptions} info - one of voice or text
      * @param {Array<RolePermission>} permissions - the permissions per role to be added to this channel after creation.
+     * @param {Boolean} [isSafe=false] - true if the channel is safe and cant be removed
      * @protected
      */
-    async addChannelHelper(name, info, permissions = []) {
+    async addChannelHelper(name, info, permissions = [], isSafe = false) {
         info.parent = info.parent || this.channels.category;
         info.type = info.type || 'text';
 
@@ -304,13 +310,34 @@ class Activity {
         permissions.forEach(rolePermission => channel.updateOverwrite(rolePermission.id, rolePermission.permissions));
 
         // add channel to correct list
-        if (info.type == 'text') this.channels.textChannels.set(channel.name, channel);
-        else this.channels.voiceChannels.set(channel.name, channel);
+        if (info.type == 'text') this.channels.textChannels.set(channel.id, channel);
+        else this.channels.voiceChannels.set(channel.id, channel);
+
+        if (isSafe) this.channels.safeChannels.set(channel.id, channel);
 
         winston.loggers.get(this.guild.id).event(`The activity ${this.name} had a channel named ${name} added to it of type ${info?.type || 'text'}.`, {event: "Activity"});
 
         return channel;
     }
+
+
+    /**
+     * will add a max amount of users to the activity voice channels 
+     * @param {Number} limit - the user limit
+     * @async
+     * @protected
+     */
+    async addLimitToVoiceChannels(limit) {
+        this.channels.voiceChannels.forEach(async (channel) => {
+            await channel.edit({ userLimit: limit });
+        });
+        winston.loggers.get(this.guild.id).verbose(`The activity ${this.name} had its voice channels added a limit of ${limit}`, {event: "Activity"});
+    }
+
+
+    /**
+     * FEATURES FROM THIS POINT DOWN.
+     */
 
     /**
      * Add a channel to the activity, prompts user for info and name.
@@ -319,10 +346,8 @@ class Activity {
      * @async
      */
     async addChannel(channel, userId) {
-        
         // voice or text
         let option = await reactionPicker({ prompt: 'What type of channel do you want?', channel, userId }, new Collection([['🔊', {name: 'voice', description: 'A voice channel'}], ['✍️', {name: 'text', description: 'A text channel'}]]));
-        
         // channel name
         let name = (await messagePrompt({ prompt: 'What is the name of the channel?', channel, userId }, 'string')).content;
 
@@ -330,44 +355,22 @@ class Activity {
     }
 
     /**
-     * Removes a channel from the activity, the user will decide which. Wont delete general voice or text.
+     * Removes a channel from the activity, the user will decide which. Wont delete channels in the safeChannel map.
      * @param {TextChannel} channel - channel to prompt user for specified voice channel
      * @param {String} userId - user to prompt for specified voice channel
      * @async
      */
     async removeChannel(channel, userId) {
-
         // channel to remove
         let removeChannel = await chooseChannel('What channel should be removed?', this.channels.category.children.array(), channel, userId);
 
-        if (removeChannel.id === this.channels.generalText.id || removeChannel.id === this.channels.generalVoice.id) {
+        if (this.channels.safeChannels.has(removeChannel.id)) {
             sendMsgToChannel(channel, userId, 'Can\'t remove that channel!', 10);
             return;
         }
-        
+
         deleteChannel(removeChannel);
-
         winston.loggers.get(this.guild.id).event(`The activity ${this.name} lost a channel named ${removeChannel.name}`, { event: "Activity" });
-    }
-
-    /**
-     * Add voice channels to this activity.
-     * @param {Number} number - the number of new voice channels to add
-     * @param {Number} maxUsers - max number of users per channel, 0 if unlimited
-     * @returns {Number} - total number of channels
-     */
-    addVoiceChannels(number, maxUsers = 0) {
-        let current = this.channels.voiceChannels.size;
-        let total = current + number;
-
-        for (let index = current; index < total; index++) {
-            this.addChannelHelper(Activity.voiceChannelName + index,
-                {
-                    type: 'voice',
-                    userLimit: maxUsers === 0 ? undefined : maxUsers,
-                });
-        }
-        return total;
     }
 
     /**
@@ -413,19 +416,6 @@ class Activity {
         await deleteMessage(this.adminConsoleMsg);
 
         winston.loggers.get(this.guild.id).event(`The activity ${this.name} was deleted!`, {event: "Activity"});
-    }
-
-    /**
-     * will add a max amount of users to the activity voice channels 
-     * @param {Number} limit - the user limit
-     * @async
-     * @returns {Promise<null>} 
-     */
-    async addLimitToVoiceChannels(limit) {
-        this.channels.voiceChannels.forEach(async (channel) => {
-            await channel.edit({ userLimit: limit });
-        });
-        winston.loggers.get(this.guild.id).verbose(`The activity ${this.name} had its voice channels added a limit of ${limit}`, {event: "Activity"});
     }
 
     /**
@@ -552,7 +542,7 @@ class Activity {
 
         // create rules channel and make it public
         /** @type {TextChannel} */
-        let rulesChannel = await this.addChannelHelper('Activity Rules START HERE', { type: 'text' }, this.rolesAllowed.map((role, key) => ({ id: role.id, permissions: { VIEW_CHANNEL: true, SEND_MESSAGES: false, }})));
+        let rulesChannel = await this.addChannelHelper('Activity Rules START HERE', { type: 'text' }, this.rolesAllowed.map((role, key) => ({ id: role.id, permissions: { VIEW_CHANNEL: true, SEND_MESSAGES: false, }})), true);
         
         let rules = (await messagePrompt({ prompt: 'What are the activity rules?', channel, userId })).cleanContent;
 
