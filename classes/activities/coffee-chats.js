@@ -2,7 +2,7 @@ const Activity = require("./activity");
 const { MessageEmbed, TextChannel, User, GuildMember, Collection, VoiceChannel } = require('discord.js');
 const { memberPrompt, messagePrompt } = require("../prompt");
 const winston = require("winston");
-const { sendMsgToChannel } = require("../../discord-services");
+const { sendMsgToChannel, chooseChannel } = require("../../discord-services");
 
 /**
  * A CoffeeChat is a special activity where users join as a team. The teams are then 
@@ -56,12 +56,7 @@ class CoffeeChats extends Activity {
     async init(channel, userId) {
         await super.init();
 
-        // search for the main voice channel till found
-        while (!this.mainVoiceChannel) {
-            let mainRoomName = (await messagePrompt({ prompt: `What is the name of the voice channel where user can first join before being shuffled around? You need to be very accurate!`, channel, userId})).content;
-
-            this.mainVoiceChannel = this.channels.voiceChannels.find(voiceChannel => voiceChannel.name.toLowerCase().includes(mainRoomName));
-        }
+        this.mainVoiceChannel = await chooseChannel('What channel will the groups join first before being shuffled?', this.channels.textChannels, channel, userId);
 
         this.addVoiceChannels(this.numOfGroups);
 
