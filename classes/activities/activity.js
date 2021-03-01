@@ -1,9 +1,9 @@
-const { Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable, Emoji, GuildEmoji, MessageEmbed, Message } = require('discord.js');
+const { Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable, Emoji, GuildEmoji, MessageEmbed, Message, GuildMember } = require('discord.js');
 const winston = require('winston');
 const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../bot-guild');
 const { rolePrompt } = require('../prompt');
-const { deleteChannel, deleteMessage, chooseChannel } = require('../../discord-services');
+const { deleteChannel, deleteMessage, chooseChannel, shuffleArray } = require('../../discord-services');
 
 /**
  * @typedef ActivityChannels
@@ -176,10 +176,22 @@ class Activity {
         });
         this.features.set('Callback', {
             name: 'Callback',
-            description: 'Will move all users in the activity\'s voice channels back to a specified voice channel.',
-            emoji: '🌬️',
+            description: 'Move all users in the activity\'s voice channels back to a specified voice channel.',
+            emoji: '🔃',
             callback: (user) => this.voiceCallBack(this.adminConsoleMsg.channel, user.id),
-        })
+        });
+        this.features.set('Shuffle', {
+            name: 'Shuffle',
+            description: 'Shuffle all members from one channel to all others in the activity.',
+            emoji: '🌬️',
+            callback: (user) => this.shuffle(this.adminConsoleMsg.channel, user.id),
+        });
+        this.features.set('Role Shuffle', {
+            name: 'Role Shuffle',
+            description: 'Shuffle all the members with a specific role from one channel to all others in the activity.',
+            emoji: '🦜',
+            callback: (user) => this.roleShuffle(this.adminConsoleMsg.channel, user.id),
+        });
     }
 
     /**
@@ -339,7 +351,7 @@ class Activity {
      */
     async archive(archiveCategory) {
         // move all text channels to the archive and rename with activity name
-        await Promise.all(this.channels.textChannels.forEach(async channel => {
+        await Promise.all(this.channels.textChannels.each(async channel => {
             await channel.setParent(archiveCategory);
             let channelName = channel.name;
             await channel.setName(`${this.name}-${channelName}`)
@@ -396,13 +408,65 @@ class Activity {
      * @param {String} userId - user to prompt for specified voice channel
      */
     async voiceCallBack(channel, userId) {
-        let mainChannel = await chooseChannel(this.channels.voiceChannels.array(), channel, userId);
+        let mainChannel = await chooseChannel('What channel should people be moved to?', this.channels.voiceChannels.array(), channel, userId);
 
         this.channels.voiceChannels.forEach(channel => {
             channel.members.forEach(member => member.voice.setChannel(mainChannel));
         });
 
-        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channels called backs to channel ${mainChannel.name}.`, {event: "Activity Manager"});
+        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channels called backs to channel ${mainChannel.name}.`, {event: "Activity"});
+    }
+
+    /**
+     * @callback ShuffleFilter
+     * @param {GuildMember} member
+     * @returns {Boolean} - true if filtered
+    /**
+     * Shuffle all the general voice members on all other voice channels
+     * @param {TextChannel} channel - channel to prompt user for specified voice channel
+     * @param {String} userId - user to prompt for specified voice channel
+     * @param {ShuffleFilter} [filter] - filter the users to shuffle
+     * @async
+     */
+    async shuffle(channel, userId, filter) {
+        let mainChannel = await chooseChannel('What channel should I move people from?', this.channels.voiceChannels.array(), channel, userId);
+
+        let members = mainChannel.members;
+        if (filter) members = members.filter(member => filter(member));
+        
+        let memberList = members.array();
+        shuffleArray(memberList);
+
+        let channels = this.channels.voiceChannels.filter(channel => channel.id != mainChannel.id).array();
+
+        let channelsLength = channels.length;
+        let channelIndex = 0;
+        memberList.forEach(member => {
+            try {
+                member.voice.setChannel(channels[channelIndex % channelsLength]);
+                channelIndex++;
+            } catch (error) {
+                winston.loggers.get(this.guild.id).warning(`Could not set a users voice channel when shuffling an activity by role. Error: ${error}`, { event: "Activity" })
+            }
+        });
+
+        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channel members shuffled around!`, {event: "Activity"});
+    }
+
+    /**
+     * Shuffles users with a specific role throughout the activity's voice channels
+     * @param {TextChannel} channel - channel to prompt user for specified voice channel
+     * @param {String} userId - user to prompt for specified voice channel
+     * @async
+     */
+    async roleShuffle(channel, userId) {
+        try {
+            var role = (await rolePrompt({ prompt: "What role would you like to shuffle?", channel, userId })).first();
+        } catch (error) {
+            winston.loggers.get(this.guild.id).warning(`User canceled a request when asking for a role for role shuffle. Error: ${error}.`, { event: "Activity" });
+        }
+
+        this.shuffle(channel, userId, (member) => member.roles.cache.has(role.id));
     }
 }
 

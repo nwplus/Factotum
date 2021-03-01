@@ -292,3 +292,16 @@ async function chooseChannel(embedTitle, channels, channel, userId) {
     else return chooseChannel(channels, channel, userId);
 }
 module.exports.chooseChannel = chooseChannel;
+
+/**
+ * will shuffle an array as best and fast as possible
+ * @param {Array<*>} array - array to shuffle
+ * @private
+ */
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+module.exports.shuffleArray = shuffleArray;
