@@ -1,4 +1,4 @@
-const { TextChannel, Role, Collection, GuildEmoji, ReactionEmoji, Message, Emoji, GuildMember } = require("discord.js");
+const { TextChannel, Role, Collection, GuildEmoji, ReactionEmoji, Message, Emoji, GuildMember, MessageEmbed } = require("discord.js");
 const winston = require("winston");
 const discordServices = require('../discord-services');
 
@@ -185,6 +185,32 @@ class Prompt {
             return Prompt.rolePrompt({prompt, channel, userId});
         }
         else return members;
+    }
+
+    /**
+     * @typedef PickerOption
+     * @property {String} name
+     * @property {String} description
+     */
+
+    /**
+     * Shows the user a list of options and waits for one of the options. The user reacts with an emoji to choose.
+     * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
+     * @param {Collection<String, PickerOption>} options - the options to choose from, key should be emoji name
+     * @returns {Promise<PickerOption>}
+     * @async
+     */
+    static async reactionPicker({prompt, channel, userId}, options) {
+        const embed = new MessageEmbed().setTitle('Choose one of the options!').setDescription(prompt);
+        options.forEach((option, emojiName) => embed.addField(`${emojiName} ${option.name}`, option.description));
+
+        let embedMsg = await channel.send(`<@${userId}>:`, { embed: embed });
+        options.forEach((option, emojiName) => embedMsg.react(emojiName));
+
+        let emojiResponse = await embedMsg.awaitReactions((reaction, user) => !user.bot && user.id === userId && options.has(reaction.emoji.name), {max: 1});
+
+        embedMsg.delete();
+        return options.get(emojiResponse.first().emoji.name);
     }
 }
 
