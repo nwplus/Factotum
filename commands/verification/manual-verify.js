@@ -35,7 +35,7 @@ module.exports = class ManualVerify extends PermissionCommand {
             let channel = message.channel;
             let userId = message.author.id;
 
-            let availableTypes = botGuild.verification.verificationRoles.array().join();
+            let availableTypes = Array.from(botGuild.verification.verificationRoles.keys()).join();
 
             let guestId = (await Prompt.numberPrompt({ prompt: 'What is the ID of the member you would like to verify?', channel, userId}))[0];
             var member = message.guild.members.cache.get(guestId.toString()); // get member object by id
@@ -46,7 +46,7 @@ module.exports = class ManualVerify extends PermissionCommand {
                 return;
             }
             // check for member to have guest role
-            if (!discordServices.checkForRole(member, botGuild.roleIDs.guestRole)) {
+            if (!discordServices.checkForRole(member, botGuild.verification.guestRoleID)) {
                 discordServices.sendMsgToChannel(channel, userId, `<@${guestId.toString()}> does not have the guest role! Cant verify!`, 5);
                 return;
             }
@@ -63,7 +63,7 @@ module.exports = class ManualVerify extends PermissionCommand {
             
             firebaseServices.addUserData(email, member, types);
             try {
-                await Verification.verify(member, email, guild, botGuild);
+                await Verification.verify(member, email, message.guild, botGuild);
             } catch (error) {
                 discordServices.sendMsgToChannel(channel, userId, 'Email provided is not valid!', 5);
             }
