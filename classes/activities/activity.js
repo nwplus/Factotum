@@ -270,7 +270,10 @@ class Activity {
         adminConsoleCollector.on('collect', (reaction, user) => {
             let feature = this.features.find(feature => feature.emoji === reaction.emoji.name);
 
-            if (feature) feature.callback(user);
+            if (feature) {
+                feature.callback(user);
+                winston.loggers.get(this.guild.id).event(`Feature ${feature.name} was triggered on activity ${this.name} by user ${user.id}.`, { event: "Activity" });
+            }
 
             reaction.users.remove(user);
         });
