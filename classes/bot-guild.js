@@ -448,6 +448,8 @@ module.exports = class BotGuild {
         let guild = await client.guilds.fetch(this._id);
 
         guild.setCommandEnabled('verify', this.verification.isEnabled);
+        guild.setCommandEnabled('manual-verify', this.verification.isEnabled);
+        guild.setCommandEnabled('check-member', this.verification.isEnabled | this.attendance.isEnabled);
         guild.setCommandEnabled('start-attend', this.attendance.isEnabled);
         guild.setCommandEnabled('attend',  this.attendance.isEnabled);
         guild.setGroupEnabled('verification', this.attendance.isEnabled || this.verification.isEnabled);
