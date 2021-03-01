@@ -193,65 +193,68 @@ class Activity {
      * @protected
      */
     addDefaultFeatures() {
-        this.features.set('Add Channel', {
-            name: 'Add Channel',
-            description: 'Add one channel to the activity.',
-            emoji: '⏫',
-            callback: (user) => this.addChannel(this.adminConsoleMsg.channel, user.id),
-        });
-        this.features.set('Remove Channel', {
-            name: 'Remove Channel',
-            description: 'Remove a channel, decide from a list.',
-            emoji: '⏬',
-            callback: (user) => this.removeChannel(this.adminConsoleMsg.channel, user.id),
-        });
-        this.features.set('Delete', {
-            name: 'Delete', 
-            description: 'Delete this activity and its channels.',
-            emoji: '⛔',
-            callback: () => {
-                this.delete();
+        /** @type {ActivityFeature[]} */
+        let localFeatures = [
+            {
+                name: 'Add Channel',
+                description: 'Add one channel to the activity.',
+                emoji: '⏫',
+                callback: (user) => this.addChannel(this.adminConsoleMsg.channel, user.id),
+            },
+            {
+                name: 'Remove Channel',
+                description: 'Remove a channel, decide from a list.',
+                emoji: '⏬',
+                callback: (user) => this.removeChannel(this.adminConsoleMsg.channel, user.id),
+            },
+            {
+                name: 'Delete', 
+                description: 'Delete this activity and its channels.',
+                emoji: '⛔',
+                callback: () => this.delete(),
+            },
+            {
+                name: 'Archive',
+                description: 'Archive the activity, text channels are saved.',
+                emoji: '💼',
+                callback: () => {
+                    let archiveCategory = this.guild.channels.resolve(this.botGuild.channelIDs.archiveCategory);
+                    this.archive(archiveCategory);
+                }
+            },
+            {
+                name: 'Callback',
+                description: 'Move all users in the activity\'s voice channels back to a specified voice channel.',
+                emoji: '🔃',
+                callback: (user) => this.voiceCallBack(this.adminConsoleMsg.channel, user.id),
+            },
+            {
+                name: 'Shuffle',
+                description: 'Shuffle all members from one channel to all others in the activity.',
+                emoji: '🌬️',
+                callback: (user) => this.shuffle(this.adminConsoleMsg.channel, user.id),
+            },
+            {
+                name: 'Role Shuffle',
+                description: 'Shuffle all the members with a specific role from one channel to all others in the activity.',
+                emoji: '🦜',
+                callback: (user) => this.roleShuffle(this.adminConsoleMsg.channel, user.id),
+            },
+            {
+                name: 'Distribute Stamp',
+                description: 'Send a emoji collector for users to get a stamp.',
+                emoji: '🏕️',
+                callback: (user) => this.distributeStamp(this.adminConsoleMsg.channel, user.id),
+            },
+            {
+                name: 'Rules Lock',
+                description: 'Lock the activity behind rules, users must agree to the rules to access the channels.',
+                emoji: '🔒',
+                callback: (user) => this.ruleValidation(this.adminConsoleMsg.channel, user.id),
             }
-        });
-        this.features.set('Archive', {
-            name: 'Archive',
-            description: 'Archive the activity, text channels are saved.',
-            emoji: '💼',
-            callback: () => {
-                let archiveCategory = this.guild.channels.resolve(this.botGuild.channelIDs.archiveCategory);
-                this.archive(archiveCategory);
-            }
-        });
-        this.features.set('Callback', {
-            name: 'Callback',
-            description: 'Move all users in the activity\'s voice channels back to a specified voice channel.',
-            emoji: '🔃',
-            callback: (user) => this.voiceCallBack(this.adminConsoleMsg.channel, user.id),
-        });
-        this.features.set('Shuffle', {
-            name: 'Shuffle',
-            description: 'Shuffle all members from one channel to all others in the activity.',
-            emoji: '🌬️',
-            callback: (user) => this.shuffle(this.adminConsoleMsg.channel, user.id),
-        });
-        this.features.set('Role Shuffle', {
-            name: 'Role Shuffle',
-            description: 'Shuffle all the members with a specific role from one channel to all others in the activity.',
-            emoji: '🦜',
-            callback: (user) => this.roleShuffle(this.adminConsoleMsg.channel, user.id),
-        });
-        this.features.set('Distribute Stamp', {
-            name: 'Distribute Stamp',
-            description: 'Send a emoji collector for users to get a stamp.',
-            emoji: '🏕️',
-            callback: (user) => this.distributeStamp(this.adminConsoleMsg.channel, user.id),
-        });
-        this.features.set('Rules Lock', {
-            name: 'Rules Lock',
-            description: 'Lock the activity behind rules, users must agree to the rules to access the channels.',
-            emoji: '🔒',
-            callback: (user) => this.ruleValidation(this.adminConsoleMsg.channel, user.id),
-        });
+        ];
+
+        localFeatures.forEach(feature => this.features.set(feature.name, feature));
     }
 
 
