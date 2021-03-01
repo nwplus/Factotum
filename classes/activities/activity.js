@@ -481,6 +481,8 @@ class Activity {
 
     /**
      * Will let hackers get a stamp for attending the activity.
+     * @param {TextChannel} channel - channel to prompt user for specified voice channel
+     * @param {String} userId - user to prompt for specified voice channel
      */
     async distributeStamp(channel, userId) {
         
@@ -495,8 +497,8 @@ class Activity {
         let promptMsg
         if ((await this.channels.generalText.fetch(true))) promptMsg = await this.channels.generalText.send(promptEmbed);
         else {
-            let channel = await chooseChannel('What channel should the stamp distribution go?', this.channels.textChannels, channel, userId);
-            promptMsg = await channel.send(promptEmbed);
+            let stampChannel = await chooseChannel('What channel should the stamp distribution go?', this.channels.textChannels, channel, userId);
+            promptMsg = await stampChannel.send(promptEmbed);
         }
         
         promptMsg.react('👍');
