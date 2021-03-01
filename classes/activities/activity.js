@@ -4,6 +4,7 @@ const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../bot-guild');
 const { rolePrompt } = require('../prompt');
 const { deleteChannel, deleteMessage, chooseChannel, shuffleArray } = require('../../discord-services');
+const StampsManager = require('../stamps-manager');
 
 /**
  * @typedef ActivityChannels
@@ -191,6 +192,12 @@ class Activity {
             description: 'Shuffle all the members with a specific role from one channel to all others in the activity.',
             emoji: '🦜',
             callback: (user) => this.roleShuffle(this.adminConsoleMsg.channel, user.id),
+        });
+        this.features.set('Distribute Stamp', {
+            name: 'Distribute Stamp',
+            description: 'Send a emoji collector for users to get a stamp.',
+            emoji: '🏕️',
+            callback: (user) => this.distributeStamp(this.adminConsoleMsg.channel, user.id),
         });
     }
 
@@ -470,6 +477,50 @@ class Activity {
         }
 
         this.shuffle(channel, userId, (member) => member.roles.cache.has(role.id));
+    }
+
+    /**
+     * Will let hackers get a stamp for attending the activity.
+     */
+    async distributeStamp(channel, userId) {
+        
+        // The users already seen by this stamp distribution.
+        let seenUsers = new Collection();
+
+        const promptEmbed = new MessageEmbed()
+            .setColor(this.botGuild.colors.embedColor)
+            .setTitle('React within ' + this.botGuild.stamps.stampCollectionTime + ' seconds of the posting of this message to get a stamp for ' + this.name + '!');
+
+        // send embed to general text or prompt for channel
+        let promptMsg
+        if ((await this.channels.generalText.fetch(true))) promptMsg = await this.channels.generalText.send(promptEmbed);
+        else {
+            let channel = await chooseChannel('What channel should the stamp distribution go?', this.channels.textChannels, channel, userId);
+            promptMsg = await channel.send(promptEmbed);
+        }
+        
+        promptMsg.react('👍');
+
+        // reaction collector, time is needed in milliseconds, we have it in seconds
+        const collector = promptMsg.createReactionCollector((reaction, user) => !user.bot, { time: (1000 * this.botGuild.stamps.stampCollectionTime) });
+
+        collector.on('collect', async (reaction, user) => {
+            // grab the member object of the reacted user
+            const member = this.guild.member(user);
+
+            if (!seenUsers.has(user.id)) {
+                StampsManager.parseRole(member, this.name, this.botGuild);
+                seenUsers.set(user.id, user.username);
+            }
+        });
+
+        // edit the message to closed when the collector ends
+        collector.on('end', () => {
+            winston.loggers.get(this.guild.id).event(`Activity named ${this.name} stamp distribution has stopped.`, {event: "Activity"});
+            if (!promptMsg.deleted) {
+                promptMsg.edit(promptEmbed.setTitle('Time\'s up! No more responses are being collected. Thanks for participating in ' + this.name + '!'));
+            }
+        });
     }
 }
 
