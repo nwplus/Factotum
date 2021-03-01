@@ -364,7 +364,9 @@ class Activity {
             await discordServices.deleteChannel(listOfChannels[i]);
         }
 
-        await this.channels.category.delete();
+        await discordServices.deleteChannel(this.channels.category);
+
+        await discordServices.deleteMessage(this.adminConsoleMsg);
 
         winston.loggers.get(this.guild.id).event(`The activity ${this.name} was deleted!`, {event: "Activity"});
     }

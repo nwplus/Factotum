@@ -200,14 +200,15 @@ module.exports.replyAndDelete = replyAndDelete;
  * Deletes a message if the message hasn't been deleted already
  * @param {Discord.Message} message - the message to delete
  * @param {Number} timeout - the time to wait in milliseconds
+ * @async
  */
-function deleteMessage(message, timeout = 0) {
+async function deleteMessage(message, timeout = 0) {
     if (!message.deleted && message.deletable &&  message.channel.type != 'dm') {
         winston.loggers.get(message.guild.id).verbose(`A message with id ${message.id} in the guild channel ${message.channel.name} with id ${message.channel.id} was deleted.`);
-        message.delete({timeout: timeout});
+        await message.delete({timeout: timeout});
     } else if (message.channel.type === 'dm' && message.author.bot) {
         winston.loggers.get('main').verbose(`A message with id ${message.id} in a DM channel with user id ${message.channel.recipient.id} from the bot was deleted.`);
-        message.delete({timeout: timeout})
+        await message.delete({timeout: timeout})
     } else {
         winston.loggers.get(message?.guild.id | 'main').warning(`A message with id ${message.id} in a DM channel from user with id ${message.author.id} tried to be deleted but was not possible.`);
     }
@@ -221,7 +222,7 @@ module.exports.deleteMessage = deleteMessage;
 async function deleteChannel(channel) {
     if (!channel.deleted && channel.deletable) {
         winston.loggers.get(channel.guild.id).verbose(`The channel ${channel.name} with id ${channel.id} was deleted.`);
-        await channel.delete().catch(console.error);
+        await channel.delete();
     } else {
         winston.loggers.get(channel.guild.id).warning(`The channel ${channel?.name} with id ${channel?.id} tried to be deleted but was not possible!`);
     }
