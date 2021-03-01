@@ -268,7 +268,7 @@ class Activity {
 
         // add all the features
         this.features.forEach((feature, key, map) => {
-            adminConsoleEmbed.addField(feature.name, `${feature.emoji} - ${feature.description}`);
+            adminConsoleEmbed.addField(`${feature.emoji} ${feature.name}`, `${feature.description}`);
         });
 
         /** @type {TextChannel} */
