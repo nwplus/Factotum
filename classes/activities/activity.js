@@ -1,8 +1,8 @@
-const { Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable, Emoji, GuildEmoji, MessageEmbed, Message, GuildMember } = require('discord.js');
+const { Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable, Emoji, GuildEmoji, MessageEmbed, Message, GuildMember, PermissionOverwriteOption } = require('discord.js');
 const winston = require('winston');
 const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../bot-guild');
-const { rolePrompt } = require('../prompt');
+const { rolePrompt, messagePrompt } = require('../prompt');
 const { deleteChannel, deleteMessage, chooseChannel, shuffleArray } = require('../../discord-services');
 const StampsManager = require('../stamps-manager');
 
@@ -199,6 +199,12 @@ class Activity {
             emoji: '🏕️',
             callback: (user) => this.distributeStamp(this.adminConsoleMsg.channel, user.id),
         });
+        this.features.set('Rules Lock', {
+            name: 'Rules Lock',
+            description: 'Lock the activity behind rules, users must agree to the rules to access the channels.',
+            emoji: '🔒',
+            callback: (user) => this.ruleValidation(this.adminConsoleMsg.channel, user.id),
+        });
     }
 
     /**
@@ -298,7 +304,7 @@ class Activity {
 
         let channel = await this.guild.channels.create(name, info);
 
-        permissions.forEach(rolePermission => channel.updateOverwrite(rolePermission.roleID, rolePermission.permissions));
+        permissions.forEach(rolePermission => channel.updateOverwrite(rolePermission.id, rolePermission.permissions));
 
         // add channel to correct list
         if (info.type == 'text') this.channels.textChannels.set(channel.name, channel);
@@ -361,21 +367,20 @@ class Activity {
      */
     async archive(archiveCategory) {
         // move all text channels to the archive and rename with activity name
-        await Promise.all(this.channels.textChannels.each(async channel => {
-            await channel.setParent(archiveCategory);
-            let channelName = channel.name;
-            await channel.setName(`${this.name}-${channelName}`)
-        }));
+        // remove all voice channels in the category one at a time to not get a UI glitch
 
-        // remove all channels in the category one at a time to not get a UI glitch
-        let channels = this.channels.category.children.array();
-
-        for(let i = 0; i < channels.length; i++) {
-            this.botGuild.blackList.delete(channels[i].id);
-            await deleteChannel(channels[i]);
-        }
+        this.channels.category.children.forEach(async (channel, key) => {
+            this.botGuild.blackList.delete(channel.id);
+            if (channel.type === 'text') {
+                let channelName = channel.name;
+                await channel.setName(`${this.name}-${channelName}`);
+                await channel.setParent(archiveCategory);
+            } else deleteChannel(channel);
+        });
 
         await deleteChannel(this.channels.category);
+
+        deleteMessage(this.adminConsoleMsg);
 
         this.botGuild.save();
 
@@ -522,6 +527,37 @@ class Activity {
             if (!promptMsg.deleted) {
                 promptMsg.edit(promptEmbed.setTitle('Time\'s up! No more responses are being collected. Thanks for participating in ' + this.name + '!'));
             }
+        });
+    }
+
+    /**
+     * Will let hackers get a stamp for attending the activity.
+     * @param {TextChannel} channel - channel to prompt user for specified voice channel
+     * @param {String} userId - user to prompt for specified voice channel
+     */
+    async ruleValidation(channel, userId) {
+        // set category private
+        this.rolesAllowed.forEach((role, key) => this.channels.category.updateOverwrite(role, { VIEW_CHANNEL: false }))
+
+        // create rules channel and make it public
+        /** @type {TextChannel} */
+        let rulesChannel = await this.addChannel('Activity Rules START HERE', { type: 'text' }, this.rolesAllowed.map((role, key) => ({ id: role.id, permissions: { VIEW_CHANNEL: true, SEND_MESSAGES: false, }})));
+        
+        let rules = (await messagePrompt({ prompt: 'What are the activity rules?', channel, userId })).cleanContent;
+
+        let joinEmoji = '🚗';
+
+        const embed = new MessageEmbed().setTitle('Activity Rules').setDescription(rules).addField('To join the activity:', `React to this message with ${joinEmoji}`).setColor(this.botGuild.colors.embedColor);
+
+        const embedMsg = await rulesChannel.send(embed);
+
+        embedMsg.react(joinEmoji);
+
+        const collector = embedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === joinEmoji);
+
+        collector.on('collect', (reaction, user) => {
+            this.channels.category.updateOverwrite(user.id, { VIEW_CHANNEL: true, SEND_MESSAGES: true});
+            rulesChannel.updateOverwrite(user.id, { VIEW_CHANNEL: false});
         });
     }
 }
