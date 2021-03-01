@@ -13,11 +13,11 @@ const { sendMsgToChannel } = require("../../discord-services");
 class CoffeeChats extends Activity {
 
     /**
-     * 
+     * Basic constructor for a coffee chats.
      * @param {Activity.ActivityInfo} activityInfo 
-     * @param {Number} numOfGroups
+     * @param {Number} numOfTeams
      */
-    constructor(activityInfo, numOfGroups) {
+    constructor(activityInfo, numOfTeams) {
         super(activityInfo);
 
         /**
@@ -30,13 +30,13 @@ class CoffeeChats extends Activity {
          * The number of groups available in this coffee chat
          * @type {Number}
          */
-        this.numOfGroups = numOfGroups || 0;
+        this.numOfTeams = numOfTeams || 0;
 
         /**
-         * The channel where users join the list of groups.
+         * The channel where users join the activity.
          * @type {TextChannel}
          */
-        this.joinGroupChannel;
+        this.joinActivityChannel;
 
         /**
          * The main voice channel where everyone starts.
@@ -52,30 +52,67 @@ class CoffeeChats extends Activity {
      * @returns {Promise<CoffeeChats>}
      * @param {TextChannel} channel
      * @param {String} userId
+     * @override
      */
     async init(channel, userId) {
         await super.init();
 
-        this.mainVoiceChannel = await chooseChannel('What channel will the groups join first before being shuffled?', this.channels.textChannels, channel, userId);
+        this.mainVoiceChannel = await chooseChannel('What channel will the teams join first before being shuffled?', this.channels.voiceChannels.array(), channel, userId);
+        this.channels.safeChannels.set(this.mainVoiceChannel.id, this.mainVoiceChannel);
 
-        this.addVoiceChannels(this.numOfGroups);
+        for (var i = 0; i < this.numOfTeams; i++) {
+            this.addChannelHelper(`voice-${i}`, {type: 'voice'});
+        }
 
-        this.joinGroupChannel = await this.addChannelHelper('☕' + 'join-activity', {
+        this.joinActivityChannel = await this.addChannelHelper('☕' + 'join-activity', {
             type: 'text',
             topic: 'This channel is only intended to add your team to the activity list! Please do not use it for anything else!',
-        });
+        }, [], true);
 
-        this.sendConsoles();
+        this.joinActivityConsole();
 
         return this;
     }
+
+
+    /**
+     * @override
+     */
+    addDefaultFeatures() {
+        /** @type {Activity.ActivityFeature[]} */
+        let localFeatures = [
+            {
+                name: 'Team Shuffle',
+                description: 'Shuffle all the teams from the main voice channel to the other channels.',
+                emoji: '👨‍👩‍👧‍👦',
+                callback: () => this.groupShuffle(),
+            },
+            {
+                name: 'Reset Teams',
+                description: 'Remove all the signed up teams.',
+                emoji: '🗜️',
+                callback: () => this.resetTeams(),
+            },
+            {
+                name: 'Add Team Slot',
+                description: 'Adds a team slot and a voice channel for them.',
+                emoji: '☝️',
+                callback: () => this.addTeamSlot(),
+            }
+        ]
+
+        localFeatures.forEach(feature => this.features.set(feature.name, feature));
+
+        super.addDefaultFeatures();
+    }
+
 
     /**
      * Will send the console for users to join the activity as a group.
      * @private
      * @async
      */
-    async sendConsoles() {
+    async joinActivityConsole() {
         // reaction to use
         var emoji = '⛷️';
 
@@ -85,7 +122,7 @@ class CoffeeChats extends Activity {
             .setTitle('Join the activity!')
             .setDescription('If you want to join this activity, please react to this message with ' + emoji +' and follow my instructions!\n If the emojis are not working' +
             ' it means the activity is full. Check the activity text channel for other activity times!');
-        var joinMsg = await this.joinGroupChannel.send(msgEmbed);
+        var joinMsg = await this.joinActivityChannel.send(msgEmbed);
         await joinMsg.react(emoji);
 
         // reactor collector and its filter
@@ -95,12 +132,12 @@ class CoffeeChats extends Activity {
         emojiCollector.on('collect', async (reaction, user) => {
 
             // check to make sure there are spots left
-            if (this.numOfGroups >= this.teams.size) {
-                sendMsgToChannel(this.joinGroupChannel, user.id, "Sorry, but the activity is full!", 10);
+            if (this.teams.size > this.numOfTeams) {
+                sendMsgToChannel(this.joinActivityChannel, user.id, "Sorry, but the activity is full!", 10);
                 return;
             }
 
-            let members = await memberPrompt({prompt: "Who are you team members? Let me know in ONE message!", channel: this.joinGroupChannel, userId: user.id});
+            let members = await memberPrompt({prompt: "Who are you team members? Let me know in ONE message!", channel: this.joinActivityChannel, userId: user.id});
 
             // add team captain to members list
             members.set(user.id, this.guild.member(user));
@@ -108,45 +145,40 @@ class CoffeeChats extends Activity {
             // add the team to the team list
             this.teams.set(this.teams.size, members.array());
 
-            this.joinGroupChannel.send('<@' + user.id + '> Your team has been added to the activity! Make sure you follow the instructions in the main channel.').then(msg => {
+            this.joinActivityChannel.send('<@' + user.id + '> Your team has been added to the activity! Make sure you follow the instructions in the main channel.').then(msg => {
                 msg.delete({ timeout: 5000 });
             });
         });
     }
 
     /**
+     * FEATURES FROM THIS POINT DOWN.
+     */
+
+
+    /**
      * Shuffle users in general voice as groups in firebase
      */
     groupShuffle() {
-
         let channels = this.channels.voiceChannels;
-        let voiceChannels = channels.filter(voiceChannel => voiceChannel.id === this.mainVoiceChannel.id).array();
+        let voiceChannels = channels.filter(voiceChannel => voiceChannel.id != this.mainVoiceChannel.id).array();
 
         // loop over the groups and channels at the same time using an index, add users for each group in a single voice channel
-        for (var index = 0; index < voiceChannels.length; index++) {
+        for (var index = 0; index < this.teams.size; index++) {
             this.teams.get(index).forEach(member => {
                 try {
-                    member.voice.setChannel(voiceChannels[index])
+                    if (member.voice.channel)
+                        member.voice.setChannel(voiceChannels[index % voiceChannels.length]);
                 } catch (error) {
                     // do nothing, sad!
-                winston.loggers.get(this.guild.id).warning(`For activity named ${this.name} I could not pull in user ${member.id} into the voice channel ${voiceChannels[index].name}.`, {event: "Coffee Chats"});
+                winston.loggers.get(this.guild.id).warning(`For activity named ${this.name} I could not pull in user ${member.id} into the voice channel ${voiceChannels[index].name}.`, { event: "Coffee Chats" });
                 }
             });
         }
 
-        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its groups shuffled.`, {event: "Coffee Chats"});
+        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its groups shuffled.`, { event: "Coffee Chats" });
     }
 
-    /**
-     * Adds voice channels to the coffee chats, more voice channels allow for more groups to join.
-     * @param {Number} number - the number of voice channels to add
-     * @param {Number} maxUsers - max number of users for the voice channels
-     */
-    addVoiceChannels(number, maxUsers) {
-        super.addVoiceChannels(number, maxUsers);
-
-        this.numOfGroups = this.numOfGroups + number;
-    }
 
     /**
      * Resets the teams to have no teams.
@@ -155,6 +187,14 @@ class CoffeeChats extends Activity {
         this.teams = new Collection();
     }
     
+
+    /**
+     * Add a team slot to the activity and adds a voice channel for them.
+     */
+    addTeamSlot() {
+        this.numOfTeams += 1;
+        this.addChannelHelper(`voice-${this.numOfTeams - 1}`, { type: 'voice' }); // -1 because we start from 0
+    }
 
 }
 
