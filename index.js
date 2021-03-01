@@ -43,8 +43,10 @@ const customLoggerLevels = {
     }
 }
 
+const isLogToConsole = true;
+
 // the main logger to use for general errors
-const mainLogger = createALogger('main', 'main', true, true);
+const mainLogger = createALogger('main', 'main', true, isLogToConsole);
 winston.addColors(customLoggerLevels.colors);
 
 
@@ -89,7 +91,7 @@ bot.once('ready', async () => {
     // to a guild. If botGuild is found, make sure only the correct commands are enabled.
     bot.guilds.cache.forEach(async (guild, key, guilds) => {
         // create the logger for the guild
-        createALogger(guild.id, guild.name);
+        createALogger(guild.id, guild.name, false, isLogToConsole);
 
         let botGuild = await BotGuild.findById(guild.id);
         if (!botGuild) {
