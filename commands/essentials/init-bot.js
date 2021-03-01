@@ -234,7 +234,7 @@ module.exports = class InitBot extends Command {
             discordServices.sendMsgToChannel(channel, userId, 'Ask command will not be loaded due to prompt cancel.', 10);
         }
 
-        botGuild.save();
+        await botGuild.save();
 
         discordServices.sendMsgToChannel(channel, userId, 'The bot is set and ready to hack!', 10);
     }

@@ -59,9 +59,10 @@ bot.registry
     .registerGroup('a_activity', 'activity group for admins')
     .registerGroup('a_start_commands', 'advanced admin commands')
     .registerGroup('a_utility', 'utility commands for admins')
-    .registerGroup('utility', 'utility commands for users')
+    .registerGroup('hacker_utility', 'utility commands for users')
     .registerGroup('verification', 'verification commands')
     .registerGroup('stamps', 'stamp related commands')
+    .registerGroup('utility', 'utility commands')
     .registerGroup('essentials', 'essential commands for any guild', true)
     .registerDefaultGroups()
     .registerDefaultCommands({
@@ -161,8 +162,7 @@ bot.on('error', (error) => {
  * Runs when the bot runs into an error when running a command.
  */
 bot.on('commandError', (command, error, message) => {
-    winston.loggers.get(message.guild.id).error(`Command Error: In command ${command.name} got uncaught rejection ${error.name} : ${error.message}`);
-    mainLogger.error(`Command Error: In command ${command.name} got uncaught rejection ${error.name} : ${error.message}`, { event: "Error", data: error});
+    winston.loggers.get(channel?.guild?.id || 'main').error(`Command Error: In command ${command.name} got uncaught rejection ${error.name} : ${error.message}`, { event: "Error", data: error});
 });
 
 /**
@@ -204,14 +204,14 @@ bot.on('guildMemberAdd', async member => {
 });
 
 bot.on('commandRun', (command, promise, message, args) => {
-    winston.loggers.get(message.guild.id).command(`The command ${command.name} with args ${args} is being run from the channel ${message.channel} with id ${message.channel.id} 
+    winston.loggers.get(message?.guild?.id || 'main').command(`The command ${command.name} with args ${args} is being run from the channel ${message.channel} with id ${message.channel.id} 
         triggered by the message with id ${message.id} by the user with id ${message.author.id}`);
 })
 
 /**
  * Runs when an unknown command is triggered.
  */
-bot.on('unknownCommand', (message) => winston.loggers.get(message.guild.id).command(`An unknown command has been triggered in the channel ${message.channel.name} with id ${message.channel.id}. The message had the content ${message.cleanContent}.`));
+bot.on('unknownCommand', (message) => winston.loggers.get(message?.guild?.id || 'main').command(`An unknown command has been triggered in the channel ${message.channel.name} with id ${message.channel.id}. The message had the content ${message.cleanContent}.`));
 
 /**
  * Logs in the bot 
@@ -340,7 +340,7 @@ async function greetNewMember(member, botGuild) {
             }
 
             try {
-                Verification.verify(member, email, member.guild, botGuild);
+                await Verification.verify(member, email, member.guild, botGuild);
             } catch (error) {
                 discordServices.sendEmbedToMember(member, {
                     title: 'Verification Error',

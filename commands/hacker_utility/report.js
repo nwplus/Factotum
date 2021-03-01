@@ -9,7 +9,7 @@ module.exports = class Report extends Command {
     constructor(client) {
         super(client, {
             name: 'report',
-            group: 'utility',
+            group: 'hacker_utility',
             memberName: 'report to admins',
             description: 'Will send report format to user via DM for user to send back via DM. Admins will get the report!',
             // not guild only!

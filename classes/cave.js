@@ -69,8 +69,9 @@ class Cave {
     /**
      * Constructor to create a cave.
      * @param {CaveOptions} caveOptions - the cave options
+     * @param {BotGuildModel} botGuild
      */
-    constructor(caveOptions) {
+    constructor(caveOptions, botGuild) {
 
         /**
          * The cave options.
@@ -128,7 +129,7 @@ class Cave {
         /**
          * @type {BotGuildModel}
          */
-        this.botGuild;
+        this.botGuild = botGuild;
 
         winston.loggers.get(this.botGuild._id).event(`A cave named ${caveOptions.name} was created.`, {data: {caveOptions: caveOptions}, event: "Cave"});
     }
@@ -140,7 +141,6 @@ class Cave {
      * @async
      */
     async init(guildChannelManager) {
-        this.botGuild = await BotGuild.findById(guildChannelManager.guild.id);
         await this.initPrivate(guildChannelManager);
         await this.initPublic(guildChannelManager);
         winston.loggers.get(this.botGuild._id).event(`The cave named ${this.caveOptions.name} has been initialized!`, {event: "Cave"});
