@@ -3,7 +3,7 @@ const Discord = require('discord.js');
 const PermissionCommand = require('../../classes/permission-command');
 const Prompt = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
-const ActivityManager = require('../../classes/activities/activity-manager');
+const StampsManager = require('../../classes/stamps-manager');
 
 module.exports = class PasswordStamp extends PermissionCommand {
     constructor(client) {
@@ -112,7 +112,7 @@ module.exports = class PasswordStamp extends PermissionCommand {
                     //update role and stop collecting if password matches
                     if (m.content.toLowerCase() === password.toLowerCase()) {
 
-                        ActivityManager.parseRole(member, activityName, botGuild);
+                        StampsManager.parseRole(member, activityName, botGuild);
                         
                         correctPassword = true;
                         pwdCollector.stop();
