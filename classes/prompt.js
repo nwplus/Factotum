@@ -1,4 +1,4 @@
-const { TextChannel, Role, Collection, GuildEmoji, ReactionEmoji, Message, Emoji, GuildMember, MessageEmbed } = require("discord.js");
+const { TextChannel, Role, Collection, GuildEmoji, ReactionEmoji, Message, Emoji, GuildMember, MessageEmbed, GuildChannel, VoiceChannel } = require("discord.js");
 const winston = require("winston");
 const discordServices = require('../discord-services');
 
