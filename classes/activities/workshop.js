@@ -2,7 +2,7 @@ const { Collection, TextChannel, VoiceChannel, GuildCreateChannelOptions, Messag
 const { CommandoClient } = require('discord.js-commando');
 const winston = require('winston');
 const { randomColor, sendMessageToMember, sendMsgToChannel } = require('../../discord-services');
-const { messagePrompt, yesNoPrompt } = require('../prompt');
+const { messagePrompt, yesNoPrompt, chooseChannel } = require('../prompt');
 const Activity = require("./activity");
 
 
@@ -11,6 +11,7 @@ const Activity = require("./activity");
  * @property {String} type
  * @property {String} title
  * @property {String} question
+ * @property {String} emojiName - emoji to use to call this poll
  * @property {Collection<String, String>} responses - <Emoji String, Description>
  */
 
@@ -76,17 +77,20 @@ class Workshop extends Activity {
          * @type {Collection<String, PollInfo>} - <Poll type, PollInfo>
          */
         this.polls = new Collection;
-
-        this.addDefaultPolls();
     }
 
+
+    /**
+     * Initializes the workshop and adds the ta console, ta banter and assistance channel.
+     * @override
+     */
     async init() {
         await super.init();
 
         this.TAConsole = await this.addTAChannel(`🧑🏽‍🏫ta-console`, {
             type: 'text',
             topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
-        });
+        }, [], true);
 
         this.addTAChannel(`ta-banter`, {
             topic: `For TAs to talk without cluttering the console.`,
@@ -95,7 +99,7 @@ class Workshop extends Activity {
         this.assistanceChannel = await super.addChannelHelper(`🙋🏽assistance`, {
             type: 'text',
             topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
-        });
+        }, [], true);
 
         this.botGuild.blackList.set(this.assistanceChannel.id, 3000);
         this.botGuild.save();
@@ -105,69 +109,69 @@ class Workshop extends Activity {
         return this;
     }
 
+
     /**
-     * Adds extra workshop features, plus the regular features.
-     * @protected
-     * @
+     * Adds extra workshop features, plus the regular features. Also adds default polls.
+     * @override
      */
     addDefaultFeatures() {
-        this.features.set('Speed Poll', {
-            name: 'Speed Poll', 
-            description: 'Will send an embedded message asking how the speed is.',
-            emoji: '🏎️',
-            callback: () => {
-                this.sendPoll('Speed Poll');
-            }
-        });
-        this.features.set('Difficulty Poll', {
-            name: 'Difficulty Poll',
-            description: 'Will send an embedded message asking how the difficulty is.',
-            emoji: '✍️',
-            callback: () => {
-                this.sendPoll('Difficulty Poll');
-            }
-        });
-        this.features.set('Explanation Poll', {
-            name: 'Explanation Poll',
-            description: 'Will send an embedded message asking how good the explanations are.',
-            emoji: '🧑‍🏫',
-            callback: () => {
-                this.sendPoll('Explanation Poll');
-            }
-        });
+        this.addDefaultPolls();
+
+        /** @type {Activity.ActivityFeature[]} */
+        let localFeatures = [];
+
+        this.polls.forEach((pollInfo) => localFeatures.push({
+            name: pollInfo.title,
+            description: `Asks the question: ${pollInfo.title} - ${pollInfo.question}`,
+            emoji: pollInfo.emojiName,
+            callback: () => this.sendPoll(pollInfo.type),
+        }));
+
+        localFeatures.forEach(feature => this.features.set(feature.name, feature));
 
         super.addDefaultFeatures();
     }
+
 
     /**
      * Adds the default polls to the polls list.
      * @protected
      */
     addDefaultPolls() {
-        this.polls.set('Speed Poll', {
-            title: 'Speed Poll!',
-            type: 'Speed Poll',
-            question: 'Please react to this poll!',
-            responses: new Collection([['🐢', 'Too Slow?'], ['🐶', 'Just Right?'], ['🐇', 'Too Fast?']]),
-        });
-        this.polls.set('Difficulty Poll', {
-            title: 'Speed Poll!',
-            type: 'Speed Poll',
-            question: 'Please react to this poll! If you need help, go to the assistance channel!',
-            responses: new Collection([['🐢', 'Too Hard?'], ['🐶', 'Just Right?'], ['🐇', 'Too Easy?']]),
-        });
-        this.polls.set('Explanation Poll', {
-            title: 'Explanation Poll!',
-            type: 'Explanation Poll',
-            question: 'Please react to this poll!',
-            responses: new Collection([['🐢', 'Hard to understand?'], ['🐶', 'Meh explanations?'], ['🐇', 'Easy to understand?']]),
-        });
+        /** @type {PollInfo[]} */
+        let localPolls = [
+            {
+                title: 'Speed Poll!',
+                type: 'Speed Poll',
+                emojiName: '🏎️',
+                question: 'Please react to this poll!',
+                responses: new Collection([['🐢', 'Too Slow?'], ['🐶', 'Just Right?'], ['🐇', 'Too Fast?']]),
+            },
+            {
+                title: 'Difficulty Poll!',
+                type: 'Difficulty Poll',
+                emojiName: '✍️',
+                question: 'Please react to this poll! If you need help, go to the assistance channel!',
+                responses: new Collection([['🐢', 'Too Hard?'], ['🐶', 'Just Right?'], ['🐇', 'Too Easy?']]),
+            },
+            {
+                title: 'Explanation Poll!',
+                type: 'Explanation Poll',
+                emojiName: '🧑‍🏫',
+                question: 'Please react to this poll!',
+                responses: new Collection([['🐢', 'Hard to understand?'], ['🐶', 'Meh explanations?'], ['🐇', 'Easy to understand?']]),
+            }
+        ];
+
+        localPolls.forEach(pollInfo => this.polls.set(pollInfo.type, pollInfo));
     }
+
 
     /**
      * Adds a channel to the activity, ask if it will be for TAs or not.
      * @param {TextChannel} channel - channel to prompt user
      * @param {String} userId - user to prompt for channel info
+     * @override
      */
     async addChannel(channel, userId) {
         // ask if it will be for TA
@@ -183,21 +187,20 @@ class Workshop extends Activity {
         }
     }
 
+
     /**
-     * Creates a channel only available to TAs
+     * Creates a channel only available to TAs.
      * @param {String} name 
      * @param {GuildCreateChannelOptions} info
      * @returns {Promise<TextChannel | VoiceChannel>}
      * @async 
      */
     async addTAChannel(name, info) {
-
         let channel = await super.addChannelHelper(name, info, this.getTAChannelPermissions());
-
         this.TAChannels.set(channel.name, channel);
-
         return channel;
     }
+
 
     /**
      * Returns the perms for a TA Channel
@@ -224,8 +227,47 @@ class Workshop extends Activity {
         return TAChannelPermissions;
     }
 
+
     /**
-     * 
+     * FEATURES:
+     */
+
+
+    /**
+     * Send a poll to the general text channel
+     * @param {String} type - the type of poll to send
+     * @async
+     */
+    async sendPoll(type, channel, userId) {
+        let poll = this.polls.get(type);
+        if (!poll) throw new Error('No poll was found of that type!');
+        
+        // create poll
+        let description = poll.question + '\n\n';
+        for (const key of poll.responses.keys()) {
+            description += '**' + poll.responses.get(key) + '->** ' + key + '\n\n';
+        }
+
+        let qEmbed = new MessageEmbed()
+            .setColor(this.botGuild.colors.embedColor)
+            .setTitle(poll.title)
+            .setDescription(description);
+
+        // send poll to general text or prompt for channel
+        let pollChannel;
+        if ((await this.channels.generalText.fetch(true))) pollChannel = this.channels.generalText;
+        else pollChannel = await chooseChannel('What channel should the poll go to?', this.channels.textChannels, channel, userId);
+
+        pollChannel.send(qEmbed).then(msg => {
+            poll.responses.forEach((value, key) => msg.react(key));
+        });
+
+        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} sent a poll with title: ${poll.title} and question ${poll.question}.`, { event: "Workshop" });
+    }
+
+
+    /**
+     * Will send all the consoles the workshop needs to work.
      * @param {CommandoClient} client 
      */
     sendConsoles(client) {
@@ -438,49 +480,6 @@ class Workshop extends Activity {
             this.assistanceChannel.send(new MessageEmbed().setColor(this.botGuild.colors.embedColor).setTitle('Quick Update!').setDescription('You do not need to join a voice channel. TAs will send you a DM when they are ready to assist you!'));
         });
     }
-
-    /**
-     * Will hide the voice channel given.
-     * @param {TextChannel} channel 
-     * @param {Boolean} toHide 
-     */
-    async makeVoiceChannelPrivate(channel, toHide) {
-        channel.updateOverwrite(this.botGuild.roleIDs.everyoneRole, { VIEW_CHANNEL: toHide ? false : true });
-        if (this.TARoles) {
-            this.permissions.forEach(role => channel.updateOverwrite(role, { VIEW_CHANNEL: toHide ? false : true }));
-            this.TARoles.forEach(role => channel.updateOverwrite(role, { VIEW_CHANNEL: true }));
-        }
-        winston.loggers.get(this.guild.id).verbose(`The activity ${this.name} had its channel ${channel.name} made ${toHide ? 'private' : 'public'}.`, {event: "Activity"});
-    }
-
-    /**
-     * Send a poll to the general text channel
-     * @param {String} type - the type of poll to send
-     */
-    sendPoll(type){
-        let poll = this.polls.get(type);
-        if (!poll) throw new Error('No poll was found of that type!');
-        
-        // create poll
-        let description = poll.question + '\n\n';
-        for (const key of poll.responses.keys()) {
-            description += '**' + poll.responses.get(key) + '->** ' + key + '\n\n';
-        }
-
-        let qEmbed = new MessageEmbed()
-            .setColor(this.botGuild.colors.embedColor)
-            .setTitle(poll.title)
-            .setDescription(description);
-
-        // send poll
-        this.channels.generalText.send(qEmbed).then(msg => {
-            poll.responses.forEach((value, key) => msg.react(key));
-        });
-
-        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} sent a poll with title: ${poll.title} and question ${poll.question}.`, { event: "Workshop" });
-    }
-
-
 }
 
 module.exports = Workshop;
