@@ -1,17 +1,16 @@
-# Hackathon Discord Bot (HackaBot)
+# Factotum The do-it-all Discord Bot
 
-Previously known as nwPlus Discord Bot, HackaBot is a Discord bot to support small and 
-medium hackathons run on the Discord platform for free.
+Previously known as nwPlus Discord Bot, Factotum started as a Discord bot to support small and medium hackathons run on the Discord platform for free. Now it has become a fully customizable, feature rich bot to support any and all types of events over discord. 
 
-## How does HackaBot support hackathon teams and events?
-HackaBot brings a lot of features that would traditionally happen in person at hacakthons all over the word to the Discord platform.
+## How does Factotum support hackathon teams and events?
+Factotum brings a lot of features that would traditionally happen at in-person hacakthons all over the word to the Discord platform.
 
 All features listed below are unique and requires an admin to start them. All features are highly customizable, from the emojis used to the text sent.
 
 Most features rely on emoji reactions, custom emojis can be used as well!
 
 ### Mentor Ticket System (WIP)
-The mentor ticket system or more generally the ticketing system of HackaBot is an advanced ticketing system for a set of users to inquire by the use of tickets, and another set of users can respond to such tickets both via text or voice.
+The mentor ticket system or more generally the ticketing system of Factotum is an advanced ticketing system for a set of users to inquire by the use of tickets, and another set of users can respond to such tickets both via text or voice.
 
 The ticket system supports general tickets as well as sub-topic tickets (more detailed tickets intended for only a sub-section of the support team). 
 
@@ -68,10 +67,10 @@ Admins can start a role selector on any text channel. Admins can then add new ro
 Keeping your server safe is always hard, specially if your server is very big. With the ``!report`` command, any users can report bad behavior anonymously via DM. The reports get sent to a Admin only text channel.
 
 ### Threads
-Many hackathons are transitioning from Slack to Discord. The one thing we love about Slack is the thread functionality. HackaBot brings this functionality to Discord! Users can ask questions with the ``!ask`` command and other users can the respond to the question by clicking an emoji.
+Many hackathons are transitioning from Slack to Discord. The one thing we love about Slack is the thread functionality. Factotum brings this functionality to Discord! Users can ask questions with the ``!ask`` command and other users can the respond to the question by clicking an emoji.
 
 ### Clear Chat
-Sometimes as an Admin you want to delete an entire text channel, well HackaBot has a ``!clear-chat`` command that will delete 100 messages from the text channel. You can let the bot know if you want to keep any pinned messages.
+Sometimes as an Admin you want to delete an entire text channel, well Factotum has a ``!clear-chat`` command that will delete 100 messages from the text channel. You can let the bot know if you want to keep any pinned messages.
 
 ### Channel Creation (WIP)
 Channel creation gives users the ability to create private voice or text channels for them to use with their team or group of friends. With a click of a button, the bot starts asking the user questions about what type of channel they want, the name of the channel, and who has access to this channel.
