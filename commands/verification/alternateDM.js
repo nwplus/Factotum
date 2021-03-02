@@ -1,7 +1,6 @@
-// Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
 const { sendEmbedToMember } = require('../../discord-services');
-const { Message } = require('discord.js');
+const { Message, MessageEmbed } = require('discord.js');
 const { messagePrompt } = require('../../classes/prompt');
 const Verification = require('../../classes/verification');
 const BotGuildModel = require('../../classes/bot-guild');
@@ -27,19 +26,21 @@ module.exports = class AlternateDM extends PermissionCommand {
      * @param {Message} message 
      */
     async runCommand(botGuild, message) {
-        var embed = new Discord.MessageEmbed()
+        var embed = new MessageEmbed()
             .setTitle(`If the bot does not respond when you click on the clover emoji in your DM, react to this message with any emoji to verify!`)
         let embedMsg = await message.channel.send(embed);
         embedMsg.react('🍀');
-        embedMsg.createReactionCollector((reaction, user) => !user.bot);
+
+        const verifyCollector = embedMsg.createReactionCollector((reaction, user) => !user.bot);
         verifyCollector.on('collect', async (reaction, user) => {
             let member = message.guild.members.cache.get(user.id);
+
             try {
-                var email = (await messagePrompt({prompt: 'Thanks for joining cmd-f 2021! What email did you get accepted with? Please send it now!', channel: member.user.dmChannel, userId: member.id}, 'string', 30)).content;
+                var email = (await messagePrompt({prompt: 'Thanks for joining cmd-f 2021! What email did you get accepted with? Please send it now!', channel: (await member.user.createDM()), userId: member.id}, 'string', 45)).content;
             } catch (error) {
                 sendEmbedToMember(member, {
                     title: 'Verification Error',
-                    description: 'Email was not provided, please try again!'
+                    description: 'Email was not provided, please try again by reacting to the emoji again.!'
                 }, true);
                 return;
             }
@@ -49,7 +50,7 @@ module.exports = class AlternateDM extends PermissionCommand {
             } catch (error) {
                 sendEmbedToMember(member, {
                     title: 'Verification Error',
-                    description: 'Email provided is not valid! Please try again.'
+                    description: 'Email provided is not valid! Please try again by reacting to the emoji again.'
                 }, true);
             }
         });
