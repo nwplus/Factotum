@@ -1,11 +1,11 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
-const BotGuild = require('./db/mongo/BotGuild');
 const discordServices = require('../../discord-services');
 const { Message } = require('discord.js');
 const Prompt = require('../../classes/prompt');
 const Verification = require('../../classes/verification');
 const BotGuildModel = require('../../classes/bot-guild');
+const Discord = require('discord.js');
 
 // Command export
 module.exports = class AlternateDM extends PermissionCommand {
@@ -32,7 +32,7 @@ module.exports = class AlternateDM extends PermissionCommand {
             .setTitle(`If the bot does not respond when you click on the clover emoji in your DM, react to this message with any emoji to verify!`)
         let embedMsg = await message.channel.send(embed);
         embedMsg.react('🍀');
-        embedMsg.createReactionCollector((reaction, user) => !user.bot);
+        let verifyCollector = embedMsg.createReactionCollector((reaction, user) => !user.bot);
         verifyCollector.on('collect', async (reaction, user) => {
             let member = message.guild.members.cache.get(user.id);
             try {
