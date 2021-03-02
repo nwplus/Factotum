@@ -296,10 +296,10 @@ class Ticket {
                     if (this.hackers.length === 0) {
                         ticketCollector.stop();
                         looseAccessCollector.stop();
+                        this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed!! Good job!'));
                         await discordServices.deleteChannel(this.voice);
                         await discordServices.deleteChannel(this.text);
                         await discordServices.deleteChannel(this.category);
-                        this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed!! Good job!'));
                         this.cave.tickets.delete(this.ticketNumber); // delete this ticket from the cave's Collection of active tickets
                     } else if (this.mentors.length === 0) {
                         this.category.updateOverwrite(exitUser, { VIEW_CHANNEL: false, SEND_MESSAGES: false, READ_MESSAGE_HISTORY: false });
@@ -345,7 +345,7 @@ class Ticket {
         let warning = await this.text.send(requestMsg + 'If the ticket has been solved, please click the 👋 emoji above to leave the channel. ' +
             'If you need to keep the channel, please click the emoji below, **otherwise this ticket will be deleted in ** ' + this.bufferTime + ' **minutes**.')
 
-        warning.react('🔄');
+        await warning.react('🔄');
 
         // reaction collector to listen for someone to react with the emoji for more time
         const deletionCollector = warning.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🔄', { time: this.bufferTime * 60 * 1000, max: 1 });
@@ -363,6 +363,10 @@ class Ticket {
                     await discordServices.deleteChannel(this.text);
                     await discordServices.deleteChannel(this.category);
                     this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed Due to Inactivity', 'This ticket has been closed!! Good job!'));
+                    discordServices.sendEmbedToMember(this.requester, {
+                        title: 'Ticket Closed!',
+                        description: 'Your ticket number ' + this.ticketNumber + ' was closed due to inactivity. If you need more help, please request another ticket!',
+                    }, false);
                     this.cave.tickets.delete(this.ticketNumber);
                 }
             } else if (collected.size > 0) {
