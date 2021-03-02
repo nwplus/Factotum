@@ -264,6 +264,9 @@ function createALogger(loggerName, loggerLabel = '', handelRejectionsExceptions 
     // custom format
     let format = winston.format.printf(info => `${info.timestamp} [${info.label}] ${info.level}${info?.event ? ' <' + info.event + '>' : ''} : ${info.message} ${info?.data ? 'DATA : ' + info.data : '' }`);
 
+    // create main logs directory if not present
+    if (!fs.existsSync('./logs')) fs.mkdirSync('./logs');
+
     // create the directory if not present
     if (!fs.existsSync(`./logs/${loggerName}`)) fs.mkdirSync(`./logs/${loggerName}`);
     let logger = winston.loggers.add(loggerName, {
