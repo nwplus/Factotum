@@ -32,6 +32,9 @@ const BotGuildSchema = new Schema({
         botSupportChannel: {
             type: String,
         },
+        archiveCategory: {
+            type: String,
+        },
     },
 
     verification: {
