@@ -4,7 +4,10 @@ const { Message, MessageEmbed } = require('discord.js');
 const { channelPrompt, messagePrompt, } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
 
-// Command export
+/**
+ * @command StartChannelCreation
+ * The start channel creation command starts the channel creation module.
+ */
 class StartChannelCreation extends PermissionCommand {
     constructor(client) {
         super(client, {
