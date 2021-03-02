@@ -1,9 +1,8 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
-const BotGuild = require('./db/mongo/BotGuild');
-const discordServices = require('../../discord-services');
+const { sendEmbedToMember } = require('../../discord-services');
 const { Message } = require('discord.js');
-const Prompt = require('../../classes/prompt');
+const { messagePrompt } = require('../../classes/prompt');
 const Verification = require('../../classes/verification');
 const BotGuildModel = require('../../classes/bot-guild');
 
@@ -36,9 +35,9 @@ module.exports = class AlternateDM extends PermissionCommand {
         verifyCollector.on('collect', async (reaction, user) => {
             let member = message.guild.members.cache.get(user.id);
             try {
-                var email = (await Prompt.messagePrompt({prompt: 'Thanks for joining cmd-f 2021! What email did you get accepted with? Please send it now!', channel: member.user.dmChannel, userId: member.id}, 'string', 30)).content;
+                var email = (await messagePrompt({prompt: 'Thanks for joining cmd-f 2021! What email did you get accepted with? Please send it now!', channel: member.user.dmChannel, userId: member.id}, 'string', 30)).content;
             } catch (error) {
-                discordServices.sendEmbedToMember(member, {
+                sendEmbedToMember(member, {
                     title: 'Verification Error',
                     description: 'Email was not provided, please try again!'
                 }, true);
@@ -48,7 +47,7 @@ module.exports = class AlternateDM extends PermissionCommand {
             try {
                 await Verification.verify(member, email, member.guild, botGuild);
             } catch (error) {
-                discordServices.sendEmbedToMember(member, {
+                sendEmbedToMember(member, {
                     title: 'Verification Error',
                     description: 'Email provided is not valid! Please try again.'
                 }, true);

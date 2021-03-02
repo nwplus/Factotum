@@ -44,7 +44,7 @@ const customLoggerLevels = {
 }
 
 // the main logger to use for general errors
-const mainLogger = createALogger('main', 'main', true, false);
+const mainLogger = createALogger('main', 'main', true, true);
 winston.addColors(customLoggerLevels.colors);
 
 
