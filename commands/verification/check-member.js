@@ -37,7 +37,7 @@ module.exports = class Verification extends PermissionCommand {
             if (result.length > 0) { // if similar emails were found, print them
                 var listMembers = '';
                 result.forEach(member => {
-                    var listMember = member.email + ' (' + member.type + ') ';
+                    var listMember = member.email + ' (' + member.types.join(', ') + ') ';
                     listMembers += listMember;
                 });
                 message.channel.send('Here are the results I found similar to ' + emailOrName + ': ' + listMembers);
