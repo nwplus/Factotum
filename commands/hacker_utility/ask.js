@@ -1,11 +1,11 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
+const { checkForRole, sendMessageToMember, } = require('../../discord-services');
+const { MessageEmbed, Collection, } = require('discord.js');
 const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
-module.exports = class AskQuestion extends PermissionCommand {
+class AskQuestion extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'ask',
@@ -29,7 +29,7 @@ module.exports = class AskQuestion extends PermissionCommand {
 
         // if question is blank let user know via DM and exit
         if (question === '') {
-            discordServices.sendMessageToMember(message.member, 'When using the !ask command, add your question on the same message!\n' + 
+            sendMessageToMember(message.member, 'When using the !ask command, add your question on the same message!\n' + 
                                                                 'Like this: !ask This is a question');
             return;
         }
@@ -38,7 +38,7 @@ module.exports = class AskQuestion extends PermissionCommand {
         var curChannel = message.channel;
 
         // message embed to be used for question
-        const qEmbed = new Discord.MessageEmbed()
+        const qEmbed = new MessageEmbed()
             .setColor(botGuild.colors.questionEmbedColor)
             .setTitle('Question from ' + message.author.username)
             .setDescription(question);
@@ -47,7 +47,7 @@ module.exports = class AskQuestion extends PermissionCommand {
         curChannel.send(qEmbed).then(async (msg) => {
 
             // list of users currently responding
-            var onResponse = new Discord.Collection();
+            var onResponse = new Collection();
             
             msg.react('🇷');  // respond emoji
             msg.react('✅');  // answered emoji!
@@ -81,7 +81,7 @@ module.exports = class AskQuestion extends PermissionCommand {
                             // if cancel then do nothing
                             if (response.content.toLowerCase() != 'cancel') {
                                 // if user has a mentor role, they get a special title
-                                if (discordServices.checkForRole(response.member, botGuild.roleIDs.staffRole)) {
+                                if (checkForRole(response.member, botGuild.roleIDs.staffRole)) {
                                     msg.edit(msg.embeds[0].addField('🤓 ' + user.username + ' Responded:', response.content));
                                 } else {
                                     // add a field to the message embed with the response
@@ -114,14 +114,15 @@ module.exports = class AskQuestion extends PermissionCommand {
                 // remove emoji will remove the message
                 else if (reaction.emoji.name === '⛔') {
                     // check that user is staff
-                    if (discordServices.checkForRole(msg.guild.member(user), botGuild.roleIDs.staffRole)) {
+                    if (checkForRole(msg.guild.member(user), botGuild.roleIDs.staffRole)) {
                         msg.delete();
                     } else {
-                        discordServices.sendMessageToMember(user, 'Deleting a question is only available to staff!', true);
+                        sendMessageToMember(user, 'Deleting a question is only available to staff!', true);
                     }
                     
                 } 
             });
         });
     }
-};
+}
+module.exports = AskQuestion;

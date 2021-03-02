@@ -1,6 +1,6 @@
 const { GuildEmoji, ReactionEmoji, Role, TextChannel, MessageEmbed, Guild, GuildChannelManager, User, Message, RoleManager } = require('discord.js');
 const { messagePrompt } = require('./prompt');
-const discordServices = require('../discord-services');
+const { sendEmbedToMember, addRoleToMember, deleteMessage, sendMessageToMember, removeRolToMember } = require('../discord-services');
 const BotGuild = require('../db/mongo/BotGuild');
 const winston = require('winston');
 
@@ -13,7 +13,7 @@ const winston = require('winston');
  * posts in the catalogue.
  * 
  */
-module.exports = class TeamFormation {
+class TeamFormation {
     
     static defaultTeamForm = 'Team Member(s): \nTeam Background: \nObjective: \nFun Fact About Team: \nLooking For: ';
     static defaultProspectForm = 'Name: \nSchool: \nPlace of Origin: \nSkills: \nFun Fact: \nDeveloper or Designer?:';
@@ -287,7 +287,7 @@ module.exports = class TeamFormation {
             }
     
             // confirm the post has been received
-            discordServices.sendEmbedToMember(user, {
+            sendEmbedToMember(user, {
                 title: 'Team Formation',
                 description: isTeam ? 'Thanks for sending me your information, you should see it pop up in the respective channel under the team formation category.' +
                 'Once you find your members please react to my original message with ⛔ so I can remove your post. Good luck!!!' : 
@@ -300,7 +300,7 @@ module.exports = class TeamFormation {
             dmCollector.stop();
     
             // add role to the user
-            discordServices.addRoleToMember(this.guild.member(user), isTeam ? this.teamInfo.role : this.prospectInfo.role);
+            addRoleToMember(this.guild.member(user), isTeam ? this.teamInfo.role : this.prospectInfo.role);
     
             // add remove form emoji and collector
             dmMsg.react('⛔');
@@ -310,12 +310,12 @@ module.exports = class TeamFormation {
     
             removeCollector.on('collect', async (reaction, user) => {
                 // remove message sent to channel
-                discordServices.deleteMessage(catalogueMsg);
+                deleteMessage(catalogueMsg);
     
                 // confirm deletion
-                discordServices.sendMessageToMember(user, 'This is great! You are all set! Have fun with your new team! Your message has been deleted.', true);
+                sendMessageToMember(user, 'This is great! You are all set! Have fun with your new team! Your message has been deleted.', true);
     
-                discordServices.removeRolToMember(this.guild.member(user), isTeam ? this.teamInfo.role : this.prospectInfo.role);
+                removeRolToMember(this.guild.member(user), isTeam ? this.teamInfo.role : this.prospectInfo.role);
     
                 // remove this message
                 dmMsg.delete();
@@ -356,3 +356,4 @@ module.exports = class TeamFormation {
     }
 
 }
+module.exports = TeamFormation;

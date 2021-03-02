@@ -1,12 +1,11 @@
-// Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
+const { sendEmbedToMember, sendMessageToMember, checkForRole, validateEmail } = require('../../discord-services');
+const { Message } = require('discord.js');
 const Verification = require('../../classes/verification');
 const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
-module.exports = class Verify extends PermissionCommand {
+class Verify extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'verify',
@@ -34,14 +33,14 @@ module.exports = class Verify extends PermissionCommand {
 
     /**
      * @param {BotGuildModel} botGuild
-     * @param {Discord.Message} message 
+     * @param {Message} message 
      * @param {String} email 
      */
     async runCommand(botGuild, message, { email, guildId }) {
 
         // check if the user needs to verify, else warn and return
-        if (!discordServices.checkForRole(member, botGuild.roleIDs.guestRole)) {
-            discordServices.sendEmbedToMember(member, {
+        if (!checkForRole(member, botGuild.roleIDs.guestRole)) {
+            sendEmbedToMember(member, {
                 title: 'Verify Error',
                 description: 'You do not need to verify, you are already more than a guest!'
             }, true);
@@ -49,14 +48,14 @@ module.exports = class Verify extends PermissionCommand {
         }
 
         // let user know he has used the command incorrectly and exit
-        if (!discordServices.validateEmail(email)) {
-            discordServices.sendMessageToMember(message.author, 'You have used the verify command incorrectly! \nPlease write a valid email after the command like this: !verify email@gmail.com');
+        if (!validateEmail(email)) {
+            sendMessageToMember(message.author, 'You have used the verify command incorrectly! \nPlease write a valid email after the command like this: !verify email@gmail.com');
             return;
         }
 
         let guild = this.client.guilds.cache.get(guildId);
         if (!guild) {
-            discordServices.sendEmbedToMember(message.author, {
+            sendEmbedToMember(message.author, {
                 title: 'Verification Failure',
                 description: 'The given server ID is not valid. Please try again!',
             });
@@ -68,10 +67,11 @@ module.exports = class Verify extends PermissionCommand {
         try {
             Verification.verify(member, email, guild, botGuild);
         } catch (error) {
-            discordServices.sendEmbedToMember(member, {
+            sendEmbedToMember(member, {
                 title: 'Verification Error',
                 description: 'Email provided is not valid!'
             }, true);
         }
     }
-};
+}
+module.exports = Verify;

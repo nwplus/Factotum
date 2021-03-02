@@ -1,12 +1,12 @@
 const PermissionCommand = require('../../classes/permission-command');
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
+const { discordLog } = require('../../discord-services');
+const { Message, MessageEmbed } = require('discord.js');
 const { numberPrompt, yesNoPrompt, rolePrompt } = require('../../classes/prompt');
 const { getReminder } = require('../../db/firebase/firebase-services');
 const BotGuildModel = require('../../classes/bot-guild');
 
 // Automated self-care reminders, send messages in set intervals.
-module.exports = class SelfCareReminders extends PermissionCommand {
+class SelfCareReminders extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'self-care',
@@ -23,7 +23,7 @@ module.exports = class SelfCareReminders extends PermissionCommand {
 
     /**
      * @param {BotGuildModel} botGuild
-     * @param {Discord.Message} message - the message in which this command was called
+     * @param {Message} message - the message in which this command was called
      */
     async runCommand(botGuild, message) {
         var interval;
@@ -103,14 +103,14 @@ module.exports = class SelfCareReminders extends PermissionCommand {
             //report in admin logs that there are no more messages
             //TODO: consider having it just loop through the db again?
             if (data === null) {
-                discordServices.discordLog(message.guild, "<@&" + botGuild.roleIDs.staffRole + "> HI, PLEASE FEED ME more self-care messages!!");
+                discordLog(message.guild, "<@&" + botGuild.roleIDs.staffRole + "> HI, PLEASE FEED ME more self-care messages!!");
                 clearInterval(interval);
                 return;
             }
 
             let reminder = data.reminder;
 
-            const qEmbed = new Discord.MessageEmbed()
+            const qEmbed = new MessageEmbed()
                 .setColor(botGuild.colors.embedColor)
                 .setTitle(reminder)
                 // .setDescription(reminder);
@@ -119,3 +119,4 @@ module.exports = class SelfCareReminders extends PermissionCommand {
         }
     }
 }
+module.exports = SelfCareReminders;

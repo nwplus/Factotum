@@ -3,7 +3,7 @@ const { Message } = require('discord.js');
 const Activity = require('../../classes/activities/activity');
 const BotGuildModel = require('../../classes/bot-guild');
 
-module.exports = class CreateNewActivity extends PermissionCommand {
+class NewActivity extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'new-activity',
@@ -37,4 +37,5 @@ module.exports = class CreateNewActivity extends PermissionCommand {
         let activity = await new Activity({ activityName, guild: message.guild, roleParticipants: allowedRoles, botGuild}).init();
 
     }
-};
+}
+module.exports = NewActivity;

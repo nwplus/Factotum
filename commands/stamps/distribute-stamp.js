@@ -1,8 +1,9 @@
 const PermissionCommand = require('../../classes/permission-command');
 const Activity = require('../../classes/activities/activity');
 const StampsManager = require('../../classes/stamps-manager');
+const { Message, } = require('discord.js');
 
-module.exports = class DistributeStamp extends PermissionCommand {
+class DistributeStamp extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'distribute-stamp',
@@ -32,4 +33,5 @@ module.exports = class DistributeStamp extends PermissionCommand {
     async runCommand(botGuild, message, activity, {timeLimit}) {
         StampsManager.distributeStamp(activity, botGuild, timeLimit);
     }
-};
+}
+module.exports = DistributeStamp;

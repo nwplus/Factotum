@@ -1,13 +1,11 @@
-// Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
-const firebaseServices = require('../../db/firebase/firebase-services');
-const Discord = require('discord.js');
-const discordServices = require('../../discord-services');
+const { Message } = require('discord.js');
+const { checkForRole, sendEmbedToMember } = require('../../discord-services');
 const Verification = require('../../classes/verification');
 const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
-module.exports = class Attend extends PermissionCommand {
+class Attend extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'attend',
@@ -30,13 +28,13 @@ module.exports = class Attend extends PermissionCommand {
     /**
      * Attends a member.
      * @param {BotGuildModel} botGuild
-     * @param {Discord.Message} message 
+     * @param {Message} message 
      * @param {String} guildId 
      */
     async runCommand(botGuild, message, { guildId }) {
         // check if the user needs to attend, else warn and return
-        if (discordServices.checkForRole(message.author, botGuild.attendance.attendeeRoleID)) {
-            discordServices.sendEmbedToMember(message.author, {
+        if (checkForRole(message.author, botGuild.attendance.attendeeRoleID)) {
+            sendEmbedToMember(message.author, {
                 title: 'Attend Error',
                 description: 'You do not need to attend! Happy hacking!!!'
             }, true);
@@ -45,7 +43,7 @@ module.exports = class Attend extends PermissionCommand {
 
         let guild = this.client.guilds.cache.get(guildId);
         if (!guild) {
-            discordServices.sendEmbedToMember(message.author, {
+            sendEmbedToMember(message.author, {
                 title: 'Attendance Failure',
                 description: 'The given server ID is not valid. Please try again!',
             });
@@ -56,5 +54,5 @@ module.exports = class Attend extends PermissionCommand {
         // call the firebase services attendHacker function
         Verification.attend(member, botGuild);
     }
-
-};
+}
+module.exports = Attend;

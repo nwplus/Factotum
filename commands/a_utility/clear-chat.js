@@ -1,11 +1,11 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
+const { discordLog } = require('../../discord-services');
+const { MessageEmbed, Message } = require('discord.js');
 const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
-module.exports = class ClearChat extends PermissionCommand {
+class ClearChat extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'clear-chat',
@@ -36,7 +36,7 @@ module.exports = class ClearChat extends PermissionCommand {
 
     /**
      * @param {BotGuildModel} botGuild
-     * @param {Discord.Message} message - the message in which the command was run
+     * @param {Message} message - the message in which the command was run
      */
     async runCommand (botGuild, message, {keepPinned, isCommands}) {
 
@@ -49,7 +49,7 @@ module.exports = class ClearChat extends PermissionCommand {
             await message.channel.bulkDelete(100, true).catch(console.error);
         }
 
-        discordServices.discordLog(message.guild, "CHANNEL CLEAR " + message.channel.name + ". By user: " + message.author.username);
+        discordLog(message.guild, "CHANNEL CLEAR " + message.channel.name + ". By user: " + message.author.username);
         
         var commands = [];
 
@@ -77,7 +77,7 @@ module.exports = class ClearChat extends PermissionCommand {
             
             var length = commands.length;
 
-            const textEmbed = new Discord.MessageEmbed()
+            const textEmbed = new MessageEmbed()
                 .setColor(botGuild.colors.embedColor)
                 .setTitle('Commands Available in this Channel')
                 .setDescription('The following are all the available commands in this channel, for more information about a specific command please call !help <command_name>.')
@@ -96,5 +96,5 @@ module.exports = class ClearChat extends PermissionCommand {
             message.channel.send(textEmbed);
         }
     }
-
 }
+module.exports = ClearChat;

@@ -1,9 +1,9 @@
 // Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const discordServices = require('../../discord-services');
+const { deleteMessage } = require('../../discord-services');
 
 // Command export
-module.exports = class UnknownCommand extends Command {
+class UnknownCommand extends Command {
     constructor(client) {
         super(client, {
             name: 'unknown-command',
@@ -19,10 +19,10 @@ module.exports = class UnknownCommand extends Command {
         if (message.channel.type === 'dm') {
             return;
         } else {
-            discordServices.deleteMessage(message);
+            deleteMessage(message);
             message.reply('This is an unknown command!').then(msg => msg.delete({timeout: 3000}));
         }
         
     }
-
 }
+module.exports = UnknownCommand;

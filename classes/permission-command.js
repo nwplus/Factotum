@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const { Command, CommandoMessage } = require('discord.js-commando');
+const { Command, CommandoMessage, CommandoClientOptions, CommandInfo } = require('discord.js-commando');
 const BotGuild = require('../db/mongo/BotGuild');
 const BotGuildModel = require('./bot-guild');
 const discordServices = require('../discord-services');
@@ -26,8 +26,8 @@ class PermissionCommand extends Command {
 
     /**
      * Constructor for our custom command, calls the parent constructor.
-     * @param {import('discord.js-commando').CommandoClientOptions} client - the client the command is for 
-     * @param {import('discord.js-commando').CommandInfo} info - the information for this commando command 
+     * @param {CommandoClientOptions} client - the client the command is for 
+     * @param {CommandInfo} info - the information for this commando command 
      * @param {CommandPermissionInfo} permissionInfo - the custom information for this command 
      */
     constructor(client, info, permissionInfo) {

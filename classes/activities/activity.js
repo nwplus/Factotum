@@ -1,4 +1,4 @@
-const { Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable, Emoji, GuildEmoji, MessageEmbed, Message, GuildMember, PermissionOverwriteOption } = require('discord.js');
+const { Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable, Emoji, GuildEmoji, MessageEmbed, Message, GuildMember, PermissionOverwriteOption, GuildCreateChannelOptions } = require('discord.js');
 const winston = require('winston');
 const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../bot-guild');
@@ -101,7 +101,7 @@ class Activity {
         
         /**
          * Roles allowed to view activity.
-         * @type {Collection<String, Role}
+         * @type {Collection<String, Role>}
          */
         this.rolesAllowed = roleParticipants;
 
@@ -299,8 +299,8 @@ class Activity {
     /**
      * Adds a channels to this activity. Will automatically set the parent and add it to the correct collection.
      * @param {String} name - name of the channel to create
-     * @param {import("discord.js").GuildCreateChannelOptions} info - one of voice or text
-     * @param {Array<RolePermission>} permissions - the permissions per role to be added to this channel after creation.
+     * @param {GuildCreateChannelOptions} info - one of voice or text
+     * @param {RolePermission[]} permissions - the permissions per role to be added to this channel after creation.
      * @param {Boolean} [isSafe=false] - true if the channel is safe and cant be removed
      * @protected
      */

@@ -1,12 +1,9 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
 const firebaseServices = require('../../db/firebase/firebase-services');
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
-const Prompt = require('../../classes/prompt');
 
 // Command export
-module.exports = class Verification extends PermissionCommand {
+class CheckMember extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'check-member',
@@ -56,3 +53,4 @@ module.exports = class Verification extends PermissionCommand {
         }
     }
 }
+module.exports = CheckMember;

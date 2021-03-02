@@ -1,11 +1,11 @@
-const discordServices = require('../../discord-services');
+const { replyAndDelete } = require('../../discord-services');
 const { Message } = require('discord.js');
 const Activity = require('../../classes/activities/activity');
 const PermissionCommand = require('../../classes/permission-command');
 const CoffeeChats = require('../../classes/activities/coffee-chats');
 
 // Command export
-module.exports = class InitCoffeeChats extends PermissionCommand {
+class NewCoffeeChats extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'new-coffee-chats',
@@ -46,6 +46,7 @@ module.exports = class InitCoffeeChats extends PermissionCommand {
         let coffeeChats = await new CoffeeChats({activityName: activityName, guild: message.guild, roleParticipants: roleParticipants, botGuild: botGuild}, numOfGroups).init(message.channel, message.author.id);
 
         // report success of coffee chat creation
-        discordServices.replyAndDelete(message,'Activity named: ' + activityName + ' now has coffee chat functionality.');
+        replyAndDelete(message,'Activity named: ' + activityName + ' now has coffee chat functionality.');
     }
-};
+}
+module.exports = NewCoffeeChats;

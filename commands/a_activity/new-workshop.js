@@ -1,13 +1,13 @@
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
-const {yesNoPrompt, rolePrompt} = require('../../classes/prompt');
+const { replyAndDelete } = require('../../discord-services');
+const { Message, Collection } = require('discord.js');
+const { rolePrompt } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
 const Workshop = require('../../classes/activities/workshop');
 const PermissionCommand = require('../../classes/permission-command');
 const Activity = require('../../classes/activities/activity');
 
 // Command export
-module.exports = class InitWorkshop extends PermissionCommand {
+class NewWorkshop extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'new-workshop',
@@ -34,7 +34,7 @@ module.exports = class InitWorkshop extends PermissionCommand {
     /**
      * Required class by children, should contain the command code.
      * @param {BotGuildModel} botGuild
-     * @param {Discord.Message} message - the message that has the command
+     * @param {Message} message - the message that has the command
      * @param {String} activityName - the activity for this activity command
      */
     async runCommand(botGuild, message, {activityName}) {
@@ -45,7 +45,7 @@ module.exports = class InitWorkshop extends PermissionCommand {
 
 
         // prompt user for roles that will have access to the TA side of the workshop
-        var TARoles = new Discord.Collection();
+        var TARoles = new Collection();
         try {
             TARoles = await rolePrompt({prompt: 'What roles will have access to the TA portion of this workshop?', channel: message.channel, userId: message.author.id});
         } catch (error) {
@@ -58,7 +58,7 @@ module.exports = class InitWorkshop extends PermissionCommand {
         workshop.sendConsoles(this.client);
 
         // report success of workshop creation
-        discordServices.replyAndDelete(message, 'Activity named: ' + activityName + ' was created as a workshop!');
+        replyAndDelete(message, 'Activity named: ' + activityName + ' was created as a workshop!');
     }
-
-};
+}
+module.exports = NewWorkshop;
