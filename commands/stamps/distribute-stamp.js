@@ -1,7 +1,6 @@
-const discordServices = require('../../discord-services');
 const PermissionCommand = require('../../classes/permission-command');
-const Activity = require('../../classes/activity');
-const ActivityManager = require('../../classes/activity-manager');
+const Activity = require('../../classes/activities/activity');
+const StampsManager = require('../../classes/stamps-manager');
 
 module.exports = class DistributeStamp extends PermissionCommand {
     constructor(client) {
@@ -31,6 +30,6 @@ module.exports = class DistributeStamp extends PermissionCommand {
      * @param {Activity} activity 
      */
     async runCommand(botGuild, message, activity, {timeLimit}) {
-        ActivityManager.distributeStamp(activity, botGuild, timeLimit);
+        StampsManager.distributeStamp(activity, botGuild, timeLimit);
     }
 };
