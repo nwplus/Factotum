@@ -113,7 +113,7 @@ async function checkEmail(email) {
             if (compareEmails(email.split('@')[0], compare.split('@')[0])) {
                 foundEmails.push({
                     email: compare,
-                    type: memberDoc.get('type')
+                    types: memberDoc.get('types').map(type => type.type),
                 });
             };
         }

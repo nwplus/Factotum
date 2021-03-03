@@ -41,7 +41,7 @@ class ManualVerify extends PermissionCommand {
             let channel = message.channel;
             let userId = message.author.id;
 
-            let availableTypes = botGuild.verification.verificationRoles.array().join();
+            let availableTypes = Array.from(botGuild.verification.verificationRoles.keys()).join();
 
             let guestId = (await numberPrompt({ prompt: 'What is the ID of the member you would like to verify?', channel, userId}))[0];
             var member = message.guild.members.cache.get(guestId.toString()); // get member object by id
@@ -69,7 +69,7 @@ class ManualVerify extends PermissionCommand {
             
             addUserData(email, member, types);
             try {
-                await Verification.verify(member, email, guild, botGuild);
+                await Verification.verify(member, email, message.guild, botGuild);
             } catch (error) {
                 sendMsgToChannel(channel, userId, 'Email provided is not valid!', 5);
             }

@@ -1,6 +1,8 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
 const firebaseServices = require('../../db/firebase/firebase-services');
+const BotGuildModel = require('../../classes/bot-guild');
+const { Message } = require('discord.js');
 
 /**
  * User can check if a member is in the database by email or name.
@@ -33,14 +35,19 @@ class CheckMember extends PermissionCommand {
             });
     }
 
-    
+    /**
+     * @param {BotGuildModel} botGuild 
+     * @param {Message} message 
+     * @param {Object} args
+     * @param {String} args.emailOrName
+     */
     async runCommand(botGuild, message, { emailOrName }) {
         if (emailOrName.split('-').length === 1) { // check for similar emails if given argument is an email
             var result = await firebaseServices.checkEmail(emailOrName);
             if (result.length > 0) { // if similar emails were found, print them
                 var listMembers = '';
                 result.forEach(member => {
-                    var listMember = member.email + ' (' + member.type + ') ';
+                    var listMember = member.email + ' (' + member.types.join(', ') + ') ';
                     listMembers += listMember;
                 });
                 message.channel.send('Here are the results I found similar to ' + emailOrName + ': ' + listMembers);

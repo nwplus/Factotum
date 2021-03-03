@@ -45,7 +45,7 @@ fs.createReadStream('registrations.csv') // requires a registrations.csv file in
     .on('data', (data) => results.push(data))
     .on('end', () => {
         results.forEach((row) => { // grab email from each csv entry and save to all_regs
-            const email = row['What is your primary email that can we contact you with?'] || row['Email Address']
+            const email = (row['What is your primary email that can we contact you with?'] || row['Email Address']).toLowerCase();
 
             const r = new Registration(email)
             all_regs[email] = r;
