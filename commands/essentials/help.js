@@ -10,7 +10,7 @@ const BotGuild = require('../../db/mongo/BotGuild');
  * @subcategory Essentials
  * @extends Command
  */
-class ClearChat extends Command {
+class Help extends Command {
     constructor(client) {
         super(client, {
             name: 'help',
@@ -77,4 +77,4 @@ class ClearChat extends Command {
         message.author.send(textEmbed);
     }
 }
-module.exports = ClearChat;
+module.exports = Help;

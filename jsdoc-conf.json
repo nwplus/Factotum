@@ -14,8 +14,8 @@
         "dictionaries": ["jsdoc","closure"]
     },
     "templates": {
-        "cleverLinks": false,
-        "monospaceLinks": false,
+        "cleverLinks": true,
+        "monospaceLinks": true,
         "search" : true,
         "better-docs" : {
             "name" : "Factotum Discord Bot Documentation",

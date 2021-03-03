@@ -2,8 +2,6 @@ const firebase = require('firebase/app');
 require('firebase/firestore');
 const services = require('./firebase-services');
 
-/** @module FirebaseServicesBoothing */
-
 const db = services.db;
 
 // create a new booth in the booth group and set the waitlist embed

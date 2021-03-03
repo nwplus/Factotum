@@ -9,8 +9,7 @@ const winston = require('winston');
  * The PermissionCommand is a custom command that extends the discord js commando Command class.
  * This Command subclass adds role and channel permission checks before the command is run. It also
  * removes the message used to call the command.
- * 
- * 
+ * @extends Command
  */
 class PermissionCommand extends Command {
     
@@ -36,6 +35,7 @@ class PermissionCommand extends Command {
         /**
          * The permission info
          * @type {CommandPermissionInfo}
+         * @private
          */
         this.permissionInfo = this.validateInfo(permissionInfo);
     }
@@ -44,6 +44,7 @@ class PermissionCommand extends Command {
      * Adds default values if not found on the object.
      * @param {CommandPermissionInfo} permissionInfo 
      * @returns {CommandPermissionInfo}
+     * @private
      */
     validateInfo(permissionInfo) {
         // Make sure permissionInfo is an object, if not given then create empty object
@@ -60,7 +61,9 @@ class PermissionCommand extends Command {
      * @param {Discord.Message} message 
      * @param {Object|string|string[]} args 
      * @param {boolean} fromPattern 
-     * @param {Promise<?Message|?Array<Message>>} result 
+     * @param {Promise<?Message|?Array<Message>>} result
+     * @override
+     * @private
      */
     async run(message, args, fromPattern, result){
 
@@ -116,10 +119,11 @@ class PermissionCommand extends Command {
      * Required class by children, will throw error if not implemented!
      * @param {BotGuildModel} botGuild
      * @param {CommandoMessage} message
-     * @param {*} args
+     * @param {Object} args
      * @param {Boolean} fromPattern
      * @param {Promise<*>} result
      * @abstract
+     * @protected
      */
     runCommand(botGuild, message, args, fromPattern, result) {
         throw new Error('You need to implement the runCommand method!');
@@ -131,7 +135,7 @@ class PermissionCommand extends Command {
  * * ADMIN_ROLE : only admins can use this command
  * * STAFF_ROLE : staff and admin can use this command
  * * ADMIN_CONSOLE : can only be used in the admin console
- * @type {Object}
+ * @enum {String}
  */
 PermissionCommand.FLAGS = {
     ADMIN_ROLE: 'adminRole',
