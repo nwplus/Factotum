@@ -1,13 +1,14 @@
 {
-  "name": "discord-bot-for-nwplus",
-  "version": "1.0.0",
+  "name": "factotum-discord-bot",
+  "version": "5.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "JP Garcia, Maggie Want, Shu Ting Hu",
+  "license": "SEE LICENSE IN ./LICENSE",
+  "homepage": "https://github.com/nwplus/Factotum",
   "dependencies": {
     "better-docs": "^2.3.2",
     "csv-parser": "^3.0.0",
