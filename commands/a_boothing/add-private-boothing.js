@@ -20,13 +20,13 @@ module.exports = class CreatePrivates extends PermissionCommand {
             ],
         },
         {
-            roleID: discordServices.roleIDs.staffRole,
+            roleID: PermissionCommand.FLAGS.STAFF_ROLE,
             roleMessage: 'This command can only be ran by staff!',
         });
     }
 
 
-    async runCommand(message, {number}) {
+    async runCommand(botGuild, message, {number}) {
 
         // make sure command is only used in the boothing-wait-list channel
         if (message.channel.name != 'boothing-wait-list') {
@@ -47,15 +47,14 @@ module.exports = class CreatePrivates extends PermissionCommand {
         });
 
         // number of channels
-        var amount = channels.array().length;
+        var amount = channels.size;
 
         var total = amount + number;                
 
         // create voice channels
         for (var index = amount + 1; index <= total; index++) {
             var channel = await message.guild.channels.create('Private-' + index, {type: 'voice', parent: category});
-            await channel.createOverwrite(discordServices.roleIDs.attendeeRole, {VIEW_CHANNEL: false, SPEAK: true, VIDEO: true, USE_VAD: true});
-            await channel.createOverwrite(discordServices.roleIDs.mentorRole, {VIEW_CHANNEL: false, SPEAK: true, VIDEO: true, USE_VAD: true});
+            await channel.createOverwrite(botGuild.roleIDs.memberRole, {VIEW_CHANNEL: false, SPEAK: true, VIDEO: true, USE_VAD: true});
         }
 
         // report success of workshop creation

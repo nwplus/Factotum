@@ -1,5 +1,6 @@
 const { Collection } = require("discord.js");
 const Discord = require("discord.js");
+const winston = require("winston");
 const discordServices = require('../discord-services');
 const Cave = require("./cave");
 
@@ -11,7 +12,7 @@ class Ticket {
     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} requestTicketEmoji - emoji for hackers to request a ticket
     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} addRoleEmoji - emoji for Admins to add a mentor role
     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} deleteChannelsEmoji - emoji for Admins to force delete ticket channels
-    * @property {Discord.GuildEmoji | Discord.ReactionEmoji} excludeFromAutodeleteEmoji - emoji for Admins to opt tickets in/out of garbage collector
+    * @property {Discord.GuildEmoji | Discord.ReactionEmoji} excludeFromAutoDeleteEmoji - emoji for Admins to opt tickets in/out of garbage collector
     */
 
     constructor(guild, question, cave, requester, hackers, ticketNumber, ticketMsg, inactivePeriod, bufferTime) {
@@ -159,7 +160,7 @@ class Ticket {
             type: 'category',
             permissionOverwrites: [
                 {
-                    id: discordServices.everyoneRole,
+                    id: this.cave.botGuild.roleIDs.everyoneRole,
                     deny: ['VIEW_CHANNEL'],
                 }
             ]
@@ -190,12 +191,17 @@ class Ticket {
         // reaction collector that listens for the emojis that trigger actions
         const ticketCollector = this.ticketMsg.createReactionCollector((reaction, user) => !user.bot && ticketEmojis.has(reaction.emoji.name));
 
+        // if ticket has not been accepted after the specified time, it will send a reminder to the incoming tickets channel tagging all mentors
+        var timeout = setTimeout(() => {
+            this.cave.privateChannels.incomingTickets.send('Hello <@&' + this.cave.caveOptions.role + '> ticket number ' + this.ticketNumber + ' still needs help!');
+        }, this.cave.caveOptions.times.reminderTime * 60 * 1000);
+
         // let user know that ticket was submitted and give option to remove ticket
         let removeTicketEmoji = '⚔️';
 
         let reqTicketUserEmbedMsg = await discordServices.sendEmbedToMember(this.requester, {
             title: 'Ticket was Successful!',
-            description: 'Your ticket to the ' + this.cave.caveOptions.name + ' group was succesful!',
+            description: 'Your ticket to the ' + this.cave.caveOptions.name + ' group was successful! It is ticket number ' + this.ticketNumber + '.',
             fields: [{
                 title: 'Remove the ticket',
                 description: 'If you don\'t need help anymore, react to this message with ' + removeTicketEmoji,
@@ -207,17 +213,18 @@ class Ticket {
         });
 
         reqTicketUserEmbedMsg.react(removeTicketEmoji);
-        let reqTicketUserEmbedMsgcollector = reqTicketUserEmbedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === removeTicketEmoji, { max: 1 });
-        reqTicketUserEmbedMsgcollector.on('collect', (reaction, user) => {
+        let reqTicketUserEmbedMsgCollector = reqTicketUserEmbedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === removeTicketEmoji, { max: 1 });
+        reqTicketUserEmbedMsgCollector.on('collect', (reaction, user) => {
             // don't allow anyone to join ticket and update dm with user to show that ticket has been canceled
             ticketCollector.stop();
             this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed by the user!'));
             reqTicketUserEmbedMsg.delete({ timeout: 3000 });
             discordServices.sendEmbedToMember(user, {
                 title: 'Ticket Closed!',
-                description: 'Your ticket has been closed!',
+                description: 'Your ticket number ' + this.ticketNumber + ' has been closed!',
             }, true);
             this.cave.tickets.delete(this.ticketNumber); // delete from cave's list of active tickets
+            clearTimeout(timeout);
         });
 
         ticketCollector.on('collect', async (reaction, helper) => {
@@ -230,6 +237,7 @@ class Ticket {
                 this.ticketMsg.edit(this.ticketMsg.embeds[0].addField('More hands on deck!', '<@' + helper.id + '> Joined the ticket!'));
                 this.openTicketEmbedMsg.edit(this.openTicketEmbedMsg.embeds[0].addField('More hands on deck!', '<@' + helper.id + '> Joined the ticket!'));
             } else {
+                clearTimeout(timeout);
                 // edit incoming ticket with mentor information
                 this.ticketMsg.edit(this.ticketMsg.embeds[0].addField('This ticket is being handled!', '<@' + helper.id + '> Is helping this team!')
                     .addField('Still want to help?', 'Click the ' + this.caveEmojis.joinTicketEmoji.toString() + ' emoji to join the ticket!')
@@ -239,7 +247,12 @@ class Ticket {
                 ticketEmojis.set(this.caveEmojis.joinTicketEmoji.name, this.caveEmojis.joinTicketEmoji);
 
                 // update dm with user to reflect that their ticket has been accepted
-                reqTicketUserEmbedMsg.edit(reqTicketUserEmbedMsg.embeds[0].addField('Ticket Open!', 'Your ticket has been opened! Good luck!'));
+                const openedTicketEmbed = new Discord.MessageEmbed()
+                    .setColor('#128c1e')
+                    .setTitle('Your Ticket Number ' + this.ticketNumber + ' Has Been Opened!')
+                    .setDescription('Your question: ' + this.question + '\nPlease go to the corresponding channel and read the instructions there.')
+                reqTicketUserEmbedMsg.edit(openedTicketEmbed);
+                reqTicketUserEmbedMsgCollector.stop();
 
                 // new ticket, create channels and add users
                 await this.createCategory();
@@ -256,7 +269,7 @@ class Ticket {
                 this.mentors.push(helper.id);
 
                 // send message mentioning all the parties involved so they get a notification
-                let notificationMessage = '<@' + helper.id + '> <@' + this.hackers.join('> <@') + '>';
+                let notificationMessage = '<@' + helper.id + '> ' + this.hackers.join(' ');
                 this.text.send(notificationMessage).then(msg => msg.delete({ timeout: 15000 }));
 
                 this.createActivityListener(); //create a listener for inactivity in the text channel
@@ -274,7 +287,7 @@ class Ticket {
 
                     // if hacker is leaving, delete from hackers list
                     for (var i = 0; i < this.hackers.length; i++) {
-                        if (this.hackers[i] === exitUser.id) {
+                        if (this.hackers[i] === exitUser) {
                             this.hackers.splice(i, 1);
                         }
                     }
@@ -283,11 +296,11 @@ class Ticket {
                     if (this.hackers.length === 0) {
                         ticketCollector.stop();
                         looseAccessCollector.stop();
+                        this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed!! Good job!'));
                         await discordServices.deleteChannel(this.voice);
                         await discordServices.deleteChannel(this.text);
                         await discordServices.deleteChannel(this.category);
                         this.cave.tickets.delete(this.ticketNumber); // delete this ticket from the cave's Collection of active tickets
-                        this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed!! Good job!'));
                     } else if (this.mentors.length === 0) {
                         this.category.updateOverwrite(exitUser, { VIEW_CHANNEL: false, SEND_MESSAGES: false, READ_MESSAGE_HISTORY: false });
                         // tell hackers mentor is gone and ask to delete the ticket if this has not been done already 
@@ -322,42 +335,44 @@ class Ticket {
         if (this.category.deleted || this.text.deleted || this.voice.deleted || this.excluded) return;
 
         // assemble message to send to hackers to verify if they still need the ticket
-        var requestMsg = '<@' + this.hackers.join('> <@') + '>';
+        var requestMsg = this.hackers.join(' ');
         if (reason === 'inactivity') {
             requestMsg = requestMsg + ' <@' + this.mentors.join('> <@') + '>'
             requestMsg = requestMsg + ' Hello! I detected some inactivity on this channel and wanted to check in.\n';
         } else if (reason === 'mentor') {
             requestMsg = requestMsg + ' Hello! Your mentor(s) has/have left the ticket.\n'
         }
-        this.text.send(requestMsg + 'If the ticket has been solved, please click the 👋 emoji above to leave the channel. ' +
+        let warning = await this.text.send(requestMsg + 'If the ticket has been solved, please click the 👋 emoji above to leave the channel. ' +
             'If you need to keep the channel, please click the emoji below, **otherwise this ticket will be deleted in ** ' + this.bufferTime + ' **minutes**.')
-            .then((warning) => {
-                warning.react('🔄');
 
-                // reaction collector to listen for someone to react with the emoji for more time
-                const deletionCollector = warning.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🔄', { time: this.bufferTime * 60 * 1000, max: 1 });
-                deletionCollector.on('end', async (collected) => {
-                    // if a channel has already been deleted by another process, stop this deletion sequence
-                    if (this.category.deleted || this.text.deleted || this.voice.deleted) {
-                        clearInterval(this.interval);
-                    } else if (collected.size === 0 && !this.excluded) { // checks to see if no one has responded and this ticket is not exempt
-                        clearInterval(this.interval);
+        await warning.react('🔄');
 
-                        // delete channels, update Cave's ticket Collection and edit message in incoming tickets if there is no other 
-                        // deletion process ongoing
-                        if (!this.category.deleted && !this.text.deleted && !this.voice.deleted) {
-                            await discordServices.deleteChannel(this.voice);
-                            await discordServices.deleteChannel(this.text);
-                            await discordServices.deleteChannel(this.category);
-                            this.cave.tickets.delete(this.ticketNumber);
-                            this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed Due to Inactivity', 'This ticket has been closed!! Good job!'));
-                        }
-                    } else if (collected.size > 0) {
-                        await this.text.send('You have indicated that you need more time. I\'ll check in with you later!');
-                    }
-                });
-            });
+        // reaction collector to listen for someone to react with the emoji for more time
+        const deletionCollector = warning.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🔄', { time: this.bufferTime * 60 * 1000, max: 1 });
+        deletionCollector.on('end', async (collected) => {
+            // if a channel has already been deleted by another process, stop this deletion sequence
+            if (this.category.deleted || this.text.deleted || this.voice.deleted) {
+                clearInterval(this.interval);
+            } else if (collected.size === 0 && !this.excluded) { // checks to see if no one has responded and this ticket is not exempt
+                clearInterval(this.interval);
 
+                // delete channels, update Cave's ticket Collection and edit message in incoming tickets if there is no other 
+                // deletion process ongoing
+                if (!this.category.deleted && !this.text.deleted && !this.voice.deleted) {
+                    await discordServices.deleteChannel(this.voice);
+                    await discordServices.deleteChannel(this.text);
+                    await discordServices.deleteChannel(this.category);
+                    this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed Due to Inactivity', 'This ticket has been closed!! Good job!'));
+                    discordServices.sendEmbedToMember(this.requester, {
+                        title: 'Ticket Closed!',
+                        description: 'Your ticket number ' + this.ticketNumber + ' was closed due to inactivity. If you need more help, please request another ticket!',
+                    }, false);
+                    this.cave.tickets.delete(this.ticketNumber);
+                }
+            } else if (collected.size > 0) {
+                await this.text.send('You have indicated that you need more time. I\'ll check in with you later!');
+            }
+        });
     }
 
     /**
@@ -366,12 +381,14 @@ class Ticket {
     async createActivityListener() {
         // stop listening if there is another deletion process ongoing
         if (this.category.deleted || this.text.deleted || this.voice.deleted || this.excluded) return;
-        // message collector that stops when there are no messages for inactiverPeriod minutes
+        // message collector that stops when there are no messages for inactivePeriod minutes
         const activityListener = this.text.createMessageCollector(m => !m.author.bot, { idle: this.inactivePeriod * 60 * 1000 });
         activityListener.on('end', async collected => {
             //don't start deletion sequence if the text/voice channel got deleted while the collector was listening
             if (!this.mentorDeletionSequence && !this.category.deleted && !this.text.deleted && !this.voice.deleted) {
-                await this.askToDelete('inactivity');
+                if (this.voice.members.array().length === 0) {
+                    await this.askToDelete('inactivity');
+                }
                 this.createActivityListener(); // start listening again for inactivity if they asked for more time
             }
         });

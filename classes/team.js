@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const winston = require("winston");
 const discordServices = require("../discord-services");
 
 
@@ -36,7 +37,13 @@ class Team {
          * True if the team has been complete at least once.
          * @type {Boolean}
          */
-        this.hasBeenComplete= false;
+        this.hasBeenComplete = false;
+
+        /**
+         * True if the team has been deleted, else false.
+         * @type {Boolean}
+         */
+        this.deleted = false;        
     }
 
     /**
@@ -97,7 +104,7 @@ class Team {
                 'VIEW_CHANNEL' : true,
                 'SEND_MESSAGES' : true,
             });
-            this.textChannel.send('Helo <@' + user.id + '>, welcome to the team!');
+            this.textChannel.send('Hello <@' + user.id + '>, welcome to the team!').then(msg => msg.delete({timeout: 30000}));
         }
     }
 
@@ -111,7 +118,7 @@ class Team {
             this.members.set(user.id, user);
             await this.addUserToTextChannel(user);
 
-            if (this.members.array().length === 1) {
+            if (this.members.size === 1) {
                 this.leader = user.id;
                 
             }
@@ -132,7 +139,7 @@ class Team {
             SEND_MESSAGES: false,
         });
 
-        // if user is the team leader apoint another team member
+        // if user is the team leader appoint another team member
         if (this.leader = user.id) {
             this.leader = this.members.first().id;
         }
@@ -145,11 +152,11 @@ class Team {
      * @returns {Number}
      */
     size() {
-        return this.members.array().length;
+        return this.members.size;
     }
 
     /**
-     * True if the team has 4 memebrs, false otherwise.
+     * True if the team has 4 members, false otherwise.
      */
     isComplete() {
         return this.size() === 4;

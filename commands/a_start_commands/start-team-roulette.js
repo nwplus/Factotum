@@ -4,30 +4,37 @@ const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt.js');
 const Team = require('../../classes/team');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class StartTeamRoulette extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'starttr',
+            name: 'start-team-roulette',
             group: 'a_start_commands',
             memberName: 'start team roulette',
             description: 'Send a message with emoji collector, solos, duos or triplets can join to get assigned a random team.',
             guildOnly: true,
         },
         {
-            roleID: discordServices.roleIDs.staffRole,
-            roleMessage: 'Hey there, the !starttr command is only for staff!',
-            channelID: discordServices.adminConsoleChannel,
-            channelMessage: 'Hey there, th !starttr command is only available on the admin console.',
+            role: PermissionCommand.FLAGS.ADMIN_ROLE,
+            roleMessage: 'Hey there, the !start-team-roulette command is only for staff!',
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
+            channelMessage: 'Hey there, th !start-team-roulette command is only available on the admin console.',
         });
+
+        // collection of reaction collectors listening for team leaders to delete teams; used for scope so collectors can be stopped
+        // when a team forms
+        this.destroyCollectors = new Discord.Collection();
     }
 
     /**
-     * 
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message - the message in which the command was run
      */
-    async runCommand(message) {
+    async runCommand(botGuild, message) {
+
+        this.botGuild = botGuild;
 
         /**
          * The solo join emoji.
@@ -77,7 +84,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 
         // create and send embed message to channel with emoji collector
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(this.botGuild.colors.embedColor)
             .setTitle('Team Roulette Information')
             .setDescription('Welcome to the team roulette section! If you are looking to join a random team, you are in the right place!')
             .addField('How does this work?', 'Reacting to this message will get you or your team on a list. I will try to assign you a team of 4 as fast as possible. When I do I will notify you on a private text channel with your new team!')
@@ -118,7 +125,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
             if (reaction.emoji.name === this.teamEmoji) {
                 
                 try {
-                    var groupMsg = await Prompt.messagePrompt('Please mention all your current team members in one message. You mention by typing @friendName .', 'string', this.textChannel, teamLeaderUser.id, 30);
+                    var groupMsg = await Prompt.messagePrompt({prompt: 'Please mention all your current team members in one message. You mention by typing @friendName .', channel: this.textChannel, userId: teamLeaderUser.id}, 'string', 30);
                 } catch (error) {
                     reaction.users.remove(newTeam.leader);
                     return;
@@ -130,7 +137,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 groupMembers.delete(newTeam.leader);
 
                 // check if they have more than 4 team members
-                if (groupMembers.array().length > 2) {
+                if (groupMembers.size > 2) {
                     discordServices.sendEmbedToMember(teamLeaderUser, {
                         title: 'Team Roulette',
                         description: 'You just tried to use the team roulette, but you mentioned more than 2 members. That should mean you have a team of 4 already! If you mentioned yourself by accident, try again!',
@@ -162,11 +169,13 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                             memberMsg.react(leaveTeamEmoji);
 
                             // reaction to leave the team only works before the team has been completed!!
-                            memberMsg.awaitReactions((reaction, user) => !user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === leaveTeamEmoji, {max: 1}).then(reactions => {
+                            memberMsg.awaitReactions((reaction, user) => !user.bot && !newTeam.hasBeenComplete && !newTeam.deleted && reaction.emoji.name === leaveTeamEmoji, {max: 1}).then(reactions => {
                                 // remove member from list
-                                let newSize = this.removeMemberFromTeam(newTeam, teamMember, memberMsg);
+                                let newSize = this.removeMemberFromTeam(newTeam, teamMember);
 
-                                // add team without user to correct teamList and notify team leader
+                                memberMsg.delete();
+
+                                // add team without users to correct teamList and notify team leader
                                 if(newSize > 0) {
                                     this.teamList.get(newSize).push(newTeam);
                                     discordServices.sendEmbedToMember(newTeam.members.get(newTeam.leader), {
@@ -190,40 +199,44 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 description: 'You' + (reaction.emoji.name === this.teamEmoji ? ' and your team' : '') + ' have been added to the roulette. I will get back to you as soon as I have a team for you!',
                 color: '#57f542',
                 fields: [{
-                    title: 'Destroy the team',
-                    description: 'If you want remove the team from the roulette react to this message with ' + destroyTeamEmoji,
+                    title: 'Destroy your team',
+                    description: 'If you want to leave the roulette queue react to this message with ' + destroyTeamEmoji + '\n' 
+                    + 'Note that once you destroy your team, you will have to re-join the roulette and wait for longer!',
                 }]
             });
             leaderDM.react(destroyTeamEmoji);
 
             // reaction to destroy the team only works before the team is completed
-            console.log(newTeam.hasBeenComplete);
-            leaderDM.awaitReactions((reaction, user) => {
-                console.log(!user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === destroyTeamEmoji);
-                return !user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === destroyTeamEmoji;
-            }, {max: 1}).then(reactions => {
-                console.log('inside await reactions');
-                // remove the team from the list, remove the team leader msg and send a confirmation message
+            const destroyTeamCollector = leaderDM.createReactionCollector((reaction,user) => !user.bot && !newTeam.hasBeenComplete && reaction.emoji.name === destroyTeamEmoji, {max: 1});
+            this.destroyCollectors.set(teamLeaderUser.id, destroyTeamCollector);
+            destroyTeamCollector.on('collect', (reaction, leader) => {
+                // remove team from team list
                 this.teamList.get(newTeam.size()).splice(this.teamList.get(newTeam.size()).indexOf(newTeam), 1);
+                
+                // remove leader DM
                 leaderDM.delete();
-                discordServices.sendEmbedToMember(teamLeaderUser, {
-                    title: 'Team Roulette',
-                    description: 'Your team has been removed from the roulette!',
-                }, true);
 
-                // remove all users from the activity and let them know
+                // mark the team as deleted
+                newTeam.deleted = true;
+
+                // notify users of team deletion 
                 newTeam.members.forEach(user => {
                     this.participants.delete(user.id);
-                    discordServices.sendEmbedToMember(user, {
-                        title: 'Team Roulette',
-                        description: 'Your team with <@' + newTeam.leader + '> has been destroyed!',
-                    });
+                    if (user.id === leader.id) {
+                        discordServices.sendEmbedToMember(leader, {
+                            title: 'Team Roulette',
+                            description: 'Your team has been removed from the roulette!',
+                        }, true);
+                    } else {
+                        discordServices.sendEmbedToMember(user, {
+                            title: 'Team Roulette',
+                            description: 'Your team with <@' + newTeam.leader + '> has been destroyed!',
+                        });
+                    }
                 });
             });
-
             this.runTeamCreator(message.guild.channels);
         });
-        
     }
 
     /**
@@ -236,7 +249,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
      * @throws Throws an error if the user cancels either of the two Prompts, the command should quit!
      */
     async getOrCreateChannel(promptChannel, promptId, guildChannelManager) {
-        let needChannel = await Prompt.yesNoPrompt('Do you need a new channel and category or have you created one already?', promptChannel, promptId);
+        let needChannel = await Prompt.yesNoPrompt({prompt: 'Do you need a new channel and category or have you created one already?', channel: promptChannel, userId: promptId});
 
         let channel;
 
@@ -251,14 +264,14 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 parent: category,
             });
         } else {
-            channel = await Prompt.channelPrompt('What channel would you like to use for team roulette, this channels category will be used for the new team channels.', promptChannel, promptId);
+            channel = (await Prompt.channelPrompt({prompt: 'What channel would you like to use for team roulette, this channels category will be used for the new team channels.', channel: promptChannel, userId: promptId})).first();
             channel.bulkDelete(100, true);
         }
 
         // let user know everything is good to go
         let listEmoji = '📰';
 
-        const adminEmbed = new Discord.MessageEmbed().setColor(discordServices.colors.embedColor)
+        const adminEmbed = new Discord.MessageEmbed().setColor(this.botGuild.colors.embedColor)
                                     .setTitle('Team Roulette Console')
                                     .setDescription('Team roulette is ready and operational! <#' + channel.id + '>.')
                                     .addField('Check the list!', 'React with ' + listEmoji + ' to get a message with the roulette team lists.');
@@ -269,7 +282,9 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         // emoji reaction to send team roulette information
         let adminEmbedMsgCollector = adminEmbedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === listEmoji);
         adminEmbedMsgCollector.on('collect', (reaction, user) => {
-            let infoEmbed = new Discord.MessageEmbed().setColor(discordServices.colors.embedColor)
+            reaction.users.remove(user.id);
+
+            let infoEmbed = new Discord.MessageEmbed().setColor(this.botGuild.colors.embedColor)
                                         .setTitle('Team Roulette Information')
                                         .setDescription('These are all the teams that are still waiting.');
 
@@ -288,7 +303,8 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         });
 
         // add channel to black list
-        discordServices.blackList.set(channel.id, 5000);
+        this.botGuild.blackList.set(channel.id, 5000);
+        this.botGuild.save();
         return channel;
     }
 
@@ -297,17 +313,15 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
      * Will remove the team member from the team, notify the user of success, and remove the team from the teamList
      * @param {Team} team - the team to remove user from 
      * @param {Discord.User} teamMember - the user to remove from the team
-     * @param {Discord.Message} memberMsg - the message to remove if any
      * @returns {Number} - the new size of the team
      */
-    removeMemberFromTeam(team, teamMember, memberMsg = null) {
+    removeMemberFromTeam(team, teamMember) {
         // remove the team from the list
         if (!team.isComplete()) this.teamList.get(team.size()).splice(this.teamList.get(team.size()).indexOf(team), 1);
 
         // remove user from team and notify
-        this.participants.delete(user.id);
+        this.participants.delete(teamMember.id);
         let newSize = team.removeTeamMember(teamMember);
-        if (memberMsg) memberMsg.delete();
         discordServices.sendEmbedToMember(teamMember, {
             title: 'Team Roulette',
             description: 'You have been removed from the team!'
@@ -329,6 +343,14 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
         // if team does NOT have a text channel
         if (!team?.textChannel) {
+            // disable the ability to destroy a team after team has been formed
+            team.members.forEach((user,id) => {
+                if (this.destroyCollectors.has(id)) {
+                    this.destroyCollectors.get(id).stop();
+                    this.destroyCollectors.delete(id);
+                }
+            });
+
             let privateChannelCategory = this.textChannel.parent;
 
             await team.createTextChannel(channelManager, privateChannelCategory);
@@ -336,7 +358,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
             let leaveEmoji = '👋';
 
             const infoEmbed = new Discord.MessageEmbed()
-                .setColor(discordServices.colors.embedColor)
+                .setColor(this.botGuild.colors.embedColor)
                 .setTitle('WELCOME TO YOUR NEW TEAM!!!')
                 .setDescription('This is your new team, please get to know each other by creating a voice channel in a new Discord server or via this text channel. Best of luck!')
                 .addField('Leave the Team', 'If you would like to leave this team react to this message with ' + leaveEmoji);

@@ -3,45 +3,54 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class StartChannelCreation extends PermissionCommand {
     constructor(client) {
         super(client, {
-            name: 'startcc',
+            name: 'start-channel-creation',
             group: 'a_start_commands',
             memberName: 'start channel creation',
             description: 'Send a message with emoji collector, for each emoji bot will ask type and other friends invited and create the private channel.',
             guildOnly: true,
         },
         {
-            roleID: discordServices.roleIDs.staffRole,
-            roleMessage: 'Hey there, the !startcc command is only for staff!',
-            channelID: discordServices.adminConsoleChannel,
-            channelMessage: 'Hey there, the !startcc command is only available in the admin console channel.',
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
+            roleMessage: 'Hey there, the !start-channel-creation command is only for staff!',
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
+            channelMessage: 'Hey there, the !start-channel-creation command is only available in the admin console channel.',
         });
     }
 
     /**
-     *  
-     * @param {Discord.Message} message 
+     * @param {BotGuildModel} botGuild
+     * @param {Discord.Message} message - the message in which the command was run
      */
-    async runCommand(message) {
+    async runCommand(botGuild, message) {
 
         try {
             // grab current channel
-            var channel = await Prompt.channelPrompt('What channel do you want to use? The channel\'s category will be used to create the new channels.', message.channel, message.author.id);
+            var channel = (await Prompt.channelPrompt({prompt: 'What channel do you want to use? The channel\'s category will be used to create the new channels.', channel: message.channel, userId: message.author.id})).first();
         } catch (error) {
             message.channel.send('<@' + message.author.id + '> The command has been canceled due to the prompt cancel.').then(msg => msg.delete({timeout: 5000}));
             return;
         }
 
-        // grab channel creation category
+        // grab channel creation category and update permissions
         var category = channel.parent;
+        category.updateOverwrite(botGuild.roleIDs.everyoneRole, {
+            VIEW_CHANNEL: false,
+        });
+
+        channel.updateOverwrite(botGuild.roleIDs.everyoneRole, {
+            VIEW_CHANNEL: true,
+        });
+
         
         // create and send embed message to channel with emoji collector
         const msgEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.colors.embedColor)
+            .setColor(botGuild.colors.embedColor)
             .setTitle('Private Channel Creation')
             .setDescription('Do you need a private channel to work with your friends? Or a voice channel to get to know a mentor, here you can create private text or voice channels.' +
                 ' However do know that server admins will have access to these channels, and the bot will continue to monitor for bad language, so please follow the rules!')
@@ -54,8 +63,11 @@ module.exports = class StartChannelCreation extends PermissionCommand {
         var mainCollector = cardMessage.createReactionCollector(m => true);
 
         mainCollector.on('collect', async (reaction, user) => {
+            // helpful vars
+            let userId = user.id;
+
             try {
-                let channelType =(await Prompt.messagePrompt('Do you want a "voice" or "text" channel?', 'string', channel, user.id, 15)).content;
+                let channelType =(await Prompt.messagePrompt({prompt: 'Do you want a "voice" or "text" channel?', channel, userId}, 'string', 20)).content;
 
                 // make sure input is valid
                 if (channelType != 'voice' && channelType != 'text') {
@@ -64,9 +76,9 @@ module.exports = class StartChannelCreation extends PermissionCommand {
                     return;
                 }
 
-                let guests = (await Prompt.messagePrompt('Please tag all the invited users to this private ' + channelType + ' channel. Type "none" if no guests are welcomed.', 'string', channel, user.id, 30)).mentions.members;
+                let guests = (await Prompt.messagePrompt({prompt: 'Please tag all the invited users to this private ' + channelType + ' channel. Type "none" if no guests are welcomed.', channel, userId}, 'string', 60)).mentions.members;
 
-                let channelName = (await Prompt.messagePrompt('What do you want to name the channel? If you don\'t care then send "default"!', 'string', channel, user.id, 20)).content;
+                let channelName = (await Prompt.messagePrompt({prompt: 'What do you want to name the channel? If you don\'t care then send "default"!', channel, userId}, 'string', 30)).content;
 
                 // if channelName is default then use default
                 if (channelName === 'default') {
@@ -90,7 +102,7 @@ module.exports = class StartChannelCreation extends PermissionCommand {
                     // DM to creator with emoji collector
                     let dmMsg = await discordServices.sendEmbedToMember(user, {
                         title: 'Channel Creation',
-                        description: 'Your private channel' + channelName +
+                        description: 'Your private channel ' + channelName +
                             ' has been created, when you are done with it, please react to this message with 🚫 to delete the channel.',
                     });
                     dmMsg.react('🚫');

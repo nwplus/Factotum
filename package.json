@@ -9,10 +9,18 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "csv-parser": "^3.0.0",
     "discord.js": "^12.5.1",
     "discord.js-commando": "github:discordjs/commando",
     "dotenv-flow": "^3.2.0",
     "firebase": "^7.19.0",
-    "lokijs": "^1.5.11"
+    "firebase-admin": "^9.5.0",
+    "fs": "0.0.1-security",
+    "jsdoc": "^3.6.6",
+    "jsonfile": "^6.1.0",
+    "lokijs": "^1.5.11",
+    "mongodb": "^3.6.4",
+    "mongoose": "^5.11.17",
+    "winston": "^3.3.3"
   }
 }

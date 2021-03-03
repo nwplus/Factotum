@@ -3,6 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const Prompt = require('../../classes/prompt');
+const BotGuildModel = require('../../classes/bot-guild');
 
 // Command export
 module.exports = class RoleSelector extends PermissionCommand {
@@ -11,21 +12,21 @@ module.exports = class RoleSelector extends PermissionCommand {
             name: 'role-selector',
             group: 'a_utility',
             memberName: 'transfer role',
-            description: 'Will let users transfer roles. Usefull for sponsor reps that are also mentors!',
+            description: 'Will let users transfer roles. Useful for sponsor reps that are also mentors!',
             guildOnly: true,
         },
         {
-            roleID: discordServices.roleIDs.staffRole,
-            roleMessage: 'Hey there, the command !roletransfer is only available to staff!',
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
+            roleMessage: 'Hey there, the command !role-selector is only available to staff!',
         });
     }
 
 
     /**
-     * 
+     * @param {BotGuildModel} botGuild
      * @param {Discord.Message} message - the command message
      */
-    async runCommand (message) {
+    async runCommand (botGuild, message) {
 
         // the emoji for staff to add new transfers
         let newTransferEmoji = '🆕';
@@ -43,7 +44,7 @@ module.exports = class RoleSelector extends PermissionCommand {
          */
         let transfers = new Discord.Collection();
 
-        const cardEmbed = new Discord.MessageEmbed().setColor(discordServices.colors.embedColor)
+        const cardEmbed = new Discord.MessageEmbed().setColor(botGuild.colors.embedColor)
             .setTitle('Role Selector!')
             .setDescription('React to the specified emoji to get the role, un-react to remove the role.');
 
@@ -56,11 +57,11 @@ module.exports = class RoleSelector extends PermissionCommand {
         // add role or a transfer depending on the emoji
         reactionCollector.on('collect', async (reaction, user) => {
             // admin add new transfer
-            if (reaction.emoji.name === newTransferEmoji && discordServices.checkForRole(message.guild.member(user), discordServices.staffRole)) {
+            if (reaction.emoji.name === newTransferEmoji && discordServices.checkForRole(message.guild.member(user), botGuild.roleIDs.staffRole)) {
                 
                 try {
-                    var newTransferMsg = await Prompt.messagePrompt('What new transfer do you want to add? Your response should have (in this order, not including <>): @role <transfer name> - <transfer description>',
-                        'string', message.channel, user.id);
+                    var newTransferMsg = await Prompt.messagePrompt({prompt: 'What new transfer do you want to add? Your response should have (in this order, not including <>): @role <transfer name> - <transfer description>',
+                    channel: message.channel, userId: user.id}, 'string');
                 } catch (error) {
                     reaction.users.remove(user.id);
                     return;
@@ -72,7 +73,7 @@ module.exports = class RoleSelector extends PermissionCommand {
                 let name = newTransferMsg.cleanContent.substring(0, firstStop);
                 let description = newTransferMsg.cleanContent.substring(firstStop + 1);
 
-                let emoji = await Prompt.reactionPrompt('What emoji to you want to use for this transfer?', message.channel, message.author.id);
+                let emoji = await Prompt.reactionPrompt({prompt: 'What emoji to you want to use for this transfer?', channel: message.channel, userId: message.author.id});
 
                 transfers.set(emoji.name, {
                     name: name,

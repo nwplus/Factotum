@@ -1,182 +1,75 @@
-const Discord = require('discord.js');
-
-// Available Roles
-
-/**
- * All the available roles from server creation.
- */
-module.exports.roleIDs = {
-    guestRole : '778651193362481213',
-    hackerRole : '738519785028976741',
-    attendeeRole : '742896999556448357',
-    mentorRole : '747527454200955051',
-    sponsorRole : '738519983981723748',
-    staffRole : '738519363904077916',
-    adminRole : '738491577596641311',
-    everyoneRole : '738475671977722058',
-}
-
-var stamp0Role = '776690929557831680';
-var stamp1Role = '776694051482107944';
-var stamp2Role = '777163284679229461';
-var stamp3Role = '777163346456870913';
-var stamp4Role = '777163367814922250';
-var stamp5Role = '777163388631253002';
-var stamp6Role = '777163410269011990';
-var stamp7Role = '777163427328163850';
-var stamp8Role = '777163452560048168';
-var stamp9Role = '777163468053938186';
-var stamp10Role = '777163488019480586';
-var stamp11Role = '777163506902237196';
-var stamp12Role = '777163524568776704';
-var stamp12Role = '777163524568776704';
-var stamp13Role = '784224112909221948';
-var stamp14Role = '784224898230779945';
-var stamp15Role = '784224924633923635';
-var stamp16Role = '784224943730327592';
-var stamp17Role = '781404770803908609';
-var stamp18Role = '781404769133527040';
-var stamp19Role = '784224999698726942';
-var stamp20Role = '784225017172590622';
-
-/**
- * We need this role available for when users verify. The first stamp role.
- */
-module.exports.stamp0Role = stamp0Role;
-
-/**
- * A collection of all the stamp roles.
- * @type {Discord.Collection<Number, String>} - <StampNumber, roleID>
- */
-var stampRoles = new Discord.Collection();
-let listOfStampRoles = [stamp0Role, stamp1Role, stamp2Role, stamp3Role, stamp4Role, stamp5Role, stamp6Role, stamp7Role, stamp8Role, stamp9Role, stamp10Role, stamp11Role,
-    stamp12Role, stamp13Role, stamp14Role, stamp15Role, stamp16Role, stamp17Role, stamp18Role, stamp19Role, stamp20Role];
-listOfStampRoles.forEach((value, index) => stampRoles.set(index, value));
-module.exports.stampRoles = stampRoles;
-
-/**
- * All the custom colors available to the bot.
- * @type {Object}
- */
-module.exports.colors = {
-    embedColor : '#26fff4',
-    questionEmbedColor : '#f4ff26',
-    announcementEmbedColor : '#9352d9',
-    tfTeamEmbedColor : '#60c2e6',
-    tfHackerEmbedColor : '#d470cd',
-    specialDMEmbedColor : '#fc6b03',
-}
-
-/**
- * A list of channels where messages will get deleted after x amount of time
- * @type {Map<Discord.Snowflake, Number>} - <text channel snowflake, Number>
- */
-const blackList = new Map();
-module.exports.blackList = blackList;
-
-/**
- * The time given to users to send password to the stamp collector
- * @type {Number}
- */
-var stampCollectTime = 60;
-module.exports.stampCollectTime = stampCollectTime;
-
-// Common channels
-
-module.exports.channelIDs = {
-    /**
-     * Where announcements should be sent.
-     */
-    announcementChannel : '784254136040161310',
-
-    /**
-     * The admin console where admins can run commands.
-     */
-    adminConsolChannel : '748955441484005488',
-
-    /**
-     * The channel where the bot will log things.
-     */
-    adminLogChannel : '743197503884755045',
-
-    /**
-     * Where the bot can send messages to users when DM is not available.
-     */
-    botSupportChannel : '784910416224583751',
-
-    /**
-     * Where the bot will send reports.
-     */
-    incomingReportChannel : '782683901998137355',
-
-    /**
-     * The first channel users have access to, where the verify command is used.
-     */
-    welcomeChannel : '743192401434378271',
-
-    /**
-     * Support channel available to new users.
-     */
-    welcomeSupport : '742896827082211419',
-}
-
+const { GuildMember, TextChannel, Message, User, MessageEmbed, RoleResolvable } = require('discord.js');
+const winston = require('winston');
+const BotGuild = require('./db/mongo/BotGuild');
 
 // where hackers join the wait list to talk to a sponsor
 // at the moment its only one, planned to extend to multiple
-var boothingWaitList = '748370272049954927';
+var boothingWaitList = '748370272049954927'; // TODO
 module.exports.boothingWaitList = boothingWaitList;
 // only sponsors should have access to this channel, this is
 // where they accept/get the next group to talk to them
-var sponsorConsoleChannel = '748397163997954108';
+var sponsorConsoleChannel = '748397163997954108'; // TODO
 module.exports.sponsorConsoleChannel = sponsorConsoleChannel;
-// the category where the sponsorConsole and boothingwaitlist
+// the category where the sponsorConsole and boothingWaitlist
 // channels are, used to add more private voice channels
-var sponsorCategory = '738528333935018034';
+var sponsorCategory = '738528333935018034'; // TODO
 module.exports.sponsorCategory = sponsorCategory;
-
-// where hackers can emoji to let the bot know if they are looking
-// for a team or a hacker(s)
-var teamformationChannel = '770354140961570857';
-module.exports.teamformationChannel = teamformationChannel;
-// channel where team bios are posted, hackers shouldn't be able to post
-var recruitingChannel = '770354487595499592';
-module.exports.recruitingChannel = recruitingChannel;
-// channel where hacker bios are posted, hackers shouldn't be able to post
-var lookingforteamChannel = '770354521733857320';
-module.exports.lookingforteamChannel = lookingforteamChannel;
-
-// where hackers and other users can call the !createchannel command
-// to create new private channels for them and their team
-var channelcreationChannel = '754396445494214789';
-module.exports.channelcreationChannel = channelcreationChannel;
 
 /**
  * Checks if the member has a role, returns true if it does
- * @param {Discord.GuildMember} member - member to check role
- * @param {Discord.Snowflake} role - role ID to check for
+ * @param {GuildMember} member - member to check role
+ * @param {String} role - role ID to check for
  */
 function checkForRole(member, role) {
+    winston.loggers.get(member.guild.id).verbose(`A role check was requested. Role ID: ${role}. Member ID: ${member.id}`);
     return member.roles.cache.has(role);
 }
 module.exports.checkForRole = checkForRole;
 
 /**
+ * Will send a message to a text channel and ping the user, can be deleted after a timeout.
+ * @param {TextChannel} channel - the channel to send the message to
+ * @param {String} userId - the user to tag on the message
+ * @param {String} message - the message to send
+ * @param {Number} timeout - timeout before delete if any, in seconds
+ * @async
+ * @returns {Promise<Message>}
+ */
+async function sendMsgToChannel(channel, userId, message, timeout = 0) {
+    let msg = await channel.send('<@' + userId + '> ' + message);
+
+    if (timeout) msg.delete({timeout: timeout * 1000}); // convert to milliseconds
+    winston.loggers.get(channel.guild.id).verbose(`A message has been sent to the channel ${channel.name} for the user with id ${userId} ${timeout === 0 ? 'with no timeout requested' : 'with a ' + timeout + ' second timeout.'}`);
+    return msg;
+}
+module.exports.sendMsgToChannel = sendMsgToChannel;
+
+/**
  * Send a Direct message to a member, option to delete after 10 seconds
- * @param {Discord.User | Discord.GuildMember} member - the user or member to send a DM to
- * @param {String | Discord.MessageEmbed} message - the message to send
+ * @param {User | GuildMember} member - the user or member to send a DM to
+ * @param {String | MessageEmbed} message - the message to send
  * @param {Boolean} isDelete - weather to delete message after 10 seconds
  * @async
- * @return {Promise<Discord.Message>}
+ * @return {Promise<Message>}
  */
 async function sendMessageToMember(member, message, isDelete = false) {
     return await member.send(message).then(msg => {
+        winston.loggers.get(member?.guild?.id || 'main').verbose(`A DM message was sent to user with id ${member.id}.`);
         if (isDelete === true) {
             msg.delete({timeout: 60000})
         }
         return msg;
-    }).catch(error => {
+    }).catch(async error => {
         if (error.code === 50007) {
-            member.guild.channels.resolve(channelIDs.botSupportChannel).send('<@' + member.id + '> I couldn\'t reach you :(. Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-');
+            winston.loggers.get(member?.guild?.id || 'main').warning(`A DM message was sent to user with id ${member.id} but failed, he has been asked to fix this problem!`);
+            let botGuild;
+            if (member?.guild) botGuild = await BotGuild.findById(member.guild.id);
+            else {
+                winston.loggers.get(member.guild.id).error(`While trying to help a user to get my DMs I could not find a botGuild for which this member is in. I could not help him!`);
+                throw Error(`I could not help ${member.id} due to not finding the guild he is trying to access. I need a member and not a user!`);
+            }
+
+            member.guild.channels.resolve(botGuild.channelIDs.botSupportChannel).send('<@' + member.id + '> I couldn\'t reach you :(. Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-');
         } else {
             throw error;
         }
@@ -202,11 +95,11 @@ module.exports.sendMessageToMember = sendMessageToMember;
 
 /**
  * Sends an embed to a user via DM. Title and description are required, color and fields are optional.
- * @param {Discord.User | Discord.GuildMember} member - member to send embed to
+ * @param {User | GuildMember} member - member to send embed to
  * @param {EmbedOptions} embedOptions - embed information
  * @param {Boolean} isDelete - should the message be deleted after some time?
  * @async
- * @returns {Promise<Discord.Message>}
+ * @returns {Promise<Message>}
  */
 async function sendEmbedToMember(member, embedOptions, isDelete = false) {
     // check embedOptions
@@ -214,7 +107,7 @@ async function sendEmbedToMember(member, embedOptions, isDelete = false) {
     if (embedOptions?.description === undefined || embedOptions?.description === '') throw new Error('A description is needed for the embed!');
     if (embedOptions?.color === undefined || embedOptions?.color === '') embedOptions.color === '#ff0000';
 
-    let embed = new Discord.MessageEmbed().setColor(embedOptions.color)
+    let embed = new MessageEmbed().setColor(embedOptions.color)
                         .setTitle(embedOptions.title)
                         .setDescription(embedOptions.description)
                         .setTimestamp();
@@ -227,41 +120,49 @@ module.exports.sendEmbedToMember = sendEmbedToMember;
 
 /**
  * Add a role to a member
- * @param {Discord.GuildMember} member - the guild member to give a role to
- * @param {Discord.RoleResolvable} addRole - the role to add to the member
+ * @param {GuildMember} member - the guild member to give a role to
+ * @param {RoleResolvable} addRole - the role to add to the member
  */
 function addRoleToMember(member, addRole) {
+    if (!member?.guild) throw Error('I need a member not a user!!!');
+    
+    let role = member.guild.roles.resolve(addRole);
     member.roles.add(addRole).catch(error => {
         // try one more time
         member.roles.add(addRole).catch(error => {
             // now send error to admins
-            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not get the role ' + member.guild.roles.cache.get(addRole) +' please help me!');
+            discordLog(member.guild, '@everyone The member <@' + member.id + '> did not get the role <@&' + role.id +'> please help me!');
+            winston.loggers.get(member.guild.id).error(`Could not give the member with id ${member.id} the role ${role.name} with id ${role.id}. The following error ocurred: ${error.name} - ${error.message}.`, { event: "Error", data: error });
         });
     });
+    winston.loggers.get(member.guild.id).verbose(`A member with id ${member.id} was given the role ${role.name} with id ${role.id}`);
 }
 module.exports.addRoleToMember = addRoleToMember;
 
 /**
  * Remove a role to a member
- * @param {Discord.GuildMember} member - the guild member to give a role to
- * @param {Discord.RoleResolvable} removeRole - the role to add to the member
+ * @param {GuildMember} member - the guild member to give a role to
+ * @param {RoleResolvable} removeRole - the role to add to the member
  */
 function removeRolToMember(member, removeRole) {
+    let role = member.guild.roles.resolve(removeRole);
     member.roles.remove(removeRole).catch(error => {
         // try one more time
         member.roles.remove(removeRole).catch(error => {
             // now send error to admins
-            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not loose the role ' + member.guild.roles.cache.get(removeRole) + ', please help me!');
+            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not loose the role ' + member.guild.roles.cache.get(removeRole).id + ', please help me!');
+            winston.loggers.get(member.guild.id).error(`Could not remove the member with id ${member.id} the role ${role.name} with id ${role.id}. The following error ocurred: ${error.name} - ${error.message}.`);
         });
     });
+    winston.loggers.get(member.guild.id).verbose(`A member with id ${member.id} lost the role ${role.name} with id ${role.id}`);
 }
 module.exports.removeRolToMember = removeRolToMember;
 
 /**
  * Replaces one role for the other
- * @param {Discord.GuildMember} member - member to change roles to
- * @param {Discord.RoleResolvable} removeRole - role to remove
- * @param {Discord.RoleResolvable} addRole - role to add
+ * @param {GuildMember} member - member to change roles to
+ * @param {RoleResolvable} removeRole - role to remove
+ * @param {RoleResolvable} addRole - role to add
  */
 function replaceRoleToMember(member, removeRole, addRole) {
     addRoleToMember(member, addRole);
@@ -271,56 +172,108 @@ module.exports.replaceRoleToMember = replaceRoleToMember;
 
 /**
  * Log a message on the log channel
- * @param {Discord.Guild} guild - the guild being used
- * @param {String | Discord.MessageEmbed} message - message to send to the log channel
+ * @param {Guild} guild - the guild being used
+ * @param {String | MessageEmbed} message - message to send to the log channel
+ * @async
  */
-function discordLog(guild, message) {
-    guild.channels.cache.get(channelIDs.adminLogChannel).send(message);
+async function discordLog(guild, message) {
+    let botGuild = await BotGuild.findById(guild.id);
+    if (botGuild?.channelIDs?.adminLog) {
+        guild.channels.cache.get(botGuild.channelIDs.adminLog).send(message);
+        winston.loggers.get(guild.id).silly(`The following was logged to discord: ${message}`);
+    }
+    else winston.loggers.get(guild.id).error(`I was not able to log something to discord!! I could not find the botGuild or the adminLog channel!`);
 }
 module.exports.discordLog = discordLog;
 
 /**
  * Reply to message and delete 5 seconds later
- * @param {Discord.Message} message - the message to reply to
+ * @param {Message} message - the message to reply to
  * @param {String} reply - the string to reply
  */
 async function replyAndDelete(message, reply) {
     var msg = await message.reply(reply);
     msg.delete({timeout: 5000});
+    winston.loggers.get(message?.guild.id || 'main').verbose(`A message with id ${message.id} is being replied to and then the reply is being deleted.`);
 }
 module.exports.replyAndDelete = replyAndDelete;
 
 /**
- * True if channel is admin console channel
- * @param {Discord.Channel} channel - channel to check
- * @returns {Boolean}
- */
-function isAdminConsole(channel) {
-    return channel.id === channelIDs.adminConsolChannel;
-}
-module.exports.isAdminConsole = isAdminConsole;
-
-/**
  * Deletes a message if the message hasn't been deleted already
- * @param {Discord.Message} message - the message to delete
+ * @param {Message} message - the message to delete
  * @param {Number} timeout - the time to wait in milliseconds
+ * @async
  */
-function deleteMessage(message, timeout = 0) {
+async function deleteMessage(message, timeout = 0) {
     if (!message.deleted && message.deletable &&  message.channel.type != 'dm') {
-        message.delete({timeout: timeout});
+        winston.loggers.get(message.guild.id).verbose(`A message with id ${message.id} in the guild channel ${message.channel.name} with id ${message.channel.id} was deleted.`);
+        await message.delete({timeout: timeout});
     } else if (message.channel.type === 'dm' && message.author.bot) {
-        message.delete({timeout: timeout})
+        winston.loggers.get('main').verbose(`A message with id ${message.id} in a DM channel with user id ${message.channel.recipient.id} from the bot was deleted.`);
+        await message.delete({timeout: timeout})
+    } else {
+        winston.loggers.get(message?.guild.id | 'main').warning(`A message with id ${message.id} in a DM channel from user with id ${message.author.id} tried to be deleted but was not possible.`);
     }
 }
 module.exports.deleteMessage = deleteMessage;
 
 /**
  * Delete the given channel if it is not deleted already
- * @param {Discord.Channel} channel 
+ * @param {TextChannel} channel 
  */
 async function deleteChannel(channel) {
-    if (!channel.deleted) {
-        await channel.delete().catch(console.error);
+    if (!channel.deleted && channel.deletable) {
+        winston.loggers.get(channel.guild.id).verbose(`The channel ${channel.name} with id ${channel.id} was deleted.`);
+        await channel.delete();
+    } else {
+        winston.loggers.get(channel.guild.id).warning(`The channel ${channel?.name} with id ${channel?.id} tried to be deleted but was not possible!`);
     }
 }
 module.exports.deleteChannel = deleteChannel;
+
+/**
+ * Returns a random color as a hex string.
+ * @returns {String} - hex color
+ */
+function randomColor() {
+    winston.loggers.get('main').silly(`A random color has been used!`);
+    return Math.floor(Math.random()*16777215).toString(16);
+}
+module.exports.randomColor = randomColor;
+
+/**
+ * Validates an email using a reg exp.
+ * @param {String} email - the email to validate
+ * @returns {Boolean} true if valid email, false otherwise
+ */
+function validateEmail(email) {
+    winston.loggers.get('main').silly(`An email has been validated!`);
+
+    // make email lowercase
+    email = email.toLowerCase();
+
+    // regex to validate email
+    const re = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+
+    // let user know he has used the command incorrectly and exit
+    if (email === '' || !re.test(email)) {
+        
+        return false;
+    } else {
+        return true;
+    }
+}
+module.exports.validateEmail = validateEmail;
+
+/**
+ * will shuffle an array as best and fast as possible
+ * @param {Array<*>} array - array to shuffle
+ * @private
+ */
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+module.exports.shuffleArray = shuffleArray;
