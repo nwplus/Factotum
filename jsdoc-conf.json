@@ -1,5 +1,7 @@
 {
-    "plugins": [],
+    "plugins": [
+        "node_modules/better-docs/category"
+    ],
     "recurseDepth": 10,
     "source": {
         "exclude": ["./node_modules/", "./logs/", "./docs/"],
@@ -13,7 +15,26 @@
     },
     "templates": {
         "cleverLinks": false,
-        "monospaceLinks": false
+        "monospaceLinks": false,
+        "search" : true,
+        "better-docs" : {
+            "name" : "Factotum Discord Bot Documentation",
+            "title" : "Factotum Documentation",
+            "css" : "styles.css",
+            "navLinks" : [
+                {
+                    "label" : "Github",
+                    "href" : "https://github.com/nwplus/Factotum"
+                }
+            ]
+        },
+        "default" : {
+            "staticFiles" : {
+                "include" : [
+                    "./styles.css"
+                ]
+            }
+        }
     },
     "opts" : {
         "destination" : "./docs/",
@@ -21,6 +42,6 @@
         "access" : "all",
         "package" : "./package.json",
         "readme" : "./README.md",
-        "template" : "./node_modules/ink-docstrap/template"
+        "template" : "./node_modules/better-docs"
     }
 }

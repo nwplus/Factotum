@@ -4,7 +4,12 @@ const { deleteMessage, checkForRole } = require('../../discord-services');
 const { MessageEmbed } = require('discord.js');
 const BotGuild = require('../../db/mongo/BotGuild');
 
-// Command export
+/**
+ * The help command shows all the available commands for the user via DM message.
+ * @category Commands
+ * @subcategory Essentials
+ * @extends Command
+ */
 class ClearChat extends Command {
     constructor(client) {
         super(client, {
@@ -16,6 +21,9 @@ class ClearChat extends Command {
         });
     }
 
+    /**
+     * @param {Message} message
+     */
     async run(message) {
 
         let botGuild = await BotGuild.findById(message.guild.id);

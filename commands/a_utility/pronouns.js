@@ -3,7 +3,12 @@ const PermissionCommand = require('../../classes/permission-command');
 const { addRoleToMember, removeRolToMember } = require('../../discord-services');
 const { Message, MessageEmbed } = require('discord.js');
 
-// Command export
+/**
+ * The pronouns command sends a role reaction console for users to select a pronoun role.
+ * @category Commands
+ * @subcategory Admin-Utility
+ * @extends PermissionCommand
+ */
 class Pronouns extends PermissionCommand {
     constructor(client) {
         super(client, {

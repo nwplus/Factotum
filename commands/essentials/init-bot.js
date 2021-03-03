@@ -7,7 +7,13 @@ const jsonfile = require('jsonfile');
 const BotGuild = require('../../db/mongo/BotGuild');
 const winston = require('winston');
 
-// Command export
+/**
+ * The InitBot command initializes the bot on the guild. It will prompt the user for information needed 
+ * to set up the bot. It is only usable by server administrators. It can only be run once.
+ * @category Commands
+ * @subcategory Essentials
+ * @extends Command
+ */
 class InitBot extends Command {
     constructor(client) {
         super(client, {
@@ -28,8 +34,9 @@ class InitBot extends Command {
     }
 
     /**
-     *  
-     * @param {Message} message 
+     * @param {Message} message
+     * @param {Object} args
+     * @param {Boolean} args.isDev
      */
     async run(message, { isDev }) {
         message.delete();

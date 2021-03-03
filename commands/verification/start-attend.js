@@ -6,9 +6,12 @@ const Verification = require('../../classes/verification');
 const BotGuildModel = require('../../classes/bot-guild');
 
 /**
- * StartAttend makes a new channel called #attend, or uses an existing channel of the user's choice, as the channel where the attend
- * command will be used by hackers.
- * @param existsChannel - boolean representing whether to use an existing channel(true) or new channel(false) 
+ * StartAttend makes a new channel called #attend, or uses an existing channel of the user's choice, as the channel where an embed 
+ * is sent for users to react and get attend. Users don't need to send any information to attend.
+ * @category Commands
+ * @subcategory Verification
+ * @extends PermissionCommand
+ * @guildonly
  */
 class StartAttend extends PermissionCommand {
     constructor(client) {

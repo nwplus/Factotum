@@ -1,10 +1,17 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
 const { checkForRole, sendMessageToMember, } = require('../../discord-services');
-const { MessageEmbed, Collection, } = require('discord.js');
+const { MessageEmbed, Collection, Message, } = require('discord.js');
 const BotGuildModel = require('../../classes/bot-guild');
 
-// Command export
+/**
+ * The ask command tries to imitate a thread like functionality from slack. Users can ask questions, and then other 
+ * users can respond to the question, the responses are added on the same message embed, to keep the conversation on 
+ * the same message.
+ * @category Commands
+ * @subcategory Hacker-Utility
+ * @extends PermissionCommand
+ */
 class AskQuestion extends PermissionCommand {
     constructor(client) {
         super(client, {
@@ -24,7 +31,12 @@ class AskQuestion extends PermissionCommand {
         });
     }
 
-    // Run function -> command body
+    /**
+     * @param {BotGuildModel} botGuild 
+     * @param {Message} message 
+     * @param {Object} args 
+     * @param {String} args.question
+     */
     async runCommand(botGuild, message, {question}) {
 
         // if question is blank let user know via DM and exit

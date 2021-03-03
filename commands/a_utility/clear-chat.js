@@ -4,7 +4,12 @@ const { discordLog } = require('../../discord-services');
 const { MessageEmbed, Message } = require('discord.js');
 const BotGuildModel = require('../../classes/bot-guild');
 
-// Command export
+/**
+ * The clear chat command will clear a channel from at most 100 messages.
+ * @category Commands
+ * @subcategory Admin-Utility
+ * @extends PermissionCommand
+ */
 class ClearChat extends PermissionCommand {
     constructor(client) {
         super(client, {
@@ -35,8 +40,11 @@ class ClearChat extends PermissionCommand {
     }
 
     /**
-     * @param {BotGuildModel} botGuild
+     * @param {BotGuildModel} botGuild - the botGuild instance given from PermissionCommand
      * @param {Message} message - the message in which the command was run
+     * @param {Object} args - the command arguments
+     * @param {Boolean} args.keepPinned
+     * @param {Boolean} args.isCommands
      */
     async runCommand (botGuild, message, {keepPinned, isCommands}) {
 

@@ -5,15 +5,16 @@ const { numberPrompt, yesNoPrompt, rolePrompt, memberPrompt } = require('../../c
 const { getQuestion } = require('../../db/firebase/firebase-services');
 const BotGuildModel = require('../../classes/bot-guild');
 
-
-var interval;
-
 /**
  * The DiscordContests class handles all functions related to Discord contests. It will ask questions in set intervals and pick winners
  * based on keywords for those questions that have correct answers. For other questions it will tag staff and staff will be able to tell
  * it the winner. It can also be paused and un-paused, and questions can be removed.
  * 
  * Note: all answers are case-insensitive but any extra or missing characters will be considered incorrect.
+ * @category Commands
+ * @subcategory Activity
+ * @extends PermissionCommand
+ * @guildonly
  */
 class DiscordContests extends PermissionCommand {
     constructor(client) {
@@ -42,6 +43,8 @@ class DiscordContests extends PermissionCommand {
         let channel = message.channel;
         let userId = message.author.id;
         this.botGuild = botGuild;
+
+        var interval;
 
         //ask user for time interval between questions
         var timeInterval;

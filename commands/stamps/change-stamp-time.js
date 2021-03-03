@@ -3,7 +3,12 @@ const { replyAndDelete } = require('../../discord-services');
 const { Message } = require('discord.js');
 const BotGuildModel = require('../../classes/bot-guild');
 
-// Command export
+/**
+ * Change the time users get to react to get a stamp from activity stamp distributions. It defaults to 60 seconds.
+ * @category Commands
+ * @subcategory Stamps
+ * @extends PermissionCommand
+ */
 class ChangeStampTime extends PermissionCommand {
     constructor(client) {
         super(client, {
@@ -27,10 +32,10 @@ class ChangeStampTime extends PermissionCommand {
     }
 
     /**
-     * 
      * @param {BotGuildModel} botGuild 
      * @param {Message} message 
-     * @param {*} param2 
+     * @param {Object} args
+     * @param {Number} args.newTime 
      */
     async runCommand(botGuild, message, {newTime}) {
 

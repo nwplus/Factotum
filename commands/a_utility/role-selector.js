@@ -5,7 +5,13 @@ const { MessageEmbed, Message, Role, Collection } = require('discord.js');
 const { reactionPrompt, messagePrompt } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
 
-// Command export
+/**
+ * The role selector command sends a console where users can select roles by reacting to the console with an
+ * emoji. Staff can add roles for users to get by reacting to the console and responding to some prompts.
+ * @category Commands
+ * @subcategory Admin-Utility
+ * @extends PermissionCommand
+ */
 class RoleSelector extends PermissionCommand {
     constructor(client) {
         super(client, {

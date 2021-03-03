@@ -7,7 +7,13 @@ const { yesNoPrompt, rolePrompt, numberPrompt, reactionPrompt } = require('../..
 const winston = require('winston');
 const BotGuildModel = require('../../classes/bot-guild');
 
-// Command export
+/**
+ * The start mentor cave command starts a cave special for mentors. 
+ * @category Commands
+ * @subcategory Start-Commands
+ * @extends PermissionCommand
+ * @guildonly
+ */
 class StartMentorCave extends PermissionCommand {
     constructor(client) {
         super(client, {

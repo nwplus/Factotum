@@ -1,9 +1,15 @@
 const { Command } = require('discord.js-commando');
 const { deleteMessage, sendMessageToMember, } = require('../../discord-services');
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, Message } = require('discord.js');
 const BotGuild = require('../../db/mongo/BotGuild');
 
-// Command export
+/**
+ * The report command allows users to report incidents from the server to the admins. Reports are made 
+ * via the bot's DMs and are 100% anonymous. 
+ * @category Commands
+ * @subcategory Hacker-Utility
+ * @extends Command
+ */
 class Report extends Command {
     constructor(client) {
         super(client, {
@@ -16,6 +22,9 @@ class Report extends Command {
         });
     }
 
+    /**
+     * @param {Message} message
+     */
     async run (message) {
         let botGuild = await BotGuild.findById(message.guild.id);
 

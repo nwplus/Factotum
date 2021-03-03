@@ -4,7 +4,13 @@ const Activity = require('../../classes/activities/activity');
 const PermissionCommand = require('../../classes/permission-command');
 const CoffeeChats = require('../../classes/activities/coffee-chats');
 
-// Command export
+/**
+ * Creates a new coffee chats activity. Prompts the user for information.
+ * @category Commands
+ * @subcategory Activity
+ * @extends PermissionCommand
+ * @guildonly
+ */
 class NewCoffeeChats extends PermissionCommand {
     constructor(client) {
         super(client, {
@@ -38,6 +44,9 @@ class NewCoffeeChats extends PermissionCommand {
      * Required class by children, should contain the command code.
      * @param {Message} message - the message that has the command
      * @param {Activity} activity - the activity for this activity command
+     * @param {Object} args
+     * @param {String} args.activityName
+     * @param {Number} args.numOfGroups
      */
     async runCommand(botGuild, message, { activityName, numOfGroups }) {
 

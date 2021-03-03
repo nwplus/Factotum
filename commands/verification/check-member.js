@@ -2,7 +2,12 @@
 const PermissionCommand = require('../../classes/permission-command');
 const firebaseServices = require('../../db/firebase/firebase-services');
 
-// Command export
+/**
+ * User can check if a member is in the database by email or name.
+ * @category Commands
+ * @subcategory Verification
+ * @extends PermissionCommand
+ */
 class CheckMember extends PermissionCommand {
     constructor(client) {
         super(client, {
@@ -28,6 +33,7 @@ class CheckMember extends PermissionCommand {
             });
     }
 
+    
     async runCommand(botGuild, message, { emailOrName }) {
         if (emailOrName.split('-').length === 1) { // check for similar emails if given argument is an email
             var result = await firebaseServices.checkEmail(emailOrName);

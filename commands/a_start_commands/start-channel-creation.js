@@ -5,8 +5,11 @@ const { channelPrompt, messagePrompt, } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
 
 /**
- * @command StartChannelCreation
- * The start channel creation command starts the channel creation module.
+ * The start channel creation command lets users create private channels for them to use.
+ * @category Commands
+ * @subcategory Start-Commands
+ * @extends PermissionCommand
+ * @guildonly
  */
 class StartChannelCreation extends PermissionCommand {
     constructor(client) {

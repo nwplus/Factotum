@@ -5,7 +5,12 @@ const { messagePrompt, yesNoPrompt, channelPrompt } = require('../../classes/pro
 const Team = require('../../classes/team');
 const BotGuildModel = require('../../classes/bot-guild');
 
-// Command export
+/**
+ * The start team roulette command starts the team roulette activity.
+ * @category Commands
+ * @subcategory Start-Commands
+ * @extends PermissionCommand
+ */
 class StartTeamRoulette extends PermissionCommand {
     constructor(client) {
         super(client, {

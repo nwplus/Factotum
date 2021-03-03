@@ -4,7 +4,13 @@ const { Message } = require('discord.js');
 const { reactionPrompt, yesNoPrompt, rolePrompt, } = require('../../classes/prompt.js');
 const TeamFormation = require('../../classes/team-formation');
 
-// Command export
+/**
+ * The start team formation command starts the team formation activity. 
+ * @category Commands
+ * @subcategory Start-Commands
+ * @extends PermissionCommand
+ * @guildonly
+ */
 class StartTeamFormation extends PermissionCommand {
     constructor(client) {
         super(client, {

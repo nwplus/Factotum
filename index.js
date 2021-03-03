@@ -11,6 +11,12 @@ const BotGuild = require('./db/mongo/BotGuild');
 const BotGuildModel = require('./classes/bot-guild');
 const Verification = require('./classes/verification');
 
+/**
+ * The Main App module houses the bot events, process events, and initializes
+ * the bot. It also handles new members and greets them.
+ * @module MainApp
+ */
+
 const config = {
     token: process.env.TOKEN,
     owner: process.env.OWNER,

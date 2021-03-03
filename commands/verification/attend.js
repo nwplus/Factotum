@@ -4,7 +4,14 @@ const { checkForRole, sendEmbedToMember } = require('../../discord-services');
 const Verification = require('../../classes/verification');
 const BotGuildModel = require('../../classes/bot-guild');
 
-// Command export
+/**
+ * Attends the user who runs this command. The user must have the guild ID. Can only be run 
+ * via DMs.
+ * @category Commands
+ * @subcategory Verification
+ * @extends PermissionCommand
+ * @dmonly
+ */
 class Attend extends PermissionCommand {
     constructor(client) {
         super(client, {
@@ -26,10 +33,10 @@ class Attend extends PermissionCommand {
     }
 
     /**
-     * Attends a member.
      * @param {BotGuildModel} botGuild
-     * @param {Message} message 
-     * @param {String} guildId 
+     * @param {Message} message
+     * @param {Object} args
+     * @param {String} args.guildId 
      */
     async runCommand(botGuild, message, { guildId }) {
         // check if the user needs to attend, else warn and return

@@ -5,6 +5,14 @@ const { messagePrompt, rolePrompt, reactionPrompt } = require('../../classes/pro
 const BotGuildModel = require('../../classes/bot-guild');
 const winston = require('winston');
 
+/**
+ * Shows an embed with a link used for activities happening outside discord. Initial intent was to be used for 
+ * sponsor booths. Sponsors can open and close their rooms as they want. When rooms open, a role is notified.
+ * @category Commands
+ * @subcategory Boothing
+ * @extends PermissionCommand
+ * @guildonly
+ */
 class ERoomDirectory extends PermissionCommand {
     constructor(client) {
         super(client, {

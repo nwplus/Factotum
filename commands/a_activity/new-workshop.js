@@ -6,7 +6,13 @@ const Workshop = require('../../classes/activities/workshop');
 const PermissionCommand = require('../../classes/permission-command');
 const Activity = require('../../classes/activities/activity');
 
-// Command export
+/**
+ * Creates a new Workshop and prompts the user for any information.
+ * @category Commands
+ * @subcategory Activity
+ * @extends PermissionCommand
+ * @guildonly
+ */
 class NewWorkshop extends PermissionCommand {
     constructor(client) {
         super(client, {
@@ -35,7 +41,8 @@ class NewWorkshop extends PermissionCommand {
      * Required class by children, should contain the command code.
      * @param {BotGuildModel} botGuild
      * @param {Message} message - the message that has the command
-     * @param {String} activityName - the activity for this activity command
+     * @param {Object} args
+     * @param {String} args.activityName - the activity for this activity command
      */
     async runCommand(botGuild, message, {activityName}) {
 

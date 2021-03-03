@@ -5,7 +5,13 @@ const { numberPrompt, yesNoPrompt, rolePrompt } = require('../../classes/prompt'
 const { getReminder } = require('../../db/firebase/firebase-services');
 const BotGuildModel = require('../../classes/bot-guild');
 
-// Automated self-care reminders, send messages in set intervals.
+/**
+ * The self care command will send pre made reminders from firebase to the command channel. These reminders are self
+ * care reminders. Will prompt a role to mention for each reminder. We recommend that be an opt-in role. 
+ * @category Commands
+ * @subcategory Admin-Utility
+ * @extends PermissionCommand
+ */
 class SelfCareReminders extends PermissionCommand {
     constructor(client) {
         super(client, {

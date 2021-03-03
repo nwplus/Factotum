@@ -7,7 +7,13 @@ const { numberPrompt, messagePrompt } = require('../../classes/prompt');
 const Verification = require('../../classes/verification');
 const BotGuildModel = require('../../classes/bot-guild');
 
-// Command export
+/**
+ * Will manually verify a user to the server and the database. Asks the user for a user ID, email, and type(s) to add with. 
+ * @category Commands
+ * @subcategory Verification
+ * @extends PermissionCommand
+ * @guildonly
+ */
 class ManualVerify extends PermissionCommand {
     constructor(client) {
         super(client, {

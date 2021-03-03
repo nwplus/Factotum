@@ -4,7 +4,14 @@ const { Message } = require('discord.js');
 const Verification = require('../../classes/verification');
 const BotGuildModel = require('../../classes/bot-guild');
 
-// Command export
+/**
+ * Will verify the user running the command, needs the user's email and guild ID. Can only 
+ * be run through DM.
+ * @category Commands
+ * @subcategory Verification
+ * @extends PermissionCommand
+ * @dmonly
+ */
 class Verify extends PermissionCommand {
     constructor(client) {
         super(client, {
@@ -33,8 +40,10 @@ class Verify extends PermissionCommand {
 
     /**
      * @param {BotGuildModel} botGuild
-     * @param {Message} message 
-     * @param {String} email 
+     * @param {Message} message
+     * @param {Object} args 
+     * @param {String} args.email 
+     * @param {String} args.guildId
      */
     async runCommand(botGuild, message, { email, guildId }) {
 

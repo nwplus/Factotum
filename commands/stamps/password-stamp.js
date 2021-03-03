@@ -5,6 +5,14 @@ const { messagePrompt, channelPrompt } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
 const StampsManager = require('../../classes/stamps-manager');
 
+/**
+ * Sends a reaction collector for users to react, send a password and receive a stamp. Used to give out stamps for activities that don't have 
+ * an activity instance. The user who starts the password stamp must give the activity name, password, and stop time defaults to 120 seconds. Users 
+ * have 3 attempts to get the password right within the stop time.
+ * @category Commands
+ * @subcategory Stamps
+ * @extends PermissionCommand
+ */
 class PasswordStamp extends PermissionCommand {
     constructor(client) {
         super(client, {
@@ -43,6 +51,10 @@ class PasswordStamp extends PermissionCommand {
     /**
      * @param {BotGuildModel} botGuild
      * @param {Message} message
+     * @param {Object} args
+     * @param {String} args.activityName
+     * @param {String} args.password
+     * @param {Number} args.stopTime
      */
     async runCommand(botGuild, message, {activityName, password, stopTime}) {
         // helpful vars

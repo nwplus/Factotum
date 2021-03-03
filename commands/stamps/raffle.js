@@ -5,7 +5,9 @@ const BotGuildModel = require('../../classes/bot-guild');
 /**
  * The Raffle class randomly picks a set number of winners from all members in a Discord server that have a role ending in a 1-2 digit 
  * number. Can only be run in Admin console.
- * @class
+ * @category Commands
+ * @subcategory Stamps
+ * @extends PermissionCommand
  */
 class Raffle extends PermissionCommand {
     constructor(client) {
@@ -36,8 +38,10 @@ class Raffle extends PermissionCommand {
      * into an array. Then it chooses random numbers and picks the id corresponding to that index until it has numberOfWinners unique 
      * winners.
      * 
+     * @param {BotGuildModel} botGuild
      * @param {Message} message - message used to call the command
-     * @param {integer} numberOfWinners - number of winners to be drawn
+     * @param {Object} args
+     * @param {integer} args.numberOfWinners - number of winners to be drawn
      */
     async runCommand(botGuild, message, {numberOfWinners}) {
 

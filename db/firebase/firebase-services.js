@@ -2,6 +2,11 @@ const { GuildMember, } = require('discord.js');
 const admin = require('firebase-admin');
 
 /**
+ * The firebase services module has firebase related helper functions.
+ * @module FirebaseServices
+ */
+
+/**
  * All the firebase apps in play stored by their name.
  * @type {Map<String, admin.app.App>}
  */
