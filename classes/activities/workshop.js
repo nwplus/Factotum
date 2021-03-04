@@ -96,7 +96,7 @@ class Workshop extends Activity {
             topic: `For TAs to talk without cluttering the console.`,
         });
 
-        this.assistanceChannel = await super.addChannelHelper(`🙋🏽assistance`, {
+        this.assistanceChannel = await this.room.addRoomChannel(`🙋🏽assistance`, {
             type: 'text',
             topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
         }, [], true);
@@ -196,7 +196,7 @@ class Workshop extends Activity {
      * @async 
      */
     async addTAChannel(name, info) {
-        let channel = await super.addChannelHelper(name, info, this.getTAChannelPermissions());
+        let channel = await this.room.addRoomChannel(name, info, this.getTAChannelPermissions());
         this.TAChannels.set(channel.name, channel);
         return channel;
     }
@@ -214,7 +214,7 @@ class Workshop extends Activity {
         ];
 
         // add regular activity members to the TA perms list as non tas, so they cant see that channel
-        this.rolesAllowed.forEach(role => {
+        this.room.rolesAllowed.forEach(role => {
             TAChannelPermissions.push({id: role.id, permissions: {VIEW_CHANNEL: false}});
 
         });
@@ -255,8 +255,8 @@ class Workshop extends Activity {
 
         // send poll to general text or prompt for channel
         let pollChannel;
-        if ((await this.channels.generalText.fetch(true))) pollChannel = this.channels.generalText;
-        else pollChannel = await chooseChannel('What channel should the poll go to?', this.channels.textChannels, channel, userId);
+        if ((await this.room.channels.generalText.fetch(true))) pollChannel = this.room.channels.generalText;
+        else pollChannel = await chooseChannel('What channel should the poll go to?', this.room.channels.textChannels.array(), channel, userId);
 
         pollChannel.send(qEmbed).then(msg => {
             poll.responses.forEach((value, key) => msg.react(key));

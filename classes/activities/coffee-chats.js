@@ -57,14 +57,14 @@ class CoffeeChats extends Activity {
     async init(channel, userId) {
         await super.init();
 
-        this.mainVoiceChannel = await chooseChannel('What channel will the teams join first before being shuffled?', this.channels.voiceChannels.array(), channel, userId);
-        this.channels.safeChannels.set(this.mainVoiceChannel.id, this.mainVoiceChannel);
+        this.mainVoiceChannel = await chooseChannel('What channel will the teams join first before being shuffled?', this.room.channels.voiceChannels.array(), channel, userId);
+        this.room.channels.safeChannels.set(this.mainVoiceChannel.id, this.mainVoiceChannel);
 
         for (var i = 0; i < this.numOfTeams; i++) {
-            this.addChannelHelper(`voice-${i}`, {type: 'voice'});
+            this.room.addRoomChannel(`voice-${i}`, {type: 'voice'});
         }
 
-        this.joinActivityChannel = await this.addChannelHelper('☕' + 'join-activity', {
+        this.joinActivityChannel = await this.room.addRoomChannel('☕' + 'join-activity', {
             type: 'text',
             topic: 'This channel is only intended to add your team to the activity list! Please do not use it for anything else!',
         }, [], true);
@@ -160,7 +160,7 @@ class CoffeeChats extends Activity {
      * Shuffle users in general voice as groups in firebase
      */
     groupShuffle() {
-        let channels = this.channels.voiceChannels;
+        let channels = this.room.channels.voiceChannels;
         let voiceChannels = channels.filter(voiceChannel => voiceChannel.id != this.mainVoiceChannel.id).array();
 
         // loop over the groups and channels at the same time using an index, add users for each group in a single voice channel
@@ -193,7 +193,7 @@ class CoffeeChats extends Activity {
      */
     addTeamSlot() {
         this.numOfTeams += 1;
-        this.addChannelHelper(`voice-${this.numOfTeams - 1}`, { type: 'voice' }); // -1 because we start from 0
+        this.room.addRoomChannel(`voice-${this.numOfTeams - 1}`, { type: 'voice' }); // -1 because we start from 0
     }
 
 }
