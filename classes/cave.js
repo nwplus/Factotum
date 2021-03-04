@@ -5,6 +5,7 @@ const Ticket = require('../classes/ticket');
 const BotGuild = require("../db/mongo/BotGuild");
 const BotGuildModel = require('./bot-guild');
 const winston = require("winston");
+const TicketSystem = require("./ticket-system");
 
 class Cave {
 
@@ -125,6 +126,11 @@ class Cave {
         this.ticketCount = 0;
 
         this.tickets = new Discord.Collection();
+
+        /**
+         * @type {TicketSystem}
+         */
+        this.ticketManager = new TicketSystem(this);
 
         /**
          * @type {BotGuildModel}
@@ -494,124 +500,57 @@ class Cave {
                 winston.loggers.get(this.botGuild._id).verbose(`The cave ${this.caveOptions.name} is working on deleting some channels from its ticket system thanks to user ${admin.id}.`, {event: "Cave"});
 
                 // ask user whether they want to delete all channels / all channels older than an age that they specify, or specific channels
-                let all = await Prompt.yesNoPrompt({prompt: 'Type "yes" if you would like to delete all ticket channels (you can also specify to delete all channels older than a certain age if you choose this option),\n' +
+                let isDeleteAll = await Prompt.yesNoPrompt({prompt: 'Type "yes" if you would like to delete all ticket channels (you can also specify to delete all channels older than a certain age if you choose this option),\n' +
                     '"no" if you would like to only delete some.', channel, userId});
-                if (all) {
+
+                if (isDeleteAll) {
                     // if user chose to delete all ticket channels, ask if they would like to delete all channels or all channels over
                     // a certain age
-                    let deleteNow = await Prompt.yesNoPrompt({prompt: 'All ticket categories older than a minute will be deleted. ' +
-                        'Type "yes" to confirm or "no" to set a different timescale. Careful - this cannot be undone!', channel, userId});
-                    // get the age in minutes of the channels to delete if they wanted to specify an age
-                    var age;
-                    (deleteNow) ? age = 1 : age = (await Prompt.numberPrompt({prompt: 'Enter the number of minutes. ' +
-                        'All ticket channels older than this time will be deleted. Careful - this cannot be undone!', channel, userId}))[0];
+                    let age = (await Prompt.numberPrompt({prompt: 'Enter how old, in minutes, a ticket has to be to remove. ' +
+                            'Send 0 if you want to remove all of them. Careful - this cannot be undone!', channel, userId}))[0];
 
-                    // delete all active tickets fitting the given age criteria
-                    this.tickets.forEach(async (ticket) => {
-                        var timeNow = Date.now();
-                        // check if ticket is over the given number of minutes old
-                        if (ticket.category != null && ((timeNow - ticket.category.createdTimestamp) > (age * 60 * 1000))) { 
-                            if (!ticket.category.deleted) {
-                                await ticket.category.children.forEach(async child => await discordServices.deleteChannel(child));
-                                await discordServices.deleteChannel(ticket.category);
-                                this.tickets.delete(ticket.ticketNumber); // remove ticket from the tickets Collection
-                            }
-                        }
-                    });
+                    this.ticketManager.removeTicketsByAge(age);
+
                     adminConsole.send('<@' + admin.id + '> All tickets over ' + age + ' minutes old have been deleted!').then(msg => msg.delete({ timeout: 8000 }));
                     winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} deleted all of its tickets over ${age} minutes old.`, {event: "Cave"});
                 } else {
                     // ask user if they want to name the tickets to not delete, or name the tickets to delete
-                    var exclude = await Prompt.yesNoPrompt({prompt: 'Type "yes" if you would like to delete all ticket channels **except** for the ones you mention, ' +
-                        '"no" if you would like for the tickets you mention to be deleted.', channel, userId});
-                    var prompt;
-                    if (exclude) {
-                        prompt = 'In **one** message, send all the ticket numbers to be excluded, separated by spaces. Careful - this cannot be undone!';
-                    } else {
-                        prompt = 'In **one** message, send all the ticket numbers to be deleted, separated by spaces. Careful - this cannot be undone!';
-                    }
+                    let exclude = await Prompt.yesNoPrompt({prompt: 'Type "yes" if you would like to delete all tickets **except** for some you mention later, ' +
+                        'or type "no" if you would like for the tickets you mention to be deleted.', channel, userId});
+                    
+                    let prompt = `In **one** message, send all the ticket numbers to be ${exclude ? 'excluded' : 'deleted'}, separated by spaces. Careful - this cannot be undone!`;
 
                     var ticketMentions = await Prompt.numberPrompt({prompt, channel, userId});
-                    // do nothing if no response given
-                    try {
-                        
-                        var ticketsToDelete; // will be initialized as a Map/Collection to keep track of tickets that the user chose to delete
-                        if (exclude) { // check if user specified to exclude certain channels from being deleted
-                            // start with ticketsToDelete being a Collection of all active tickets, and delete the excluded tickets from the 
-                            // Collection as long as their CategoryChannels have not been deleted 
-                            ticketsToDelete = new Map(this.tickets);
-                            ticketMentions.forEach(ticketNumber => {
-                                // check if the number provided by the user is an active ticket and that this ticket's category is still there
-                                if (ticketsToDelete.has(ticketNumber) && !ticketsToDelete.get(ticketNumber).category.deleted) {
-                                    ticketsToDelete.delete(ticketNumber);
-                                }
-                            });
-                        } else {
-                            // if user is listing tickets to delete, start with empty map and add each ticket
-                            ticketsToDelete = new Map();
-                            ticketMentions.forEach(ticketNumber => {
-                                // check if the number provided by the user is an active ticket and that this ticket's category is still there
-                                if (this.tickets.has(ticketNumber) && !this.tickets.get(ticketNumber).category.deleted) {
-                                    ticketsToDelete.set(ticketNumber, this.tickets.get(ticketNumber));
-                                }
-                            });
-                        }
-
-                        // iterate through each ticket object on the list of tickets to delete
-                        Array.from(ticketsToDelete.values()).forEach(async ticket => {
-                            if (!ticket.category.deleted) {
-                                // delete the category's channels, then category, then delete from the tickets Collection
-                                await ticket.category.children.forEach(async child => await discordServices.deleteChannel(child));
-                                await discordServices.deleteChannel(ticket.category);
-                                this.tickets.delete(ticket.ticketNumber);
-                            }
-                        });
-                        adminConsole.send('<@' + admin.id + '> The following tickets have been deleted: ' + Array.from(ticketsToDelete.keys()).join(', '))
-                            .then(msg => msg.delete({ timeout: 8000 }));
-                        winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} lost the following tickets: ${Array.from(ticketsToDelete.keys()).join()}`, {event: "Cave"});
-                    } catch {
-                        // do nothing if no tickets mentioned before timing out
+                    
+                    if (exclude) { // check if user specified to exclude certain channels from being deleted
+                        this.ticketManager.removeAllTickets(ticketMentions);
+                    } else {
+                        this.ticketManager.removeTicketsById(ticketMentions);
                     }
+
+                    adminConsole.send('<@' + admin.id + '> The following tickets have been deleted: ' + Array.from(ticketsToDelete.keys()).join(', '))
+                        .then(msg => msg.delete({ timeout: 8000 }));
+                    winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} lost the following tickets: ${Array.from(ticketsToDelete.keys()).join()}`, {event: "Cave"});
+                
                 }
             } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[2]) { // check if Admin selected to include/exclude tickets from garbage collection
                 winston.loggers.get(this.botGuild._id).verbose(`The cave ${this.caveOptions.name} is working on including or excluding some tickets from the 
                     ticket garbage collector thanks to user ${admin.id}.`, {event: "Cave"});
 
-                var response = await Prompt.messagePrompt({prompt: '**In one message separated by spaces**, ' +
-                    'type whether you want to "include" or "exclude" tickets along with the ticket numbers to operate on.', channel, userId}, 'string', 30);
-                if (response != null) {
-                    var words = response.content.split(" "); // array to store each word in user's response
-                    // use variable exclude to flag whether user wants to do an include or exclude operation
-                    var exclude;
-                    if (words.includes('include')) {
-                        exclude = false;
-                    } else if (words.includes('exclude')) {
-                        exclude = true;
-                    } else {
-                        adminConsole.send('<@' + admin.id + '> You did not specify "include" or "exclude"! Please try again.')
-                            .then(message => message.delete({ timeout: 5000 }));
-                    }
+                var isExcluding = await Prompt.yesNoPrompt({ prompt: 'Would you like to exclude tickets, if not you will include tickets.', channel, userId});
 
-                    // for each ticket the user mentioned, check that it is a valid active ticket then toggle the exclude property of 
-                    // the Ticket object correspondingly and store the list of tickets that were updated in validNumbers
-                    var validNumbers = [];
-                    words.forEach(word => {
-                        if (!isNaN(word) && this.tickets.has(parseInt(word))) {
-                            var ticket = this.tickets.get(parseInt(word));
-                            if (!ticket.category.deleted && !ticket.text.deleted && !ticket.voice.deleted) { // checks that the ticket has all 3 channels
-                                ticket.includeExclude(exclude);
-                                validNumbers.push(word);
-                            }
-                        }
-                    });
+                let ticketNumbers = await Prompt.numberPrompt({ prompt: `What tickets would you like to ${ isExcluding ? 'exclude' : 'include' }?`});
 
-                    // print the changes in Admin Console 
-                    (exclude) ? exclude = '"exclude"' : exclude = '"include"';
-                    if (validNumbers.length > 0) {
-                        adminConsole.send('Status updated to ' + exclude + ' for tickets: ' + validNumbers.join(', '));
-                        winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} changed some tickets status to ${exclude}. The tickets affected are: ${validNumbers.join()}`, {event: "Cave"});
+                ticketNumbers.forEach((ticketNumber) => {
+                    let ticket = this.ticketManager.tickets.get(ticketNumber);
+                    if (ticket) {
+                        ticket.includeExclude(isExcluding);
                     }
-                }
+                });
+
+                // print the changes in Admin Console 
+                adminConsole.send(`Status updated to ${isExcluding ? 'exclude' : 'include' } for tickets: ${ticketNumbers.join(', ')}`);
+                winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} changed some tickets status to ${exclude}. The tickets affected are: ${validNumbers.join()}`, {event: "Cave"});
             }
         });
     }

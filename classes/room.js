@@ -92,6 +92,12 @@ class Room {
          */
         this.locked = false;
 
+        /**
+         * The time this room was created.
+         * @type {Number}
+         */
+        this.timeCreated = Date.now();
+
     }
 
     /**
