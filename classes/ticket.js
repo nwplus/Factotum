@@ -127,9 +127,9 @@ class Ticket {
      */
     async includeExclude(exclude) {
         // oldExclude saves the previous inclusion status of the ticket
-        var oldExclude = this.excluded;
+        var oldExclude = this.garbageCollectorInfo.exclude;
         // set excluded variable to new status
-        this.excluded = exclude;
+        this.garbageCollectorInfo.exclude = exclude;
 
         // if this ticket was previously excluded and is now included, start the listener for inactivity
         if (oldExclude && !exclude) {
@@ -144,15 +144,15 @@ class Ticket {
 
         // if ticket has not been accepted after the specified time, it will send a reminder to the incoming tickets channel tagging all mentors
         var timeout = setTimeout(() => {
-            this.cave.privateChannels.incomingTickets.send('Hello <@&' + this.cave.caveOptions.role + '> ticket number ' + this.ticketNumber + ' still needs help!');
-        }, this.cave.caveOptions.times.reminderTime * 60 * 1000);
+            this.ticketManager.channels.incomingTickets.send('Hello <@&' + this.ticketManager.mainHelper.roleID + '> ticket number ' + this.id + ' still needs help!');
+        }, this.ticketManager.garbageCollectorInfo.inactivePeriod * 60 * 1000);
 
         // let user know that ticket was submitted and give option to remove ticket
         let removeTicketEmoji = '⚔️';
 
         let reqTicketUserEmbedMsg = await discordServices.sendEmbedToMember(this.requester, {
             title: 'Ticket was Successful!',
-            description: 'Your ticket to the ' + this.cave.caveOptions.name + ' group was successful! It is ticket number ' + this.ticketNumber + '.',
+            description: 'Your ticket to the ' + this.ticketManager.parent.name + ' group was successful! It is ticket number ' + this.id + '.',
             fields: [{
                 title: 'Remove the ticket',
                 description: 'If you don\'t need help anymore, react to this message with ' + removeTicketEmoji,
@@ -172,9 +172,9 @@ class Ticket {
             reqTicketUserEmbedMsg.delete({ timeout: 3000 });
             discordServices.sendEmbedToMember(user, {
                 title: 'Ticket Closed!',
-                description: 'Your ticket number ' + this.ticketNumber + ' has been closed!',
+                description: 'Your ticket number ' + this.id + ' has been closed!',
             }, true);
-            this.cave.tickets.delete(this.ticketNumber); // delete from cave's list of active tickets
+            this.ticketManager.tickets.delete(this.id); // delete from cave's list of active tickets
             clearTimeout(timeout);
         });
 
@@ -202,7 +202,7 @@ class Ticket {
                 // update dm with user to reflect that their ticket has been accepted
                 const openedTicketEmbed = new Discord.MessageEmbed()
                     .setColor('#128c1e')
-                    .setTitle('Your Ticket Number ' + this.ticketNumber + ' Has Been Opened!')
+                    .setTitle('Your Ticket Number ' + this.id + ' Has Been Opened!')
                     .setDescription('Your question: ' + this.question + '\nPlease go to the corresponding channel and read the instructions there.')
                 reqTicketUserEmbedMsg.edit(openedTicketEmbed);
                 reqTicketUserEmbedMsgCollector.stop();
@@ -242,7 +242,7 @@ class Ticket {
                         looseAccessCollector.stop();
                         this.messages.ticketManager.edit(this.messages.ticketManager.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed!! Good job!'));
                         this.room.delete();
-                        this.cave.tickets.delete(this.ticketNumber); // delete this ticket from the cave's Collection of active tickets
+                        this.ticketManager.tickets.delete(this.id); // delete this ticket from the cave's Collection of active tickets
                     } else if (this.helpers.size === 0) {
                         // tell hackers mentor is gone and ask to delete the ticket if this has not been done already 
                         if (!this.garbageCollectorInfo.mentorDeletionSequence && !this.garbageCollectorInfo.exclude) {
@@ -301,9 +301,9 @@ class Ticket {
                     this.messages.ticketManager.edit(this.messages.ticketManager.embeds[0].setColor('#128c1e').addField('Ticket Closed Due to Inactivity', 'This ticket has been closed!! Good job!'));
                     discordServices.sendEmbedToMember(this.requester, {
                         title: 'Ticket Closed!',
-                        description: 'Your ticket number ' + this.ticketNumber + ' was closed due to inactivity. If you need more help, please request another ticket!',
+                        description: 'Your ticket number ' + this.id + ' was closed due to inactivity. If you need more help, please request another ticket!',
                     }, false);
-                    this.cave.tickets.delete(this.ticketNumber);
+                    this.ticketManager.tickets.delete(this.id);
                 }
             } else if (collected.size > 0) {
                 await this.room.channels.generalText.send('You have indicated that you need more time. I\'ll check in with you later!');

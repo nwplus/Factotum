@@ -1,4 +1,4 @@
-const { Collection, GuildEmoji, ReactionEmoji, MessageEmbed } = require("discord.js");
+const { Collection, GuildEmoji, ReactionEmoji, MessageEmbed, TextChannel } = require("discord.js");
 const Ticket = require('./ticket');
 const Activity = require('./activities/activity');
 const Cave = require('./cave');
@@ -12,8 +12,8 @@ module.exports = class TicketSystem {
 
     /**
      * @typedef TicketSystemChannels
-     * @property {String} requestTickets - the channel ID for the channel where tickets are requested
-     * @property {String} incomingTickets - the channel ID for the channel where tickets are displayed for helpers
+     * @property {TextChannel} requestTickets - the channel ID for the channel where tickets are requested
+     * @property {TextChannel} incomingTickets - the channel ID for the channel where tickets are displayed for helpers
      */
 
     /**
@@ -24,14 +24,14 @@ module.exports = class TicketSystem {
      */
 
     /**
-     * @typedef HelperCardInfo
+     * @typedef NewTicketConsoleInfo
      * @property {GuildEmoji | ReactionEmoji} openTicketEmoji - emoji for mentors to accept a ticket
      * @property {GuildEmoji | ReactionEmoji} joinTicketEmoji - emoji for mentors to join an open ticket
-     * @property {HelperCardEmbedCreator} embedCreator - function to create a Discord MessageEmbed
+     * @property {NewTicketEmbedCreator} embedCreator - function to create a Discord MessageEmbed
      */
 
     /**
-     * @callback HelperCardEmbedCreator
+     * @callback NewTicketEmbedCreator
      * @param {String} requesterName
      * @param {String} question
      * @param {String} requestedRoleID
@@ -56,7 +56,7 @@ module.exports = class TicketSystem {
          * The channels needed for a ticket system.
          * @type {TicketSystemChannels}
          */
-        this.channelIDs = {
+        this.channels = {
             requestTickets : null,
             incomingTickets : null,
         }
@@ -74,11 +74,11 @@ module.exports = class TicketSystem {
         /**
          * The helper card information. Data for the msg that is sent to the incoming tickets channel every 
          * time a new ticket is submitted for helpers to browse.
-         * @type {HelperCardInfo}
+         * @type {NewTicketConsoleInfo}
          */
-        this.helperCardInfo = {
-            openTicketEmoji : null,
-            joinTicketEmoji : null,
+        this.newTicketConsoleInfo = {
+            takeTicket : null,
+            joinTicket : null,
             embedCreator : null,
         }
 
@@ -103,7 +103,7 @@ module.exports = class TicketSystem {
          * Information about the system being multi role, if its the case, it needs a 
          * Multi Role Selector.
          */
-        this.multiRoleSystemInfo = {
+        this.multiRoleInfo = {
             isEnabled : false,
             multiRoleSelector : null,
         }
@@ -114,7 +114,6 @@ module.exports = class TicketSystem {
          */
         this.advancedModeInfo = {
             isEnabled : false,
-            ticketTextEmbed : null,
         }
 
     }
