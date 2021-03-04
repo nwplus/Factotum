@@ -258,11 +258,20 @@ class Room {
 
     /**
      * Gives access to a user
-     * @param {User} user
+     * @param {User} user - user to give access to
      */
     giveUserAccess(user) {
         this.usersAllowed.set(user.id, user);
         this.channels.category.updateOverwrite(user.id, { VIEW_CHANNEL: true, SEND_MESSAGES: true });
+    }
+
+    /**
+     * Removes access to a user to see this room.
+     * @param {User} user - the user to remove access to
+     */
+    removeUserAccess(user) {
+        this.usersAllowed.delete(user.id);
+        this.channels.category.updateOverwrite(user.id, { VIEW_CHANNEL: false });
     }
 
 
