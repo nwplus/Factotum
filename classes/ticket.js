@@ -51,9 +51,9 @@ class Ticket {
 
     /**
      * 
-     * @param {*} question 
+     * @param {String} question 
      * @param {Collection<String, User>} hackers 
-     * @param {*} ticketNumber 
+     * @param {Number} ticketNumber 
      */
     constructor(question, hackers, ticketNumber, guild, botGuild) {
 
@@ -71,15 +71,15 @@ class Ticket {
 
         /**
          * All the group members.
-         * @type {Discord.User[]}
+         * @type {Collection<String, User>} - <ID, User>
          */
-        this.group = hackers.array();
+        this.group = hackers;
 
         /**
          * Mentors who join the ticket
-         * @type {Discord.User[]}
+         * @type {Collection<String, User>} - <ID, User>
          */
-        this.helpers = [];
+        this.helpers = new Collection();
 
         /**
          * Ticket number
@@ -183,7 +183,7 @@ class Ticket {
                 // add new mentor to existing ticket channels
                 this.room.giveUserAccess(helper);
                 discordServices.sendMsgToChannel(this.room.channels.generalText, helper.id, 'Has joined the ticket!', 10);
-                this.helpers.push(helper.id); //add new mentor to list of mentors
+                this.helpers.set(helper.id, helper); //add new mentor to list of mentors
 
                 // update the ticket manager and ticket room embeds with the new mentor
                 this.messages.ticketManager.edit(this.messages.ticketManager.embeds[0].addField('More hands on deck!', '<@' + helper.id + '> Joined the ticket!'));
@@ -218,10 +218,10 @@ class Ticket {
                 // send message with information embed to the ticket text channel
                 this.messages.ticketRoom = await this.room.channels.generalText.send(this.openTicketEmbed);
                 this.messages.ticketRoom.react(leaveTicketEmoji);
-                this.helpers.push(helper.id);
+                this.helpers.set(helper.id, helper);
 
                 // send message mentioning all the parties involved so they get a notification
-                let notificationMessage = '<@' + helper.id + '> ' + this.group.join(' ');
+                let notificationMessage = '<@' + helper.id + '> ' + this.group.array().join(' ');
                 this.room.channels.generalText.send(notificationMessage).then(msg => msg.delete({ timeout: 15000 }));
 
                 this.createActivityListener(); //create a listener for inactivity in the text channel
@@ -230,29 +230,20 @@ class Ticket {
                 const looseAccessCollector = this.messages.ticketRoom.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === leaveTicketEmoji);
 
                 looseAccessCollector.on('collect', async (reaction, exitUser) => {
-                    // if mentor is leaving, delete from mentors list
-                    for (var i = 0; i < this.helpers.length; i++) {
-                        if (this.helpers[i] === exitUser.id) {
-                            this.helpers.splice(i, 1);
-                        }
-                    }
+                    // delete the mentor or the group member that is leaving the ticket
+                    this.helpers.delete(exitUser.id);
+                    this.group.delete(exitUser.id);
 
-                    // if hacker is leaving, delete from hackers list
-                    for (var i = 0; i < this.group.length; i++) {
-                        if (this.group[i] === exitUser) {
-                            this.group.splice(i, 1);
-                        }
-                    }
+                    this.room.removeUserAccess(exitUser);
 
                     // if all hackers are gone, delete ticket channels
-                    if (this.group.length === 0) {
+                    if (this.group.size === 0) {
                         ticketCollector.stop();
                         looseAccessCollector.stop();
                         this.messages.ticketManager.edit(this.messages.ticketManager.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed!! Good job!'));
                         this.room.delete();
                         this.cave.tickets.delete(this.ticketNumber); // delete this ticket from the cave's Collection of active tickets
-                    } else if (this.helpers.length === 0) {
-                        this.room.removeUserAccess(exitUser);
+                    } else if (this.helpers.size === 0) {
                         // tell hackers mentor is gone and ask to delete the ticket if this has not been done already 
                         if (!this.garbageCollectorInfo.mentorDeletionSequence && !this.garbageCollectorInfo.exclude) {
                             this.garbageCollectorInfo.mentorDeletionSequence = true;
@@ -264,9 +255,6 @@ class Ticket {
                                 this.interval = setInterval(() => this.askToDelete('mentor'), this.inactivePeriod * 60 * 1000);
                             }
                         }
-                    } else {
-                        //change user permissions so that they no longer have access
-                        this.room.removeUserAccess(exitUser);
                     }
                 });
             }
@@ -285,9 +273,9 @@ class Ticket {
         if (this.room.channels.category.deleted || this.room.channels.generalText.deleted || this.room.channels.generalVoice.deleted || this.garbageCollectorInfo.exclude) return;
 
         // assemble message to send to hackers to verify if they still need the ticket
-        var requestMsg = this.group.join(' ');
+        var requestMsg = this.group.array().join(' ');
         if (reason === 'inactivity') {
-            requestMsg = requestMsg + ' <@' + this.helpers.join('> <@') + '>'
+            requestMsg = requestMsg + ' <@' + this.helpers.array().join('> <@') + '>'
             requestMsg = requestMsg + ' Hello! I detected some inactivity on this channel and wanted to check in.\n';
         } else if (reason === 'mentor') {
             requestMsg = requestMsg + ' Hello! Your mentor(s) has/have left the ticket.\n'
