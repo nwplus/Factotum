@@ -1,6 +1,6 @@
 const { Collection, GuildEmoji, ReactionEmoji, MessageEmbed } = require("discord.js");
 const Ticket = require('./ticket');
-const Activity = require('./activity');
+const Activity = require('./activities/activity');
 const Cave = require('./cave');
 
 /**
