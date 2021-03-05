@@ -1,5 +1,21 @@
-const { Collection, Message, TextChannel, MessageEmbed, DMChannel } = require("discord.js");
+const { Collection, Message, TextChannel, MessageEmbed, DMChannel, MessageReaction, User } = require("discord.js");
 const { randomColor } = require("../discord-services");
+
+/**
+ * @typedef Feature
+ * @property {String} emojiName
+ * @property {String} name
+ * @property {String} description
+ * @property {FeatureCallback} callback
+ */
+
+/**
+ * @callback FeatureCallback
+ * @param {User} user - the user that reacted
+ * @param {MessageReaction} reaction - the reaction
+ * @param {Function} stopInteracting - callback to let the console know the user has
+ * stopped interacting.
+ */
 
 /**
  * The console class represents a Discord UI console. A console is an embed with options users 
@@ -7,14 +23,6 @@ const { randomColor } = require("../discord-services");
  * @class
  */
 class Console {
-
-    /**
-     * @typedef Feature
-     * @property {String} emojiName
-     * @property {String} name
-     * @property {String} description
-     * @property {Function} callback
-     */
 
      /**
       * @constructor
@@ -50,6 +58,12 @@ class Console {
          * @type {Message}
          */
         this.message;
+
+        /**
+         * Users the console is interacting with;
+         * @type {Collection<String, User>} - <User.id, User>
+         */
+        this.interacting = new Collection();
     }
 
     /**
@@ -69,10 +83,15 @@ class Console {
 
         this.features.forEach(feature => this.message.react(feature.emojiName));
 
-        const collector = this.message.createReactionCollector((reaction, user) => !user.bot && this.features.has(reaction.emoji.name));
+        const collector = this.message.createReactionCollector((reaction, user) => 
+            !user.bot && 
+            this.features.has(reaction.emoji.name) && 
+            !this.interacting.has(user.id)
+        );
 
         collector.on('collect', (reaction, user) => {
-            this.features.get(reaction.emoji.name)?.callback(user)
+            this.interacting.set(user.id, user);
+            this.features.get(reaction.emoji.name)?.callback(user, reaction, this.stopInteracting)
             if (channel.type != 'dm') reaction.users.remove(user);
         });
     }
@@ -106,6 +125,14 @@ class Console {
         } else {
             throw Error(`Was not given an identifier to work with when deleting a feature from this console ${this.title}`);
         }
+    }
+
+    /**
+     * Callback for users to call when the user interacting with the console is done.
+     * @param {User} user - the user that stopped interacting with this console.
+     */
+    stopInteracting(user) {
+        this.interacting.delete(user.id);
     }
 }
 module.exports = Console;
