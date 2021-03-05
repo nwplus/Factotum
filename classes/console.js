@@ -1,7 +1,11 @@
-const { Collection, Message, TextChannel, MessageEmbed } = require("discord.js");
+const { Collection, Message, TextChannel, MessageEmbed, DMChannel } = require("discord.js");
 const { randomColor } = require("../discord-services");
 
-
+/**
+ * The console class represents a Discord UI console. A console is an embed with options users 
+ * can interact with my reacting with emojis.
+ * @class
+ */
 class Console {
 
     /**
@@ -50,7 +54,7 @@ class Console {
 
     /**
      * Sends the console to a channel
-     * @param {TextChannel} channel - channel to send console to
+     * @param {TextChannel | DMChannel} channel - channel to send console to
      * @async
      */
     async sendConsole(channel) {
@@ -67,7 +71,10 @@ class Console {
 
         const collector = this.message.createReactionCollector((reaction, user) => !user.bot && this.features.has(reaction.emoji.name));
 
-        collector.on('collect', (reaction, user) => this.features.get(reaction.emoji.name)?.callback(user));
+        collector.on('collect', (reaction, user) => {
+            this.features.get(reaction.emoji.name)?.callback(user)
+            if (channel.type != 'dm') reaction.users.remove(user);
+        });
     }
 
     /**
@@ -101,3 +108,4 @@ class Console {
         }
     }
 }
+module.exports = Console;
