@@ -1,10 +1,8 @@
-const Discord = require("discord.js");
-const { Collection, User, GuildMember, Message, ReactionCollector, Role } = require('discord.js');
+const { Collection, User, GuildMember, Message, ReactionCollector, Role, MessageEmbed } = require('discord.js');
 const winston = require("winston");
-const discordServices = require('../discord-services');
-const Cave = require("./cave");
-const Room = require("./room");
-const TicketSystem = require("./ticket-system");
+const discordServices = require('../../discord-services');
+const Room = require("../room");
+const TicketManager = require("./ticket-manager");
 
 class Ticket {
 
@@ -23,7 +21,7 @@ class Ticket {
 
     /**
      * @typedef TicketGarbageInfo
-     * @property {Number} noHelperInterval - Interval ID for setInterval and clearInterval functions
+     * @property {Number} noHelperInterval - Interval ID for when there are no more helpers in the ticket
      * @property {Boolean} mentorDeletionSequence - Flag to check if a deletion sequence has already been triggered by all mentors leaving the ticket; if so, there will not be
      * another sequence started for inactivity
      * @property {Boolean} exclude - Flag for whether this ticket is excluded from automatic garbage collection
@@ -36,7 +34,7 @@ class Ticket {
      */
     static STATUS = {
         /** Ticket is open for someone to take. */
-        new: 'open',
+        new: 'new',
         /** Ticket has been dealt with and is closed. */
         closed: 'closed',
         /** Ticket is being handled by someone. */
@@ -50,16 +48,18 @@ class Ticket {
      * @param {MessageEmbed}
      * @static
      */
-    static getTicketRoomEmbed = (teamLeader, question) => new Discord.MessageEmbed()
+    static getTicketRoomEmbed = (teamLeader, question) => new MessageEmbed()
         .setColor(discordServices.embedColor)
         .setTitle('Original Question')
         .setDescription('<@' + teamLeader.id + '> has the question: ' + question);
 
     /**
-     * 
-     * @param {String} question 
+     *      
      * @param {Collection<String, User>} hackers 
-     * @param {Number} ticketNumber 
+     * @param {String} question 
+     * @param {Role} requesterRole
+     * @param {Number} ticketNumber
+     * @param {TicketManager} ticketManager 
      */
     constructor(hackers, question, requestedRole, ticketNumber, ticketManager) {
 
@@ -73,7 +73,7 @@ class Ticket {
          * The room this ticket will be solved in.
          * @type {Room}
          */
-        this.room = new Room(guild, botGuild, `Ticket-${ticketNumber}`, undefined, hackers);
+        this.room = new Room(ticketManager.guild, ticketManager.botGuild, `Ticket-${ticketNumber}`, undefined, hackers);
 
         /**
          * Question from hacker
@@ -127,18 +127,13 @@ class Ticket {
         };
 
         /**
-         * Timeout to remind helpers of this ticket if no one takes it.
-         */
-        this.ticketManagerHelperReminder;
-
-        /**
          * The status of this ticket
          * @type {Ticket.types}
          */
         this.status = null;
 
         /**
-         * @type {TicketSystem}
+         * @type {TicketManager}
          */
         this.ticketManager = ticketManager; 
     }
@@ -171,22 +166,18 @@ class Ticket {
         
         switch(status) {
             case Ticket.STATUS.new:
-                // sets a timer as per the ticket manager inactive period, if the ticket is not opened by then a reminder will be sent
-                if (this.ticketManager.reminderInfo.isEnabled) {
-                    this.ticketManagerHelperReminder = setTimeout(() => {
-                        this.ticketManager.channels.incomingTickets.send('Hello <@&' + this.ticketManager.mainHelper.roleID + '> ticket number ' + this.id + ' still needs help!');
-                    }, this.ticketManager.reminderInfo.time * 60 * 1000);
-                }
-
                 // let user know that ticket was submitted and give option to remove ticket
                 await this.contactGroupLeader();
 
                 this.newStatusCallback();
+                break;
 
             case Ticket.STATUS.taken:
                 await this.takenStatusCallback(user);
+                break;
             case Ticket.STATUS.closed:
                 this.delete(reason);
+                break;
         }
     }
 
@@ -195,26 +186,26 @@ class Ticket {
      * @private
      */
     async newStatusCallback() {
-        const ticketManagerMsgEmbed = this.ticketManager.ticketHelperConsoleInfo.embedCreator(
+        const ticketManagerMsgEmbed = this.ticketManager.ticketDispatcherInfo.embedCreator(
             this.group.first().username, 
             this.question, 
             this.requestedRole.id
         );
-        this.messages.ticketManager.msg = await this.ticketManager.channels.incomingTickets.send('<@&' + this.requestedRole.id + '>', ticketManagerMsgEmbed);
-        this.messages.ticketManager.msg.react(this.ticketManager.ticketHelperConsoleInfo.takeTicketEmoji.name);
+        this.messages.ticketManager.msg = await this.ticketManager.ticketDispatcherInfo.channel.send('<@&' + this.requestedRole.id + '>', ticketManagerMsgEmbed);
+        this.messages.ticketManager.msg.react(this.ticketManager.ticketDispatcherInfo.takeTicketEmoji.name);
 
         // ticket manager helper console collector
         this.messages.ticketManager.collector = this.messages.ticketManager.msg.createReactionCollector((reaction, user) => {
             let isEmoji = false;
             if (this.status === Ticket.STATUS.new) 
-                isEmoji = this.ticketManager.ticketHelperConsoleInfo.takeTicketEmoji.name === reaction.emoji.name;
+                isEmoji = this.ticketManager.ticketDispatcherInfo.takeTicketEmoji.name === reaction.emoji.name;
             else if (this.status === Ticket.STATUS.taken)
-                isEmoji = this.ticketManager.ticketHelperConsoleInfo.joinTicketEmoji.name === reaction.emoji.name;
+                isEmoji = this.ticketManager.ticketDispatcherInfo.joinTicketEmoji.name === reaction.emoji.name;
             return !user.bot && isEmoji;
         });
 
         this.messages.ticketManager.collector.on('collect', async (reaction, helper) => {
-            if (reaction.emoji.name === this.ticketManager.ticketHelperConsoleInfo.joinTicketEmoji) {
+            if (reaction.emoji.name === this.ticketManager.ticketDispatcherInfo.joinTicketEmoji) {
                 // add new helper nad clear the interval
                 this.helperJoinsTicket(helper);
             } else {
@@ -259,13 +250,13 @@ class Ticket {
         await this.room.init();
 
         // add helper and clear the ticket reminder timeout
-        this.addHelper(helper, this.ticketManagerHelperReminder);
+        this.addHelper(helper);
 
         // edit ticket manager helper console with mentor information
         this.messages.ticketManager.msg.edit(this.messages.ticketManager.msg.embeds[0].addField('This ticket is being handled!', '<@' + helper.id + '> Is helping this team!')
-            .addField('Still want to help?', 'Click the ' + this.ticketManager.ticketHelperConsoleInfo.joinTicketEmoji.toString() + ' emoji to join the ticket!')
+            .addField('Still want to help?', 'Click the ' + this.ticketManager.ticketDispatcherInfo.joinTicketEmoji.toString() + ' emoji to join the ticket!')
             .setColor('#80c904'));
-        this.messages.ticketManager.msg.react(this.ticketManager.ticketHelperConsoleInfo.joinTicketEmoji);
+        this.messages.ticketManager.msg.react(this.ticketManager.ticketDispatcherInfo.joinTicketEmoji);
 
         // update dm with user to reflect that their ticket has been accepted
         this.messages.groupLeader.msg.edit(this.messages.groupLeader.msg.embeds[0].addField('Your ticket has been taken by a helper!', 'Please go to the corresponding channel and read the instructions there.'));
@@ -352,12 +343,12 @@ class Ticket {
 
         let warning = await this.room.channels.generalText.send(`${msgText} If the ticket has been solved, please click the 👋 emoji above 
             to leave the channel. If you need to keep the channel, please click the emoji below, 
-            **otherwise this ticket will be deleted in ${this.ticketManager.garbageCollectorInfo.bufferTime} minutes**.`);
+            **otherwise this ticket will be deleted in ${this.ticketManager.systemWideTicketInfo.garbageCollectorInfo.bufferTime} minutes**.`);
 
         await warning.react('🔄');
 
         // reaction collector to listen for someone to react with the emoji for more time
-        const deletionCollector = warning.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🔄', { time: this.ticketManager.garbageCollectorInfo.bufferTime * 60 * 1000, max: 1 });
+        const deletionCollector = warning.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === '🔄', { time: this.ticketManager.systemWideTicketInfo.garbageCollectorInfo.bufferTime * 60 * 1000, max: 1 });
         
         deletionCollector.on('end', async (collected) => {
             // if a channel has already been deleted by another process, stop this deletion sequence
@@ -367,7 +358,7 @@ class Ticket {
                 await this.room.channels.generalText.send('You have indicated that you need more time. I\'ll check in with you later!');
 
                 // set an interval to ask again later
-                this.garbageCollectorInfo.noHelperInterval = setInterval(() => this.askToDelete('mentor'), this.ticketManager.garbageCollectorInfo.inactivePeriod * 60 * 1000);
+                this.garbageCollectorInfo.noHelperInterval = setInterval(() => this.askToDelete('mentor'), this.ticketManager.systemWideTicketInfo.garbageCollectorInfo.inactivePeriod * 60 * 1000);
             }
         });
     }
@@ -380,7 +371,7 @@ class Ticket {
      */
     async startChannelActivityListener() {
         // message collector that stops when there are no messages for inactivePeriod minutes
-        const activityListener = this.room.channels.generalText.createMessageCollector(m => !m.author.bot, { idle: this.ticketManager.garbageCollectorInfo.inactivePeriod * 60 * 1000 });
+        const activityListener = this.room.channels.generalText.createMessageCollector(m => !m.author.bot, { idle: this.ticketManager.systemWideTicketInfo.garbageCollectorInfo.inactivePeriod * 60 * 1000 });
         activityListener.on('end', async collected => {
             if (collected.size === 0 && this.room.channels.generalVoice.members.size === 0) {
                 await this.askToDelete('inactivity');
@@ -420,8 +411,6 @@ class Ticket {
         // delete the room, clear intervals, remove ticket from the ticketManager
         this.room.delete();
         clearInterval(this.garbageCollectorInfo.noHelperInterval);
-        clearInterval(this.ticketManagerHelperReminder);
-        this.ticketManager.tickets.delete(this.id);
     }
 }
 

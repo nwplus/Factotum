@@ -1,11 +1,11 @@
 const Discord = require("discord.js");
 const discordServices = require('../discord-services');
 const Prompt = require('../classes/prompt');
-const Ticket = require('../classes/ticket');
+const Ticket = require('./tickets/ticket');
 const BotGuild = require("../db/mongo/BotGuild");
 const BotGuildModel = require('./bot-guild');
 const winston = require("winston");
-const TicketSystem = require("./ticket-system");
+const TicketSystem = require("./tickets/ticket-manager");
 
 class Cave {
 
