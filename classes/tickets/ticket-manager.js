@@ -1,8 +1,11 @@
-const { Collection, GuildEmoji, ReactionEmoji, MessageEmbed, TextChannel, Guild, Role, ReactionEmoji } = require("discord.js");
+const { Collection, GuildEmoji, ReactionEmoji, MessageEmbed, TextChannel, Guild, Role, MessageReaction, User,  } = require("discord.js");
 const Ticket = require('./ticket');
 const Activity = require('../activities/activity');
 const Cave = require('../cave');
 const BotGuildModel = require('../bot-guild');
+const Console = require("../console");
+const winston = require("winston/lib/winston/config");
+const { messagePrompt } = require("../prompt");
 
 
 /**
@@ -10,7 +13,7 @@ const BotGuildModel = require('../bot-guild');
  * used with one or many helper types, can edit options, embeds, etc.
  * @class
  */
-module.exports = class TicketManager {
+class TicketManager {
 
     /**
      * All the information needed for tickets in this ticket manager
@@ -29,8 +32,7 @@ module.exports = class TicketManager {
     /**
      * @typedef TicketCreatorInfo
      * @property {TextChannel} channel - the channel where users can create a ticket
-     * @property {Message} msg - the console users use to create a ticket
-     * @property {function} embedCreator - a function to create the console
+     * @property {Console} console - the console used to let users create tickets
      */
 
     /**
@@ -50,9 +52,7 @@ module.exports = class TicketManager {
      */
     /**
      * @callback NewTicketEmbedCreator
-     * @param {String} requesterName
-     * @param {String} question
-     * @param {String} requestedRoleID
+     * @param {Ticket} ticket
      * @returns {MessageEmbed}
      */
     /**
@@ -96,8 +96,7 @@ module.exports = class TicketManager {
          */
         this.ticketCreatorInfo = {
             channel: null,
-            msg: null, // the console
-            embedCreator: null, // function
+            console: null,
         }
 
         /**
@@ -157,13 +156,67 @@ module.exports = class TicketManager {
         this.ticketCreatorInfo = ticketCreatorInfo;
         this.ticketDispatcherInfo = ticketDispatcherInfo;
         this.systemWideTicketInfo = systemWideTicketInfo;
+        this.ticketDispatcherInfo.reminderInfo.reminders = new Collection();
     }
 
-    
+    /**
+     * Sends the ticket creator console.
+     * @param {String} title - the ticket creator console title
+     * @param {String} description - the ticket creator console description
+     * @param {String} [color] - the ticket creator console color, hex
+     */
+    sendTicketCreatorConsole(title, description, color) {
+        /** @type {Console.Feature[]} */
+        let featureList = [
+            {
+                name: 'General Ticket',
+                description: 'A general ticket aimed to all helpers.',
+                emojiName: this.ticketDispatcherInfo.mainHelperInfo.emoji.name,
+                callback: (user, reaction, stopInteracting) => this.startTicketCreationProcess(user, reaction).then( () => stopInteracting(user)),
+            }
+        ];
+
+        let features = new Collection(featureList.map(feature => [feature.emojiName, feature]));
+
+        this.ticketCreatorInfo.console = new Console(title, description, features, color);
+        this.ticketCreatorInfo.console.sendConsole(this.ticketCreatorInfo.channel);
+    }
+
+    /**
+     * 
+     * @param {User} user - the user creating a ticket
+     * @param {MessageReaction} reaction 
+     * @async
+     */
+    async startTicketCreationProcess(user, reaction) {
+
+        // check if role has mentors in it
+        // if (this.emojis.has(reaction.emoji.name) && this.emojis.get(reaction.emoji.name).activeUsers === 0) {
+        //     this.publicChannels.outgoingTickets.send('<@' + user.id + '> There are no mentors available with that role. Please request another role or the general role!').then(msg => msg.delete({ timeout: 10000 }));
+        //     winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.caveOptions.name} received a ticket from user ${user.id} but was canceled due to no mentor having the role ${this.emojis.get(reaction.emoji.name).name}.`, {event: "Cave"});
+        //     return;
+        // }
+
+        try {
+            var promptMsg = await messagePrompt({prompt: 'Please send ONE message with: \n* A one liner of your problem ' + 
+                                '\n* Mention your team members using @friendName .', channel: this.ticketCreatorInfo.channel, userId: user.id}, 'string', 45);
+        } catch (error) {
+            // prompt was canceled, return;
+            winston.loggers.get(this.botGuild._id).warning(`New ticket was canceled due to error: ${error}`, {event: "Ticket Manager"});
+            return;
+        }
+
+        // var role = this.emojis.get(reaction.emoji.name) || this.ticketDispatcherInfo.mainHelperInfo.role;
+        let role = this.ticketDispatcherInfo.mainHelperInfo.role;
+        let hackers = promptMsg.mentions.users.array();
+        hackers.push(user);
+
+        this.newTicket(hackers, promptMsg.cleanContent, role);
+    }
 
     /**
      * Adds a new ticket.
-     * @param {Users[]} hackers
+     * @param {User[]} hackers
      * @param {String} question
      * @param {Role} roleRequested
      */
@@ -257,5 +310,5 @@ module.exports = class TicketManager {
         }
         this.tickets.get(ticketId).setStatus(Ticket.STATUS.closed, 'ticket manager closed the ticket');
     }
-
 }
+module.exports = TicketManager;

@@ -160,8 +160,9 @@ class Ticket {
      * @param {String} status - one of Ticket.STATUS
      * @param {String} [reason] - the reason for the change
      * @param {User} [user] - user involved with the status change
+     * @async
      */
-    setStatus(status, reason = '', user) {
+    async setStatus(status, reason = '', user) {
         this.status = status;
         
         switch(status) {
@@ -186,12 +187,8 @@ class Ticket {
      * @private
      */
     async newStatusCallback() {
-        const ticketManagerMsgEmbed = this.ticketManager.ticketDispatcherInfo.embedCreator(
-            this.group.first().username, 
-            this.question, 
-            this.requestedRole.id
-        );
-        this.messages.ticketManager.msg = await this.ticketManager.ticketDispatcherInfo.channel.send('<@&' + this.requestedRole.id + '>', ticketManagerMsgEmbed);
+        const ticketManagerMsgEmbed = this.ticketManager.ticketDispatcherInfo.embedCreator(this);
+        this.messages.ticketManager.msg = await this.ticketManager.ticketDispatcherInfo.channel.send(`<@&${this.requestedRole.id}>`, ticketManagerMsgEmbed);
         this.messages.ticketManager.msg.react(this.ticketManager.ticketDispatcherInfo.takeTicketEmoji.name);
 
         // ticket manager helper console collector
