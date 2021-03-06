@@ -102,19 +102,35 @@ class Room {
 
     /**
      * Initialize this activity by creating the channels, adding the features and sending the admin console.
+     * @param {Object} [args] - channels already created to add to this room
+     * @param {CategoryChannel} args.category
+     * @param {TextChannel} args.textChannel
+     * @param {VoiceChannel} args.voiceChannel
      * @async
      * @returns {Promise<Room>}
      */
-    async init() {
-        let position = this.guild.channels.cache.filter(channel => channel.type === 'category').size;
-        this.channels.category = await this.createCategory(position);
+    async init(args) {
+        if (args.category) this.channels.category = args.category;
+        else {
+            let position = this.guild.channels.cache.filter(channel => channel.type === 'category').size;
+            this.channels.category = await this.createCategory(position);
+        }
 
-        this.channels.generalText = await this.addRoomChannel(Room.mainTextChannelName, {
+        if (args.textChannel) {
+            this.channels.generalText = args.textChannel;
+            this.addExcisingChannel(args.textChannel);
+        }
+        else this.channels.generalText = await this.addRoomChannel(Room.mainTextChannelName, {
             parent: this.channels.category,
             type: 'text',
             topic: 'A general banter channel to be used to communicate with other members, mentors, or staff. The !ask command is available for questions.',
         });
-        this.channels.generalVoice = await this.addRoomChannel(Room.mainVoiceChannelName, {
+
+        if (args.voiceChannel) {
+            this.channels.generalVoice = args.voiceChannel;
+            this.addExcisingChannel(args.voiceChannel);
+        }
+        else this.channels.generalVoice = await this.addRoomChannel(Room.mainVoiceChannelName, {
             parent: this.channels.category,
             type: 'voice',
         });
@@ -278,6 +294,14 @@ class Room {
     removeUserAccess(user) {
         this.usersAllowed.delete(user.id);
         this.channels.category.updateOverwrite(user.id, { VIEW_CHANNEL: false });
+    }
+
+    /**
+     * @param {TextChannel | VoiceChannel} channel
+     */
+    addExcisingChannel(channel) {
+        if (channel.type === 'text') this.channels.textChannels.set(channel.id, channel);
+        else if (channel.type === 'voice') this.channels.voiceChannels.set(channel.id, channel);
     }
 
 
