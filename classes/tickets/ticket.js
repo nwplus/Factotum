@@ -1,22 +1,17 @@
 const { Collection, User, GuildMember, Message, ReactionCollector, Role, MessageEmbed } = require('discord.js');
 const winston = require("winston");
 const discordServices = require('../../discord-services');
+const Console = require('../console');
 const Room = require("../room");
 const TicketManager = require("./ticket-manager");
 
 class Ticket {
 
     /**
-     * @typedef MsgAndCollector
-     * @property {Message} msg
-     * @property {ReactionCollector} collector
-     */
-
-    /**
-     * @typedef TicketMessages
-     * @property {MsgAndCollector} groupLeader
-     * @property {MsgAndCollector} ticketManager - Message sent to incoming ticket channel for helpers to see.
-     * @property {MsgAndCollector} ticketRoom - The message with the information embed sent to the ticket channel once the ticket is open.
+     * @typedef TicketConsoles
+     * @property {Console} groupLeader
+     * @property {Console} ticketManager - Message sent to incoming ticket channel for helpers to see.
+     * @property {Console} ticketRoom - The message with the information embed sent to the ticket channel once the ticket is open.
      */
 
     /**
@@ -40,18 +35,6 @@ class Ticket {
         /** Ticket is being handled by someone. */
         taken: 'taken',
     }
-
-    /**
-     * Bot message containing information sent to ticket text channel
-     * @param {User | GuildMember} teamLeader
-     * @param {String} question
-     * @param {MessageEmbed}
-     * @static
-     */
-    static getTicketRoomEmbed = (teamLeader, question) => new MessageEmbed()
-        .setColor(discordServices.embedColor)
-        .setTitle('Original Question')
-        .setDescription('<@' + teamLeader.id + '> has the question: ' + question);
 
     /**
      *      
@@ -87,7 +70,7 @@ class Ticket {
         this.requestedRole = requestedRole;
 
         /**
-         * All the group members.
+         * All the group members, group leader should be the first one!
          * @type {Collection<String, User>} - <ID, User>
          */
         this.group = hackers;
@@ -99,21 +82,12 @@ class Ticket {
         this.helpers = new Collection();
 
         /**
-         * @type {TicketMessages}
+         * @type {TicketConsoles}
          */
-        this.messages = {
-            groupLeader: {
-                msg: null,
-                collector: null,
-            },
-            ticketManager: {
-                msg: null,
-                collector: null,
-            },
-            ticketRoom: {
-                msg: null,
-                collector: null,
-            },
+        this.consoles = {
+            groupLeader: null,
+            ticketManager: null,
+            ticketRoom: null,
         };
 
         /**
@@ -188,27 +162,31 @@ class Ticket {
      */
     async newStatusCallback() {
         const ticketManagerMsgEmbed = this.ticketManager.ticketDispatcherInfo.embedCreator(this);
-        this.messages.ticketManager.msg = await this.ticketManager.ticketDispatcherInfo.channel.send(`<@&${this.requestedRole.id}>`, ticketManagerMsgEmbed);
-        this.messages.ticketManager.msg.react(this.ticketManager.ticketDispatcherInfo.takeTicketEmoji.name);
 
-        // ticket manager helper console collector
-        this.messages.ticketManager.collector = this.messages.ticketManager.msg.createReactionCollector((reaction, user) => {
-            let isEmoji = false;
-            if (this.status === Ticket.STATUS.new) 
-                isEmoji = this.ticketManager.ticketDispatcherInfo.takeTicketEmoji.name === reaction.emoji.name;
-            else if (this.status === Ticket.STATUS.taken)
-                isEmoji = this.ticketManager.ticketDispatcherInfo.joinTicketEmoji.name === reaction.emoji.name;
-            return !user.bot && isEmoji;
+        this.consoles.ticketManager = new Console({
+            title: ticketManagerMsgEmbed.title,
+            description: ticketManagerMsgEmbed.description,
         });
 
-        this.messages.ticketManager.collector.on('collect', async (reaction, helper) => {
-            if (reaction.emoji.name === this.ticketManager.ticketDispatcherInfo.joinTicketEmoji) {
-                // add new helper nad clear the interval
-                this.helperJoinsTicket(helper);
-            } else {
-                this.setStatus(Ticket.STATUS.taken, 'helper has joined', helper);
+        ticketManagerMsgEmbed.fields.forEach((embedField => {
+            this.consoles.ticketManager.addField(embedField.name, embedField.value, embedField.inline);
+        }));
+
+        let joinTicketFeature = {
+            name: 'Can you help them?',
+            description: 'If so, react to this message with the emoji!',
+            emojiName: this.ticketManager.ticketDispatcherInfo.takeTicketEmoji.name,
+            callback: (user, reaction, stopInteracting) => {
+                if (this.status === Ticket.STATUS.new) {
+                    this.setStatus(Ticket.STATUS.taken, 'helper has taken the ticket', user);
+                }
+                stopInteracting(user);
             }
-        });
+        };
+
+        this.consoles.ticketManager.addFeature(joinTicketFeature);
+
+        this.consoles.ticketManager.sendConsole(this.ticketManager.ticketDispatcherInfo.channel, `<@&${this.requestedRole.id}>`);
     }
 
     /**
@@ -217,25 +195,24 @@ class Ticket {
      */
     async contactGroupLeader() {
         let removeTicketEmoji = '⚔️';
-        this.messages.groupLeader.msg = await discordServices.sendEmbedToMember(this.requester, {
+        this.consoles.groupLeader = new Console({ 
             title: 'Ticket was Successful!',
-            description: 'Your ticket to the ' + this.ticketManager.parent.name + ' group was successful! It is ticket number ' + this.id + '.',
-            fields: [{
-                title: 'Remove the ticket',
-                description: 'If you don\'t need help anymore, react to this message with ' + removeTicketEmoji,
-            },
-            {
-                title: 'Ticket Description:',
-                description: this.question,
-            }]
+            description: `Your ticket to the ${this.ticketManager.parent.name} group was successful! It is ticket number ${this.id}`,
+            features: new Collection([
+                [removeTicketEmoji, {
+                    name: 'Remove the ticket',
+                    description: `If you don't need help anymore, react to this message with ⚔${removeTicketEmoji}`,
+                    emojiName: removeTicketEmoji,
+                    callback: (user, reaction, stopInteracting) => {
+                        // make sure user can only close the ticket if no one has taken the ticket
+                        if (this.status === Ticket.STATUS.new) this.setStatus(Ticket.STATUS.closed, 'group leader closed the ticket');
+                    },
+                }]
+            ]),
+            options: { max: 1 }
         });
-        this.messages.groupLeader.msg.react(removeTicketEmoji);
 
-        // option to remove the ticket
-        this.messages.groupLeader.collector = this.messages.groupLeader.msg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === removeTicketEmoji, { max: 1 });
-        this.messages.groupLeader.collector.on('collect', (reaction, user) => {
-            this.setStatus(Ticket.STATUS.closed, 'group leader closed the ticket');
-        });
+        this.consoles.groupLeader.sendConsole(await this.group.first().createDM());
     }
 
     /**
@@ -250,46 +227,64 @@ class Ticket {
         this.addHelper(helper);
 
         // edit ticket manager helper console with mentor information
-        this.messages.ticketManager.msg.edit(this.messages.ticketManager.msg.embeds[0].addField('This ticket is being handled!', '<@' + helper.id + '> Is helping this team!')
-            .addField('Still want to help?', 'Click the ' + this.ticketManager.ticketDispatcherInfo.joinTicketEmoji.toString() + ' emoji to join the ticket!')
-            .setColor('#80c904'));
-        this.messages.ticketManager.msg.react(this.ticketManager.ticketDispatcherInfo.joinTicketEmoji);
+        await this.consoles.ticketManager.addField('This ticket is being handled!', `<@${helper.id} is helping this team!`);
+        await this.consoles.ticketManager.changeColor('#80c904');
+
+        let takeTicketFeature = {
+            name: 'Still want to help?',
+                description: `Click the ${this.ticketManager.ticketDispatcherInfo.joinTicketEmoji.toString()} emoji to join the ticket!`,
+                emojiName: this.ticketManager.ticketDispatcherInfo.joinTicketEmoji.name,
+                callback: (user, reaction, stopInteracting) => {
+                    if (this.status === Ticket.STATUS.taken) this.helperJoinsTicket(user);
+                    stopInteracting(user);
+                }
+        }
+        await this.consoles.ticketManager.addFeature(takeTicketFeature);
 
         // update dm with user to reflect that their ticket has been accepted
-        this.messages.groupLeader.msg.edit(this.messages.groupLeader.msg.embeds[0].addField('Your ticket has been taken by a helper!', 'Please go to the corresponding channel and read the instructions there.'));
-        this.messages.groupLeader.collector.stop();
+        this.consoles.groupLeader.addField('Your ticket has been taken by a helper!', 'Please go to the corresponding channel and read the instructions there.');
+        this.consoles.groupLeader.stopConsole();
 
         // send message mentioning all the parties involved so they get a notification
         let notificationMessage = '<@' + helper.id + '> ' + this.group.array().join(' ');
         this.room.channels.generalText.send(notificationMessage).then(msg => msg.delete({ timeout: 15000 }));
 
-        // send message with information embed to the ticket room and get leave ticket collector going
         let leaveTicketEmoji = '👋🏽';
-        let ticketRoomEmbed = Ticket.getTicketRoomEmbed(this.group.first(), this.question).addField('Thank you for helping this team.', '<@' + helper.id + '> Best of luck!')
-            .addField('When done:', '* React to this message with ' + leaveTicketEmoji + ' to lose access to these channels!');
 
-        this.messages.ticketRoom.msg = await this.room.channels.generalText.send(ticketRoomEmbed);
-        this.messages.ticketRoom.msg.react(leaveTicketEmoji);
+        this.consoles.ticketRoom = new Console({
+            title: 'Original Question',
+            description: `<@${this.group.first().id}> has the question: ${this.question}`,
+            color: this.ticketManager.botGuild.colors.embedColor
+        });
 
-        this.messages.ticketRoom.collector = this.messages.ticketRoom.msg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === leaveTicketEmoji);
-        this.messages.ticketRoom.collector.on('collect', async (reaction, exitUser) => {
-            // delete the mentor or the group member that is leaving the ticket
-            this.helpers.delete(exitUser.id);
-            this.group.delete(exitUser.id);
+        this.consoles.ticketRoom.addField('Thank you for helping this team.', `<@${helper.id} best of luck!`);
+        this.consoles.ticketRoom.addFeature({
+            name: 'When done:',
+            description: `React to this message with ${leaveTicketEmoji} to lose access to these channels!`,
+            emojiName: leaveTicketEmoji,
+            callback: (user, reaction, stopInteracting) => {
+                // delete the mentor or the group member that is leaving the ticket
+                this.helpers.delete(user.id);
+                this.group.delete(user.id);
 
-            this.room.removeUserAccess(exitUser);
+                this.room.removeUserAccess(user);
 
-            // if all hackers are gone, delete ticket channels
-            if (this.group.size === 0) {
-                this.setStatus(Ticket.STATUS.closed, 'no users on the ticket remaining');
-            }
+                // if all hackers are gone, delete ticket channels
+                if (this.group.size === 0) {
+                    this.setStatus(Ticket.STATUS.closed, 'no users on the ticket remaining');
+                }
 
-            // tell hackers all mentors are gone and ask to delete the ticket if this has not been done already 
-            else if (this.helpers.size === 0 && !this.garbageCollectorInfo.mentorDeletionSequence && !this.garbageCollectorInfo.exclude) {
-                this.garbageCollectorInfo.mentorDeletionSequence = true;
-                await this.askToDelete('mentor');
+                // tell hackers all mentors are gone and ask to delete the ticket if this has not been done already 
+                else if (this.helpers.size === 0 && !this.garbageCollectorInfo.mentorDeletionSequence && !this.garbageCollectorInfo.exclude) {
+                    this.garbageCollectorInfo.mentorDeletionSequence = true;
+                    await this.askToDelete('mentor');
+                }
+
+                stopInteracting(user);
             }
         });
+
+        this.consoles.ticketRoom.sendConsole(this.room.channels.generalText);
 
         //create a listener for inactivity in the text channel
         this.startChannelActivityListener();
@@ -306,8 +301,8 @@ class Ticket {
         discordServices.sendMsgToChannel(this.room.channels.generalText, helper.id, 'Has joined the ticket!', 10);
 
         // update the ticket manager and ticket room embeds with the new mentor
-        this.messages.ticketManager.msg.edit(this.messages.ticketManager.msg.embeds[0].addField('More hands on deck!', '<@' + helper.id + '> Joined the ticket!'));
-        this.messages.ticketRoom.msg.edit(this.messages.ticketRoom.msg.embeds[0].addField('More hands on deck!', '<@' + helper.id + '> Joined the ticket!'));
+        this.consoles.ticketManager.addField('More hands on deck!', '<@' + helper.id + '> Joined the ticket!');
+        this.consoles.ticketRoom.addField('More hands on deck!', '<@' + helper.id + '> Joined the ticket!');
     }
 
     /**
@@ -386,26 +381,20 @@ class Ticket {
      */
     delete(reason) {
         // update ticketManager msg and let user know the ticket is closed
-        this.messages.ticketManager.msg.edit(
-            this.messages.ticketManager.msg.embeds[0].setColor('#128c1e').addField(
-                'Ticket Closed', 
-                `This ticket has been closed${reason ? ' due to ' + reason : '!! Good job!'}`
-            )
+        this.consoles.ticketManager.addField(
+            'Ticket Closed', 
+            `This ticket has been closed${reason ? ' due to ' + reason : '!! Good job!'}`
         );
-        this.messages.groupLeader.msg.edit(
-            this.messages.groupLeader.msg.embeds[0].addField(
-                'Ticket Closed!', 
-                `Your ticket was closed due to ${reason}. If you need more help, please request another ticket!`
-            )
+        this.consoles.ticketManager.changeColor('#128c1e');
+        this.consoles.ticketManager.stopConsole();
+        
+        this.consoles.groupLeader.addField(
+            'Ticket Closed!', 
+            `Your ticket was closed due to ${reason}. If you need more help, please request another ticket!`
         );
+        this.consoles.groupLeader.stopConsole();
 
-        // don't allow team leaders to close the ticket
-        this.messages.groupLeader.collector.stop();
-
-        // don't allow more mentors to join the ticket
-        this.messages.ticketManager.collector.stop();
-
-        // delete the room, clear intervals, remove ticket from the ticketManager
+        // delete the room, clear intervals
         this.room.delete();
         clearInterval(this.garbageCollectorInfo.noHelperInterval);
     }
