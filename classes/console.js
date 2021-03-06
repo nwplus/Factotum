@@ -1,4 +1,4 @@
-const { Collection, Message, TextChannel, MessageEmbed, DMChannel, MessageReaction, User } = require("discord.js");
+const { Collection, Message, TextChannel, MessageEmbed, DMChannel, MessageReaction, User, ReactionCollectorOptions, ReactionCollector } = require("discord.js");
 const { randomColor } = require("../discord-services");
 
 /**
@@ -13,8 +13,22 @@ const { randomColor } = require("../discord-services");
  * @callback FeatureCallback
  * @param {User} user - the user that reacted
  * @param {MessageReaction} reaction - the reaction
- * @param {Function} stopInteracting - callback to let the console know the user has
+ * @param {StopInteractingCallback} stopInteracting - callback to let the console know the user has
  * stopped interacting.
+ */
+
+/**
+ * @callback StopInteractingCallback
+ * @param {User} user
+ */
+
+/**
+ * @typedef ConsoleInfo
+ * @property {String} title - the console title
+ * @property {String} description - the description of the console
+ * @property {Collection<String, Feature>} [features] - the collection of features mapped by emoji name
+ * @property {String} [color] - console color in hex
+ * @property {ReactionCollectorOptions} [options] collector options
  */
 
 /**
@@ -26,12 +40,9 @@ class Console {
 
      /**
       * @constructor
-      * @param {String} title - the console title
-      * @param {String} description - the description of the console
-      * @param {Collection<String, Feature>} [features] - the collection of features mapped by emoji name
-      * @param {String} [color] - console color in hex
+      * @param {ConsoleInfo} args
       */
-    constructor(title, description, features = new Collection(), color = randomColor()) {
+    constructor({title, description, features = new Collection(), color = randomColor(), options}) {
 
         /**
          * @type {String}
@@ -54,6 +65,12 @@ class Console {
         this.color = color;
 
         /**
+         * The collector options.
+         * @type {ReactionCollectorOptions}
+         */
+        this.collectorOptions = options;
+
+        /**
          * The message holding the console.
          * @type {Message}
          */
@@ -64,14 +81,20 @@ class Console {
          * @type {Collection<String, User>} - <User.id, User>
          */
         this.interacting = new Collection();
+
+        /**
+         * @type {ReactionCollector}
+         */
+        this.collector;
     }
 
     /**
      * Sends the console to a channel
      * @param {TextChannel | DMChannel} channel - channel to send console to
+     * @param {String} [messageText] - text to add to the message used to send the embed
      * @async
      */
-    async sendConsole(channel) {
+    async sendConsole(channel, messageText = '') {
         let embed = new MessageEmbed().setColor(this.color)
             .setTimestamp()
             .setTitle(this.title)
@@ -79,17 +102,17 @@ class Console {
         
         this.features.forEach(feature => embed.addField(`${feature.emojiName} ${feature.name}`, `${feature.description}`));
 
-        this.message = await channel.send(embed);
+        this.message = await channel.send(messageText ,embed);
 
         this.features.forEach(feature => this.message.react(feature.emojiName));
 
-        const collector = this.message.createReactionCollector((reaction, user) => 
+        this.collector = this.message.createReactionCollector((reaction, user) => 
             !user.bot && 
             this.features.has(reaction.emoji.name) && 
             !this.interacting.has(user.id)
-        );
+        , this.collectorOptions);
 
-        collector.on('collect', (reaction, user) => {
+        this.collector.on('collect', (reaction, user) => {
             this.interacting.set(user.id, user);
             this.features.get(reaction.emoji.name)?.callback(user, reaction, this.stopInteracting)
             if (channel.type != 'dm') reaction.users.remove(user);
@@ -99,14 +122,35 @@ class Console {
     /**
      * Adds a feature to this console.
      * @param {Feature} feature - the feature to add
+     * @async
      */
-    addFeature(feature) {
+    async addFeature(feature) {
         this.features.set(feature.emojiName, feature);
 
         if (this.message) {
-            this.message.edit(this.message.embeds[0].addField(`${feature.emojiName} ${feature.name}`, `${feature.description}`));
+            await this.message.edit(this.message.embeds[0].addField(`${feature.emojiName} ${feature.name}`, `${feature.description}`));
             this.message.react(feature.emojiName);
         }
+    }
+
+    /**
+     * Adds a field to this console without adding a feature.
+     * @param {String} name - the new field name
+     * @param {String} value - the description on this field
+     * @param {Boolean} [inline] 
+     * @async
+     */
+    async addField(name, value, inline) {
+        await this.message.edit(this.message.embeds[0].addField(name, value, inline));
+    }
+
+    /**
+     * Changes the console's color.
+     * @param {String} color - the new color in hex
+     * @async
+     */
+    async changeColor(color) {
+        await this.message.edit(this.message.embeds[0].setColor(color));
     }
 
     /**
@@ -128,8 +172,24 @@ class Console {
     }
 
     /**
+     * Stop the console from interacting with any users.
+     */
+    stopConsole() {
+        this.collector.stop();
+    }
+
+    /**
+     * Deletes this console from discord.
+     */
+    delete() {
+        this.stopConsole();
+        this.message.delete();
+    }
+
+    /**
      * Callback for users to call when the user interacting with the console is done.
      * @param {User} user - the user that stopped interacting with this console.
+     * @private
      */
     stopInteracting(user) {
         this.interacting.delete(user.id);
