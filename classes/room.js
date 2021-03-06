@@ -1,5 +1,5 @@
 const winston = require("winston");
-const { User, Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable } = require('discord.js');
+const { GuildCreateChannelOptions, User, Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable } = require('discord.js');
 const BotGuildModel = require('./bot-guild');
 const { deleteChannel } = require("../discord-services");
 
@@ -162,13 +162,14 @@ class Room {
 
     /**
      * Adds a channels to the room.
-     * @param {String} name - name of the channel to create
-     * @param {import("discord.js").GuildCreateChannelOptions} info - one of voice or text
-     * @param {Array<RolePermission>} permissions - the permissions per role to be added to this channel after creation.
-     * @param {Boolean} [isSafe=false] - true if the channel is safe and cant be removed
+     * @param {Object} args
+     * @param {String} args.name - name of the channel to create
+     * @param {GuildCreateChannelOptions} args.info - one of voice or text
+     * @param {RolePermission[]} [args.permissions=[]] - the permissions per role to be added to this channel after creation.
+     * @param {Boolean} [args.isSafe=false] - true if the channel is safe and cant be removed
      * @async
      */
-    async addRoomChannel(name, info, permissions = [], isSafe = false) {
+    async addRoomChannel({name, info, permissions = [], isSafe = false}) {
         info.parent = info.parent || this.channels.category;
         info.type = info.type || 'text';
 

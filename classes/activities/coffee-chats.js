@@ -61,13 +61,17 @@ class CoffeeChats extends Activity {
         this.room.channels.safeChannels.set(this.mainVoiceChannel.id, this.mainVoiceChannel);
 
         for (var i = 0; i < this.numOfTeams; i++) {
-            this.room.addRoomChannel(`voice-${i}`, {type: 'voice'});
+            this.room.addRoomChannel({name: `voice-${i}`, info: {type: 'voice'}});
         }
 
-        this.joinActivityChannel = await this.room.addRoomChannel('☕' + 'join-activity', {
-            type: 'text',
-            topic: 'This channel is only intended to add your team to the activity list! Please do not use it for anything else!',
-        }, [], true);
+        this.joinActivityChannel = await this.room.addRoomChannel({
+            name: '☕' + 'join-activity', 
+            info: {
+                type: 'text',
+                topic: 'This channel is only intended to add your team to the activity list! Please do not use it for anything else!',
+            }, 
+            isSafe: true
+        });
 
         this.joinActivityConsole();
 
@@ -193,7 +197,7 @@ class CoffeeChats extends Activity {
      */
     addTeamSlot() {
         this.numOfTeams += 1;
-        this.room.addRoomChannel(`voice-${this.numOfTeams - 1}`, { type: 'voice' }); // -1 because we start from 0
+        this.room.addRoomChannel({name: `voice-${this.numOfTeams - 1}`, info: { type: 'voice' }}); // -1 because we start from 0
     }
 
 }

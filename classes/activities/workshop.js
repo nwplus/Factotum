@@ -96,10 +96,14 @@ class Workshop extends Activity {
             topic: `For TAs to talk without cluttering the console.`,
         });
 
-        this.assistanceChannel = await this.room.addRoomChannel(`🙋🏽assistance`, {
-            type: 'text',
-            topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
-        }, [], true);
+        this.assistanceChannel = await this.room.addRoomChannel({
+            name: `🙋🏽assistance`, 
+            info: {
+                type: 'text',
+                topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
+            },
+            isSafe: true,
+        });
 
         this.botGuild.blackList.set(this.assistanceChannel.id, 3000);
         this.botGuild.save();
@@ -196,7 +200,7 @@ class Workshop extends Activity {
      * @async 
      */
     async addTAChannel(name, info) {
-        let channel = await this.room.addRoomChannel(name, info, this.getTAChannelPermissions());
+        let channel = await this.room.addRoomChannel({name, info, permissions: this.getTAChannelPermissions()});
         this.TAChannels.set(channel.name, channel);
         return channel;
     }

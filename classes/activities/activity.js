@@ -255,7 +255,7 @@ class Activity {
         // channel name
         let name = (await messagePrompt({ prompt: 'What is the name of the channel?', channel, userId }, 'string')).content;
 
-        return await this.room.addRoomChannel(name, { type: option.name});
+        return await this.room.addRoomChannel({name, info: { type: option.name}});
     }
 
     /**
