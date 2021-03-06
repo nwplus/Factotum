@@ -178,7 +178,7 @@ class TicketManager {
 
         let features = new Collection(featureList.map(feature => [feature.emojiName, feature]));
 
-        this.ticketCreatorInfo.console = new Console(title, description, features, color);
+        this.ticketCreatorInfo.console = new Console({title, description, features, color});
         this.ticketCreatorInfo.console.sendConsole(this.ticketCreatorInfo.channel);
     }
 
