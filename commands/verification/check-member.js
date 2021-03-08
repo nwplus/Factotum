@@ -23,12 +23,12 @@ module.exports = class Verification extends PermissionCommand {
 
             ],
         },
-            {
-                role: PermissionCommand.FLAGS.STAFF_ROLE,
-                roleMessage: 'Hey there, the !check-member command is only for staff!',
-                channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
-                channelMessage: 'Hey there, the !check-member command is only available in the admin console channel.',
-            });
+        {
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
+            roleMessage: 'Hey there, the !check-member command is only for staff!',
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
+            channelMessage: 'Hey there, the !check-member command is only available in the admin console channel.',
+        });
     }
 
     async runCommand(botGuild, message, { emailOrName }) {
@@ -55,4 +55,4 @@ module.exports = class Verification extends PermissionCommand {
             }
         }
     }
-}
+};

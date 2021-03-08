@@ -46,8 +46,8 @@ module.exports = class Raffle extends PermissionCommand {
         //check that numberOfWinners is less than the number of people with stamp roles or it will infinite loop
         var memberCount = message.guild.members.cache.filter(member => member.roles.cache.has(botGuild.roleIDs.memberRole)).size;
         if (memberCount <= numberOfWinners) {
-            message.channel.send("Whoa there, you have more winners than hackers!").then((msg) => {
-                msg.delete({ timeout: 5000 })
+            message.channel.send('Whoa there, you have more winners than hackers!').then((msg) => {
+                msg.delete({ timeout: 5000 });
             });
             return;
         }
@@ -112,4 +112,4 @@ module.exports = class Raffle extends PermissionCommand {
         }
         return entries;
     }
-}
+};

@@ -35,9 +35,9 @@ module.exports = class ChangeStampTime extends PermissionCommand {
     async runCommand(botGuild, message, {newTime}) {
 
         botGuild.stamps.stampCollectionTime = newTime;
-        botGuild.save()
+        botGuild.save();
 
         discordServices.replyAndDelete(message, 'Stamp collection will now give hackers ' + newTime + ' seconds to collect stamp.');
     }
 
-}
+};

@@ -19,12 +19,12 @@ module.exports = class StartAttend extends PermissionCommand {
             description: 'identifies/makes a channel to be used for !attend and notifies people',
             guildOnly: true,
         },
-            {
-                channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
-                channelMessage: 'This command can only be used in the admin console!',
-                role: PermissionCommand.FLAGS.ADMIN_ROLE,
-                roleMessage: 'Hey there, the command !start-attend is only available to Admins!',
-            });
+        {
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
+            channelMessage: 'This command can only be used in the admin console!',
+            role: PermissionCommand.FLAGS.ADMIN_ROLE,
+            roleMessage: 'Hey there, the command !start-attend is only available to Admins!',
+        });
     }
 
     /**
@@ -56,7 +56,7 @@ module.exports = class StartAttend extends PermissionCommand {
                 let category = message.guild.channels.cache.find(c => c.type == 'category' && c.name.toLowerCase() == categoryName.toLowerCase());
                 if (!category) {
                     message.channel.send('Invalid category name. Please try the command again.')
-                    .then((msg) => msg.delete({timeout: 3000}));
+                        .then((msg) => msg.delete({timeout: 3000}));
                     return;
                 }
 
@@ -80,7 +80,7 @@ module.exports = class StartAttend extends PermissionCommand {
             .setColor(botGuild.colors.embedColor)
             .setTitle('Hey there!')
             .setDescription('In order to indicate that you are participating, please react to this message with ' + attendEmoji)
-            .addField('Do you need assistance?', 'Head over to the support channel and ping the admins!')
+            .addField('Do you need assistance?', 'Head over to the support channel and ping the admins!');
         let embedMsg = await channel.send('<@&' + botGuild.roleIDs.memberRole + '>', {embed: embed});
         embedMsg.pin();
         embedMsg.react(attendEmoji);
@@ -95,7 +95,7 @@ module.exports = class StartAttend extends PermissionCommand {
 
             // check if user needs to attend
             if (!discordServices.checkForRole(member, botGuild.attendance.attendeeRoleID)) {
-                   Verification.attend(member);
+                Verification.attend(member);
             } else {
                 discordServices.sendEmbedToMember(member, {
                     title: 'Attend Error',
@@ -104,4 +104,4 @@ module.exports = class StartAttend extends PermissionCommand {
             }
         });
     }
-}
+};

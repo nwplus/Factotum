@@ -58,8 +58,8 @@ module.exports = class Report extends Command {
 
             // send embed with text message to ping admin
             incomingReportChn.send('<@&' + botGuild.roleIDs.adminRole + '> Incoming Report', {embed: adminMsgEmbed});
-        })
+        });
         
     }
 
-}
+};

@@ -50,13 +50,15 @@ module.exports = class PasswordStamp extends PermissionCommand {
         let userId = message.author.id;
         // check if arguments have been given and prompt for the channel to use
         try {
+            var prompt;
+
             if (activityName === '') {
-                var prompt = await Prompt.messagePrompt({prompt: 'Please respond with the workshop/activity name.', channel, userId}, 'string');
+                prompt = await Prompt.messagePrompt({prompt: 'Please respond with the workshop/activity name.', channel, userId}, 'string');
                 activityName = prompt.content;
             }
 
             if(password === '') {
-                var prompt = await Prompt.messagePrompt({prompt: 'Please respond with the password for hackers to use to get stamp.', channel, userId}, 'string');
+                prompt = await Prompt.messagePrompt({prompt: 'Please respond with the password for hackers to use to get stamp.', channel, userId}, 'string');
                 password = prompt.content;
             }
 
@@ -95,8 +97,8 @@ module.exports = class PasswordStamp extends PermissionCommand {
 
                 // prompt member for password
                 var dmMessage = await discordServices.sendEmbedToMember(user, {
-                    description: "You have 60 seconds and 3 attempts to type the password correctly to get the " + activityName + " stamp.\n" +
-                    "Please enter the password (leave no stray spaces or anything):",
+                    description: 'You have 60 seconds and 3 attempts to type the password correctly to get the ' + activityName + ' stamp.\n' +
+                    'Please enter the password (leave no stray spaces or anything):',
                     title: 'Stamp Collector For ' + activityName,
                     color: '#b2ff2e',
                 });
@@ -118,7 +120,7 @@ module.exports = class PasswordStamp extends PermissionCommand {
                         pwdCollector.stop();
                     } else if (incorrectPasswords < 2) {
                         //add 1 to number of incorrect guesses and prompts user to try again
-                        await discordServices.sendMessageToMember(user, "Incorrect. Please try again.", true);
+                        await discordServices.sendMessageToMember(user, 'Incorrect. Please try again.', true);
                     }
                     incorrectPasswords++;
                 });
@@ -130,12 +132,12 @@ module.exports = class PasswordStamp extends PermissionCommand {
                         if (incorrectPasswords < 3) {
                             discordServices.sendEmbedToMember(user, {
                                 title: 'Stamp Collector',
-                                description: "Time's up! You took too long to enter the password for the " + activityName + " stamp. If you have extenuating circumstances please contact an organizer.",
+                                description: 'Time\'s up! You took too long to enter the password for the ' + activityName + ' stamp. If you have extenuating circumstances please contact an organizer.',
                             });
                         } else {
                             discordServices.sendEmbedToMember(user, {
                                 title: 'Stamp Collector',
-                                description: "Incorrect. You have no attempts left for the " + activityName + " stamp. If you have extenuating circumstances please contact an organizer.",
+                                description: 'Incorrect. You have no attempts left for the ' + activityName + ' stamp. If you have extenuating circumstances please contact an organizer.',
                             });
                         }
                     }
@@ -150,4 +152,4 @@ module.exports = class PasswordStamp extends PermissionCommand {
             });
         });
     }
-}
+};
