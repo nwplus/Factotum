@@ -59,7 +59,6 @@ module.exports = class StartMentors extends PermissionCommand {
             }
 
             /**
-             * 
              * @param {String} prompt - message to ask user to choose an emoji for a function
              * 
              * Gets user's reaction and adds them to the emoji collection.
@@ -113,7 +112,7 @@ module.exports = class StartMentors extends PermissionCommand {
           
         } catch (error) {
             message.channel.send('Due to a prompt cancel, the mentor cave creation was unsuccessful.').then(msg => msg.delete({timeout: 5000}));
-            winston.loggers.get(message.guild.id).warning(`An error was found but it was handled by not setting up the mentor cave. Error: ${error}`, { event: "StartMentorCave Command" });
+            winston.loggers.get(message.guild.id).warning(`An error was found but it was handled by not setting up the mentor cave. Error: ${error}`, { event: 'StartMentorCave Command' });
         }
     }
 

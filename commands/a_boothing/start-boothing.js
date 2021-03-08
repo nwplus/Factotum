@@ -1,7 +1,7 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
 const firebaseServices = require('../../db/firebase/firebase-services');
-const firebaseBoothing = require('../../db/firebase/firebase-services-boothing')
+const firebaseBoothing = require('../../db/firebase/firebase-services-boothing');
 const discordServices = require('../../discord-services');
 const Discord = require('discord.js');
 const BotGuildModel = require('../../classes/bot-guild');
@@ -85,13 +85,13 @@ module.exports = class StartBoothing extends PermissionCommand {
         const collector = msg.createReactionCollector(filter);  // collector will run forever since no time limit set
 
         collector.on('collect', async (reaction, user) => {
-            await this.joinWaitList(user, reaction, message, boothName, sponsorMsg);
+            await this.joinWaitList(user, reaction, message, boothName, sponsorMsg, botGuild);
         });
     }
 
 
     // will add the user and possible group (that this will ask for), to the sponsor wait list
-    async joinWaitList(user, reaction, message, boothName, sponsorMsg) {
+    async joinWaitList(user, reaction, message, boothName, sponsorMsg, botGuild) {
         // grab username of member to join wait list
         var username = user.username;
 

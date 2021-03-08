@@ -62,4 +62,4 @@ module.exports = class StartTeamFormation extends PermissionCommand {
 
         teamFormation.start();
     }
-}
+};
