@@ -5,20 +5,9 @@ const Ticket = require('./tickets/ticket');
 const BotGuild = require("../db/mongo/BotGuild");
 const BotGuildModel = require('./bot-guild');
 const winston = require("winston");
-const TicketSystem = require("./tickets/ticket-manager");
+const TicketManager = require("./tickets/ticket-manager");
 
 class Cave {
-
-    /**
-     * @typedef CaveOptions
-     * @property {String} name - the name of the cave category
-     * @property {String} preEmojis - any pre name emojis
-     * @property {String} preRoleText - the text to add before every role name, not including '-'
-     * @property {String} color - the role color to use for this cave
-     * @property {Discord.Role} role - the role associated with this cave
-     * @property {Emojis} emojis - object holding emojis to use in this cave
-     * @property {Times} times - object holding times to use in this cave
-     */
 
     /**
      * @typedef Emojis
@@ -128,9 +117,9 @@ class Cave {
         this.tickets = new Discord.Collection();
 
         /**
-         * @type {TicketSystem}
+         * @type {TicketManager}
          */
-        this.ticketManager = new TicketSystem(this);
+        this.ticketManager;
 
         /**
          * @type {BotGuildModel}
@@ -149,6 +138,7 @@ class Cave {
     async init(guildChannelManager) {
         await this.initPrivate(guildChannelManager);
         await this.initPublic(guildChannelManager);
+        this.createTicketManager(guildChannelManager.guild);
         winston.loggers.get(this.botGuild._id).event(`The cave named ${this.caveOptions.name} has been initialized!`, {event: "Cave"});
     }
 
@@ -189,6 +179,7 @@ class Cave {
             this.privateChannels.console.bulkDelete(100, true);
             this.privateChannels.incomingTickets.bulkDelete(100, true);
             winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} found all the channels necessary created by the user.`, { event: "Cave", data: {privateChannels: this.privateChannels, publicChannels: this.publicChannels}});
+            this.createTicketManager(channel.guild);
         } catch (error) {
             winston.loggers.get(this.botGuild._id).warning(`The cave ${this.caveOptions.name} was finding the channels, but found the error ${error}.`, {event: "Cave"});
             try {
@@ -206,6 +197,41 @@ class Cave {
                 this.find(channel, userId);
             }
         }
+    }
+
+    createTicketManager(guild) {
+        this.ticketManager = new TicketManager(this, {
+            ticketCreatorInfo: {
+                channel: this.publicChannels.outgoingTickets,
+            },
+            ticketDispatcherInfo: {
+                channel: this.privateChannels.incomingTickets,
+                takeTicketEmoji: this.caveOptions.emojis.giveHelpEmoji,
+                joinTicketEmoji: this.caveOptions.emojis.joinTicketEmoji,
+                reminderInfo: {
+                    isEnabled: true,
+                    time: this.caveOptions.times.reminderTime,
+                },
+                mainHelperInfo: {
+                    role: this.caveOptions.role,
+                    emoji: this.caveOptions.emojis.requestTicketEmoji,
+                },
+                embedCreator: (ticket) => new Discord.MessageEmbed()
+                    .setTitle(`New Ticket - ${ticket.id}`)
+                    .setDescription(`<@${ticket.group.first().id}> has a question: ${ticket.question}`)
+                    .addField(`They are requesting:`, `<@&${ticket.requestedRole.id}>`)
+                    .addField(`Can you help them?`, `If so react to this message with ${ticket.ticketManager.ticketDispatcherInfo.takeTicketEmoji}.`)
+                    .setTimestamp(),
+            },
+            systemWideTicketInfo: {
+                garbageCollectorInfo: {
+                    isEnabled: true,
+                    inactivePeriod: this.caveOptions.times.inactivePeriod,
+                    bufferTime: this.caveOptions.times.bufferTime,
+                },
+                isAdvancedMode: true,
+            },
+        }, guild, this.botGuild);
     }
 
     /**
@@ -324,84 +350,19 @@ class Cave {
 
         winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} has sent all console embeds.`, {event: "Cave"});
     }
-
+ 
     /**
      * Send the request ticket console and creates the reaction collector.
      * @async
      * @private
      */
     async sendRequestConsole() {
-        // cave request ticket embed
-        const requestTicketEmbed = new Discord.MessageEmbed()
-            .setColor(this.botGuild.colors.embedColor)
-            .setTitle('Ticket Request System')
-            .setDescription('If you or your team want to talk with a ' + this.caveOptions.name + ' follow the instructions below:' +
-                '\n* React to this message with the correct emoji and follow instructions' +
-                '\n* Once done, wait for someone to accept your ticket!')
-            .addField('For a general ticket:', 'React with ' + this.caveOptions.emojis.requestTicketEmoji.toString());
-        this.embedMessages.request = await (await this.publicChannels.outgoingTickets.send(requestTicketEmbed)).pin();
-        this.embedMessages.request.react(this.caveOptions.emojis.requestTicketEmoji);
-
-        /**
-         * collection of users already working on a ticket
-         * @type {Discord.Collection<Discord.Snowflake, Discord.User | Discord.GuildMember>} - <ID, user | member>
-         */
-        const usersSubmittingTicket = new Discord.Collection();
-
-        const collector = this.embedMessages.request.createReactionCollector((reaction, user) => !user.bot && !usersSubmittingTicket.has(user.id) && (this.emojis.has(reaction.emoji.name) || reaction.emoji.name === this.caveOptions.emojis.requestTicketEmoji.name));
-
-        collector.on('collect', async (reaction, user) => {
-
-            // check if role they request has users in it
-            if (this.emojis.has(reaction.emoji.name) && this.emojis.get(reaction.emoji.name).activeUsers === 0) {
-                this.publicChannels.outgoingTickets.send('<@' + user.id + '> There are no mentors available with that role. Please request another role or the general role!').then(msg => msg.delete({ timeout: 10000 }));
-                winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.caveOptions.name} received a ticket from user ${user.id} but was canceled due to no mentor having the role ${this.emojis.get(reaction.emoji.name).name}.`, {event: "Cave"});
-                return;
-            }
-            
-            // currently submitting a ticket
-            usersSubmittingTicket.set(user.id, user);
-
-            try {
-                var promptMsg = await Prompt.messagePrompt({prompt: 'Please send ONE message with: \n* A one liner of your problem ' + 
-                                    '\n* Mention your team members using @friendName .', channel: this.publicChannels.outgoingTickets, userId: user.id}, 'string', 45);
-            } catch (error) {
-                // prompt was canceled, cancel ticket and return;
-                usersSubmittingTicket.delete(user.id);
-                winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.caveOptions.name} received a ticket from user ${user.id} but was canceled due to error ${error}.`, {event: "Cave"});
-                return;
-            }
-            
-            usersSubmittingTicket.delete(user.id);
-
-            var role;
-            if (this.emojis.has(reaction.emoji.name)) role = this.emojis.get(reaction.emoji.name);
-            else role = this.caveOptions.role;
-
-            this.ticketCount ++;
-
-            // the embed used in the incoming tickets channel to let mentors know about the question
-            const incomingTicketEmbed = new Discord.MessageEmbed()
-                .setColor(this.caveOptions.color)
-                .setTitle('New Ticket! - ' + this.ticketCount)
-                .setDescription('<@' + user.id + '> has the question: ' + promptMsg.content)
-                .addField('They are requesting:', '<@&' + role.id + '>')
-                .addField('Can you help them?', 'If so, react to this message with ' + this.caveOptions.emojis.giveHelpEmoji.name + '.');
-
-            let ticketMsg = await this.privateChannels.incomingTickets.send('<@&' + role.id + '>', incomingTicketEmbed);
-
-            ticketMsg.react(this.caveOptions.emojis.giveHelpEmoji);
-
-            // initialize a ticket and add it to the Collection of active tickets
-            var hackers = Array.from(promptMsg.mentions.users.values());
-            hackers.push(user);
-            let ticket = new Ticket(promptMsg.guild, promptMsg.content, this, user, hackers, this.ticketCount, ticketMsg, 
-                this.caveOptions.times.inactivePeriod, this.caveOptions.times.bufferTime);
-            this.tickets.set(this.ticketCount, ticket);
-
-            winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.caveOptions.name} has received a ticket from user ${user.id} for role ${role.name} 
-                with id ${role.id}. This is ticket number ${this.ticketCount}.`, {event: "Cave"});
-        });
+        this.ticketManager.sendTicketCreatorConsole(
+            'Ticket Request System', 
+            `If you or your team want to talk with a ${this.caveOptions.name} follow the instructions below: 
+            \n* React to this message with the correct emoji and follow instructions
+            \n* Once done, wait for someone to accept your ticket!`,
+        );
     }
 
 
