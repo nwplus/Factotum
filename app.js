@@ -20,7 +20,7 @@ const Verification = require('./classes/verification');
 const config = {
     token: process.env.TOKEN,
     owner: process.env.OWNER,
-}
+};
 const bot = new Commando.Client({
     commandPrefix: '!',
     owner: config.owner,
@@ -47,7 +47,7 @@ const customLoggerLevels = {
         debug: 'white',
         silly: 'black',
     }
-}
+};
 
 const isLogToConsole = true;
 
@@ -87,12 +87,12 @@ bot.once('ready', async () => {
 
     // initialize firebase
     const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
-    firebaseServices.initializeFirebaseAdmin('nwPlusBotAdmin', adminSDK, "https://nwplus-bot.firebaseio.com");
-    mainLogger.warning(`Connected to firebase admin sdk successfully!`, { event: "Ready Event" });
+    firebaseServices.initializeFirebaseAdmin('nwPlusBotAdmin', adminSDK, 'https://nwplus-bot.firebaseio.com');
+    mainLogger.warning('Connected to firebase admin sdk successfully!', { event: 'Ready Event' });
 
     // set mongoose connection
     await mongoUtil.mongooseConnect();
-    mainLogger.warning(`Connected to mongoose successfully!`, { event: "Ready Event" });
+    mainLogger.warning('Connected to mongoose successfully!', { event: 'Ready Event' });
 
     // make sure all guilds have a botGuild, this is in case the bot goes offline and its added
     // to a guild. If botGuild is found, make sure only the correct commands are enabled.
@@ -103,7 +103,7 @@ bot.once('ready', async () => {
         let botGuild = await BotGuild.findById(guild.id);
         if (!botGuild) {
             newGuild(guild);
-            mainLogger.verbose(`Created a new botGuild for the guild ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event" });
+            mainLogger.verbose(`Created a new botGuild for the guild ${guild.id} - ${guild.name} on bot ready.`, { event: 'Ready Event' });
         } else {
             // set all non guarded commands to not enabled for the guild
             bot.registry.groups.forEach((group, key, map) => {
@@ -112,7 +112,7 @@ bot.once('ready', async () => {
 
             await botGuild.setCommandStatus(bot);
             
-            mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`, { event: "Ready Event" });
+            mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`, { event: 'Ready Event' });
         }
     });
 });
@@ -121,7 +121,7 @@ bot.once('ready', async () => {
  * Runs when the bot is added to a guild.
  */
 bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
-    mainLogger.warning(`The bot was added to a new guild: ${guild.id} - ${guild.name}.`, { event: "Guild Create Event" });
+    mainLogger.warning(`The bot was added to a new guild: ${guild.id} - ${guild.name}.`, { event: 'Guild Create Event' });
 
     newGuild(guild);
 
@@ -136,14 +136,14 @@ bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
  * @private
  */
 function newGuild(guild) {
-        // set all non guarded commands to not enabled for the new guild
-        bot.registry.groups.forEach((group, key, map) => {
-            if (!group.guarded) guild.setGroupEnabled(group, false);
-        });
-        // create a botGuild object for this new guild.
-        BotGuild.create({
-            _id: guild.id,
-        });
+    // set all non guarded commands to not enabled for the new guild
+    bot.registry.groups.forEach((group, key, map) => {
+        if (!group.guarded) guild.setGroupEnabled(group, false);
+    });
+    // create a botGuild object for this new guild.
+    BotGuild.create({
+        _id: guild.id,
+    });
 }
 
 /**
@@ -155,20 +155,20 @@ bot.on('guildDelete', async (guild) => {
     let botGuild = await BotGuild.findById(guild.id);
     botGuild.remove();
     mainLogger.verbose(`BotGuild with id: ${guild.id} has been removed!`);
-})
+});
 
 /**
  * Runs when the bot runs into an error.
  */
 bot.on('error', (error) => {
-    mainLogger.error(`Bot Error: ${error.name} - ${error.message}.`, { event: "Error", data: error});
+    mainLogger.error(`Bot Error: ${error.name} - ${error.message}.`, { event: 'Error', data: error});
 });
 
 /**
  * Runs when the bot runs into an error when running a command.
  */
 bot.on('commandError', (command, error, message) => {
-    winston.loggers.get(channel?.guild?.id || 'main').error(`Command Error: In command ${command.name} got uncaught rejection ${error.name} : ${error.message}`, { event: "Error", data: error});
+    winston.loggers.get(message.channel?.guild?.id || 'main').error(`Command Error: In command ${command.name} got uncaught rejection ${error.name} : ${error.message}`, { event: 'Error', data: error});
 });
 
 /**
@@ -199,20 +199,20 @@ bot.on('guildMemberAdd', async member => {
     // if the guild where the user joined is complete then greet and verify.
     if (botGuild.isSetUpComplete) {
         try {
-            winston.loggers.get(member.guild.id).userStats(`A new user joined the guild and is getting greeted!`)
+            winston.loggers.get(member.guild.id).userStats('A new user joined the guild and is getting greeted!');
             await greetNewMember(member, botGuild);
         } catch (error) {
             await fixDMIssue(error, member, botGuild);
         }
     } else {
-        winston.loggers.get(member.guild.id).warning(`A new user joined the guild but was not greeted because the bot is not set up!`);
+        winston.loggers.get(member.guild.id).warning('A new user joined the guild but was not greeted because the bot is not set up!');
     }
 });
 
 bot.on('commandRun', (command, promise, message, args) => {
     winston.loggers.get(message?.guild?.id || 'main').command(`The command ${command.name} with args ${args} is being run from the channel ${message.channel} with id ${message.channel.id} 
         triggered by the message with id ${message.id} by the user with id ${message.author.id}`);
-})
+});
 
 /**
  * Runs when an unknown command is triggered.
@@ -255,7 +255,7 @@ process.on('unhandledRejection', (error, promise) => {
  * Runs when the node process is about to exit and quit.
  */
 process.on('exit', () => {
-    mainLogger.warning(`Node is exiting!`);
+    mainLogger.warning('Node is exiting!');
 });
 
 /**
@@ -269,6 +269,9 @@ process.on('exit', () => {
 function createALogger(loggerName, loggerLabel = '', handelRejectionsExceptions = false, logToConsole = false) {
     // custom format
     let format = winston.format.printf(info => `${info.timestamp} [${info.label}] ${info.level}${info?.event ? ' <' + info.event + '>' : ''} : ${info.message} ${info?.data ? 'DATA : ' + info.data : '' }`);
+
+    // create main logs directory if not present
+    if (!fs.existsSync('./logs')) fs.mkdirSync('./logs');
 
     // create the directory if not present
     if (!fs.existsSync(`./logs/${loggerName}`)) fs.mkdirSync(`./logs/${loggerName}`);
@@ -377,21 +380,21 @@ async function fixDMIssue(error, member, botGuild) {
         member.guild.channels.resolve(channelID).send('<@' + member.id + '> I couldn\'t reach you :(.' +
             '\n* Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-' +
             '\n* Once this is done, please react to this message with 🤖 to let me know!').then(msg => {
-                msg.react('🤖');
-                const collector = msg.createReactionCollector((reaction, user) => user.id === member.id && reaction.emoji.name === '🤖');
+            msg.react('🤖');
+            const collector = msg.createReactionCollector((reaction, user) => user.id === member.id && reaction.emoji.name === '🤖');
 
-                collector.on('collect', (reaction, user) => {
-                    reaction.users.remove(user.id);
-                    try {
-                        greetNewMember(member);
-                        collector.stop();
-                        msg.delete();
-                        logger.userStats(`A user with id ${member.id} was able to fix the DM issue and was greeted!`);
-                    } catch (error) {
-                        member.guild.channels.resolve(channelID).send('<@' + member.id + '> Are you sure you made the changes? I couldn\'t reach you again 😕').then(msg => msg.delete({ timeout: 8000 }));
-                    }
-                });
+            collector.on('collect', (reaction, user) => {
+                reaction.users.remove(user.id);
+                try {
+                    greetNewMember(member);
+                    collector.stop();
+                    msg.delete();
+                    logger.userStats(`A user with id ${member.id} was able to fix the DM issue and was greeted!`);
+                } catch (error) {
+                    member.guild.channels.resolve(channelID).send('<@' + member.id + '> Are you sure you made the changes? I couldn\'t reach you again 😕').then(msg => msg.delete({ timeout: 8000 }));
+                }
             });
+        });
     } else {
         throw error;
     }
