@@ -1,16 +1,19 @@
 const PermissionCommand = require('../../classes/permission-command');
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
-const Prompt = require('../../classes/prompt');
+const { checkForRole, sendEmbedToMember } = require('../../discord-services');
+const { MessageEmbed, Message } = require('discord.js');
+const { yesNoPrompt, channelPrompt, messagePrompt } = require('../../classes/prompt');
 const Verification = require('../../classes/verification');
 const BotGuildModel = require('../../classes/bot-guild');
 
 /**
- * StartAttend makes a new channel called #attend, or uses an existing channel of the user's choice, as the channel where the attend
- * command will be used by hackers.
- * @param existsChannel - boolean representing whether to use an existing channel(true) or new channel(false) 
+ * StartAttend makes a new channel called #attend, or uses an existing channel of the user's choice, as the channel where an embed 
+ * is sent for users to react and get attend. Users don't need to send any information to attend.
+ * @category Commands
+ * @subcategory Verification
+ * @extends PermissionCommand
+ * @guildonly
  */
-module.exports = class StartAttend extends PermissionCommand {
+class StartAttend extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'start-attend',
@@ -19,12 +22,12 @@ module.exports = class StartAttend extends PermissionCommand {
             description: 'identifies/makes a channel to be used for !attend and notifies people',
             guildOnly: true,
         },
-            {
-                channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
-                channelMessage: 'This command can only be used in the admin console!',
-                role: PermissionCommand.FLAGS.ADMIN_ROLE,
-                roleMessage: 'Hey there, the command !start-attend is only available to Admins!',
-            });
+        {
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
+            channelMessage: 'This command can only be used in the admin console!',
+            role: PermissionCommand.FLAGS.ADMIN_ROLE,
+            roleMessage: 'Hey there, the command !start-attend is only available to Admins!',
+        });
     }
 
     /**
@@ -32,7 +35,7 @@ module.exports = class StartAttend extends PermissionCommand {
      * channel should be created, and then creates it. In both cases it will send an embed containing the instructions for hackers to 
      * check in.
      * @param {BotGuildModel} botGuild
-     * @param {Discord.Message} message - message containing command
+     * @param {Message} message - message containing command
      */
     async runCommand(botGuild, message) {
         var channel;
@@ -41,14 +44,14 @@ module.exports = class StartAttend extends PermissionCommand {
         message.guild.setCommandEnabled('attend', true);
 
         try {
-            let existsChannel = await Prompt.yesNoPrompt({prompt: 'Is there already a channel that exists that hackers will be using !attend in?', channel: message.channel, userId: message.author.id});
+            let existsChannel = await yesNoPrompt({prompt: 'Is there already a channel that exists that hackers will be using !attend in?', channel: message.channel, userId: message.author.id});
 
             if (existsChannel) {
                 //ask user to mention channel to be used for !attend
-                channel = (await Prompt.channelPrompt({prompt: 'Please mention the channel to be used for the !attend command. ', channel: message.channel, userId: message.author.id})).first();
+                channel = (await channelPrompt({prompt: 'Please mention the channel to be used for the !attend command. ', channel: message.channel, userId: message.author.id})).first();
             } else {
                 //ask user for category to create new attend channel under
-                let categoryReply = await Prompt.messagePrompt({prompt: 'What category do you want the new attend channel under? ', channel: message.channel, userId: message.author.id}, 'string', 20);
+                let categoryReply = await messagePrompt({prompt: 'What category do you want the new attend channel under? ', channel: message.channel, userId: message.author.id}, 'string', 20);
                 
                 var categoryName = categoryReply.content;
 
@@ -56,7 +59,7 @@ module.exports = class StartAttend extends PermissionCommand {
                 let category = message.guild.channels.cache.find(c => c.type == 'category' && c.name.toLowerCase() == categoryName.toLowerCase());
                 if (!category) {
                     message.channel.send('Invalid category name. Please try the command again.')
-                    .then((msg) => msg.delete({timeout: 3000}));
+                        .then((msg) => msg.delete({timeout: 3000}));
                     return;
                 }
 
@@ -76,11 +79,11 @@ module.exports = class StartAttend extends PermissionCommand {
         //send embed with information and tagging hackers
         let attendEmoji = '🔋';
 
-        const embed = new Discord.MessageEmbed()
+        const embed = new MessageEmbed()
             .setColor(botGuild.colors.embedColor)
             .setTitle('Hey there!')
             .setDescription('In order to indicate that you are participating, please react to this message with ' + attendEmoji)
-            .addField('Do you need assistance?', 'Head over to the support channel and ping the admins!')
+            .addField('Do you need assistance?', 'Head over to the support channel and ping the admins!');
         let embedMsg = await channel.send('<@&' + botGuild.roleIDs.memberRole + '>', {embed: embed});
         embedMsg.pin();
         embedMsg.react(attendEmoji);
@@ -94,10 +97,10 @@ module.exports = class StartAttend extends PermissionCommand {
             let member = message.guild.member(user.id);
 
             // check if user needs to attend
-            if (!discordServices.checkForRole(member, botGuild.attendance.attendeeRoleID)) {
-                   Verification.attend(member);
+            if (!checkForRole(member, botGuild.attendance.attendeeRoleID)) {
+                Verification.attend(member);
             } else {
-                discordServices.sendEmbedToMember(member, {
+                sendEmbedToMember(member, {
                     title: 'Attend Error',
                     description: 'You do not need to attend, you are already attending or you are not a hacker!'
                 }, true);
@@ -105,3 +108,4 @@ module.exports = class StartAttend extends PermissionCommand {
         });
     }
 }
+module.exports = StartAttend;

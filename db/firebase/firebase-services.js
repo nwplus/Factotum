@@ -2,6 +2,11 @@ const { GuildMember, } = require('discord.js');
 const admin = require('firebase-admin');
 
 /**
+ * The firebase services module has firebase related helper functions.
+ * @module FirebaseServices
+ */
+
+/**
  * All the firebase apps in play stored by their name.
  * @type {Map<String, admin.app.App>}
  */
@@ -16,8 +21,8 @@ module.exports.apps = apps;
  */
 function initializeFirebaseAdmin(name, adminSDK, databaseURL) {
     let app = admin.initializeApp({
-    credential: admin.credential.cert(adminSDK),
-    databaseURL: databaseURL,
+        credential: admin.credential.cert(adminSDK),
+        databaseURL: databaseURL,
     }, name);
 
     apps.set(name, app);
@@ -110,7 +115,7 @@ async function checkEmail(email) {
                     email: compare,
                     types: memberDoc.get('types').map(type => type.type),
                 });
-            };
+            }
         }
     });
     return foundEmails;
@@ -130,24 +135,24 @@ function compareEmails(searchEmail, dbEmail) {
     var searchEmailChars = searchEmail.split('');
     var dbEmailChars = dbEmail.split('');
     // initialize second dimension of matrix and set all elements to 0
-    for (var i = 0; i < matrix.length; i++) {
+    for (let i = 0; i < matrix.length; i++) {
         matrix[i] = new Array(dbEmail.length);
-        for (var j = 0; j < matrix[i].length; j++) {
+        for (let j = 0; j < matrix[i].length; j++) {
             matrix[i][j] = 0;
         }
     }
     // set all elements in the top row and left column to increment by 1
-    for (var i = 1; i < searchEmail.length; i++) {
+    for (let i = 1; i < searchEmail.length; i++) {
         matrix[i][0] = i;
     }
-    for (var j = 1; j < dbEmail.length; j++) {
+    for (let j = 1; j < dbEmail.length; j++) {
         matrix[0][j] = j;
     }
     // increment Levenshtein Distance by 1 if there is a letter inserted, deleted, or swapped; store the running tally in the corresponding
     // element of the matrix
-    var substitutionCost;
-    for (var j = 1; j < dbEmail.length; j++) {
-        for (var i = 1; i < searchEmail.length; i++) {
+    let substitutionCost;
+    for (let j = 1; j < dbEmail.length; j++) {
+        for (let i = 1; i < searchEmail.length; i++) {
             if (searchEmailChars[i] === dbEmailChars[j]) {
                 substitutionCost = 0;
             } else {
@@ -195,7 +200,7 @@ function addUserData(email, member, types) {
             let userType = {
                 type: type,
                 isVerified: false,
-            }
+            };
             return userType;
         }),
     };
@@ -212,7 +217,7 @@ module.exports.addUserData = addUserData;
  * @throws Error if the email provided was not found.
  */
 async function verify(email, id) {
-    let emailLowerCase = email.toLowerCase()
+    let emailLowerCase = email.toLowerCase();
     var userRef = apps.get('nwPlusBotAdmin').firestore().collection('members').where('email', '==', emailLowerCase).limit(1);
     var user = (await userRef.get()).docs[0];
     if (user) {

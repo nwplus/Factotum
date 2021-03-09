@@ -3,7 +3,7 @@ const { CommandoClient } = require('discord.js-commando');
 const winston = require('winston');
 const { randomColor, sendMessageToMember, sendMsgToChannel } = require('../../discord-services');
 const { messagePrompt, yesNoPrompt, chooseChannel } = require('../prompt');
-const Activity = require("./activity");
+const Activity = require('./activity');
 
 
 /**
@@ -87,16 +87,16 @@ class Workshop extends Activity {
     async init() {
         await super.init();
 
-        this.TAConsole = await this.addTAChannel(`🧑🏽‍🏫ta-console`, {
+        this.TAConsole = await this.addTAChannel('🧑🏽‍🏫ta-console', {
             type: 'text',
             topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
         }, [], true);
 
-        this.addTAChannel(`ta-banter`, {
-            topic: `For TAs to talk without cluttering the console.`,
+        this.addTAChannel('ta-banter', {
+            topic: 'For TAs to talk without cluttering the console.',
         });
 
-        this.assistanceChannel = await super.addChannelHelper(`🙋🏽assistance`, {
+        this.assistanceChannel = await super.addChannelHelper('🙋🏽assistance', {
             type: 'text',
             topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
         }, [], true);
@@ -104,7 +104,7 @@ class Workshop extends Activity {
         this.botGuild.blackList.set(this.assistanceChannel.id, 3000);
         this.botGuild.save();
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was transformed to a workshop.`, {event: "Activity"});
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was transformed to a workshop.`, {event: 'Activity'});
 
         return this;
     }
@@ -262,7 +262,7 @@ class Workshop extends Activity {
             poll.responses.forEach((value, key) => msg.react(key));
         });
 
-        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} sent a poll with title: ${poll.title} and question ${poll.question}.`, { event: "Workshop" });
+        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} sent a poll with title: ${poll.title} and question ${poll.question}.`, { event: 'Workshop' });
     }
 
 
@@ -406,12 +406,12 @@ class Workshop extends Activity {
             let oneLiner = (await messagePrompt({prompt: 'Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond', channel: this.assistanceChannel, userId: user.id })).cleanContent;
 
             const hackerEmbed = new MessageEmbed()
-                    .setColor(this.botGuild.colors.embedColor)
-                    .setTitle('Hey there! We got you signed up to talk to a TA!')
-                    .setDescription('You are number: ' + position + ' in the wait list.')
-                    .addField(!this.isLowTechSolution ? 'JOIN THE VOICE CHANNEL!' : 'KEEP AN EYE ON YOUR DMs', 
+                .setColor(this.botGuild.colors.embedColor)
+                .setTitle('Hey there! We got you signed up to talk to a TA!')
+                .setDescription('You are number: ' + position + ' in the wait list.')
+                .addField(!this.isLowTechSolution ? 'JOIN THE VOICE CHANNEL!' : 'KEEP AN EYE ON YOUR DMs', 
                     !this.isLowTechSolution ? 'Sit tight in the voice channel. If you are not in the voice channel when its your turn you will be skipped, and we do not want that to happen!' :
-                    'A TA will reach out to you soon via DM! Have your question ready and try to keep up with the workshop until then!');
+                        'A TA will reach out to you soon via DM! Have your question ready and try to keep up with the workshop until then!');
 
             sendMessageToMember(user, hackerEmbed);
 
@@ -429,34 +429,34 @@ class Workshop extends Activity {
      * @param {CommandoClient} client
      */
     pollingAndStampHandler(message, client) {
-            message.pin();
+        message.pin();
 
-            var emojis = ['📇', '🏎️', '🎓', '🧑‍🏫'];
+        var emojis = ['📇', '🏎️', '🎓', '🧑‍🏫'];
 
-            emojis.forEach(emoji => message.react(emoji));
+        emojis.forEach(emoji => message.react(emoji));
 
-            const collector = message.createReactionCollector((reaction, user) => !user.bot && emojis.includes(reaction.emoji.name));
+        const collector = message.createReactionCollector((reaction, user) => !user.bot && emojis.includes(reaction.emoji.name));
 
-            collector.on('collect', async (reaction, user) => {
-                var commandRegistry = client.registry;
+        collector.on('collect', async (reaction, user) => {
+            var commandRegistry = client.registry;
 
-                // emoji name
-                var emojiName = reaction.emoji.name;
+            // emoji name
+            var emojiName = reaction.emoji.name;
 
-                // remove new reaction
-                reaction.users.remove(user.id);
+            // remove new reaction
+            reaction.users.remove(user.id);
 
-                if (emojiName === emojis[0]) {
-                    if (this.botGuild.stamps.isEnabled) commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(this.botGuild, message, activity, { timeLimit: this.botGuild.stamps.stampCollectTime });
-                    else sendMsgToChannel(message.channel, user.id, "The distribute stamp command is not available because stamps are disabled in this server.");
-                } else if (emojiName === emojis[1]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(this.botGuild, message, this, { questionType: 'speed' });
-                } else if (emojiName === emojis[2]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(this.botGuild, message, this, { questionType: 'difficulty'});
-                } else if (emojiName === emojis[3]) {
-                    commandRegistry.findCommands('workshop-polls', true)[0].runCommand(this.botGuild, message, this, { questionType: 'explanations'});
-                }
-            });
+            if (emojiName === emojis[0]) {
+                if (this.botGuild.stamps.isEnabled) commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(this.botGuild, message, { timeLimit: this.botGuild.stamps.stampCollectTime });
+                else sendMsgToChannel(message.channel, user.id, 'The distribute stamp command is not available because stamps are disabled in this server.');
+            } else if (emojiName === emojis[1]) {
+                commandRegistry.findCommands('workshop-polls', true)[0].runCommand(this.botGuild, message, this, { questionType: 'speed' });
+            } else if (emojiName === emojis[2]) {
+                commandRegistry.findCommands('workshop-polls', true)[0].runCommand(this.botGuild, message, this, { questionType: 'difficulty'});
+            } else if (emojiName === emojis[3]) {
+                commandRegistry.findCommands('workshop-polls', true)[0].runCommand(this.botGuild, message, this, { questionType: 'explanations'});
+            }
+        });
     }
 
     /**

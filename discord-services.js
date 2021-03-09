@@ -2,6 +2,12 @@ const { GuildMember, TextChannel, Message, User, MessageEmbed, RoleResolvable } 
 const winston = require('winston');
 const BotGuild = require('./db/mongo/BotGuild');
 
+/**
+ * The discord services module has useful discord related functions.
+ * These functions are helper, discord related functions.
+ * @module DiscordServices
+ */
+
 // where hackers join the wait list to talk to a sponsor
 // at the moment its only one, planned to extend to multiple
 var boothingWaitList = '748370272049954927'; // TODO
@@ -56,7 +62,7 @@ async function sendMessageToMember(member, message, isDelete = false) {
     return await member.send(message).then(msg => {
         winston.loggers.get(member?.guild?.id || 'main').verbose(`A DM message was sent to user with id ${member.id}.`);
         if (isDelete === true) {
-            msg.delete({timeout: 60000})
+            msg.delete({timeout: 60000});
         }
         return msg;
     }).catch(async error => {
@@ -65,7 +71,7 @@ async function sendMessageToMember(member, message, isDelete = false) {
             let botGuild;
             if (member?.guild) botGuild = await BotGuild.findById(member.guild.id);
             else {
-                winston.loggers.get(member.guild.id).error(`While trying to help a user to get my DMs I could not find a botGuild for which this member is in. I could not help him!`);
+                winston.loggers.get(member.guild.id).error('While trying to help a user to get my DMs I could not find a botGuild for which this member is in. I could not help him!');
                 throw Error(`I could not help ${member.id} due to not finding the guild he is trying to access. I need a member and not a user!`);
             }
 
@@ -108,9 +114,9 @@ async function sendEmbedToMember(member, embedOptions, isDelete = false) {
     if (embedOptions?.color === undefined || embedOptions?.color === '') embedOptions.color === '#ff0000';
 
     let embed = new MessageEmbed().setColor(embedOptions.color)
-                        .setTitle(embedOptions.title)
-                        .setDescription(embedOptions.description)
-                        .setTimestamp();
+        .setTitle(embedOptions.title)
+        .setDescription(embedOptions.description)
+        .setTimestamp();
 
     if (embedOptions?.fields) embedOptions.fields.forEach((fieldInfo, index) => embed.addField(fieldInfo.title, fieldInfo.description));
 
@@ -132,7 +138,7 @@ function addRoleToMember(member, addRole) {
         member.roles.add(addRole).catch(error => {
             // now send error to admins
             discordLog(member.guild, '@everyone The member <@' + member.id + '> did not get the role <@&' + role.id +'> please help me!');
-            winston.loggers.get(member.guild.id).error(`Could not give the member with id ${member.id} the role ${role.name} with id ${role.id}. The following error ocurred: ${error.name} - ${error.message}.`, { event: "Error", data: error });
+            winston.loggers.get(member.guild.id).error(`Could not give the member with id ${member.id} the role ${role.name} with id ${role.id}. The following error ocurred: ${error.name} - ${error.message}.`, { event: 'Error', data: error });
         });
     });
     winston.loggers.get(member.guild.id).verbose(`A member with id ${member.id} was given the role ${role.name} with id ${role.id}`);
@@ -182,7 +188,7 @@ async function discordLog(guild, message) {
         guild.channels.cache.get(botGuild.channelIDs.adminLog).send(message);
         winston.loggers.get(guild.id).silly(`The following was logged to discord: ${message}`);
     }
-    else winston.loggers.get(guild.id).error(`I was not able to log something to discord!! I could not find the botGuild or the adminLog channel!`);
+    else winston.loggers.get(guild.id).error('I was not able to log something to discord!! I could not find the botGuild or the adminLog channel!');
 }
 module.exports.discordLog = discordLog;
 
@@ -210,7 +216,7 @@ async function deleteMessage(message, timeout = 0) {
         await message.delete({timeout: timeout});
     } else if (message.channel.type === 'dm' && message.author.bot) {
         winston.loggers.get('main').verbose(`A message with id ${message.id} in a DM channel with user id ${message.channel.recipient.id} from the bot was deleted.`);
-        await message.delete({timeout: timeout})
+        await message.delete({timeout: timeout});
     } else {
         winston.loggers.get(message?.guild.id | 'main').warning(`A message with id ${message.id} in a DM channel from user with id ${message.author.id} tried to be deleted but was not possible.`);
     }
@@ -236,7 +242,7 @@ module.exports.deleteChannel = deleteChannel;
  * @returns {String} - hex color
  */
 function randomColor() {
-    winston.loggers.get('main').silly(`A random color has been used!`);
+    winston.loggers.get('main').silly('A random color has been used!');
     return Math.floor(Math.random()*16777215).toString(16);
 }
 module.exports.randomColor = randomColor;
@@ -247,7 +253,7 @@ module.exports.randomColor = randomColor;
  * @returns {Boolean} true if valid email, false otherwise
  */
 function validateEmail(email) {
-    winston.loggers.get('main').silly(`An email has been validated!`);
+    winston.loggers.get('main').silly('An email has been validated!');
 
     // make email lowercase
     email = email.toLowerCase();

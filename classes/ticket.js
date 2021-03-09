@@ -1,30 +1,29 @@
-const { Collection } = require("discord.js");
-const Discord = require("discord.js");
-const winston = require("winston");
-const discordServices = require('../discord-services');
-const Cave = require("./cave");
+const { Collection, GuildEmoji, ReactionEmoji, Guild, CategoryChannel, TextChannel, VoiceChannel, User, Message, MessageEmbed, Snowflake, } = require('discord.js');
+const winston = require('winston');
+const { sendEmbedToMember, deleteChannel } = require('../discord-services');
+const Cave = require('./cave');
 
 class Ticket {
     /**
     * @typedef Emojis
-    * @property {Discord.GuildEmoji | Discord.ReactionEmoji} joinTicketEmoji - emoji for mentors to accept a ticket
-    * @property {Discord.GuildEmoji | Discord.ReactionEmoji} giveHelpEmoji - emoji for mentors to join an ongoing ticket
-    * @property {Discord.GuildEmoji | Discord.ReactionEmoji} requestTicketEmoji - emoji for hackers to request a ticket
-    * @property {Discord.GuildEmoji | Discord.ReactionEmoji} addRoleEmoji - emoji for Admins to add a mentor role
-    * @property {Discord.GuildEmoji | Discord.ReactionEmoji} deleteChannelsEmoji - emoji for Admins to force delete ticket channels
-    * @property {Discord.GuildEmoji | Discord.ReactionEmoji} excludeFromAutoDeleteEmoji - emoji for Admins to opt tickets in/out of garbage collector
+    * @property {GuildEmoji | ReactionEmoji} joinTicketEmoji - emoji for mentors to accept a ticket
+    * @property {GuildEmoji | ReactionEmoji} giveHelpEmoji - emoji for mentors to join an ongoing ticket
+    * @property {GuildEmoji | ReactionEmoji} requestTicketEmoji - emoji for hackers to request a ticket
+    * @property {GuildEmoji | ReactionEmoji} addRoleEmoji - emoji for Admins to add a mentor role
+    * @property {GuildEmoji | ReactionEmoji} deleteChannelsEmoji - emoji for Admins to force delete ticket channels
+    * @property {GuildEmoji | ReactionEmoji} excludeFromAutoDeleteEmoji - emoji for Admins to opt tickets in/out of garbage collector
     */
 
     constructor(guild, question, cave, requester, hackers, ticketNumber, ticketMsg, inactivePeriod, bufferTime) {
         /**
          * Guild this ticket is in
-         * @type {Discord.Guild}
+         * @type {Guild}
          */
         this.guild = guild;
 
         /**
          * Category this ticket's voice and text channels are under
-         * @type {Discord.CategoryChannel}
+         * @type {CategoryChannel}
          */
         this.category;
 
@@ -36,13 +35,13 @@ class Ticket {
 
         /**
          * Text channel for this ticket
-         * @type {Discord.TextChannel}
+         * @type {TextChannel}
          */
         this.text;
 
         /**
          * Voice channel for this ticket
-         * @type {Discord.VoiceChannel}
+         * @type {VoiceChannel}
          */
         this.voice;
 
@@ -60,18 +59,18 @@ class Ticket {
 
         /**
          * User who requested the ticket
-         * @type {Discord.User}
+         * @type {User}
          */
         this.requester = requester;
 
         /**
          * Users(teammates) mentioned in the question
-         * @type {Array<Discord.User>}
+         * @type {Array<User>}
          */
         this.hackers = hackers;
         /**
          * Mentors who join the ticket
-         * @type {Array<Discord.User>}
+         * @type {Array<User>}
          */
         this.mentors = [];
 
@@ -83,22 +82,22 @@ class Ticket {
 
         /**
          * Bot message containing information sent to ticket text channel
-         * @type {Discord.MessageEmbed}
+         * @type {MessageEmbed}
          */
-        this.openTicketEmbed = new Discord.MessageEmbed()
-            .setColor(discordServices.embedColor)
+        this.openTicketEmbed = new MessageEmbed()
+            .setColor(this.cave.botGuild.colors.embedColor)
             .setTitle('Original Question')
             .setDescription('<@' + this.requester.id + '> has the question: ' + this.question);
 
         /**
          * The message with the information embed sent to the ticket channel.
-         * @type {Discord.Message}
+         * @type {Message}
          */
         this.openTicketEmbedMsg;
 
         /**
          * Message sent to incoming ticket channel
-         * @type {Discord.Message} 
+         * @type {Message} 
          */
         this.ticketMsg = ticketMsg;
 
@@ -156,7 +155,7 @@ class Ticket {
      * Create a category with the ticket's number, and a voice and text channel under it
      */
     async createCategory() {
-        this.category = await this.guild.channels.create("Ticket - " + this.ticketNumber, {
+        this.category = await this.guild.channels.create('Ticket - ' + this.ticketNumber, {
             type: 'category',
             permissionOverwrites: [
                 {
@@ -180,9 +179,9 @@ class Ticket {
     async init() {
 
         /**
-         * @type {Discord.Collection<Discord.Snowflake, Discord.GuildEmoji>} - <guild emoji snowflake, guild emoji>
+         * @type {Collection<Snowflake, GuildEmoji>} - <guild emoji snowflake, guild emoji>
          */
-        const ticketEmojis = new Discord.Collection();
+        const ticketEmojis = new Collection();
         ticketEmojis.set(this.caveEmojis.giveHelpEmoji.name, this.caveEmojis.giveHelpEmoji);
 
         // permissions for users that will be added into the ticket category
@@ -199,7 +198,7 @@ class Ticket {
         // let user know that ticket was submitted and give option to remove ticket
         let removeTicketEmoji = '⚔️';
 
-        let reqTicketUserEmbedMsg = await discordServices.sendEmbedToMember(this.requester, {
+        let reqTicketUserEmbedMsg = await sendEmbedToMember(this.requester, {
             title: 'Ticket was Successful!',
             description: 'Your ticket to the ' + this.cave.caveOptions.name + ' group was successful! It is ticket number ' + this.ticketNumber + '.',
             fields: [{
@@ -219,7 +218,7 @@ class Ticket {
             ticketCollector.stop();
             this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed by the user!'));
             reqTicketUserEmbedMsg.delete({ timeout: 3000 });
-            discordServices.sendEmbedToMember(user, {
+            sendEmbedToMember(user, {
                 title: 'Ticket Closed!',
                 description: 'Your ticket number ' + this.ticketNumber + ' has been closed!',
             }, true);
@@ -247,10 +246,10 @@ class Ticket {
                 ticketEmojis.set(this.caveEmojis.joinTicketEmoji.name, this.caveEmojis.joinTicketEmoji);
 
                 // update dm with user to reflect that their ticket has been accepted
-                const openedTicketEmbed = new Discord.MessageEmbed()
+                const openedTicketEmbed = new MessageEmbed()
                     .setColor('#128c1e')
                     .setTitle('Your Ticket Number ' + this.ticketNumber + ' Has Been Opened!')
-                    .setDescription('Your question: ' + this.question + '\nPlease go to the corresponding channel and read the instructions there.')
+                    .setDescription('Your question: ' + this.question + '\nPlease go to the corresponding channel and read the instructions there.');
                 reqTicketUserEmbedMsg.edit(openedTicketEmbed);
                 reqTicketUserEmbedMsgCollector.stop();
 
@@ -279,14 +278,14 @@ class Ticket {
 
                 looseAccessCollector.on('collect', async (reaction, exitUser) => {
                     // if mentor is leaving, delete from mentors list
-                    for (var i = 0; i < this.mentors.length; i++) {
+                    for (let i = 0; i < this.mentors.length; i++) {
                         if (this.mentors[i] === exitUser.id) {
                             this.mentors.splice(i, 1);
                         }
                     }
 
                     // if hacker is leaving, delete from hackers list
-                    for (var i = 0; i < this.hackers.length; i++) {
+                    for (let i = 0; i < this.hackers.length; i++) {
                         if (this.hackers[i] === exitUser) {
                             this.hackers.splice(i, 1);
                         }
@@ -297,9 +296,9 @@ class Ticket {
                         ticketCollector.stop();
                         looseAccessCollector.stop();
                         this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed', 'This ticket has been closed!! Good job!'));
-                        await discordServices.deleteChannel(this.voice);
-                        await discordServices.deleteChannel(this.text);
-                        await discordServices.deleteChannel(this.category);
+                        await deleteChannel(this.voice);
+                        await deleteChannel(this.text);
+                        await deleteChannel(this.category);
                         this.cave.tickets.delete(this.ticketNumber); // delete this ticket from the cave's Collection of active tickets
                     } else if (this.mentors.length === 0) {
                         this.category.updateOverwrite(exitUser, { VIEW_CHANNEL: false, SEND_MESSAGES: false, READ_MESSAGE_HISTORY: false });
@@ -337,13 +336,13 @@ class Ticket {
         // assemble message to send to hackers to verify if they still need the ticket
         var requestMsg = this.hackers.join(' ');
         if (reason === 'inactivity') {
-            requestMsg = requestMsg + ' <@' + this.mentors.join('> <@') + '>'
+            requestMsg = requestMsg + ' <@' + this.mentors.join('> <@') + '>';
             requestMsg = requestMsg + ' Hello! I detected some inactivity on this channel and wanted to check in.\n';
         } else if (reason === 'mentor') {
-            requestMsg = requestMsg + ' Hello! Your mentor(s) has/have left the ticket.\n'
+            requestMsg = requestMsg + ' Hello! Your mentor(s) has/have left the ticket.\n';
         }
         let warning = await this.text.send(requestMsg + 'If the ticket has been solved, please click the 👋 emoji above to leave the channel. ' +
-            'If you need to keep the channel, please click the emoji below, **otherwise this ticket will be deleted in ** ' + this.bufferTime + ' **minutes**.')
+            'If you need to keep the channel, please click the emoji below, **otherwise this ticket will be deleted in ** ' + this.bufferTime + ' **minutes**.');
 
         await warning.react('🔄');
 
@@ -359,11 +358,11 @@ class Ticket {
                 // delete channels, update Cave's ticket Collection and edit message in incoming tickets if there is no other 
                 // deletion process ongoing
                 if (!this.category.deleted && !this.text.deleted && !this.voice.deleted) {
-                    await discordServices.deleteChannel(this.voice);
-                    await discordServices.deleteChannel(this.text);
-                    await discordServices.deleteChannel(this.category);
+                    await deleteChannel(this.voice);
+                    await deleteChannel(this.text);
+                    await deleteChannel(this.category);
                     this.ticketMsg.edit(this.ticketMsg.embeds[0].setColor('#128c1e').addField('Ticket Closed Due to Inactivity', 'This ticket has been closed!! Good job!'));
-                    discordServices.sendEmbedToMember(this.requester, {
+                    sendEmbedToMember(this.requester, {
                         title: 'Ticket Closed!',
                         description: 'Your ticket number ' + this.ticketNumber + ' was closed due to inactivity. If you need more help, please request another ticket!',
                     }, false);

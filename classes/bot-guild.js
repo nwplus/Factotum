@@ -7,7 +7,7 @@ const discordServices = require('../discord-services');
 /**
  * @class
  */
-module.exports = class BotGuild {
+class BotGuild {
 
     
     /**
@@ -503,3 +503,4 @@ module.exports = class BotGuild {
         winston.loggers.get(guild.id).verbose(`Set the command status of guild ${guild.name} with id ${guild.id}`);
     }
 }
+module.exports = BotGuild;

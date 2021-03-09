@@ -1,11 +1,16 @@
-// Discord.js commando requirements
 const { Command } = require('discord.js-commando');
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
+const { deleteMessage, sendMessageToMember, } = require('../../discord-services');
+const { MessageEmbed, Message } = require('discord.js');
 const BotGuild = require('../../db/mongo/BotGuild');
 
-// Command export
-module.exports = class Report extends Command {
+/**
+ * The report command allows users to report incidents from the server to the admins. Reports are made 
+ * via the bot's DMs and are 100% anonymous. 
+ * @category Commands
+ * @subcategory Hacker-Utility
+ * @extends Command
+ */
+class Report extends Command {
     constructor(client) {
         super(client, {
             name: 'report',
@@ -17,17 +22,20 @@ module.exports = class Report extends Command {
         });
     }
 
+    /**
+     * @param {Message} message
+     */
     async run (message) {
         let botGuild = await BotGuild.findById(message.guild.id);
 
-        discordServices.deleteMessage(message);
+        deleteMessage(message);
 
         if (!botGuild.report.isEnabled) {
-            discordServices.sendMessageToMember(message.author, 'The report functionality is disabled for this guild.');
+            sendMessageToMember(message.author, 'The report functionality is disabled for this guild.');
             return;
         }
 
-        const embed = new Discord.MessageEmbed()
+        const embed = new MessageEmbed()
             .setColor(botGuild.colors.embedColor)
             .setTitle('Thank you for taking the time to report users who are not following server or MLH rules. You help makes our community safer!')
             .setDescription('Please use the format below, be as precise and accurate as possible. \n ' + 
@@ -51,15 +59,15 @@ module.exports = class Report extends Command {
             // send the report content to the admin report channel!
             var incomingReportChn = await message.guild.channels.resolve(botGuild.report.incomingReportChannelID);
 
-            const adminMsgEmbed = new Discord.MessageEmbed()
+            const adminMsgEmbed = new MessageEmbed()
                 .setColor(botGuild.colors.embedColor)
                 .setTitle('There is a new report that needs your attention!')
                 .setDescription(msg.content);
 
             // send embed with text message to ping admin
             incomingReportChn.send('<@&' + botGuild.roleIDs.adminRole + '> Incoming Report', {embed: adminMsgEmbed});
-        })
+        });
         
     }
-
 }
+module.exports = Report;

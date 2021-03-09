@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const { Command, CommandoMessage } = require('discord.js-commando');
+const { Command, CommandoMessage, CommandoClientOptions, CommandInfo } = require('discord.js-commando');
 const BotGuild = require('../db/mongo/BotGuild');
 const BotGuildModel = require('./bot-guild');
 const discordServices = require('../discord-services');
@@ -9,8 +9,7 @@ const winston = require('winston');
  * The PermissionCommand is a custom command that extends the discord js commando Command class.
  * This Command subclass adds role and channel permission checks before the command is run. It also
  * removes the message used to call the command.
- * 
- * 
+ * @extends Command
  */
 class PermissionCommand extends Command {
     
@@ -26,8 +25,8 @@ class PermissionCommand extends Command {
 
     /**
      * Constructor for our custom command, calls the parent constructor.
-     * @param {import('discord.js-commando').CommandoClientOptions} client - the client the command is for 
-     * @param {import('discord.js-commando').CommandInfo} info - the information for this commando command 
+     * @param {CommandoClientOptions} client - the client the command is for 
+     * @param {CommandInfo} info - the information for this commando command 
      * @param {CommandPermissionInfo} permissionInfo - the custom information for this command 
      */
     constructor(client, info, permissionInfo) {
@@ -36,6 +35,7 @@ class PermissionCommand extends Command {
         /**
          * The permission info
          * @type {CommandPermissionInfo}
+         * @private
          */
         this.permissionInfo = this.validateInfo(permissionInfo);
     }
@@ -44,6 +44,7 @@ class PermissionCommand extends Command {
      * Adds default values if not found on the object.
      * @param {CommandPermissionInfo} permissionInfo 
      * @returns {CommandPermissionInfo}
+     * @private
      */
     validateInfo(permissionInfo) {
         // Make sure permissionInfo is an object, if not given then create empty object
@@ -60,7 +61,9 @@ class PermissionCommand extends Command {
      * @param {Discord.Message} message 
      * @param {Object|string|string[]} args 
      * @param {boolean} fromPattern 
-     * @param {Promise<?Message|?Array<Message>>} result 
+     * @param {Promise<?Message|?Array<Message>>} result
+     * @override
+     * @private
      */
     async run(message, args, fromPattern, result){
 
@@ -102,9 +105,9 @@ class PermissionCommand extends Command {
                 if (roleID && (roleID === botGuild.roleIDs.staffRole && 
                     (!discordServices.checkForRole(message.member, roleID) && !discordServices.checkForRole(message.member, botGuild.roleIDs.adminRole))) || 
                     (roleID != botGuild.roleIDs.staffRole && !discordServices.checkForRole(message.member, roleID))) {
-                        discordServices.sendMessageToMember(message.member, this.permissionInfo.roleMessage, true);
-                        winston.loggers.get(botGuild?._id || 'main').warning(`User ${message.author.id} tried to run a permission command ${this.name} that is only available for members with role ${this.permissionInfo.role}, but he has roles: ${message.member.roles.cache.array().map((role) => role.name)}`);
-                        return;
+                    discordServices.sendMessageToMember(message.member, this.permissionInfo.roleMessage, true);
+                    winston.loggers.get(botGuild?._id || 'main').warning(`User ${message.author.id} tried to run a permission command ${this.name} that is only available for members with role ${this.permissionInfo.role}, but he has roles: ${message.member.roles.cache.array().map((role) => role.name)}`);
+                    return;
                 }
             }
         }
@@ -116,10 +119,11 @@ class PermissionCommand extends Command {
      * Required class by children, will throw error if not implemented!
      * @param {BotGuildModel} botGuild
      * @param {CommandoMessage} message
-     * @param {*} args
+     * @param {Object} args
      * @param {Boolean} fromPattern
      * @param {Promise<*>} result
      * @abstract
+     * @protected
      */
     runCommand(botGuild, message, args, fromPattern, result) {
         throw new Error('You need to implement the runCommand method!');
@@ -131,12 +135,12 @@ class PermissionCommand extends Command {
  * * ADMIN_ROLE : only admins can use this command
  * * STAFF_ROLE : staff and admin can use this command
  * * ADMIN_CONSOLE : can only be used in the admin console
- * @type {Object}
+ * @enum {String}
  */
 PermissionCommand.FLAGS = {
     ADMIN_ROLE: 'adminRole',
     STAFF_ROLE: 'staffRole',
     ADMIN_CONSOLE: 'adminConsole',
-}
+};
 
 module.exports = PermissionCommand;
