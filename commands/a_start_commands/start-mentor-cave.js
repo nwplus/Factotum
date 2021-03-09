@@ -1,14 +1,20 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
+const { randomColor } = require('../../discord-services');
+const { Message, Collection } = require('discord.js');
 const Cave = require('../../classes/cave');
-const Prompt = require('../../classes/prompt');
+const { yesNoPrompt, rolePrompt, numberPrompt, reactionPrompt } = require('../../classes/prompt');
 const winston = require('winston');
 const BotGuildModel = require('../../classes/bot-guild');
 
-// Command export
-module.exports = class StartMentors extends PermissionCommand {
+/**
+ * The start mentor cave command starts a cave special for mentors. 
+ * @category Commands
+ * @subcategory Start-Commands
+ * @extends PermissionCommand
+ * @guildonly
+ */
+class StartMentorCave extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'start-mentor-cave',
@@ -27,7 +33,7 @@ module.exports = class StartMentors extends PermissionCommand {
 
     /**
      * @param {BotGuildModel} botGuild
-     * @param {Discord.Message} message - the message in which the command was run
+     * @param {Message} message - the message in which the command was run
      */
     async runCommand(botGuild, message) {
         try {
@@ -36,7 +42,7 @@ module.exports = class StartMentors extends PermissionCommand {
             let userId = message.author.id;
 
 
-            var emojis = new Discord.Collection(); //collection to keep the names of the emojis used so far, used to check for duplicates
+            var emojis = new Collection(); //collection to keep the names of the emojis used so far, used to check for duplicates
 
             //ask user for each emoji
             let joinTicketEmoji = await checkForDuplicateEmojis('What is the join ticket emoji?');
@@ -47,13 +53,13 @@ module.exports = class StartMentors extends PermissionCommand {
             let excludeFromAutoDeleteEmoji = await checkForDuplicateEmojis('What is the emoji to opt tickets in/out for the garbage collector?');
 
             var role;
-            if (await Prompt.yesNoPrompt({prompt: 'Have you created the mentor role? If not it is okay, I can make it for you!', channel, userId})) {
-                role = (await Prompt.rolePrompt({prompt: 'Please mention the mentor role now!', channel, userId})).first();
+            if (await yesNoPrompt({prompt: 'Have you created the mentor role? If not it is okay, I can make it for you!', channel, userId})) {
+                role = (await rolePrompt({prompt: 'Please mention the mentor role now!', channel, userId})).first();
             } else {
                 role = await message.guild.roles.create({
                     data: {
                         name: 'Mentor',
-                        color: discordServices.randomColor(),
+                        color: randomColor(),
                     }
                 });
             }
@@ -65,7 +71,7 @@ module.exports = class StartMentors extends PermissionCommand {
              * Gets user's reaction and adds them to the emoji collection.
              */
             async function checkForDuplicateEmojis(prompt) {
-                var emoji = await Prompt.reactionPrompt({prompt, channel, userId}, emojis);
+                var emoji = await reactionPrompt({prompt, channel, userId}, emojis);
                 emojis.set(emoji.name, emoji);
                 return emoji;
             }
@@ -85,11 +91,11 @@ module.exports = class StartMentors extends PermissionCommand {
                     excludeFromAutoDeleteEmoji: excludeFromAutoDeleteEmoji,
                 },
                 times: {
-                    inactivePeriod: (await Prompt.numberPrompt({prompt: 'How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
+                    inactivePeriod: (await numberPrompt({prompt: 'How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
                         channel, userId}))[0],
-                    bufferTime: (await Prompt.numberPrompt({prompt: 'How long, in minutes, will the bot wait for a response to its request to delete a ticket?',
+                    bufferTime: (await numberPrompt({prompt: 'How long, in minutes, will the bot wait for a response to its request to delete a ticket?',
                         channel, userId}))[0],
-                    reminderTime: (await Prompt.numberPrompt({prompt: 'How long, in minutes, shall a ticket go unaccepted before the bot sends a reminder to all mentors?',
+                    reminderTime: (await numberPrompt({prompt: 'How long, in minutes, shall a ticket go unaccepted before the bot sends a reminder to all mentors?',
                         channel, userId}))[0],
                 }
             }, botGuild);
@@ -98,7 +104,7 @@ module.exports = class StartMentors extends PermissionCommand {
             let adminConsole = message.guild.channels.resolve(botGuild.channelIDs.adminConsole);
 
             try {
-                let isCreated = await Prompt.yesNoPrompt({prompt: 'Are the categories and channels already created?', channel, userId});
+                let isCreated = await yesNoPrompt({prompt: 'Are the categories and channels already created?', channel, userId});
 
                 if (isCreated) await cave.find(channel, userId);
                 else await cave.init(message.guild.channels);
@@ -116,5 +122,5 @@ module.exports = class StartMentors extends PermissionCommand {
             winston.loggers.get(message.guild.id).warning(`An error was found but it was handled by not setting up the mentor cave. Error: ${error}`, { event: "StartMentorCave Command" });
         }
     }
-
-};
+}
+module.exports = StartMentorCave;

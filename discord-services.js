@@ -2,6 +2,12 @@ const { GuildMember, TextChannel, Message, User, MessageEmbed, RoleResolvable } 
 const winston = require('winston');
 const BotGuild = require('./db/mongo/BotGuild');
 
+/**
+ * The discord services module has useful discord related functions.
+ * These functions are helper, discord related functions.
+ * @module DiscordServices
+ */
+
 // where hackers join the wait list to talk to a sponsor
 // at the moment its only one, planned to extend to multiple
 var boothingWaitList = '748370272049954927'; // TODO

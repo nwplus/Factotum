@@ -1,11 +1,19 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { Message, MessageEmbed, Role, Collection} = require('discord.js');
-const discordServices = require('../../discord-services');
-const Prompt = require('../../classes/prompt');
+const { deleteMessage } = require('../../discord-services');
+const { messagePrompt, rolePrompt, reactionPrompt } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
 const winston = require('winston');
 
-module.exports = class BoothDirectory extends PermissionCommand {
+/**
+ * Shows an embed with a link used for activities happening outside discord. Initial intent was to be used for 
+ * sponsor booths. Sponsors can open and close their rooms as they want. When rooms open, a role is notified.
+ * @category Commands
+ * @subcategory Boothing
+ * @extends PermissionCommand
+ * @guildonly
+ */
+class ERoomDirectory extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'e-room-directory',
@@ -37,14 +45,14 @@ module.exports = class BoothDirectory extends PermissionCommand {
         let userId = message.author.id;
 
         try {
-            var sponsorName = await Prompt.messagePrompt({prompt: 'What is the room name?', channel, userId}, 'string');
+            var sponsorName = await messagePrompt({prompt: 'What is the room name?', channel, userId}, 'string');
             sponsorName = sponsorName.content;
 
-            var link = await Prompt.messagePrompt({prompt: 'What is the room link? We will add no words to it! (ex. <Room Name> is Currently Open).', channel, userId}, 'string');
+            var link = await messagePrompt({prompt: 'What is the room link? We will add no words to it! (ex. <Room Name> is Currently Open).', channel, userId}, 'string');
             link = link.content;
 
             //ask user for role and save its id in the role variable
-            var role = (await Prompt.rolePrompt({prompt: 'What role will get pinged when the rooms open?', channel, userId})).first().id;
+            var role = (await rolePrompt({prompt: 'What role will get pinged when the rooms open?', channel, userId})).first().id;
         } catch (error) {
             channel.send('<@' + userId + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;
@@ -56,7 +64,7 @@ module.exports = class BoothDirectory extends PermissionCommand {
          */
         var roomRoles;
         try {
-            roomRoles = await Prompt.rolePrompt({ prompt: "What other roles can open/close the room? (Apart form staff) (Reply to cancel for none).", channel, userId });
+            roomRoles = await rolePrompt({ prompt: "What other roles can open/close the room? (Apart form staff) (Reply to cancel for none).", channel, userId });
         } catch (error) {
             // do nothing as this is fine
             winston.loggers.get(message.guild.id).warning(`Got an error: ${error} but I let it go since we expected it from the prompt.`, { event: "E-Room-Directory Command" });
@@ -65,7 +73,7 @@ module.exports = class BoothDirectory extends PermissionCommand {
         roomRoles.set(botGuild.roleIDs.staffRole, message.guild.roles.resolve(botGuild.roleIDs.staffRole));
 
         // prompt user for emoji to use
-        let emoji = await Prompt.reactionPrompt({prompt: 'What emoji do you want to use to open/close the room?', channel, userId});
+        let emoji = await reactionPrompt({prompt: 'What emoji do you want to use to open/close the room?', channel, userId});
     
         //variable to keep track of state (Open vs Closed)
         var closed = true;
@@ -107,9 +115,10 @@ module.exports = class BoothDirectory extends PermissionCommand {
                     //change to closed state embed if closed is false
                     msg.edit(embed);
                     closed = true;
-                    discordServices.deleteMessage(announcementMsg);
+                    deleteMessage(announcementMsg);
                 }
             });
         });
     }
 }
+module.exports = ERoomDirectory;

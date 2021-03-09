@@ -1,13 +1,17 @@
-// Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
-const Prompt = require('../../classes/prompt.js');
+const { sendEmbedToMember } = require('../../discord-services');
+const { TextChannel, Snowflake, Message, MessageEmbed, Collection, GuildChannelManager, User } = require('discord.js');
+const { messagePrompt, yesNoPrompt, channelPrompt } = require('../../classes/prompt.js');
 const Team = require('../../classes/team');
 const BotGuildModel = require('../../classes/bot-guild');
 
-// Command export
-module.exports = class StartTeamRoulette extends PermissionCommand {
+/**
+ * The start team roulette command starts the team roulette activity.
+ * @category Commands
+ * @subcategory Start-Commands
+ * @extends PermissionCommand
+ */
+class StartTeamRoulette extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'start-team-roulette',
@@ -25,12 +29,12 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
         // collection of reaction collectors listening for team leaders to delete teams; used for scope so collectors can be stopped
         // when a team forms
-        this.destroyCollectors = new Discord.Collection();
+        this.destroyCollectors = new Collection();
     }
 
     /**
      * @param {BotGuildModel} botGuild
-     * @param {Discord.Message} message - the message in which the command was run
+     * @param {Message} message - the message in which the command was run
      */
     async runCommand(botGuild, message) {
 
@@ -50,9 +54,9 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
         /**
          * The team list from which to create teams.
-         * @type {Discord.Collection<Number, Array<Team>} - <Team Size, List of Teams>
+         * @type {Collection<Number, Array<Team>>} - <Team Size, List of Teams>
          */
-        this.teamList = new Discord.Collection();
+        this.teamList = new Collection();
 
         /**
          * The current team number.
@@ -62,13 +66,13 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
         /**
          * All the users that have participated in the activity.
-         * @type {Discord.Collection<Discord.Snowflake, User>}
+         * @type {Collection<Snowflake, User>}
          */
-        this.participants = new Discord.Collection();
+        this.participants = new Collection();
 
         /**
          * Channel used to send information about team roulette.
-         * @type {Discord.TextChannel}
+         * @type {TextChannel}
          */
         this.textChannel;
 
@@ -83,7 +87,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         }
                 
         // create and send embed message to channel with emoji collector
-        const msgEmbed = new Discord.MessageEmbed()
+        const msgEmbed = new MessageEmbed()
             .setColor(this.botGuild.colors.embedColor)
             .setTitle('Team Roulette Information')
             .setDescription('Welcome to the team roulette section! If you are looking to join a random team, you are in the right place!')
@@ -103,7 +107,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         mainCollector.on('collect', async (reaction, teamLeaderUser) => {
             // creator check
             if (this.participants.has(teamLeaderUser.id)) {
-                discordServices.sendEmbedToMember(teamLeaderUser, {
+                sendEmbedToMember(teamLeaderUser, {
                     title: 'Team Roulette',
                     description: 'You are already signed up on the team roulette activity!',
                 }, true);
@@ -125,7 +129,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
             if (reaction.emoji.name === this.teamEmoji) {
                 
                 try {
-                    var groupMsg = await Prompt.messagePrompt({prompt: 'Please mention all your current team members in one message. You mention by typing @friendName .', channel: this.textChannel, userId: teamLeaderUser.id}, 'string', 30);
+                    var groupMsg = await messagePrompt({prompt: 'Please mention all your current team members in one message. You mention by typing @friendName .', channel: this.textChannel, userId: teamLeaderUser.id}, 'string', 30);
                 } catch (error) {
                     reaction.users.remove(newTeam.leader);
                     return;
@@ -138,7 +142,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
                 // check if they have more than 4 team members
                 if (groupMembers.size > 2) {
-                    discordServices.sendEmbedToMember(teamLeaderUser, {
+                    sendEmbedToMember(teamLeaderUser, {
                         title: 'Team Roulette',
                         description: 'You just tried to use the team roulette, but you mentioned more than 2 members. That should mean you have a team of 4 already! If you mentioned yourself by accident, try again!',
                     }, true);
@@ -148,7 +152,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 // delete any mentions of users already in the activity.
                 groupMembers.forEach((teamMember, index) => {
                     if (this.participants.has(teamMember.id)) {
-                        discordServices.sendEmbedToMember(teamLeaderUser, {
+                        sendEmbedToMember(teamLeaderUser, {
                             title: 'Team Roulette',
                             description: 'We had to remove ' + teamMember.username + ' from your team roulette team because he already participated in the roulette.',
                         }, true);
@@ -157,7 +161,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                         newTeam.addTeamMember(teamMember);
                         this.participants.set(teamMember.id, teamMember);
 
-                        discordServices.sendEmbedToMember(teamMember, {
+                        sendEmbedToMember(teamMember, {
                             title: 'Team Roulette',
                             description: 'You have been added to ' + teamLeaderUser.username + ' team roulette team! I will ping you as soon as I find a team for all of you!',
                             color: '#57f542',
@@ -178,7 +182,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                                 // add team without users to correct teamList and notify team leader
                                 if(newSize > 0) {
                                     this.teamList.get(newSize).push(newTeam);
-                                    discordServices.sendEmbedToMember(newTeam.members.get(newTeam.leader), {
+                                    sendEmbedToMember(newTeam.members.get(newTeam.leader), {
                                         title: 'Team Roulette',
                                         description: teamMember.username + ' has left the team, but worry not, we are still working on getting you a team!',
                                     });
@@ -194,7 +198,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
             // add team leader to activity list and notify of success
             this.participants.set(teamLeaderUser.id, teamLeaderUser);
-            let leaderDM = await discordServices.sendEmbedToMember(teamLeaderUser, {
+            let leaderDM = await sendEmbedToMember(teamLeaderUser, {
                 title: 'Team Roulette',
                 description: 'You' + (reaction.emoji.name === this.teamEmoji ? ' and your team' : '') + ' have been added to the roulette. I will get back to you as soon as I have a team for you!',
                 color: '#57f542',
@@ -223,12 +227,12 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 newTeam.members.forEach(user => {
                     this.participants.delete(user.id);
                     if (user.id === leader.id) {
-                        discordServices.sendEmbedToMember(leader, {
+                        sendEmbedToMember(leader, {
                             title: 'Team Roulette',
                             description: 'Your team has been removed from the roulette!',
                         }, true);
                     } else {
-                        discordServices.sendEmbedToMember(user, {
+                        sendEmbedToMember(user, {
                             title: 'Team Roulette',
                             description: 'Your team with <@' + newTeam.leader + '> has been destroyed!',
                         });
@@ -241,15 +245,15 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
     /**
      * Ask user if new channels are needed, if so create them, else ask for current channels to use for TR.
-     * @param {Discord.TextChannel} promptChannel - channel to prompt on
-     * @param {Discord.Snowflake} promptId - user's ID to prompt
-     * @param {Discord.GuildChannelManager} guildChannelManager - manager to create channels
+     * @param {TextChannel} promptChannel - channel to prompt on
+     * @param {Snowflake} promptId - user's ID to prompt
+     * @param {GuildChannelManager} guildChannelManager - manager to create channels
      * @async
-     * @returns {Promise<Discord.TextChannel>}
+     * @returns {Promise<TextChannel>}
      * @throws Throws an error if the user cancels either of the two Prompts, the command should quit!
      */
     async getOrCreateChannel(promptChannel, promptId, guildChannelManager) {
-        let needChannel = await Prompt.yesNoPrompt({prompt: 'Do you need a new channel and category or have you created one already?', channel: promptChannel, userId: promptId});
+        let needChannel = await yesNoPrompt({prompt: 'Do you need a new channel and category or have you created one already?', channel: promptChannel, userId: promptId});
 
         let channel;
 
@@ -264,14 +268,14 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
                 parent: category,
             });
         } else {
-            channel = (await Prompt.channelPrompt({prompt: 'What channel would you like to use for team roulette, this channels category will be used for the new team channels.', channel: promptChannel, userId: promptId})).first();
+            channel = (await channelPrompt({prompt: 'What channel would you like to use for team roulette, this channels category will be used for the new team channels.', channel: promptChannel, userId: promptId})).first();
             channel.bulkDelete(100, true);
         }
 
         // let user know everything is good to go
         let listEmoji = '📰';
 
-        const adminEmbed = new Discord.MessageEmbed().setColor(this.botGuild.colors.embedColor)
+        const adminEmbed = new MessageEmbed().setColor(this.botGuild.colors.embedColor)
                                     .setTitle('Team Roulette Console')
                                     .setDescription('Team roulette is ready and operational! <#' + channel.id + '>.')
                                     .addField('Check the list!', 'React with ' + listEmoji + ' to get a message with the roulette team lists.');
@@ -284,7 +288,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         adminEmbedMsgCollector.on('collect', (reaction, user) => {
             reaction.users.remove(user.id);
 
-            let infoEmbed = new Discord.MessageEmbed().setColor(this.botGuild.colors.embedColor)
+            let infoEmbed = new MessageEmbed().setColor(this.botGuild.colors.embedColor)
                                         .setTitle('Team Roulette Information')
                                         .setDescription('These are all the teams that are still waiting.');
 
@@ -312,7 +316,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
     /**
      * Will remove the team member from the team, notify the user of success, and remove the team from the teamList
      * @param {Team} team - the team to remove user from 
-     * @param {Discord.User} teamMember - the user to remove from the team
+     * @param {User} teamMember - the user to remove from the team
      * @returns {Number} - the new size of the team
      */
     removeMemberFromTeam(team, teamMember) {
@@ -322,7 +326,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         // remove user from team and notify
         this.participants.delete(teamMember.id);
         let newSize = team.removeTeamMember(teamMember);
-        discordServices.sendEmbedToMember(teamMember, {
+        sendEmbedToMember(teamMember, {
             title: 'Team Roulette',
             description: 'You have been removed from the team!'
         }, true);
@@ -331,7 +335,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
     /**
      * Will try to create a team and set them up for success!
-     * @param {Discord.GuildChannelManager} channelManager
+     * @param {GuildChannelManager} channelManager
      * @async
      */
     async runTeamCreator(channelManager) {
@@ -357,7 +361,7 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
 
             let leaveEmoji = '👋';
 
-            const infoEmbed = new Discord.MessageEmbed()
+            const infoEmbed = new MessageEmbed()
                 .setColor(this.botGuild.colors.embedColor)
                 .setTitle('WELCOME TO YOUR NEW TEAM!!!')
                 .setDescription('This is your new team, please get to know each other by creating a voice channel in a new Discord server or via this text channel. Best of luck!')
@@ -459,3 +463,4 @@ module.exports = class StartTeamRoulette extends PermissionCommand {
         this.teamList.set(3, []);
     }
 }
+module.exports = StartTeamRoulette;

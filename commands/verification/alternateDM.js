@@ -4,9 +4,15 @@ const { Message, MessageEmbed } = require('discord.js');
 const { messagePrompt } = require('../../classes/prompt');
 const Verification = require('../../classes/verification');
 const BotGuildModel = require('../../classes/bot-guild');
-const Discord = require('discord.js');
 
-// Command export
+/**
+ * Sends an embed with reaction collector for users to re-verify
+ * via DMs with the bot from inside the server.
+ * @category Commands
+ * @subcategory Verification
+ * @extends PermissionCommand
+ * @guildonly
+ */
 module.exports = class AlternateDM extends PermissionCommand {
     constructor(client) {
         super(client, {
@@ -39,7 +45,7 @@ module.exports = class AlternateDM extends PermissionCommand {
             try {
                 var email = (await messagePrompt({prompt: 'Thanks for joining cmd-f 2021! What email did you get accepted with? Please send it now!', channel: (await member.user.createDM()), userId: member.id}, 'string', 45)).content;
             } catch (error) {
-                discordServices.sendEmbedToMember(member, {
+                sendEmbedToMember(member, {
                     title: 'Verification Error',
                     description: 'Email was not provided, please try again by reacting to the emoji again.!'
                 }, true);
@@ -49,7 +55,7 @@ module.exports = class AlternateDM extends PermissionCommand {
             try {
                 await Verification.verify(member, email, member.guild, botGuild);
             } catch (error) {
-                discordServices.sendEmbedToMember(member, {
+                sendEmbedToMember(member, {
                     title: 'Verification Error',
                     description: 'Email provided is not valid! Please try again by reacting to the emoji again.'
                 }, true);
