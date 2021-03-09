@@ -197,7 +197,8 @@ bot.on('guildMemberAdd', async member => {
     let botGuild = await BotGuild.findById(member.guild.id);
 
     // if the guild where the user joined is complete then greet and verify.
-    if (botGuild.isSetUpComplete) {
+    // also checks to make sure it does not greet bots
+    if (botGuild.isSetUpComplete && !member.user.bot) {
         try {
             winston.loggers.get(member.guild.id).userStats('A new user joined the guild and is getting greeted!');
             await greetNewMember(member, botGuild);
