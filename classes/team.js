@@ -1,6 +1,6 @@
-const Discord = require("discord.js");
-const winston = require("winston");
-const discordServices = require("../discord-services");
+const Discord = require('discord.js');
+const winston = require('winston');
+const discordServices = require('../discord-services');
 
 
 /**
@@ -19,7 +19,7 @@ class Team {
          * All the team members
          * @type {Discord.Collection<Discord.Snowflake, Discord.User | Discord.GuildMember>} - <user ID, User or Member>
          */
-        this.members = new Discord.Collection()
+        this.members = new Discord.Collection();
 
         /**
          * The team's text channel if any
@@ -140,7 +140,7 @@ class Team {
         });
 
         // if user is the team leader appoint another team member
-        if (this.leader = user.id) {
+        if (this.leader === user.id) {
             this.leader = this.members.first().id;
         }
 

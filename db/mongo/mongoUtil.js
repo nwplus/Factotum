@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
  * @module MongoUtil
  */
 
-const url = 'mongodb+srv://dev-user:' + process.env.MONGODBPASSWORD + '@cluster-dev.j87rm.mongodb.net/test?retryWrites=true&w=majority&useNewUrlParser=true&useUnifiedTopology=true'
+const url = 'mongodb+srv://dev-user:' + process.env.MONGODBPASSWORD + '@cluster-dev.j87rm.mongodb.net/test?retryWrites=true&w=majority&useNewUrlParser=true&useUnifiedTopology=true';
 const mongooseUrl = 'mongodb+srv://dev-user:' + process.env.MONGODBPASSWORD + '@cluster-dev.j87rm.mongodb.net/data';
 /** @type {Db} */
 var _db;
@@ -19,7 +19,7 @@ module.exports = {
     async connect() {
         const mongoClient = new MongoClient(url);
 
-        await mongoClient.connect()
+        await mongoClient.connect();
 
         console.log('Connected to mongoDB');
         _db = mongoClient.db('data');
@@ -43,4 +43,4 @@ module.exports = {
         _db = await mongoose.connect(mongooseUrl, {useNewUrlParser: true, useUnifiedTopology: true});
     }
 
-}
+};

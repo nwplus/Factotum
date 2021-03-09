@@ -34,16 +34,18 @@ class Help extends Command {
         /** @type {Command[]} */
         var commands = [];
 
+        var commandGroups;
+
         // if message on DM then send hacker commands
         if (message.channel.type === 'dm') {
-            var commandGroups = this.client.registry.findGroups('utility', true);
+            commandGroups = this.client.registry.findGroups('utility', true);
         } else {
             deleteMessage(message);
 
             if ((checkForRole(message.member, botGuild.roleIDs.staffRole))) {
                 var commandGroups = this.client.registry.groups;
             } else {
-                var commandGroups = this.client.registry.findGroups('utility', true);
+                commandGroups = this.client.registry.findGroups('utility', true);
             }
         }
 

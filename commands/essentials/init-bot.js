@@ -119,7 +119,7 @@ class InitBot extends Command {
         await sendMsgToChannel(channel, userId, 'The admin channels have been created successfully! <#' + adminConsole.id + '>. Lets jump over there and continue yes?!', 60);
 
         // transition to the admin console
-        var channel = adminConsole;
+        channel = adminConsole;
         await sendMsgToChannel(channel, userId, 'I am over here!!! Lets continue!');
         const mainConsoleMsg = await channel.send(embedInfo);
 
@@ -169,7 +169,7 @@ class InitBot extends Command {
             }
         } catch (error) {
             sendMsgToChannel(channel, userId, 'Verification service was not set due to Prompt cancellation.', 10);
-            winston.loggers.get(guild.id).warning(`Handled an error when setting up verification, and thus was not set up. Error was ${error.name}`, { event: "InitBot Command", data: error });
+            winston.loggers.get(guild.id).warning(`Handled an error when setting up verification, and thus was not set up. Error was ${error.name}`, { event: 'InitBot Command', data: error });
         }
         
 
@@ -261,8 +261,8 @@ class InitBot extends Command {
      */
     async getVerificationTypes(channel, userId) {
 
-        let typeMsg = await messagePrompt({ prompt: 'Please tell me the type and mention the role for a verification option. Type should be equal to the firebase type. Add nothing more but type and role mention.', channel, userId });
-        let type = typeMsg.content.replace(/<(@&?|#)[a-z0-9]*>/ , ""); // clean out any snowflakes
+        let typeMsg = await Prompt.messagePrompt({ prompt: 'Please tell me the type and mention the role for a verification option. Type should be equal to the firebase type. Add nothing more but type and role mention.', channel, userId });
+        let type = typeMsg.content.replace(/<(@&?|#)[a-z0-9]*>/ , ''); // clean out any snowflakes
         type = type.toLowerCase().trim();
         let role = typeMsg.mentions.roles.first();
 
@@ -270,7 +270,7 @@ class InitBot extends Command {
             return (await this.getVerificationTypes(channel, userId)).concat([{
                 type: type,
                 roleId: role.id,
-            }])
+            }]);
         } else {
             return [{
                 type: type,

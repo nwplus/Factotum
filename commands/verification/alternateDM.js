@@ -22,10 +22,10 @@ module.exports = class AlternateDM extends PermissionCommand {
             description: 'send another dm for verification',
             guildOnly: true,
         },
-            {
-                role: PermissionCommand.FLAGS.STAFF_ROLE,
-                roleMessage: 'Hey there, the !manual-verify command is only for staff!',
-            });
+        {
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
+            roleMessage: 'Hey there, the !manual-verify command is only for staff!',
+        });
     }
 
     /**
@@ -34,7 +34,7 @@ module.exports = class AlternateDM extends PermissionCommand {
      */
     async runCommand(botGuild, message) {
         var embed = new MessageEmbed()
-            .setTitle(`If the bot does not respond when you click on the clover emoji in your DM, react to this message with any emoji to verify!`)
+            .setTitle('If the bot does not respond when you click on the clover emoji in your DM, react to this message with any emoji to verify!');
         let embedMsg = await message.channel.send(embed);
         embedMsg.react('🍀');
 
@@ -62,4 +62,4 @@ module.exports = class AlternateDM extends PermissionCommand {
             }
         });
     }
-}
+};

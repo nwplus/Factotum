@@ -102,9 +102,9 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>const Discord = require("discord.js");
-const winston = require("winston");
-const discordServices = require("../discord-services");
+            <pre class="prettyprint source linenums"><code>const Discord = require('discord.js');
+const winston = require('winston');
+const discordServices = require('../discord-services');
 
 
 /**
@@ -123,7 +123,7 @@ class Team {
          * All the team members
          * @type {Discord.Collection&lt;Discord.Snowflake, Discord.User | Discord.GuildMember>} - &lt;user ID, User or Member>
          */
-        this.members = new Discord.Collection()
+        this.members = new Discord.Collection();
 
         /**
          * The team's text channel if any
@@ -244,7 +244,7 @@ class Team {
         });
 
         // if user is the team leader appoint another team member
-        if (this.leader = user.id) {
+        if (this.leader === user.id) {
             this.leader = this.members.first().id;
         }
 

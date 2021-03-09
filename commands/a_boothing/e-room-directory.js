@@ -28,16 +28,16 @@ class ERoomDirectory extends PermissionCommand {
         });
     }
 
-/**
- * Sends an embed same channel with the sponsor's name and link to their Zoom boothing room. The embed has 2 states: Open and Closed. 
- * In the Closed state the embed will be red and say the booth is closed, which is the default, and the bot will react to the embed with 
- * a door emoji at the beginning. In the Open state the embed will be green and say the booth is open. Any time a staff or sponsor clicks 
- * on that emoji, the embed changes to the other state. When a booth goes from Closed to Open, it will also notify a role (specified by 
- * the user) that it is open.
- * 
- * @param {Message} message - messaged that called this command
- * @param {BotGuildModel} botGuild
- */
+    /**
+     * Sends an embed same channel with the sponsor's name and link to their Zoom boothing room. The embed has 2 states: Open and Closed. 
+     * In the Closed state the embed will be red and say the booth is closed, which is the default, and the bot will react to the embed with 
+     * a door emoji at the beginning. In the Open state the embed will be green and say the booth is open. Any time a staff or sponsor clicks 
+     * on that emoji, the embed changes to the other state. When a booth goes from Closed to Open, it will also notify a role (specified by 
+     * the user) that it is open.
+     * 
+     * @param {Message} message - messaged that called this command
+     * @param {BotGuildModel} botGuild
+     */
     async runCommand(botGuild, message) {
 
         // helpful vars
@@ -64,10 +64,10 @@ class ERoomDirectory extends PermissionCommand {
          */
         var roomRoles;
         try {
-            roomRoles = await rolePrompt({ prompt: "What other roles can open/close the room? (Apart form staff) (Reply to cancel for none).", channel, userId });
+            roomRoles = await rolePrompt({ prompt: 'What other roles can open/close the room? (Apart form staff) (Reply to cancel for none).', channel, userId });
         } catch (error) {
             // do nothing as this is fine
-            winston.loggers.get(message.guild.id).warning(`Got an error: ${error} but I let it go since we expected it from the prompt.`, { event: "E-Room-Directory Command" });
+            winston.loggers.get(message.guild.id).warning(`Got an error: ${error} but I let it go since we expected it from the prompt.`, { event: 'E-Room-Directory Command' });
         }
         // add staff role
         roomRoles.set(botGuild.roleIDs.staffRole, message.guild.roles.resolve(botGuild.roleIDs.staffRole));
@@ -92,7 +92,7 @@ class ERoomDirectory extends PermissionCommand {
             const emojiFilter = (reaction, user) => {
                 let member = message.guild.member(user);
                 return !user.bot && reaction.emoji.name === emoji.name && roomRoles.some(role => member.roles.cache.has(role.id));
-            }
+            };
             const emojiCollector = msg.createReactionCollector(emojiFilter);
             
             var announcementMsg;

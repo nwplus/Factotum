@@ -21,10 +21,10 @@ class SelfCareReminders extends PermissionCommand {
             description: 'Sends self-care reminders at designated times.',
             guildOnly: true,
         },
-            {
-                role: PermissionCommand.FLAGS.STAFF_ROLE,
-                roleMessage: 'Hey there, the command !self-care is only available to Staff!',
-            });
+        {
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
+            roleMessage: 'Hey there, the command !self-care is only available to Staff!',
+        });
     }
 
     /**
@@ -93,7 +93,7 @@ class SelfCareReminders extends PermissionCommand {
                     }
                 } 
             });
-        })
+        });
 
         //starts the interval, and sends the first reminder immediately if startNow is true
         if (isStartNow) {
@@ -109,7 +109,7 @@ class SelfCareReminders extends PermissionCommand {
             //report in admin logs that there are no more messages
             //TODO: consider having it just loop through the db again?
             if (data === null) {
-                discordLog(message.guild, "<@&" + botGuild.roleIDs.staffRole + "> HI, PLEASE FEED ME more self-care messages!!");
+                discordLog(message.guild, '<@&' + botGuild.roleIDs.staffRole + '> HI, PLEASE FEED ME more self-care messages!!');
                 clearInterval(interval);
                 return;
             }
@@ -118,7 +118,7 @@ class SelfCareReminders extends PermissionCommand {
 
             const qEmbed = new MessageEmbed()
                 .setColor(botGuild.colors.embedColor)
-                .setTitle(reminder)
+                .setTitle(reminder);
                 // .setDescription(reminder);
             
             channel.send(`Hey <@&${roleId}> remember:`, {embed: qEmbed});

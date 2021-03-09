@@ -1,7 +1,7 @@
-const { Collection, GuildEmoji, ReactionEmoji, Guild, CategoryChannel, TextChannel, VoiceChannel, User, Message, MessageEmbed, Snowflake, } = require("discord.js");
-const winston = require("winston");
+const { Collection, GuildEmoji, ReactionEmoji, Guild, CategoryChannel, TextChannel, VoiceChannel, User, Message, MessageEmbed, Snowflake, } = require('discord.js');
+const winston = require('winston');
 const { sendEmbedToMember, deleteChannel } = require('../discord-services');
-const Cave = require("./cave");
+const Cave = require('./cave');
 
 class Ticket {
     /**
@@ -155,7 +155,7 @@ class Ticket {
      * Create a category with the ticket's number, and a voice and text channel under it
      */
     async createCategory() {
-        this.category = await this.guild.channels.create("Ticket - " + this.ticketNumber, {
+        this.category = await this.guild.channels.create('Ticket - ' + this.ticketNumber, {
             type: 'category',
             permissionOverwrites: [
                 {
@@ -249,7 +249,7 @@ class Ticket {
                 const openedTicketEmbed = new MessageEmbed()
                     .setColor('#128c1e')
                     .setTitle('Your Ticket Number ' + this.ticketNumber + ' Has Been Opened!')
-                    .setDescription('Your question: ' + this.question + '\nPlease go to the corresponding channel and read the instructions there.')
+                    .setDescription('Your question: ' + this.question + '\nPlease go to the corresponding channel and read the instructions there.');
                 reqTicketUserEmbedMsg.edit(openedTicketEmbed);
                 reqTicketUserEmbedMsgCollector.stop();
 
@@ -278,14 +278,14 @@ class Ticket {
 
                 looseAccessCollector.on('collect', async (reaction, exitUser) => {
                     // if mentor is leaving, delete from mentors list
-                    for (var i = 0; i < this.mentors.length; i++) {
+                    for (let i = 0; i < this.mentors.length; i++) {
                         if (this.mentors[i] === exitUser.id) {
                             this.mentors.splice(i, 1);
                         }
                     }
 
                     // if hacker is leaving, delete from hackers list
-                    for (var i = 0; i < this.hackers.length; i++) {
+                    for (let i = 0; i < this.hackers.length; i++) {
                         if (this.hackers[i] === exitUser) {
                             this.hackers.splice(i, 1);
                         }
@@ -336,13 +336,13 @@ class Ticket {
         // assemble message to send to hackers to verify if they still need the ticket
         var requestMsg = this.hackers.join(' ');
         if (reason === 'inactivity') {
-            requestMsg = requestMsg + ' <@' + this.mentors.join('> <@') + '>'
+            requestMsg = requestMsg + ' <@' + this.mentors.join('> <@') + '>';
             requestMsg = requestMsg + ' Hello! I detected some inactivity on this channel and wanted to check in.\n';
         } else if (reason === 'mentor') {
-            requestMsg = requestMsg + ' Hello! Your mentor(s) has/have left the ticket.\n'
+            requestMsg = requestMsg + ' Hello! Your mentor(s) has/have left the ticket.\n';
         }
         let warning = await this.text.send(requestMsg + 'If the ticket has been solved, please click the 👋 emoji above to leave the channel. ' +
-            'If you need to keep the channel, please click the emoji below, **otherwise this ticket will be deleted in ** ' + this.bufferTime + ' **minutes**.')
+            'If you need to keep the channel, please click the emoji below, **otherwise this ticket will be deleted in ** ' + this.bufferTime + ' **minutes**.');
 
         await warning.react('🔄');
 

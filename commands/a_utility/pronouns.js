@@ -18,10 +18,10 @@ class Pronouns extends PermissionCommand {
             description: 'Set up pronouns reaction role message.',
             guildOnly: true,
         },
-            {
-                roleID: PermissionCommand.FLAGS.STAFF_ROLE,
-                roleMessage: 'Hey there, the command !pronouns is only available to staff!',
-            });
+        {
+            roleID: PermissionCommand.FLAGS.STAFF_ROLE,
+            roleMessage: 'Hey there, the command !pronouns is only available to staff!',
+        });
     }
 
     /**
@@ -29,10 +29,10 @@ class Pronouns extends PermissionCommand {
      * @param {Message} message - the command message
      */
     async runCommand(botGuild, message) {
-        const sheRole = message.guild.roles.cache.find(role => role.name === "she/her");
-        const heRole = message.guild.roles.cache.find(role => role.name === "he/him");
-        const theyRole = message.guild.roles.cache.find(role => role.name === "they/them");
-        const otherRole = message.guild.roles.cache.find(role => role.name === "other pronouns");
+        const sheRole = message.guild.roles.cache.find(role => role.name === 'she/her');
+        const heRole = message.guild.roles.cache.find(role => role.name === 'he/him');
+        const theyRole = message.guild.roles.cache.find(role => role.name === 'they/them');
+        const otherRole = message.guild.roles.cache.find(role => role.name === 'other pronouns');
 
         var emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'];
 

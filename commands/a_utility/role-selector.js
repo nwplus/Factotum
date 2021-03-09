@@ -66,8 +66,11 @@ class RoleSelector extends PermissionCommand {
             if (reaction.emoji.name === newTransferEmoji && checkForRole(message.guild.member(user), botGuild.roleIDs.staffRole)) {
                 
                 try {
-                    var newTransferMsg = await messagePrompt({prompt: 'What new transfer do you want to add? Your response should have (in this order, not including <>): @role <transfer name> - <transfer description>',
-                    channel: message.channel, userId: user.id}, 'string');
+                    var newTransferMsg = await messagePrompt({
+                        prompt: 'What new transfer do you want to add? Your response should have (in this order, not including <>): @role <transfer name> - <transfer description>',
+                        channel: message.channel, 
+                        userId: user.id
+                    }, 'string');
                 } catch (error) {
                     reaction.users.remove(user.id);
                     return;

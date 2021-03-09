@@ -1,8 +1,8 @@
-const Activity = require("./activity");
+const Activity = require('./activity');
 const { MessageEmbed, TextChannel, User, GuildMember, Collection, VoiceChannel } = require('discord.js');
-const { memberPrompt, chooseChannel } = require("../prompt");
-const winston = require("winston");
-const { sendMsgToChannel } = require("../../discord-services");
+const { memberPrompt, chooseChannel } = require('../prompt');
+const winston = require('winston');
+const { sendMsgToChannel } = require('../../discord-services');
 
 /**
  * A CoffeeChat is a special activity where users join as a team. The teams are then 
@@ -44,7 +44,7 @@ class CoffeeChats extends Activity {
          */
         this.mainVoiceChannel;
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was created as a coffee chats.`, {event: "Activity"});
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was created as a coffee chats.`, {event: 'Activity'});
     }
 
     /**
@@ -99,7 +99,7 @@ class CoffeeChats extends Activity {
                 emoji: '☝️',
                 callback: () => this.addTeamSlot(),
             }
-        ]
+        ];
 
         localFeatures.forEach(feature => this.features.set(feature.name, feature));
 
@@ -133,11 +133,11 @@ class CoffeeChats extends Activity {
 
             // check to make sure there are spots left
             if (this.teams.size > this.numOfTeams) {
-                sendMsgToChannel(this.joinActivityChannel, user.id, "Sorry, but the activity is full!", 10);
+                sendMsgToChannel(this.joinActivityChannel, user.id, 'Sorry, but the activity is full!', 10);
                 return;
             }
 
-            let members = await memberPrompt({prompt: "Who are you team members? Let me know in ONE message!", channel: this.joinActivityChannel, userId: user.id});
+            let members = await memberPrompt({prompt: 'Who are you team members? Let me know in ONE message!', channel: this.joinActivityChannel, userId: user.id});
 
             // add team captain to members list
             members.set(user.id, this.guild.member(user));
@@ -171,12 +171,12 @@ class CoffeeChats extends Activity {
                         member.voice.setChannel(voiceChannels[index % voiceChannels.length]);
                 } catch (error) {
                     // do nothing, sad!
-                winston.loggers.get(this.guild.id).warning(`For activity named ${this.name} I could not pull in user ${member.id} into the voice channel ${voiceChannels[index].name}.`, { event: "Coffee Chats" });
+                    winston.loggers.get(this.guild.id).warning(`For activity named ${this.name} I could not pull in user ${member.id} into the voice channel ${voiceChannels[index].name}.`, { event: 'Coffee Chats' });
                 }
             });
         }
 
-        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its groups shuffled.`, { event: "Coffee Chats" });
+        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its groups shuffled.`, { event: 'Coffee Chats' });
     }
 
 

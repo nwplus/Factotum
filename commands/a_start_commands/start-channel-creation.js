@@ -126,8 +126,6 @@ class StartChannelCreation extends PermissionCommand {
                 channel.send('<@' + user.id + '> The channel creation was canceled due to a timeout or prompt cancel. Try again!').then(msg => msg.delete({timeout: 8000}));
             }
         });
-        
     }
-
 }
 module.exports = StartChannelCreation;

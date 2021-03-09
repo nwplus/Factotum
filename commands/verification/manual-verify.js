@@ -23,12 +23,12 @@ class ManualVerify extends PermissionCommand {
             description: 'Will verify a guest to the specified role.',
             guildOnly: true,
         },
-            {
-                role: PermissionCommand.FLAGS.STAFF_ROLE,
-                roleMessage: 'Hey there, the !manual-verify command is only for staff!',
-                channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
-                channelMessage: 'The !manual-verify command is only available in the admin console!'
-            });
+        {
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
+            roleMessage: 'Hey there, the !manual-verify command is only for staff!',
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
+            channelMessage: 'The !manual-verify command is only available in the admin console!'
+        });
     }
 
     /**

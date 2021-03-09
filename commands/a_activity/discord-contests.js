@@ -25,10 +25,10 @@ class DiscordContests extends PermissionCommand {
             description: 'Sends each Discord contest question once at designated times and determines winners.',
             guildOnly: true,
         },
-            {
-                role: PermissionCommand.FLAGS.STAFF_ROLE,
-                roleMessage: 'Hey there, the command !contests is only available to Staff!',
-            });
+        {
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
+            roleMessage: 'Hey there, the command !contests is only available to Staff!',
+        });
     }
 
     /**
@@ -53,7 +53,7 @@ class DiscordContests extends PermissionCommand {
             timeInterval = 1000 * 60 * num;
 
             // ask user whether to start asking questions now(true) or after 1 interval (false)
-            var startNow = await yesNoPrompt({prompt: 'Type "yes" to start first question now, "no" to start one time interval from now. ', channel, userId})
+            var startNow = await yesNoPrompt({prompt: 'Type "yes" to start first question now, "no" to start one time interval from now. ', channel, userId});
 
             // id of role to mention when new questions come out
             var role = (await rolePrompt({prompt: 'What is the hacker role to notify for Discord contests?', channel, userId})).first().id;
@@ -73,14 +73,14 @@ class DiscordContests extends PermissionCommand {
 
         var string;
         if (startNow) {
-            string = "Discord contests starting now! Answer for a chance to win a prize!";
+            string = 'Discord contests starting now! Answer for a chance to win a prize!';
         } else {
             const time = new Date();
             //calculate time till next interval to display as the start time if startNow is false
             const nextQTime = time.valueOf() + timeInterval;
             let options = { weekday: 'long', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short'};
             var nextTime = new Date(nextQTime).toLocaleString('en-US', options);
-            string = "Discord contests starting at " + nextTime + "! Answer for a chance to win a prize!";
+            string = 'Discord contests starting at ' + nextTime + '! Answer for a chance to win a prize!';
         }
 
         const startEmbed = new MessageEmbed()
@@ -119,7 +119,7 @@ class DiscordContests extends PermissionCommand {
                     }
                 } 
             });
-        })
+        });
 
         //starts the interval, and sends the first question immediately if startNow is true
         if (startNow) {
@@ -138,7 +138,7 @@ class DiscordContests extends PermissionCommand {
             
             //sends results to Staff after all questions have been asked and stops looping
             if (data === null) {
-                discordLog(message.guild, "<@&" + this.botGuild.roleIDs.staffRole + "> Discord contests have ended! Winners are: <@" + winners.join('> <@') + ">");
+                discordLog(message.guild, '<@&' + this.botGuild.roleIDs.staffRole + '> Discord contests have ended! Winners are: <@' + winners.join('> <@') + '>');
                 clearInterval(interval);
                 return;
             }
@@ -151,7 +151,7 @@ class DiscordContests extends PermissionCommand {
                 .setColor(this.botGuild.colors.embedColor)
                 .setTitle('A new Discord Contest Question:')
                 .setDescription(question + '\n' + ((answers.length === 0) ? 'Staff: click the 👑 emoji to announce a winner!' : 
-                                                                            'Exact answers only!'));
+                    'Exact answers only!'));
 
 
             message.channel.send('<@&' + role + '>' + ((answers.length === 0) ? (' - <@&' + this.botGuild.roleIDs.staffRole + '> Need manual review!') : ''), { embed: qEmbed }).then((msg) => {
@@ -168,15 +168,15 @@ class DiscordContests extends PermissionCommand {
                         memberPrompt({prompt: 'Pick a winner for the previous question by mentioning them in your next message in this channel!', channel: message.channel, userId: user.id})
                             .then(members => {
                                 winners.push(members.first().id);
-                                message.channel.send("Congrats <@" + members.first().id + "> for the best answer to the previous question!");
+                                message.channel.send('Congrats <@' + members.first().id + '> for the best answer to the previous question!');
                                 emojiCollector.stop();
-                            }).catch(error => {
+                            }).catch( () => {
                                 msg.channel.send('<@' + user.id + '> You have canceled the prompt, you can select a winner again at any time.').then(msg => msg.delete({timeout: 8000}));
-                            })
+                            });
                     });
 
-                    emojiCollector.on('end', collected => {
-                        message.channel.send("Answers are no longer being accepted. Stay tuned for the next question!");
+                    emojiCollector.on('end', () => {
+                        message.channel.send('Answers are no longer being accepted. Stay tuned for the next question!');
                     });
                 } else {
                     //automatically mark answers
@@ -188,28 +188,28 @@ class DiscordContests extends PermissionCommand {
                             // for questions that have numbers as answers, the answer has to match at least one of the correct answers exactly
                             if (!isNaN(answers[0])) {
                                 if (answers.some(correctAnswer => m.content === correctAnswer)) {
-                                    message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + answers.join(' or ') + ".");
+                                    message.channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(' or ') + '.');
                                     winners.push(m.author.id);
                                     collector.stop();
                                 }
                             } else if (answers.some(correctAnswer => m.content.toLowerCase().includes(correctAnswer.toLowerCase()))) {
                                 //for most questions, an answer that contains at least once item of the answer array is correct
-                                message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + answers.join(' or ') + ".");
+                                message.channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(' or ') + '.');
                                 winners.push(m.author.id);
                                 collector.stop();
                             }
                         } else {
                             //check if all answers in answer array are in the message
                             if (answers.every((answer) => m.content.toLowerCase().includes(answer.toLowerCase()))) {
-                                message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + answers.join(', ') + ".");
+                                message.channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(', ') + '.');
                                 winners.push(m.author.id);
                                 collector.stop();
-                            };
+                            }
                         }
                     });
 
-                    collector.on('end', collected => {
-                        message.channel.send("Answers are no longer being accepted. Stay tuned for the next question!");
+                    collector.on('end', () => {
+                        message.channel.send('Answers are no longer being accepted. Stay tuned for the next question!');
                     });
                 }
             });

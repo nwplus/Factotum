@@ -57,7 +57,7 @@ class ClearChat extends PermissionCommand {
             await message.channel.bulkDelete(100, true).catch(console.error);
         }
 
-        discordLog(message.guild, "CHANNEL CLEAR " + message.channel.name + ". By user: " + message.author.username);
+        discordLog(message.guild, 'CHANNEL CLEAR ' + message.channel.name + '. By user: ' + message.author.username);
         
         var commands = [];
 
@@ -75,7 +75,7 @@ class ClearChat extends PermissionCommand {
                 commandGroups.forEach((value,index) => {
                     value['commands'].array().forEach((value, index) => {
                         commands.push(value);
-                    })
+                    });
                 });
             }
             // any other channels will send the hacker commands

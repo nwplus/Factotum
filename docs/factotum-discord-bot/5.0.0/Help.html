@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -7,7 +5,7 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Factotum Documentation classes/verification.js</title>
+  <title>Factotum Documentation Help</title>
 
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -92,135 +90,322 @@
         <div class="core" id="main-content-wrapper">
             <div class="content">
                 <header class="page-title">
-                    <p>Source</p>
-                    <h1>classes/verification.js</h1>
+                    <p>Class</p>
+                    <h1>Help</h1>
                 </header>
                 
 
 
 
+
+<section>
+
+<header>
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>const { GuildMember, Guild } = require('discord.js');
-const discordServices = require('../discord-services');
-const firebaseServices = require('../db/firebase/firebase-services');
-const BotGuildModel = require('./bot-guild');
-const winston = require('winston');
-
-/**
- * @class Verification
- */
-class Verification {
-
-    /**
-     * Verifies a guild member into a guild.
-     * @param {GuildMember} member - member to verify
-     * @param {String} email - email to verify with
-     * @param {Guild} guild
-     * @param {BotGuildModel} botGuild
-     * @async
-     * @static
-     * @throws Error if email is not valid!
-     */
-    static async verify(member, email, guild, botGuild) {
-        if (!discordServices.validateEmail(email)) {
-            throw new Error('Email is not valid!!');
-        }
-
-        let logger = winston.loggers.get(guild.id);
-
-        // try to get member types, error will mean no email was found
-        try {
-            var types = await firebaseServices.verify(email, member.id);
-        } catch (error) {
-            logger.warning(`The email provided (${email}) by user ${member.id} was not found, got an error: ${error}`, { event: 'Verification' });
-            discordServices.sendEmbedToMember(member, {
-                title: 'Verification Failure',
-                description: 'The email provided was not found! If you need assistance ask an admin for help!',
-            });
-            discordServices.discordLog(guild, `VERIFY FAILURE : &lt;@${member.id}> Verified email: ${email} but was a failure, I could not find that email!`);
-            return;
-        }
-
-        // check for types, if no types it means they are already verified with those types
-        if (types.length === 0) {
-            logger.warning(`An email was found but the user ${member.id} is already set as verified. Email used: ${email}`, { event: 'Verification' });
-            discordServices.sendEmbedToMember(member, {
-                title: 'Verification Warning',
-                description: 'We found your email, but you are already verified! If this is not the case let an admin know!',
-                color: '#fc1403',
-            });
-            discordServices.discordLog(guild, `VERIFY WARNING : &lt;@${member.id}> Verified email: ${email} but he was already verified for all types!`);
-            return;
-        }
-
-        let correctTypes = [];
+        <h2><span class="attribs"><span class="type-signature"></span></span>Help<span class="signature">()</span><span class="type-signature"></span></h2>
         
-        // check for correct types with botGuild verification info and give the roles
-        types.forEach((type, index, array) => {
-            if (botGuild.verification.verificationRoles.has(type)) {
-                let roleId = botGuild.verification.verificationRoles.get(type);
-                logger.verbose(`User ${member.id} has type ${type} in list index ${index} and it was found, he got the role ${roleId}`, { event: 'Verification' });
-                discordServices.addRoleToMember(member, roleId);
-                correctTypes.push(type);
-            } else {
-                logger.error(`User ${member.id} has type ${type} in list index ${index} and it was not found in the botGuild verification roles map.`, { event: 'Verification' });
-            }
+            <div class="class-description">The help command shows all the available commands for the user via DM message.</div>
+        
+    
+</header>
 
-        });
-
-        // extra check to see if types were found, give stamp role if available and let user know of success
-        if (correctTypes.length > 0) {
-            discordServices.replaceRoleToMember(member, botGuild.verification.guestRoleID, botGuild.roleIDs.memberRole);
-            if (botGuild.stamps.isEnabled) discordServices.addRoleToMember(member, botGuild.stamps.stamp0thRoleId);
-            discordServices.sendEmbedToMember(member, {
-                title: `${guild.name} Verification Success`,
-                description: `You have been verified as a ${correctTypes.join()}, good luck and have fun!`,
-                color: botGuild.colors.specialDMEmbedColor,
-            });
-            discordServices.discordLog(guild, `VERIFY SUCCESS : &lt;@${member.id}> Verified email: ${email} successfully as ${correctTypes.join()}.`);
-            logger.event(`User ${member.id} was verified with email ${email} successfully as ${correctTypes.join()}.`, { event: 'Verification' });
-        } else {
-            discordServices.sendEmbedToMember(member, {
-                title: 'Verification Error',
-                description: 'There has been an error, contact an admin ASAP!',
-                color: '#fc1403',
-            });
-            discordServices.discordLog(guild, `VERIFY ERROR : &lt;@${member.id}> Verified email: ${email} had types available, but I could not find them on the botGuild!`);
-            logger.error(`User ${member.id} Verified email: ${email} had types available, but I could not find them on the botGuild!`, { event: 'Verification' });
-        }
-    }
+<article>
+    <div class="container-overview">
+    
+        
+            <div class='vertical-section'>
+                <div class="members">
+                    <div class="member">
+                        <div class=name>
+                            <span class="tag">Constructor</span>
+                        </div>
+                        
 
 
-    /**
-     * Will attend the user and give it the attendee role.
-     * @param {GuildMember} member 
-     * @param {BotGuildModel} botGuild
-     */
-    static async attend(member, botGuild) {
-        try {
-            // wait for attend to end, then give role
-            await firebaseServices.attend(member.id);
-            discordServices.addRoleToMember(member, botGuild.attendance.attendeeRoleID);
-            discordServices.sendEmbedToMember(member, {
-                title: 'Attendance Success',
-                description: 'You have been marked as attending, thank you and good luck!',
-                color: botGuild.colors.specialDMEmbedColor,
-            });
-            discordServices.discordLog(member.guild, `ATTEND SUCCESS : &lt;@${member.id}> has been marked as attending!`);
-            winston.loggers.get(botGuild._id).event(`User ${member.id} was marked as attending!`, { event: 'Verification' });
-        } catch (error) {
-            // email was not found, let admins know!
-            discordServices.discordLog(member.guild, `ATTEND WARNING : &lt;@${member.id}> tried to attend but I could not find his discord ID! He might be an impostor!!!`);
-            winston.loggers.get(botGuild._id).warning(`User ${member.id} could not be marked as attending, I could not find his discord ID, he could be an impostor! Got the error: ${error}`, { event: 'Verification' });
-        }
-    }
+    
+    <h4 class="name" id="Help">
+        <a class="href-link" href="#Help">#</a>
+        
+        <span class="code-name">
+            
+                new Help<span class="signature">()</span><span class="type-signature"></span>
+            
+        </span>
+    </h4>
+    
 
-}
-module.exports = Verification;</code></pre>
-        </article>
-    </section>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="commands_essentials_help.js.html" class="button">View Source</a>
+            <span>
+                <a href="commands_essentials_help.js.html">commands/essentials/help.js</a>, <a href="commands_essentials_help.js.html#line13">line 13</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </div>
+                </div>
+            </div>
+        
+    
+    </div>
+    
+    
+        <h3 class="subsection-title">Extends</h3>
+
+        
+
+
+    <ul>
+        <li>Command</li>
+    </ul>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <div class='vertical-section'>
+            <h1>Methods</h1>
+            <div class="members">
+            
+                <div class="member">
+
+
+    
+    <h4 class="name" id="run">
+        <a class="href-link" href="#run">#</a>
+        
+            
+                <span class='tag'>async</span>
+            
+        
+        <span class="code-name">
+            
+                run<span class="signature">(message)</span><span class="type-signature"></span>
+            
+        </span>
+    </h4>
+    
+
+    
+    
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+<div class="table-container">
+    <table class="params table">
+        <thead>
+        <tr>
+            
+            <th>Name</th>
+            
+
+            <th>Type</th>
+
+            
+
+            
+
+            <th class="last">Description</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        
+
+            
+<tr class="deep-level-0">
+  
+      <td class="name"><code>message</code></td>
+  
+
+  <td class="type">
+  
+      
+<span class="param-type">Message</span>
+
+
+  
+  </td>
+
+  
+
+  
+
+  <td class="description last"></td>
+</tr>
+
+
+        
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="commands_essentials_help.js.html" class="button">View Source</a>
+            <span>
+                <a href="commands_essentials_help.js.html">commands/essentials/help.js</a>, <a href="commands_essentials_help.js.html#line27">line 27</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+            
+            </div>
+        </div>
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 

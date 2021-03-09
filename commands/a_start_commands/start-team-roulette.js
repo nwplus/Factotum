@@ -275,10 +275,11 @@ class StartTeamRoulette extends PermissionCommand {
         // let user know everything is good to go
         let listEmoji = '📰';
 
-        const adminEmbed = new MessageEmbed().setColor(this.botGuild.colors.embedColor)
-                                    .setTitle('Team Roulette Console')
-                                    .setDescription('Team roulette is ready and operational! <#' + channel.id + '>.')
-                                    .addField('Check the list!', 'React with ' + listEmoji + ' to get a message with the roulette team lists.');
+        const adminEmbed = new MessageEmbed()
+            .setColor(this.botGuild.colors.embedColor)
+            .setTitle('Team Roulette Console')
+            .setDescription('Team roulette is ready and operational! <#' + channel.id + '>.')
+            .addField('Check the list!', 'React with ' + listEmoji + ' to get a message with the roulette team lists.');
 
         let adminEmbedMsg = await promptChannel.send(adminEmbed);
         adminEmbedMsg.react(listEmoji);
@@ -288,9 +289,10 @@ class StartTeamRoulette extends PermissionCommand {
         adminEmbedMsgCollector.on('collect', (reaction, user) => {
             reaction.users.remove(user.id);
 
-            let infoEmbed = new MessageEmbed().setColor(this.botGuild.colors.embedColor)
-                                        .setTitle('Team Roulette Information')
-                                        .setDescription('These are all the teams that are still waiting.');
+            let infoEmbed = new MessageEmbed()
+                .setColor(this.botGuild.colors.embedColor)
+                .setTitle('Team Roulette Information')
+                .setDescription('These are all the teams that are still waiting.');
 
             // loop over each list type and add them to one field
             this.teamList.forEach((teams, key) => {

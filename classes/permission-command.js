@@ -105,9 +105,9 @@ class PermissionCommand extends Command {
                 if (roleID && (roleID === botGuild.roleIDs.staffRole && 
                     (!discordServices.checkForRole(message.member, roleID) && !discordServices.checkForRole(message.member, botGuild.roleIDs.adminRole))) || 
                     (roleID != botGuild.roleIDs.staffRole && !discordServices.checkForRole(message.member, roleID))) {
-                        discordServices.sendMessageToMember(message.member, this.permissionInfo.roleMessage, true);
-                        winston.loggers.get(botGuild?._id || 'main').warning(`User ${message.author.id} tried to run a permission command ${this.name} that is only available for members with role ${this.permissionInfo.role}, but he has roles: ${message.member.roles.cache.array().map((role) => role.name)}`);
-                        return;
+                    discordServices.sendMessageToMember(message.member, this.permissionInfo.roleMessage, true);
+                    winston.loggers.get(botGuild?._id || 'main').warning(`User ${message.author.id} tried to run a permission command ${this.name} that is only available for members with role ${this.permissionInfo.role}, but he has roles: ${message.member.roles.cache.array().map((role) => role.name)}`);
+                    return;
                 }
             }
         }
@@ -141,6 +141,6 @@ PermissionCommand.FLAGS = {
     ADMIN_ROLE: 'adminRole',
     STAFF_ROLE: 'staffRole',
     ADMIN_CONSOLE: 'adminConsole',
-}
+};
 
 module.exports = PermissionCommand;
