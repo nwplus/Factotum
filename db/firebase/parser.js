@@ -1,9 +1,14 @@
-// Firebase requirements
 require('firebase/firestore');
 const csv = require('csv-parser');
 const fs = require('fs');
 require('dotenv').config();
 const admin = require('firebase-admin');
+
+/** 
+ * The firebase parser module has scripts to parse csv data to upload to 
+ * firebase for validation purposes.
+ * @module FirebaseParser
+ */
 
 // initialize firebase
 function initializeFirebaseAdmin(adminSDK, databaseURL) {

@@ -1,10 +1,15 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
+const { addRoleToMember, removeRolToMember } = require('../../discord-services');
+const { Message, MessageEmbed } = require('discord.js');
 
-// Command export
-module.exports = class RoleSelector extends PermissionCommand {
+/**
+ * The pronouns command sends a role reaction console for users to select a pronoun role.
+ * @category Commands
+ * @subcategory Admin-Utility
+ * @extends PermissionCommand
+ */
+class Pronouns extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'pronouns',
@@ -21,7 +26,7 @@ module.exports = class RoleSelector extends PermissionCommand {
 
     /**
      * 
-     * @param {Discord.Message} message - the command message
+     * @param {Message} message - the command message
      */
     async runCommand(botGuild, message) {
         const sheRole = message.guild.roles.cache.find(role => role.name === 'she/her');
@@ -31,7 +36,7 @@ module.exports = class RoleSelector extends PermissionCommand {
 
         var emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'];
 
-        let embed = new Discord.MessageEmbed()
+        let embed = new MessageEmbed()
             .setColor('#0DEFE1')
             .setTitle('Set your pronouns by reacting to one of the emojis!')
             .setDescription(
@@ -44,33 +49,33 @@ module.exports = class RoleSelector extends PermissionCommand {
         emojis.forEach(emoji => messageEmbed.react(emoji));
 
         // create collector
-        const reactionCollector = await messageEmbed.createReactionCollector((reaction, user) => user.bot != true && emojis.includes(reaction.emoji.name), {dispose: true});
+        const reactionCollector = messageEmbed.createReactionCollector((reaction, user) => user.bot != true && emojis.includes(reaction.emoji.name), {dispose: true});
 
         // on emoji reaction
         reactionCollector.on('collect', async (reaction, user) => {
             if (reaction.emoji.name === emojis[0]) {
-                await discordServices.addRoleToMember(message.guild.member(user), sheRole);
+                addRoleToMember(message.guild.member(user), sheRole);
             } if (reaction.emoji.name === emojis[1]) {
-                await discordServices.addRoleToMember(message.guild.member(user), heRole);
+                addRoleToMember(message.guild.member(user), heRole);
             } if (reaction.emoji.name === emojis[2]) {
-                await discordServices.addRoleToMember(message.guild.member(user), theyRole);
+                addRoleToMember(message.guild.member(user), theyRole);
             } if (reaction.emoji.name === emojis[3]) {
-                await discordServices.addRoleToMember(message.guild.member(user), otherRole);
+                addRoleToMember(message.guild.member(user), otherRole);
             }
         });
 
         reactionCollector.on('remove', async (reaction, user) => {
             if (reaction.emoji.name === emojis[0]) {
-                await discordServices.removeRolToMember(message.guild.member(user), sheRole);
+                removeRolToMember(message.guild.member(user), sheRole);
             } if (reaction.emoji.name === emojis[1]) {
-                await discordServices.removeRolToMember(message.guild.member(user), heRole);
+                removeRolToMember(message.guild.member(user), heRole);
             } if (reaction.emoji.name === emojis[2]) {
-                await discordServices.removeRolToMember(message.guild.member(user), theyRole);
+                removeRolToMember(message.guild.member(user), theyRole);
             } if (reaction.emoji.name === emojis[3]) {
-                await discordServices.removeRolToMember(message.guild.member(user), otherRole);
+                removeRolToMember(message.guild.member(user), otherRole);
             }
         });
 
     }
-
-};
+}
+module.exports = Pronouns;

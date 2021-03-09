@@ -1,10 +1,9 @@
 const PermissionCommand = require('../../classes/permission-command');
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
+const { discordLog, checkForRole } = require('../../discord-services');
+const { Message, MessageEmbed, Snowflake } = require('discord.js');
 const { numberPrompt, yesNoPrompt, rolePrompt, memberPrompt } = require('../../classes/prompt');
 const { getQuestion } = require('../../db/firebase/firebase-services');
-
-var interval;
+const BotGuildModel = require('../../classes/bot-guild');
 
 /**
  * The DiscordContests class handles all functions related to Discord contests. It will ask questions in set intervals and pick winners
@@ -12,8 +11,12 @@ var interval;
  * it the winner. It can also be paused and un-paused, and questions can be removed.
  * 
  * Note: all answers are case-insensitive but any extra or missing characters will be considered incorrect.
+ * @category Commands
+ * @subcategory Activity
+ * @extends PermissionCommand
+ * @guildonly
  */
-module.exports = class DiscordContests extends PermissionCommand {
+class DiscordContests extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'discord-contest',
@@ -33,13 +36,15 @@ module.exports = class DiscordContests extends PermissionCommand {
      * each key in order and asks them in the Discord channel in which it was called at the given intervals. It also listens for emojis
      * that tell it to pause, resume, or remove a specified question. 
      * @param {BotGuildModel} botGuild
-     * @param {Discord.Message} message - the message in which this command was called
+     * @param {Message} message - the message in which this command was called
      */
     async runCommand(botGuild, message) {
         // helpful prompt vars
         let channel = message.channel;
         let userId = message.author.id;
         this.botGuild = botGuild;
+
+        var interval;
 
         //ask user for time interval between questions
         var timeInterval;
@@ -62,7 +67,7 @@ module.exports = class DiscordContests extends PermissionCommand {
 
         /**
          * array of winners' ids
-         * @type {Array<Discord.Snowflake>}
+         * @type {Array<Snowflake>}
          */
         const winners = [];
 
@@ -78,7 +83,7 @@ module.exports = class DiscordContests extends PermissionCommand {
             string = 'Discord contests starting at ' + nextTime + '! Answer for a chance to win a prize!';
         }
 
-        const startEmbed = new Discord.MessageEmbed()
+        const startEmbed = new MessageEmbed()
             .setColor(this.botGuild.colors.embedColor)
             .setTitle(string)
             .setDescription('Note: Questions that have correct answers are non-case sensitive but any extra or missing symbols will be considered incorrect.\n' +
@@ -133,7 +138,7 @@ module.exports = class DiscordContests extends PermissionCommand {
             
             //sends results to Staff after all questions have been asked and stops looping
             if (data === null) {
-                discordServices.discordLog(message.guild, '<@&' + this.botGuild.roleIDs.staffRole + '> Discord contests have ended! Winners are: <@' + winners.join('> <@') + '>');
+                discordLog(message.guild, '<@&' + this.botGuild.roleIDs.staffRole + '> Discord contests have ended! Winners are: <@' + winners.join('> <@') + '>');
                 clearInterval(interval);
                 return;
             }
@@ -142,7 +147,7 @@ module.exports = class DiscordContests extends PermissionCommand {
             let answers = data.answers;
             let needAllAnswers = data.needAllAnswers;
 
-            const qEmbed = new Discord.MessageEmbed()
+            const qEmbed = new MessageEmbed()
                 .setColor(this.botGuild.colors.embedColor)
                 .setTitle('A new Discord Contest Question:')
                 .setDescription(question + '\n' + ((answers.length === 0) ? 'Staff: click the 👑 emoji to announce a winner!' : 
@@ -153,7 +158,7 @@ module.exports = class DiscordContests extends PermissionCommand {
                 if (answers.length === 0) {
                     msg.react('👑');
 
-                    const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '👑') && discordServices.checkForRole(message.guild.member(user), this.botGuild.roleIDs.staffRole);
+                    const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '👑') && checkForRole(message.guild.member(user), this.botGuild.roleIDs.staffRole);
                     const emojiCollector = msg.createReactionCollector(emojiFilter);
 
                     emojiCollector.on('collect', (reaction, user) => {
@@ -210,4 +215,5 @@ module.exports = class DiscordContests extends PermissionCommand {
             });
         }
     }
-};
+}
+module.exports = DiscordContests;

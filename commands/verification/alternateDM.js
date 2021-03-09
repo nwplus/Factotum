@@ -4,9 +4,15 @@ const { Message, MessageEmbed } = require('discord.js');
 const { messagePrompt } = require('../../classes/prompt');
 const Verification = require('../../classes/verification');
 const BotGuildModel = require('../../classes/bot-guild');
-const Discord = require('discord.js');
 
-// Command export
+/**
+ * Sends an embed with reaction collector for users to re-verify
+ * via DMs with the bot from inside the server.
+ * @category Commands
+ * @subcategory Verification
+ * @extends PermissionCommand
+ * @guildonly
+ */
 module.exports = class AlternateDM extends PermissionCommand {
     constructor(client) {
         super(client, {
