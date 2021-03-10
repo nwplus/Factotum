@@ -67,7 +67,7 @@ class ManualVerify extends PermissionCommand {
                 return;
             }
             
-            addUserData(email, member, types);
+            addUserData(email, member, types, member.guild.id);
             try {
                 await Verification.verify(member, email, message.guild, botGuild);
             } catch (error) {

@@ -43,7 +43,7 @@ class CheckMember extends PermissionCommand {
      */
     async runCommand(botGuild, message, { emailOrName }) {
         if (emailOrName.split('-').length === 1) { // check for similar emails if given argument is an email
-            var result = await firebaseServices.checkEmail(emailOrName);
+            var result = await firebaseServices.checkEmail(emailOrName, message.guild.id);
             if (result.length > 0) { // if similar emails were found, print them
                 var listMembers = '';
                 result.forEach(member => {
@@ -57,7 +57,7 @@ class CheckMember extends PermissionCommand {
         } else { // check for members of the given name if argument was a name
             var firstName = emailOrName.split('-')[0];
             var lastName = emailOrName.split('-')[1];
-            var result = firebaseServices.checkName(firstName, lastName);
+            var result = firebaseServices.checkName(firstName, lastName, message.guild.id);
             if (result != null) { // print email if member was found
                 message.channel.send('Email found for ' + firstName + ' ' + lastName + ' is: ' + result);
             } else { // message if member was not found
