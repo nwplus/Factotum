@@ -188,8 +188,9 @@ module.exports.checkName = checkName;
  * @param {String} email - email of member verified
  * @param {GuildMember} member - member verified
  * @param {String[]} types - types this user might verify for
+ * @async
  */
-function addUserData(email, member, types) {
+async function addUserData(email, member, types) {
     var newDocument = apps.get('nwPlusBotAdmin').firestore().collection('members').doc();
     /** @type {FirebaseUser} */
     let data = {
@@ -205,7 +206,7 @@ function addUserData(email, member, types) {
         }),
     };
 
-    newDocument.set(data);
+    await newDocument.set(data);
 }
 module.exports.addUserData = addUserData;
 /**
