@@ -2,7 +2,7 @@ require('firebase/firestore');
 const csv = require('csv-parser');
 const fs = require('fs');
 require('dotenv').config();
-const admin = require('firebase-admin');
+const FirebaseServices = require('./firebase-services');
 
 /** 
  * The firebase parser module has scripts to parse csv data to upload to 
@@ -10,24 +10,23 @@ const admin = require('firebase-admin');
  * @module FirebaseParser
  */
 
-// initialize firebase
-function initializeFirebaseAdmin(adminSDK, databaseURL) {
-    return admin.initializeApp({
-        credential: admin.credential.cert(adminSDK),
-        databaseURL: databaseURL,
-    });
-}
+
 const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
-let app = initializeFirebaseAdmin(adminSDK, 'https://nwplus-bot.firebaseio.com');
+let app = FirebaseServices.initializeFirebaseAdmin('factotum', adminSDK, 'https://nwplus-bot.firebaseio.com');
 
 // save second argument as type of members to add
 let type = process.argv[2];
 if (type == undefined) {
     throw new Error('no defined type!');
 }
-// optional third argument; if "true", all their previous types will be overwritten by this new one
+
+// third argument is guild id
+let guildId = process.argv[3];
+if (!guildId) throw new Error('The guild id was not defined as the third argument!');
+
+// optional fourth argument; if "true", all their previous types will be overwritten by this new one
 let overwrite = false;
-if (process.argv[3] === 'true') {
+if (process.argv[4] === 'true') {
     overwrite = true;
 }
 
@@ -51,9 +50,9 @@ fs.createReadStream('registrations.csv') // requires a registrations.csv file in
             all_regs[email] = r;
         });
 
-        var db = app.firestore();
+        let db = FirebaseServices.apps.get('factotum').firestore();
 
-        var all = db.collection('members').get().then(snapshot => {
+        var all = db.collection('guilds').doc(guildId).collection('members').get().then(snapshot => {
             // get all ids and types of members already in collections and store in idMap
             let idMap = new Map();
             snapshot.docs.forEach(doc => idMap.set(doc.id, doc.get('types'))); // keys are doc ids, values are member types
@@ -67,7 +66,7 @@ fs.createReadStream('registrations.csv') // requires a registrations.csv file in
 
                 for (let [key, value] of iterable.splice(0, 500)) {
                     key = key.toLowerCase();
-                    var docRef = db.collection('members').doc(key);
+                    var docRef = db.collection('guilds').doc(guildId).collection('members').doc(key);
                     if (idMap.has(key)) {
                         // if overwrite is on, replace the Registration's existing types with just the new type
                         if (overwrite) {
