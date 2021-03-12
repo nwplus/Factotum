@@ -193,8 +193,9 @@ module.exports.checkName = checkName;
  * @param {GuildMember} member - member verified
  * @param {String[]} types - types this user might verify for
  * @param {String} guildId - the guild id
+ * @async
  */
-function addUserData(email, member, types, guildId) {
+async function addUserData(email, member, types, guildId) {
     var newDocument = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').doc();
     /** @type {FirebaseUser} */
     let data = {
@@ -210,7 +211,7 @@ function addUserData(email, member, types, guildId) {
         }),
     };
 
-    newDocument.set(data);
+    await newDocument.set(data);
 }
 module.exports.addUserData = addUserData;
 
