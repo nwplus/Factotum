@@ -186,15 +186,17 @@ module.exports.checkName = checkName;
 /**
  * Adds new document in Firebase members collection for manually verified member
  * @param {String} email - email of member verified
- * @param {GuildMember} member - member verified
+ * @param {GuildMember} [member={}] - member verified
  * @param {String[]} types - types this user might verify for
+ * @param {String} [firstName=''] - users first name
+ * @param {String} [lastName=''] - users last name
  */
-function addUserData(email, member, types) {
+function addUserData(email, member = {}, types, firstName = '', lastName = '') {
     var newDocument = apps.get('nwPlusBotAdmin').firestore().collection('members').doc();
     /** @type {FirebaseUser} */
     let data = {
         email: email.toLowerCase(),
-        discordId: member.id,
+        discordId: member?.id || null,
         types: types.map((type, index, array) => {
             /** @type {UserType} */
             let userType = {
@@ -203,6 +205,8 @@ function addUserData(email, member, types) {
             };
             return userType;
         }),
+        firstName: firstName,
+        lastName: lastName,
     };
 
     newDocument.set(data);
