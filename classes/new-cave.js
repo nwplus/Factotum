@@ -1,7 +1,7 @@
 const Activity = require("./activities/activity");
 const TicketManager = require("./tickets/ticket-manager");
 const BotGuildModel = require('./bot-guild');
-const { Guild, Collection, Role, TextChannel, VoiceChannel } = require("discord.js");
+const { Guild, Collection, Role, TextChannel, VoiceChannel, GuildEmoji, ReactionEmoji } = require("discord.js");
 const Room = require("./room");
 
 /**
@@ -17,12 +17,12 @@ const Room = require("./room");
 
 /**
  * @typedef Emojis
- * @property {Discord.GuildEmoji | Discord.ReactionEmoji} joinTicketEmoji - emoji for mentors to accept a ticket
- * @property {Discord.GuildEmoji | Discord.ReactionEmoji} giveHelpEmoji - emoji for mentors to join an ongoing ticket
- * @property {Discord.GuildEmoji | Discord.ReactionEmoji} requestTicketEmoji - emoji for hackers to request a ticket
- * @property {Discord.GuildEmoji | Discord.ReactionEmoji} addRoleEmoji - emoji for Admins to add a mentor role
- * @property {Discord.GuildEmoji | Discord.ReactionEmoji} deleteChannelsEmoji - emoji for Admins to force delete ticket channels
- * @property {Discord.GuildEmoji | Discord.ReactionEmoji} excludeFromAutoDeleteEmoji - emoji for Admins to opt tickets in/out of garbage collector
+ * @property {GuildEmoji | ReactionEmoji} joinTicketEmoji - emoji for mentors to accept a ticket
+ * @property {GuildEmoji | ReactionEmoji} giveHelpEmoji - emoji for mentors to join an ongoing ticket
+ * @property {GuildEmoji | ReactionEmoji} requestTicketEmoji - emoji for hackers to request a ticket
+ * @property {GuildEmoji | ReactionEmoji} addRoleEmoji - emoji for Admins to add a mentor role
+ * @property {GuildEmoji | ReactionEmoji} deleteChannelsEmoji - emoji for Admins to force delete ticket channels
+ * @property {GuildEmoji | ReactionEmoji} excludeFromAutoDeleteEmoji - emoji for Admins to opt tickets in/out of garbage collector
  */
 
 /**
@@ -89,7 +89,7 @@ class Cave extends Activity {
         await super.init();
 
         this.channels.console = this.room.addRoomChannel({
-            name: `📝${this.name}-console`,
+            name: `📝${this.name}-role-selector`,
             info: {
                 topic: 'Sign yourself up for specific roles! New roles will be added as requested, only add yourself to one if you feel comfortable responding to questions about the topic.',
             },
@@ -139,4 +139,23 @@ class Cave extends Activity {
             }
         }, this.guild, this.botGuild);
     }
+
+    addDefaultFeatures() {
+        /** @type {Activity.ActivityFeature[]} */
+        let localFeatures = [
+            {
+                name: 'Add Role',
+                description: 'Add a new sub-role cave members can select and users can use to ask specific tickets.',
+                emoji: this.caveOptions.emojis.addRoleEmoji.name,
+                callback: () => {
+                    
+                },
+            }
+        ];
+
+        localFeatures.forEach(feature => this.features.set(feature.name, feature));
+
+        super.addDefaultFeatures();
+    }
 }
+module.exports = Cave;

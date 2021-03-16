@@ -24,7 +24,7 @@ const Room = require('../room');
 
 /**
  * @typedef ActivityFeature
- * @property {String} emoji
+ * @property {String} emoji - the emoji as a string
  * @property {String} name
  * @property {String} description
  * @property {Function} callback
