@@ -51,7 +51,7 @@ class AddMembers extends PermissionCommand {
 
         var holdMsg = await sendMsgToChannel(message.channel, message.author.id, 'Adding data please hold ...');
 
-        request(fileUrl).pipe(csvParser()).on('data', (data) => {
+        request(fileUrl).pipe(csvParser()).on('data', async (data) => {
 
             /** @type {String} */
             let typesString = data.types;
@@ -60,7 +60,7 @@ class AddMembers extends PermissionCommand {
 
             typesList = typesList.filter(type => botGuild.verification.verificationRoles.has(type));
             
-            if (typesList.length > 0) addUserData(data.email, undefined, typesList, data.firstName, data.lastName);
+            if (typesList.length > 0) await addUserData(data.email, typesList, message.guild.id, undefined, data.firstName, data.lastName);
         }).on('end', () => {
             holdMsg.delete();
             sendMsgToChannel(message.channel, message.author.id, 'The members have been added to the database!', 10);

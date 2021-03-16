@@ -134,7 +134,7 @@ class DiscordContests extends PermissionCommand {
          */
         async function sendQuestion() {
             //get question's parameters from db 
-            var data = await getQuestion();
+            var data = await getQuestion(message.guild.id);
             
             //sends results to Staff after all questions have been asked and stops looping
             if (data === null) {

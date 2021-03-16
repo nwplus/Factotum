@@ -104,7 +104,7 @@ class SelfCareReminders extends PermissionCommand {
         // sendReminder is the function that picks and sends the next reminder
         async function sendReminder() {
             //get reminders parameters from db 
-            var data = await getReminder();
+            var data = await getReminder(message.guild.id);
 
             //report in admin logs that there are no more messages
             //TODO: consider having it just loop through the db again?
