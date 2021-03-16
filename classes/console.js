@@ -1,5 +1,5 @@
-const { Collection, Message, TextChannel, MessageEmbed, DMChannel, MessageReaction, User, ReactionCollectorOptions, ReactionCollector } = require("discord.js");
-const { randomColor } = require("../discord-services");
+const { Collection, Message, TextChannel, MessageEmbed, DMChannel, MessageReaction, User, ReactionCollectorOptions, ReactionCollector } = require('discord.js');
+const { randomColor } = require('../discord-services');
 
 /**
  * @typedef Feature
@@ -7,6 +7,7 @@ const { randomColor } = require("../discord-services");
  * @property {String} name
  * @property {String} description
  * @property {FeatureCallback} callback
+ * @property {FeatureCallback} [removeCallback]
  */
 
 /**
@@ -15,6 +16,7 @@ const { randomColor } = require("../discord-services");
  * @param {MessageReaction} reaction - the reaction
  * @param {StopInteractingCallback} stopInteracting - callback to let the console know the user has
  * stopped interacting.
+ * @param {Console} console - the console this feature is working on
  */
 
 /**
@@ -38,10 +40,10 @@ const { randomColor } = require("../discord-services");
  */
 class Console {
 
-     /**
-      * @constructor
-      * @param {ConsoleInfo} args
-      */
+    /**
+     * @constructor
+     * @param {ConsoleInfo} args
+     */
     constructor({title, description, features = new Collection(), color = randomColor(), options}) {
 
         /**
@@ -69,6 +71,7 @@ class Console {
          * @type {ReactionCollectorOptions}
          */
         this.collectorOptions = options;
+        this.collectorOptions.dispose = true;
 
         /**
          * The message holding the console.
@@ -114,8 +117,13 @@ class Console {
 
         this.collector.on('collect', (reaction, user) => {
             this.interacting.set(user.id, user);
-            this.features.get(reaction.emoji.name)?.callback(user, reaction, this.stopInteracting)
+            this.features.get(reaction.emoji.name)?.callback(user, reaction, this.stopInteracting, this);
             if (channel.type != 'dm') reaction.users.remove(user);
+        });
+
+        this.collector.on('remove', (reaction, user) => {
+            this.interacting.set(user.id, user);
+            this.features.get(reaction.emoji.name)?.removeCallback(user, reaction, this.stopInteracting, this);
         });
     }
 
