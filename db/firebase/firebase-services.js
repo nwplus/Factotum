@@ -2,6 +2,11 @@ const { GuildMember, } = require('discord.js');
 const admin = require('firebase-admin');
 
 /**
+ * The firebase services module has firebase related helper functions.
+ * @module FirebaseServices
+ */
+
+/**
  * All the firebase apps in play stored by their name.
  * @type {Map<String, admin.app.App>}
  */
@@ -16,8 +21,8 @@ module.exports.apps = apps;
  */
 function initializeFirebaseAdmin(name, adminSDK, databaseURL) {
     let app = admin.initializeApp({
-    credential: admin.credential.cert(adminSDK),
-    databaseURL: databaseURL,
+        credential: admin.credential.cert(adminSDK),
+        databaseURL: databaseURL,
     }, name);
 
     apps.set(name, app);
@@ -44,12 +49,13 @@ module.exports.initializeFirebaseAdmin = initializeFirebaseAdmin;
 /**
  * Retrieves a question from the db that has not already been asked at the Discord Contests, then marks the question as having been 
  * asked in the db.
+ * @param {String} guildId - the id of the guild
  * @returns {Object | null} - the data object of a question or null if no more questions
  */
-async function getQuestion() {
+async function getQuestion(guildId) {
     //checks that the question has not been asked
-    var qref = apps.get('nwPlusBotAdmin').firestore().collection('questions').where('asked', '==', false).limit(1);
-    var question = (await qref.get()).docs[0];
+    let questionReference = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('questions').where('asked', '==', false).limit(1);
+    let question = (await questionReference.get()).docs[0];
     //if there exists an unasked question, change its status to asked
     if (question != undefined) {
         question.ref.update({
@@ -64,11 +70,12 @@ module.exports.getQuestion = getQuestion;
 /**
  * Retrieves self-care reminder from the db that has not already been sent, 
  * then marks the reminder as having been asked in the db.
+ * @param {String} guildId - the guild id
  * @returns {Object | null} - the data object of a reminder or null if no more reminders
  */
-async function getReminder() {
+async function getReminder(guildId) {
     //checks that the reminder has not been sent
-    var qref = apps.get('nwPlusBotAdmin').firestore().collection('reminders').where('sent', '==', false).limit(1);
+    var qref = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('reminders').where('sent', '==', false).limit(1);
     var reminder = (await qref.get()).docs[0];
     //if there reminder unsent, change its status to asked
     if (reminder != undefined) {
@@ -94,10 +101,11 @@ module.exports.getReminder = getReminder;
  * Returns an array of objects containing emails that match or are similar, along with the verification status of each, 
  * and returns empty array if none match
  * @param {String} email - email to check
+ * @param {String} guildId - the guild id
  * @returns {Promise<Array<Member>>} - array of members with similar emails to parameter email
  */
-async function checkEmail(email) {
-    const snapshot = (await apps.get('nwPlusBotAdmin').firestore().collection('members').get()).docs; // retrieve snapshot as an array of documents in the Firestore
+async function checkEmail(email, guildId) {
+    const snapshot = (await apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').get()).docs; // retrieve snapshot as an array of documents in the Firestore
     var foundEmails = [];
     snapshot.forEach(memberDoc => {
         // compare each member's email with the given email
@@ -110,7 +118,7 @@ async function checkEmail(email) {
                     email: compare,
                     types: memberDoc.get('types').map(type => type.type),
                 });
-            };
+            }
         }
     });
     return foundEmails;
@@ -130,24 +138,24 @@ function compareEmails(searchEmail, dbEmail) {
     var searchEmailChars = searchEmail.split('');
     var dbEmailChars = dbEmail.split('');
     // initialize second dimension of matrix and set all elements to 0
-    for (var i = 0; i < matrix.length; i++) {
+    for (let i = 0; i < matrix.length; i++) {
         matrix[i] = new Array(dbEmail.length);
-        for (var j = 0; j < matrix[i].length; j++) {
+        for (let j = 0; j < matrix[i].length; j++) {
             matrix[i][j] = 0;
         }
     }
     // set all elements in the top row and left column to increment by 1
-    for (var i = 1; i < searchEmail.length; i++) {
+    for (let i = 1; i < searchEmail.length; i++) {
         matrix[i][0] = i;
     }
-    for (var j = 1; j < dbEmail.length; j++) {
+    for (let j = 1; j < dbEmail.length; j++) {
         matrix[0][j] = j;
     }
     // increment Levenshtein Distance by 1 if there is a letter inserted, deleted, or swapped; store the running tally in the corresponding
     // element of the matrix
-    var substitutionCost;
-    for (var j = 1; j < dbEmail.length; j++) {
-        for (var i = 1; i < searchEmail.length; i++) {
+    let substitutionCost;
+    for (let j = 1; j < dbEmail.length; j++) {
+        for (let i = 1; i < searchEmail.length; i++) {
             if (searchEmailChars[i] === dbEmailChars[j]) {
                 substitutionCost = 0;
             } else {
@@ -163,11 +171,12 @@ function compareEmails(searchEmail, dbEmail) {
  * Finds the email of user with given first and last names 
  * @param {String} firstName - first name of member to match with database
  * @param {String} lastName - last name of member to match with database
+ * @param {String} guildId - the guild id
  * @returns {String} - email of given member
  * @private
  */
-async function checkName(firstName, lastName) {
-    const snapshot = (await apps.get('nwPlusBotAdmin').firestore().collection('members').get()).docs; // snapshot of Firestore as array of documents
+async function checkName(firstName, lastName, guildId) {
+    const snapshot = (await apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').get()).docs; // snapshot of Firestore as array of documents
     snapshot.forEach(memberDoc => {
         if (memberDoc.get('firstName') != null && memberDoc.get('lastName') != null && memberDoc.get('firstName').toLowerCase() === firstName.toLowerCase()
             && memberDoc.get('lastName').toLowerCase() === lastName.toLowerCase()) { // for each document, check if first and last names match given names
@@ -183,9 +192,11 @@ module.exports.checkName = checkName;
  * @param {String} email - email of member verified
  * @param {GuildMember} member - member verified
  * @param {String[]} types - types this user might verify for
+ * @param {String} guildId - the guild id
+ * @async
  */
-function addUserData(email, member, types) {
-    var newDocument = apps.get('nwPlusBotAdmin').firestore().collection('members').doc();
+async function addUserData(email, member, types, guildId) {
+    var newDocument = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').doc();
     /** @type {FirebaseUser} */
     let data = {
         email: email.toLowerCase(),
@@ -195,25 +206,27 @@ function addUserData(email, member, types) {
             let userType = {
                 type: type,
                 isVerified: false,
-            }
+            };
             return userType;
         }),
     };
 
-    newDocument.set(data);
+    await newDocument.set(data);
 }
 module.exports.addUserData = addUserData;
+
 /**
  * Verifies the any event member via their email.
  * @param {String} email - the user email
  * @param {String} id - the user's discord snowflake
+ * @param {String} guildId - the guild id
  * @returns {Promise<String[]>} - the types this user is verified
  * @async
  * @throws Error if the email provided was not found.
  */
-async function verify(email, id) {
-    let emailLowerCase = email.toLowerCase()
-    var userRef = apps.get('nwPlusBotAdmin').firestore().collection('members').where('email', '==', emailLowerCase).limit(1);
+async function verify(email, id, guildId) {
+    let emailLowerCase = email.toLowerCase();
+    var userRef = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').where('email', '==', emailLowerCase).limit(1);
     var user = (await userRef.get()).docs[0];
     if (user) {
         let returnTypes = [];
@@ -243,12 +256,13 @@ module.exports.verify = verify;
 /**
  * Attends the user via their discord id
  * @param {String} id - the user's discord snowflake
+ * @param {String} guildId - the guild id
  * @returns {Promise<String[]>} - the types this user is verified
  * @async
  * @throws Error if the email provided was not found.
  */
-async function attend(id) {
-    var userRef = apps.get('nwPlusBotAdmin').firestore().collection('members').where('discordId', '==', id).limit(1);
+async function attend(id, guildId) {
+    var userRef = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').where('discordId', '==', id).limit(1);
     var user = (await userRef.get()).docs[0];
 
     if (user) {
@@ -264,7 +278,7 @@ async function attend(id) {
 
         user.ref.update(data);
     } else {
-        throw new Error('The email provided was not found!');
+        throw new Error('The discord id provided was not found!');
     }
 }
 module.exports.attend = attend;

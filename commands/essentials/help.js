@@ -1,11 +1,16 @@
 // Discord.js commando requirements
 const { Command, CommandoGuild } = require('discord.js-commando');
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
+const { deleteMessage, checkForRole } = require('../../discord-services');
+const { MessageEmbed } = require('discord.js');
 const BotGuild = require('../../db/mongo/BotGuild');
 
-// Command export
-module.exports = class ClearChat extends Command {
+/**
+ * The help command shows all the available commands for the user via DM message.
+ * @category Commands
+ * @subcategory Essentials
+ * @extends Command
+ */
+class Help extends Command {
     constructor(client) {
         super(client, {
             name: 'help',
@@ -16,6 +21,9 @@ module.exports = class ClearChat extends Command {
         });
     }
 
+    /**
+     * @param {Message} message
+     */
     async run(message) {
 
         let botGuild = await BotGuild.findById(message.guild.id);
@@ -26,16 +34,18 @@ module.exports = class ClearChat extends Command {
         /** @type {Command[]} */
         var commands = [];
 
+        var commandGroups;
+
         // if message on DM then send hacker commands
         if (message.channel.type === 'dm') {
-            var commandGroups = this.client.registry.findGroups('utility', true);
+            commandGroups = this.client.registry.findGroups('utility', true);
         } else {
-            discordServices.deleteMessage(message);
+            deleteMessage(message);
 
-            if ((discordServices.checkForRole(message.member, botGuild.roleIDs.staffRole))) {
+            if ((checkForRole(message.member, botGuild.roleIDs.staffRole))) {
                 var commandGroups = this.client.registry.groups;
             } else {
-                var commandGroups = this.client.registry.findGroups('utility', true);
+                commandGroups = this.client.registry.findGroups('utility', true);
             }
         }
 
@@ -50,7 +60,7 @@ module.exports = class ClearChat extends Command {
 
         var length = commands.length;
 
-        const textEmbed = new Discord.MessageEmbed()
+        const textEmbed = new MessageEmbed()
             .setColor(botGuild.colors.embedColor)
             .setTitle('Commands Available for you')
             .setDescription('All other interactions with me will be via emoji reactions!')
@@ -68,5 +78,5 @@ module.exports = class ClearChat extends Command {
 
         message.author.send(textEmbed);
     }
-
 }
+module.exports = Help;

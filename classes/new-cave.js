@@ -1,8 +1,8 @@
-const Activity = require("./activities/activity");
-const TicketManager = require("./tickets/ticket-manager");
+const Activity = require('./activities/activity');
+const TicketManager = require('./tickets/ticket-manager');
 const BotGuildModel = require('./bot-guild');
-const { Guild, Collection, Role, TextChannel, VoiceChannel, GuildEmoji, ReactionEmoji } = require("discord.js");
-const Room = require("./room");
+const { Guild, Collection, Role, TextChannel, VoiceChannel, GuildEmoji, ReactionEmoji } = require('discord.js');
+const Room = require('./room');
 
 /**
  * @typedef CaveOptions
@@ -64,24 +64,24 @@ class Cave extends Activity {
          * value : RoleInfo
          * @type {Map<String, RoleInfo>}
          */
-         this.emojis = new Map();
+        this.emojis = new Map();
 
         /**
          * @type {TicketManager}
          */
-         this.ticketManager;
+        this.ticketManager;
 
-         /**
+        /**
           * The channels needed for a cave.
           * @type {CaveChannels}
           */
-         this.channels = {};
+        this.channels = {};
 
-         /**
+        /**
           * The public room for this cave.
           * @type {Room}
           */
-         this.publicRoom = new Room(guild, botGuild, `👉🏽👈🏽${caveOptions.name} Help`);
+        this.publicRoom = new Room(guild, botGuild, `👉🏽👈🏽${caveOptions.name} Help`);
 
     }
 

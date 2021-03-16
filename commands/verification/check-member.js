@@ -1,12 +1,16 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
 const firebaseServices = require('../../db/firebase/firebase-services');
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
-const Prompt = require('../../classes/prompt');
+const BotGuildModel = require('../../classes/bot-guild');
+const { Message } = require('discord.js');
 
-// Command export
-module.exports = class Verification extends PermissionCommand {
+/**
+ * User can check if a member is in the database by email or name.
+ * @category Commands
+ * @subcategory Verification
+ * @extends PermissionCommand
+ */
+class CheckMember extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'check-member',
@@ -23,17 +27,23 @@ module.exports = class Verification extends PermissionCommand {
 
             ],
         },
-            {
-                role: PermissionCommand.FLAGS.STAFF_ROLE,
-                roleMessage: 'Hey there, the !check-member command is only for staff!',
-                channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
-                channelMessage: 'Hey there, the !check-member command is only available in the admin console channel.',
-            });
+        {
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
+            roleMessage: 'Hey there, the !check-member command is only for staff!',
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
+            channelMessage: 'Hey there, the !check-member command is only available in the admin console channel.',
+        });
     }
 
+    /**
+     * @param {BotGuildModel} botGuild 
+     * @param {Message} message 
+     * @param {Object} args
+     * @param {String} args.emailOrName
+     */
     async runCommand(botGuild, message, { emailOrName }) {
         if (emailOrName.split('-').length === 1) { // check for similar emails if given argument is an email
-            var result = await firebaseServices.checkEmail(emailOrName);
+            var result = await firebaseServices.checkEmail(emailOrName, message.guild.id);
             if (result.length > 0) { // if similar emails were found, print them
                 var listMembers = '';
                 result.forEach(member => {
@@ -47,7 +57,7 @@ module.exports = class Verification extends PermissionCommand {
         } else { // check for members of the given name if argument was a name
             var firstName = emailOrName.split('-')[0];
             var lastName = emailOrName.split('-')[1];
-            var result = firebaseServices.checkName(firstName, lastName);
+            var result = firebaseServices.checkName(firstName, lastName, message.guild.id);
             if (result != null) { // print email if member was found
                 message.channel.send('Email found for ' + firstName + ' ' + lastName + ' is: ' + result);
             } else { // message if member was not found
@@ -56,3 +66,4 @@ module.exports = class Verification extends PermissionCommand {
         }
     }
 }
+module.exports = CheckMember;

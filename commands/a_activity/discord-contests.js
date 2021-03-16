@@ -1,12 +1,9 @@
 const PermissionCommand = require('../../classes/permission-command');
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
+const { discordLog, checkForRole } = require('../../discord-services');
+const { Message, MessageEmbed, Snowflake } = require('discord.js');
 const { numberPrompt, yesNoPrompt, rolePrompt, memberPrompt } = require('../../classes/prompt');
 const { getQuestion } = require('../../db/firebase/firebase-services');
 const BotGuildModel = require('../../classes/bot-guild');
-
-
-var interval;
 
 /**
  * The DiscordContests class handles all functions related to Discord contests. It will ask questions in set intervals and pick winners
@@ -14,8 +11,12 @@ var interval;
  * it the winner. It can also be paused and un-paused, and questions can be removed.
  * 
  * Note: all answers are case-insensitive but any extra or missing characters will be considered incorrect.
+ * @category Commands
+ * @subcategory Activity
+ * @extends PermissionCommand
+ * @guildonly
  */
-module.exports = class DiscordContests extends PermissionCommand {
+class DiscordContests extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'discord-contest',
@@ -24,10 +25,10 @@ module.exports = class DiscordContests extends PermissionCommand {
             description: 'Sends each Discord contest question once at designated times and determines winners.',
             guildOnly: true,
         },
-            {
-                role: PermissionCommand.FLAGS.STAFF_ROLE,
-                roleMessage: 'Hey there, the command !contests is only available to Staff!',
-            });
+        {
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
+            roleMessage: 'Hey there, the command !contests is only available to Staff!',
+        });
     }
 
     /**
@@ -35,13 +36,15 @@ module.exports = class DiscordContests extends PermissionCommand {
      * each key in order and asks them in the Discord channel in which it was called at the given intervals. It also listens for emojis
      * that tell it to pause, resume, or remove a specified question. 
      * @param {BotGuildModel} botGuild
-     * @param {Discord.Message} message - the message in which this command was called
+     * @param {Message} message - the message in which this command was called
      */
     async runCommand(botGuild, message) {
         // helpful prompt vars
         let channel = message.channel;
         let userId = message.author.id;
         this.botGuild = botGuild;
+
+        var interval;
 
         //ask user for time interval between questions
         var timeInterval;
@@ -50,7 +53,7 @@ module.exports = class DiscordContests extends PermissionCommand {
             timeInterval = 1000 * 60 * num;
 
             // ask user whether to start asking questions now(true) or after 1 interval (false)
-            var startNow = await yesNoPrompt({prompt: 'Type "yes" to start first question now, "no" to start one time interval from now. ', channel, userId})
+            var startNow = await yesNoPrompt({prompt: 'Type "yes" to start first question now, "no" to start one time interval from now. ', channel, userId});
 
             // id of role to mention when new questions come out
             var role = (await rolePrompt({prompt: 'What is the hacker role to notify for Discord contests?', channel, userId})).first().id;
@@ -64,23 +67,23 @@ module.exports = class DiscordContests extends PermissionCommand {
 
         /**
          * array of winners' ids
-         * @type {Array<Discord.Snowflake>}
+         * @type {Array<Snowflake>}
          */
         const winners = [];
 
         var string;
         if (startNow) {
-            string = "Discord contests starting now! Answer for a chance to win a prize!";
+            string = 'Discord contests starting now! Answer for a chance to win a prize!';
         } else {
             const time = new Date();
             //calculate time till next interval to display as the start time if startNow is false
             const nextQTime = time.valueOf() + timeInterval;
             let options = { weekday: 'long', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short'};
             var nextTime = new Date(nextQTime).toLocaleString('en-US', options);
-            string = "Discord contests starting at " + nextTime + "! Answer for a chance to win a prize!";
+            string = 'Discord contests starting at ' + nextTime + '! Answer for a chance to win a prize!';
         }
 
-        const startEmbed = new Discord.MessageEmbed()
+        const startEmbed = new MessageEmbed()
             .setColor(this.botGuild.colors.embedColor)
             .setTitle(string)
             .setDescription('Note: Questions that have correct answers are non-case sensitive but any extra or missing symbols will be considered incorrect.\n' +
@@ -116,7 +119,7 @@ module.exports = class DiscordContests extends PermissionCommand {
                     }
                 } 
             });
-        })
+        });
 
         //starts the interval, and sends the first question immediately if startNow is true
         if (startNow) {
@@ -131,11 +134,11 @@ module.exports = class DiscordContests extends PermissionCommand {
          */
         async function sendQuestion() {
             //get question's parameters from db 
-            var data = await getQuestion();
+            var data = await getQuestion(message.guild.id);
             
             //sends results to Staff after all questions have been asked and stops looping
             if (data === null) {
-                discordServices.discordLog(message.guild, "<@&" + this.botGuild.roleIDs.staffRole + "> Discord contests have ended! Winners are: <@" + winners.join('> <@') + ">");
+                discordLog(message.guild, '<@&' + this.botGuild.roleIDs.staffRole + '> Discord contests have ended! Winners are: <@' + winners.join('> <@') + '>');
                 clearInterval(interval);
                 return;
             }
@@ -144,18 +147,18 @@ module.exports = class DiscordContests extends PermissionCommand {
             let answers = data.answers;
             let needAllAnswers = data.needAllAnswers;
 
-            const qEmbed = new Discord.MessageEmbed()
+            const qEmbed = new MessageEmbed()
                 .setColor(this.botGuild.colors.embedColor)
                 .setTitle('A new Discord Contest Question:')
                 .setDescription(question + '\n' + ((answers.length === 0) ? 'Staff: click the 👑 emoji to announce a winner!' : 
-                                                                            'Exact answers only!'));
+                    'Exact answers only!'));
 
 
             message.channel.send('<@&' + role + '>' + ((answers.length === 0) ? (' - <@&' + this.botGuild.roleIDs.staffRole + '> Need manual review!') : ''), { embed: qEmbed }).then((msg) => {
                 if (answers.length === 0) {
                     msg.react('👑');
 
-                    const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '👑') && discordServices.checkForRole(message.guild.member(user), this.botGuild.roleIDs.staffRole);
+                    const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '👑') && checkForRole(message.guild.member(user), this.botGuild.roleIDs.staffRole);
                     const emojiCollector = msg.createReactionCollector(emojiFilter);
 
                     emojiCollector.on('collect', (reaction, user) => {
@@ -165,15 +168,15 @@ module.exports = class DiscordContests extends PermissionCommand {
                         memberPrompt({prompt: 'Pick a winner for the previous question by mentioning them in your next message in this channel!', channel: message.channel, userId: user.id})
                             .then(members => {
                                 winners.push(members.first().id);
-                                message.channel.send("Congrats <@" + members.first().id + "> for the best answer to the previous question!");
+                                message.channel.send('Congrats <@' + members.first().id + '> for the best answer to the previous question!');
                                 emojiCollector.stop();
-                            }).catch(error => {
+                            }).catch( () => {
                                 msg.channel.send('<@' + user.id + '> You have canceled the prompt, you can select a winner again at any time.').then(msg => msg.delete({timeout: 8000}));
-                            })
+                            });
                     });
 
-                    emojiCollector.on('end', collected => {
-                        message.channel.send("Answers are no longer being accepted. Stay tuned for the next question!");
+                    emojiCollector.on('end', () => {
+                        message.channel.send('Answers are no longer being accepted. Stay tuned for the next question!');
                     });
                 } else {
                     //automatically mark answers
@@ -185,31 +188,32 @@ module.exports = class DiscordContests extends PermissionCommand {
                             // for questions that have numbers as answers, the answer has to match at least one of the correct answers exactly
                             if (!isNaN(answers[0])) {
                                 if (answers.some(correctAnswer => m.content === correctAnswer)) {
-                                    message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + answers.join(' or ') + ".");
+                                    message.channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(' or ') + '.');
                                     winners.push(m.author.id);
                                     collector.stop();
                                 }
                             } else if (answers.some(correctAnswer => m.content.toLowerCase().includes(correctAnswer.toLowerCase()))) {
                                 //for most questions, an answer that contains at least once item of the answer array is correct
-                                message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + answers.join(' or ') + ".");
+                                message.channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(' or ') + '.');
                                 winners.push(m.author.id);
                                 collector.stop();
                             }
                         } else {
                             //check if all answers in answer array are in the message
                             if (answers.every((answer) => m.content.toLowerCase().includes(answer.toLowerCase()))) {
-                                message.channel.send("Congrats <@" + m.author.id + "> for getting the correct answer! The answer key is " + answers.join(', ') + ".");
+                                message.channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(', ') + '.');
                                 winners.push(m.author.id);
                                 collector.stop();
-                            };
+                            }
                         }
                     });
 
-                    collector.on('end', collected => {
-                        message.channel.send("Answers are no longer being accepted. Stay tuned for the next question!");
+                    collector.on('end', () => {
+                        message.channel.send('Answers are no longer being accepted. Stay tuned for the next question!');
                     });
                 }
             });
         }
     }
 }
+module.exports = DiscordContests;

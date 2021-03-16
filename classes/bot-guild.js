@@ -1,13 +1,12 @@
-const { Collection, Snowflake, TextChannel, Role, GuildAuditLogs, Message, MessageEmbed, CategoryChannel, Guild } = require('discord.js');
+const { Collection, TextChannel, Role, MessageEmbed, CategoryChannel, Guild } = require('discord.js');
 const { CommandoClient, CommandoGuild } = require('discord.js-commando');
 const winston = require('winston');
-const { cli } = require('winston/lib/winston/config');
 const discordServices = require('../discord-services');
 
 /**
  * @class
  */
-module.exports = class BotGuild {
+class BotGuild {
 
     
     /**
@@ -503,3 +502,4 @@ module.exports = class BotGuild {
         winston.loggers.get(guild.id).verbose(`Set the command status of guild ${guild.name} with id ${guild.id}`);
     }
 }
+module.exports = BotGuild;

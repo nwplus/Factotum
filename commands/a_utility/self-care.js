@@ -1,12 +1,18 @@
 const PermissionCommand = require('../../classes/permission-command');
-const discordServices = require('../../discord-services');
-const Discord = require('discord.js');
+const { discordLog } = require('../../discord-services');
+const { Message, MessageEmbed } = require('discord.js');
 const { numberPrompt, yesNoPrompt, rolePrompt } = require('../../classes/prompt');
 const { getReminder } = require('../../db/firebase/firebase-services');
 const BotGuildModel = require('../../classes/bot-guild');
 
-// Automated self-care reminders, send messages in set intervals.
-module.exports = class SelfCareReminders extends PermissionCommand {
+/**
+ * The self care command will send pre made reminders from firebase to the command channel. These reminders are self
+ * care reminders. Will prompt a role to mention for each reminder. We recommend that be an opt-in role. 
+ * @category Commands
+ * @subcategory Admin-Utility
+ * @extends PermissionCommand
+ */
+class SelfCareReminders extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'self-care',
@@ -15,15 +21,15 @@ module.exports = class SelfCareReminders extends PermissionCommand {
             description: 'Sends self-care reminders at designated times.',
             guildOnly: true,
         },
-            {
-                role: PermissionCommand.FLAGS.STAFF_ROLE,
-                roleMessage: 'Hey there, the command !self-care is only available to Staff!',
-            });
+        {
+            role: PermissionCommand.FLAGS.STAFF_ROLE,
+            roleMessage: 'Hey there, the command !self-care is only available to Staff!',
+        });
     }
 
     /**
      * @param {BotGuildModel} botGuild
-     * @param {Discord.Message} message - the message in which this command was called
+     * @param {Message} message - the message in which this command was called
      */
     async runCommand(botGuild, message) {
         var interval;
@@ -87,7 +93,7 @@ module.exports = class SelfCareReminders extends PermissionCommand {
                     }
                 } 
             });
-        })
+        });
 
         //starts the interval, and sends the first reminder immediately if startNow is true
         if (isStartNow) {
@@ -98,24 +104,25 @@ module.exports = class SelfCareReminders extends PermissionCommand {
         // sendReminder is the function that picks and sends the next reminder
         async function sendReminder() {
             //get reminders parameters from db 
-            var data = await getReminder();
+            var data = await getReminder(message.guild.id);
 
             //report in admin logs that there are no more messages
             //TODO: consider having it just loop through the db again?
             if (data === null) {
-                discordServices.discordLog(message.guild, "<@&" + botGuild.roleIDs.staffRole + "> HI, PLEASE FEED ME more self-care messages!!");
+                discordLog(message.guild, '<@&' + botGuild.roleIDs.staffRole + '> HI, PLEASE FEED ME more self-care messages!!');
                 clearInterval(interval);
                 return;
             }
 
             let reminder = data.reminder;
 
-            const qEmbed = new Discord.MessageEmbed()
+            const qEmbed = new MessageEmbed()
                 .setColor(botGuild.colors.embedColor)
-                .setTitle(reminder)
+                .setTitle(reminder);
                 // .setDescription(reminder);
             
             channel.send(`Hey <@&${roleId}> remember:`, {embed: qEmbed});
         }
     }
 }
+module.exports = SelfCareReminders;

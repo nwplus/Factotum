@@ -1,15 +1,21 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { Message } = require('discord.js');
 const Activity = require('../../classes/activities/activity');
-const BotGuildModel = require('../../classes/bot-guild');
 
-module.exports = class CreateNewActivity extends PermissionCommand {
+/**
+ * Creates a new activity and prompts the user for any information.
+ * @category Commands
+ * @subcategory Activity
+ * @extends PermissionCommand
+ * @guildonly
+ */
+class NewActivity extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'new-activity',
             group: 'a_activity',
             memberName: 'create a new activity',
-            description: 'Will create a category, a text channel and voice channel for the given activity name.',
+            description: 'Will create a new activity.',
             guildOnly: true,
             args: [
                 {
@@ -30,6 +36,8 @@ module.exports = class CreateNewActivity extends PermissionCommand {
     /**
      * @param {BotGuildModel} botGuild
      * @param {Message} message - the message in which the command was run
+     * @param {Object} args
+     * @param {String} args.activityName
      */
     async runCommand(botGuild, message, {activityName}) {
 
@@ -37,4 +45,5 @@ module.exports = class CreateNewActivity extends PermissionCommand {
         let activity = await new Activity({ activityName, guild: message.guild, roleParticipants: allowedRoles, botGuild}).init();
 
     }
-};
+}
+module.exports = NewActivity;
