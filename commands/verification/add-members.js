@@ -8,7 +8,18 @@ const BotGuildModel = require('../../classes/bot-guild');
 const { sendMsgToChannel } = require('../../discord-services');
 const winston = require('winston');
 
-
+/**
+ * @category Commands
+ * @subcategory Verification
+ * @extends PermissionCommand
+ * @guildOnly
+ * 
+ * Will prompt the user for a csv file to add members to firebase. The csv file must have the following columns with exactly those names:
+ * * email -> the user's email, must be a string
+ * * firstName -> the user's first name, must be a string
+ * * lastName -> the user's last name, must be a string
+ * * types -> the types the user will get, must be a list of strings separated by a comma, spaces are okay, types must be the same ones used when setting up verification
+ */
 class AddMembers extends PermissionCommand {
     constructor(client) {
         super(client, {
@@ -36,6 +47,8 @@ class AddMembers extends PermissionCommand {
 
         let fileUrl = msg.attachments.first().url;
 
+        request(fileUrl);
+
         var holdMsg = await sendMsgToChannel(message.channel, message.author.id, 'Adding data please hold ...');
 
         request(fileUrl).pipe(csvParser()).on('data', (data) => {
@@ -47,8 +60,7 @@ class AddMembers extends PermissionCommand {
 
             typesList = typesList.filter(type => botGuild.verification.verificationRoles.has(type));
             
-            console.log(data, typesList);
-            // addUserData(data.email, undefined, typesList, data.firstName, data.lastName);
+            if (typesList.length > 0) addUserData(data.email, undefined, typesList, data.firstName, data.lastName);
         }).on('end', () => {
             holdMsg.delete();
             sendMsgToChannel(message.channel, message.author.id, 'The members have been added to the database!', 10);
