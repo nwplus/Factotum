@@ -1,0 +1,641 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Factotum Documentation classes/bot-guild.js</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="jsdoc-styles.css">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+             
+                <a href="index.html">
+                    <h1 class="navbar-item">Factotum Discord Bot Documentation</h1>
+                </a>
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    API Documentation
+                </a>
+                
+                 
+                    
+                        <a
+                            class="link user-link "
+                            href="https://github.com/nwplus/Factotum"
+                        >
+                            Github
+                        </a>
+                    
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+                <div class="search-wrapper">
+                    <input id="search" type="text" placeholder="Search docs..." class="input">
+                </div>
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-DiscordServices.html">DiscordServices</a></li><li><a href="module-FirebaseParser.html">FirebaseParser</a></li><li><a href="module-FirebaseServices.html">FirebaseServices</a></li><li><a href="module-MainApp.html">MainApp</a></li><li><a href="module-MongoUtil.html">MongoUtil</a></li></ul><h3>Classes</h3><ul><li><a href="Activity.html">Activity</a></li><li><a href="BotGuild.html">BotGuild</a></li><li><a href="Cave.html">Cave</a></li><li><a href="CoffeeChats.html">CoffeeChats</a></li><li><a href="PermissionCommand.html">PermissionCommand</a></li><li><a href="Prompt.html">Prompt</a></li><li><a href="StampsManager.html">StampsManager</a></li><li><a href="Team.html">Team</a></li><li><a href="TeamFormation.html">TeamFormation</a></li><li><a href="Verification.html">Verification</a></li><li><a href="Workshop.html">Workshop</a></li></ul><h3><a href="global.html">Global</a></h3></div><div class="category"><h2>Commands</h2><h3>Classes / Verification</h3><ul><li><a href="AddMembers.html">AddMembers</a></li><li><a href="Attend.html">Attend</a></li><li><a href="CheckMember.html">CheckMember</a></li><li><a href="ManualVerify.html">ManualVerify</a></li><li><a href="module.exports.html">exports</a></li><li><a href="StartAttend.html">StartAttend</a></li><li><a href="Verify.html">Verify</a></li></ul><h3>Classes / Hacker-Utility</h3><ul><li><a href="AskQuestion.html">AskQuestion</a></li><li><a href="Report.html">Report</a></li></ul><h3>Classes / Stamps</h3><ul><li><a href="ChangeStampTime.html">ChangeStampTime</a></li><li><a href="PasswordStamp.html">PasswordStamp</a></li><li><a href="Raffle.html">Raffle</a></li></ul><h3>Classes / Admin-Utility</h3><ul><li><a href="ClearChat.html">ClearChat</a></li><li><a href="Pronouns.html">Pronouns</a></li><li><a href="RoleSelector.html">RoleSelector</a></li><li><a href="SelfCareReminders.html">SelfCareReminders</a></li></ul><h3>Classes / Activity</h3><ul><li><a href="DiscordContests.html">DiscordContests</a></li><li><a href="NewActivity.html">NewActivity</a></li><li><a href="NewCoffeeChats.html">NewCoffeeChats</a></li><li><a href="NewWorkshop.html">NewWorkshop</a></li></ul><h3>Classes / Boothing</h3><ul><li><a href="ERoomDirectory.html">ERoomDirectory</a></li></ul><h3>Classes / Essentials</h3><ul><li><a href="Help.html">Help</a></li><li><a href="InitBot.html">InitBot</a></li><li><a href="UnknownCommand.html">UnknownCommand</a></li></ul><h3>Classes / Start-Commands</h3><ul><li><a href="StartChannelCreation.html">StartChannelCreation</a></li><li><a href="StartMentorCave.html">StartMentorCave</a></li><li><a href="StartTeamFormation.html">StartTeamFormation</a></li><li><a href="StartTeamRoulette.html">StartTeamRoulette</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Source</p>
+                    <h1>classes/bot-guild.js</h1>
+                </header>
+                
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const { Collection, Snowflake, TextChannel, Role, GuildAuditLogs, Message, MessageEmbed, CategoryChannel, Guild } = require('discord.js');
+const { CommandoClient, CommandoGuild } = require('discord.js-commando');
+const winston = require('winston');
+const { cli } = require('winston/lib/winston/config');
+const discordServices = require('../discord-services');
+
+/**
+ * @class
+ */
+class BotGuild {
+
+    
+    /**
+     * Staff role permissions.
+     * @type {String[]}
+     */
+    static staffPermissions = ['VIEW_CHANNEL', 'MANAGE_EMOJIS', 'CHANGE_NICKNAME', 'MANAGE_NICKNAMES', 
+    'KICK_MEMBERS', 'BAN_MEMBERS', 'SEND_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES', 'ADD_REACTIONS', 'USE_EXTERNAL_EMOJIS', 'MANAGE_MESSAGES', 
+    'READ_MESSAGE_HISTORY', 'CONNECT', 'STREAM', 'SPEAK', 'PRIORITY_SPEAKER', 'USE_VAD', 'MUTE_MEMBERS', 'DEAFEN_MEMBERS', 'MOVE_MEMBERS'];
+
+    /**
+     * Admin role permissions.
+     * @type {String[]}
+     */
+    static adminPermissions = ['ADMINISTRATOR'];
+
+    /**
+     * The regular member perms.
+     * @type {String[]}
+     */
+    static memberPermissions = ['VIEW_CHANNEL', 'CHANGE_NICKNAME', 'SEND_MESSAGES', 'ADD_REACTIONS', 'READ_MESSAGE_HISTORY',
+    'CONNECT', 'SPEAK', 'STREAM', 'USE_VAD'];
+
+    /**
+     * @typedef RoleIDs
+     * @property {String} memberRole - regular guild member role ID
+     * @property {String} staffRole - the staff role ID
+     * @property {String} adminRole - the admin role ID
+     * @property {String} everyoneRole - the everyone role ID
+     */
+
+     /**
+      * @typedef ChannelIDs
+      * @property {String} adminConsole - the admin console channel ID
+      * @property {String} adminLog - the admin log channel ID
+      * @property {String} botSupportChannel - the bot support channel ID
+      */
+
+    /**
+     * @typedef VerificationInfo
+     * @property {Boolean} isEnabled - true if verification is enabled
+     * @property {String} isVerifiedRoleID - the verified role ID that holds basic permissions
+     * @property {String[]} isVerifiedRolePermissions - the permissions for the isVerified role
+     * @property {String} guestRoleID - the guest role ID used for verification
+     * @property {String} welcomeChannelID -  the welcome channel where users learn to verify
+     * @property {String} welcomeSupportChannelID - the support channel where the bot can contact users
+     */
+
+    /**
+     * @typedef AttendanceInfo
+     * @property {Boolean} isEnabled - true if attendance is enabled in this guild
+     * @property {String} attendeeRoleID - the attendee role ID used for attendance
+     */
+
+    /**
+     * @typedef StampInfo
+     * @property {Boolean} isEnabled - true if stamps are enabled
+     * @property {Collection&lt;Number, String>} stampRoleIDs - &lt;StampNumber, roleID>
+     * @property {Number} stampCollectionTime - time given to users to collect password stamps
+     */
+
+    /**
+     * @typedef ReportInfo
+     * @property {Boolean} isEnabled - true if the report functionality is enabled
+     * @property {String} incomingReportChannelID - channel where reports are sent
+     */
+
+    /**
+     * @typedef AnnouncementInfo
+     * @property {Boolean} isEnabled
+     * @property {String} announcementChannelID
+     */
+
+    /**
+     * @typedef BotGuildInfo
+     * @property {RoleIDs} roleIDs
+     * @property {ChannelIDs} channelIDs
+     */
+
+    /**
+     * Validate the information.
+     * @param {BotGuildInfo} botGuildInfo - the information to validate
+     * @throws Error if the botGuildInfo is incomplete
+     */
+    validateBotGuildInfo(botGuildInfo) {
+        if (typeof botGuildInfo != 'object') throw new Error('The bot guild information is required!');
+        if (!botGuildInfo?.roleIDs || !botGuildInfo?.roleIDs?.adminRole || !botGuildInfo?.roleIDs?.everyoneRole
+            || !botGuildInfo?.roleIDs?.memberRole || !botGuildInfo?.roleIDs?.staffRole) throw new Error('All the role IDs are required!');
+        if (!botGuildInfo?.channelIDs || !botGuildInfo?.channelIDs?.adminConsole || !botGuildInfo?.channelIDs?.adminLog
+            || !botGuildInfo?.channelIDs?.botSupportChannel) throw new Error('All the channel IDs are required!');
+    }
+
+    /**
+     * Will set the minimum required information for the bot to work on this guild.
+     * @param {BotGuildInfo} botGuildInfo 
+     * @param {CommandoClient} client
+     * @returns {Promise&lt;BotGuild>}
+     * @async
+     */
+    async readyUp(client, botGuildInfo) {
+        this.validateBotGuildInfo(botGuildInfo);
+
+        this.roleIDs = botGuildInfo.roleIDs;
+        this.channelIDs = botGuildInfo.channelIDs;
+
+        let guild = await client.guilds.fetch(this._id);
+
+        let adminRole = await guild.roles.fetch(this.roleIDs.adminRole);
+        // try giving the admins administrator perms
+        try {
+            if (!adminRole.permissions.has('ADMINISTRATOR')) 
+            {
+                adminRole.setPermissions(adminRole.permissions.add(['ADMINISTRATOR']));
+                await adminRole.setMentionable(true);
+            }
+        } catch {
+            discordServices.discordLog(guild, 'Was not able to give administrator privileges to the role &lt;@&amp;' + adminRole.id + '>. Please help me!')
+        }
+
+        // staff role set up
+        let staffRole = await guild.roles.fetch(this.roleIDs.staffRole);
+        staffRole.setMentionable(true);
+        staffRole.setHoist(true);
+        staffRole.setPermissions(staffRole.permissions.add(BotGuild.staffPermissions));
+
+        // regular member role setup
+        let memberRole = await guild.roles.fetch(this.roleIDs.memberRole);
+        memberRole.setMentionable(false);
+        memberRole.setPermissions(memberRole.permissions.add(BotGuild.memberPermissions));
+
+        // change the everyone role permissions
+        guild.roles.everyone.setPermissions(0); // no permissions for anything like the guest role
+
+        // make sure admin channels are only for admins
+        let adminCategory = guild.channels.resolve(this.channelIDs.adminConsole).parent
+        adminCategory.overwritePermissions([
+            {
+                id: adminRole.id,
+                allow: 'VIEW_CHANNEL'
+            },
+            {
+                id: this.roleIDs.everyoneRole,
+                deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'CONNECT']
+            }
+        ]);
+        adminCategory.children.forEach(channel => channel.lockPermissions());
+
+        // create the archive category
+        this.channelIDs.archiveCategory = (await this.createArchiveCategory(guild)).id;
+
+        this.isSetUpComplete = true;
+
+        winston.loggers.get(this._id).event(`The botGuild has run the ready up function.`, {event: "Bot Guild"});
+
+        return this;
+    }
+
+    /**
+     * Creates the archive category.
+     * @returns {Promise&lt;CategoryChannel>}
+     * @param {Guild} guild
+     * @private
+     * @async
+     */
+    async createArchiveCategory(guild) {
+        let overwrites = [
+            {
+                id: this.roleIDs.everyoneRole,
+                deny: ['VIEW_CHANNEL']
+            },
+            {
+                id: this.roleIDs.memberRole,
+                allow: ['VIEW_CHANNEL'],
+            },
+            {
+                id: this.roleIDs.staffRole,
+                allow: ['VIEW_CHANNEL'],
+            }
+        ];
+
+        // position is used to create archive at the very bottom!
+        var position = (guild.channels.cache.filter(channel => channel.type === 'category')).size;
+        return await guild.channels.create('💼archive', {
+            type: 'category', 
+            position: position + 1,
+            permissionOverwrites: overwrites,
+        });
+    }
+
+    /**
+     * Will create the admin channels with the correct roles.
+     * @param {Guild} guild 
+     * @param {Role} adminRole 
+     * @param {Role} everyoneRole 
+     * @returns {Promise&lt;{TextChannel, TextChannel}>} - {Admin Console, Admin Log Channel}
+     * @static
+     * @async
+     */
+    static async createAdminChannels(guild, adminRole, everyoneRole) {
+        let adminCategory = await guild.channels.create('Admins', {
+            type: 'category',
+            permissionOverwrites: [
+                {
+                    id: adminRole.id,
+                    allow: 'VIEW_CHANNEL'
+                },
+                {
+                    id: everyoneRole.id,
+                    deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'CONNECT']
+                }
+            ]
+        });
+
+        let adminConsoleChannel = await guild.channels.create('console', {
+            type: 'text',
+            parent: adminCategory,
+        });
+
+        let adminLogChannel = await guild.channels.create('logs', {
+            type: 'text',
+            parent: adminCategory,
+        });
+
+        winston.loggers.get(guild.id).event(`The botGuild has run the create admin channels function.`, {event: "Bot Guild"});
+
+        return {adminConsole: adminConsoleChannel, adminLog: adminLogChannel};
+    }
+
+    /**
+     * @typedef VerificationChannels
+     * @property {String} welcomeChannelID
+     * @property {String} welcomeChannelSupportID
+     */
+
+    /**
+     * @typedef TypeInfo
+     * @property {String} type
+     * @property {String} roleId
+     */
+
+    /**
+     * Will set up the verification process.
+     * @param {CommandoClient} client 
+     * @param {String} guestRoleId
+     * @param {TypeInfo[]} types
+     * @param {VerificationChannels} [verificationChannels]
+     * @return {Promise&lt;BotGuild>}
+     * @async
+     */
+    async setUpVerification(client, guestRoleId, types, verificationChannels = null) {
+        /** @type {CommandoGuild} */
+        let guild = await client.guilds.fetch(this._id);
+
+        try {
+            var guestRole = await guild.roles.fetch(guestRoleId);
+        } catch (error) {
+            throw new Error('The given guest role ID is not valid for this guild!');
+        }
+        guestRole.setMentionable(false);
+        guestRole.setPermissions(0);
+        this.verification.guestRoleID = guestRoleId;
+
+        if (verificationChannels) {
+            this.verification.welcomeChannelID = verificationChannels.welcomeChannelID;
+            this.verification.welcomeSupportChannelID = verificationChannels.welcomeChannelSupportID;
+
+            /** @type {TextChannel} */
+            var welcomeChannel = guild.channels.resolve(this.verification.welcomeChannelID);
+            await welcomeChannel.bulkDelete(100, true);
+        } else {
+            let welcomeCategory = await guild.channels.create('Welcome', {
+                type: 'category',
+                permissionOverwrites: [
+                    {
+                        id: this.roleIDs.everyoneRole,
+                        allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                    },
+                    {
+                        id: this.roleIDs.memberRole,
+                        deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
+                    },
+                ],
+            });
+    
+            var welcomeChannel = await guild.channels.create('welcome', {
+                type: 'text',
+                parent: welcomeCategory,
+            });
+    
+            // update welcome channel to not send messages
+            welcomeChannel.updateOverwrite(this.roleIDs.everyoneRole, {
+                SEND_MESSAGES: false,
+            });
+    
+            let welcomeChannelSupport = await guild.channels.create('welcome-support', {
+                type: 'text',
+                parent: welcomeCategory,
+            });
+
+            this.verification.welcomeChannelID = welcomeChannel.id;
+            this.verification.welcomeSupportChannelID = welcomeChannelSupport.id;
+        }
+
+        // add the types to the type map.
+        types.forEach((type, index, list) => {
+            this.verification.verificationRoles.set(type.type.toLowerCase(), type.roleId);
+        });
+
+        const embed = new MessageEmbed().setTitle('Welcome to the ' + guild.name + ' Discord server!')
+            .setDescription('In order to verify that you have registered for ' + guild.name + ', please respond to the bot (me) via DM!')
+            .addField('Do you need assistance?', 'Head over to the welcome-support channel and ping the admins!')
+            .setColor(this.colors.embedColor);
+        welcomeChannel.send(embed).then(msg => msg.pin());
+
+        
+        this.verification.isEnabled = true;
+        guild.setCommandEnabled('verify', true);
+
+        winston.loggers.get(this._id).event(`The botGuild has set up the verification system. Verification channels ${verificationChannels === null ? 'were created' : 'were given'}. 
+            Guest role id: ${guestRoleId}. The types used are: ${types.join()}`, {event: "Bot Guild"});
+        return this;
+    }
+
+    /**
+     * Sets up the attendance functionality.
+     * @param {CommandoClient} client 
+     * @param {String} attendeeRoleID
+     * @returns {Promise&lt;BotGuild>}
+     * @async
+     */
+    async setUpAttendance(client, attendeeRoleID) {
+        this.attendance.attendeeRoleID = attendeeRoleID;
+        this.attendance.isEnabled = true;
+        /** @type {CommandoGuild} */
+        let guild = await client.guilds.fetch(this._id);
+        guild.setCommandEnabled('start-attend', true);
+        guild.setCommandEnabled('attend', true);
+
+        winston.loggers.get(this._id).event(`The botGuild has set up the attendance functionality. Attendee role id is ${attendeeRoleID}`, {event: "Bot Guild"});
+        return this;
+    }
+
+    /**
+     * Will set up the firebase announcements.
+     * @param {CommandoClient} client 
+     * @param {String} announcementChannelID
+     * @async
+     */
+    async setUpAnnouncements(client, announcementChannelID) {
+        /** @type {CommandoGuild} */
+        let guild = await client.guilds.fetch(this._id);
+        
+        let announcementChannel = guild.channels.resolve(announcementChannelID);
+        if (!announcementChannel) throw new Error('The announcement channel ID is not valid for this guild!');
+
+        this.announcement.isEnabled = true;
+        this.announcement.announcementChannelID = announcementChannelID;
+
+        winston.loggers.get(this._id).event(`The botGuild has set up the announcement functionality with the channel ID ${announcementChannelID}`, {event: "Bot Guild"});
+
+        // TODO Firebase setup 
+        // start query listener for announcements
+        // nwFirebase.firestore().collection('Hackathons').doc('nwHacks2021').collection('Announcements').onSnapshot(querySnapshot => {
+        //     // exit if we are at the initial state
+        //     if (isInitState) {
+        //         isInitState = false;
+        //         return;
+        //     }
+
+        //     querySnapshot.docChanges().forEach(change => {
+        //         if (change.type === 'added') {
+        //             const embed = new Discord.MessageEmbed()
+        //                 .setColor(botGuild.colors.announcementEmbedColor)
+        //                 .setTitle('Announcement')
+        //                 .setDescription(change.doc.data()['content']);
+
+        //             announcementChannel.send('&lt;@&amp;' + discordServices.roleIDs.attendeeRole + '>', { embed: embed });
+        //         }
+        //     });
+        // });
+    }
+
+    /**
+     * Creates the stamps roles and adds them to this BotGuild. If stamps roles are given 
+     * then no roles are created!
+     * @param {CommandoClient} client 
+     * @param {Number} [stampAmount] - amount of stamps to create
+     * @param {Number} [stampCollectionTime] - time given to users to send password to get stamp
+     * @param {String[]} [stampRoleIDs] - current stamp roles to use
+     * @returns {Promise&lt;BotGuild>}
+     * @async
+     */
+    async setUpStamps(client, stampAmount = 0, stampCollectionTime = 60, stampRoleIDs = []) {
+        let guild = await client.guilds.fetch(this._id);
+
+        if (stampRoleIDs.length > 0) {
+            stampRoleIDs.forEach((ID, index, array) => {
+                this.addStamp(ID, index);
+            });
+            winston.loggers.get(this._id).event(`The botGuild has set up the stamp functionality. The stamp roles were given. Stamp collection time is set at ${stampCollectionTime}.` [{stampIds: stampRoleIDs}]);
+        } else {
+            for (let i = 0; i &lt; stampAmount; i++) {
+                let role = await guild.roles.create({
+                    data: {
+                        name: 'Stamp Role #' + i,
+                        hoist: true,
+                        color: discordServices.randomColor(),
+                    }
+                });
+
+                this.addStamp(role.id, i);
+            }
+            winston.loggers.get(this._id).event(`The botGuild has set up the stamp functionality. Stamps were created by me, I created ${stampAmount} stamps. Stamp collection time is set at ${stampCollectionTime}.`, {event: "Bot Guild"});
+        }
+
+        this.stamps.stampCollectionTime = stampCollectionTime;
+        this.stamps.isEnabled = true;
+
+        this.setCommandStatus(client);
+
+        return this;
+    }
+
+    /**
+     * Adds a stamp to the stamp collection. Does not save the mongoose document!
+     * @param {String} roleId 
+     * @param {Number} stampNumber 
+     */
+    addStamp(roleId, stampNumber) {
+        if (stampNumber === 0) this.stamps.stamp0thRoleId = roleId;
+        this.stamps.stampRoleIDs.set(roleId, stampNumber);
+        winston.loggers.get(this._id).event(`The botGuild has added a stamp with number ${stampNumber} linked to role id ${roleId}`, {event: "Bot Guild"});
+    }
+
+    /**
+     * Enables the report commands and sends the reports to the given channel.
+     * @param {CommandoClient} client 
+     * @param {String} incomingReportChannelID 
+     * @returns {Promise&lt;BotGuild>}
+     * @async
+     */
+    async setUpReport(client, incomingReportChannelID) {
+        /** @type {CommandoGuild} */
+        let guild = await client.guilds.fetch(this._id);
+
+        this.report.isEnabled = true;
+        this.report.incomingReportChannelID = incomingReportChannelID;
+
+        guild.setCommandEnabled('report', true);
+
+        winston.loggers.get(this._id).event(`The botGuild has set up the report functionality. It will send reports to the channel id ${incomingReportChannelID}`, {event: "Bot Guild"});
+        return this;
+    }
+
+    /**
+     * Will enable the ask command.
+     * @param {CommandoClient} client 
+     */
+    async setUpAsk(client) {
+        /** @type {CommandoGuild} */
+        let guild = await client.guilds.fetch(this._id);
+        this.ask.isEnabled = true;
+        guild.setCommandEnabled('ask', true);
+        winston.loggers.get(this._id).event(`The botGuild has enabled the ask command!`, {event: "Bot Guild"});
+    }
+
+    /**
+     * Will enable and disable the appropriate commands by looking at what is enabled in the botGuild.
+     * @param {CommandoClient} client
+     * @async 
+     */
+    async setCommandStatus(client) {
+        /** @type {CommandoGuild} */
+        let guild = await client.guilds.fetch(this._id);
+
+        guild.setCommandEnabled('verify', this.verification.isEnabled);
+        guild.setCommandEnabled('add-members', this.verification.isEnabled);
+        guild.setCommandEnabled('manual-verify', this.verification.isEnabled);
+        guild.setCommandEnabled('check-member', this.verification.isEnabled | this.attendance.isEnabled);
+        guild.setCommandEnabled('start-attend', this.attendance.isEnabled);
+        guild.setCommandEnabled('attend',  this.attendance.isEnabled);
+        guild.setGroupEnabled('verification', this.attendance.isEnabled || this.verification.isEnabled);
+
+        guild.setGroupEnabled('stamps', this.stamps.isEnabled);
+
+        guild.setCommandEnabled('report', this.report.isEnabled);
+        guild.setCommandEnabled('ask', this.ask.isEnabled);
+        guild.setGroupEnabled('hacker_utility', this.ask.isEnabled || this.report.isEnabled);
+        
+        client.registry.groups.forEach((group, key, map) => {
+            if (group.id.startsWith('a_')) guild.setGroupEnabled(group, this.isSetUpComplete);
+        });
+
+        winston.loggers.get(guild.id).verbose(`Set the command status of guild ${guild.name} with id ${guild.id}`);
+    }
+}
+module.exports = BotGuild;</code></pre>
+        </article>
+    </section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+<script src="scripts/search.js"> </script>
+
+</body>
+</html>

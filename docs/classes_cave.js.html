@@ -1,0 +1,861 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Factotum Documentation classes/cave.js</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="jsdoc-styles.css">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+             
+                <a href="index.html">
+                    <h1 class="navbar-item">Factotum Discord Bot Documentation</h1>
+                </a>
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    API Documentation
+                </a>
+                
+                 
+                    
+                        <a
+                            class="link user-link "
+                            href="https://github.com/nwplus/Factotum"
+                        >
+                            Github
+                        </a>
+                    
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+                <div class="search-wrapper">
+                    <input id="search" type="text" placeholder="Search docs..." class="input">
+                </div>
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-DiscordServices.html">DiscordServices</a></li><li><a href="module-FirebaseParser.html">FirebaseParser</a></li><li><a href="module-FirebaseServices.html">FirebaseServices</a></li><li><a href="module-MainApp.html">MainApp</a></li><li><a href="module-MongoUtil.html">MongoUtil</a></li></ul><h3>Classes</h3><ul><li><a href="Activity.html">Activity</a></li><li><a href="BotGuild.html">BotGuild</a></li><li><a href="Cave.html">Cave</a></li><li><a href="CoffeeChats.html">CoffeeChats</a></li><li><a href="PermissionCommand.html">PermissionCommand</a></li><li><a href="Prompt.html">Prompt</a></li><li><a href="StampsManager.html">StampsManager</a></li><li><a href="Team.html">Team</a></li><li><a href="TeamFormation.html">TeamFormation</a></li><li><a href="Verification.html">Verification</a></li><li><a href="Workshop.html">Workshop</a></li></ul><h3><a href="global.html">Global</a></h3></div><div class="category"><h2>Commands</h2><h3>Classes / Verification</h3><ul><li><a href="AddMembers.html">AddMembers</a></li><li><a href="Attend.html">Attend</a></li><li><a href="CheckMember.html">CheckMember</a></li><li><a href="ManualVerify.html">ManualVerify</a></li><li><a href="module.exports.html">exports</a></li><li><a href="StartAttend.html">StartAttend</a></li><li><a href="Verify.html">Verify</a></li></ul><h3>Classes / Hacker-Utility</h3><ul><li><a href="AskQuestion.html">AskQuestion</a></li><li><a href="Report.html">Report</a></li></ul><h3>Classes / Stamps</h3><ul><li><a href="ChangeStampTime.html">ChangeStampTime</a></li><li><a href="PasswordStamp.html">PasswordStamp</a></li><li><a href="Raffle.html">Raffle</a></li></ul><h3>Classes / Admin-Utility</h3><ul><li><a href="ClearChat.html">ClearChat</a></li><li><a href="Pronouns.html">Pronouns</a></li><li><a href="RoleSelector.html">RoleSelector</a></li><li><a href="SelfCareReminders.html">SelfCareReminders</a></li></ul><h3>Classes / Activity</h3><ul><li><a href="DiscordContests.html">DiscordContests</a></li><li><a href="NewActivity.html">NewActivity</a></li><li><a href="NewCoffeeChats.html">NewCoffeeChats</a></li><li><a href="NewWorkshop.html">NewWorkshop</a></li></ul><h3>Classes / Boothing</h3><ul><li><a href="ERoomDirectory.html">ERoomDirectory</a></li></ul><h3>Classes / Essentials</h3><ul><li><a href="Help.html">Help</a></li><li><a href="InitBot.html">InitBot</a></li><li><a href="UnknownCommand.html">UnknownCommand</a></li></ul><h3>Classes / Start-Commands</h3><ul><li><a href="StartChannelCreation.html">StartChannelCreation</a></li><li><a href="StartMentorCave.html">StartMentorCave</a></li><li><a href="StartTeamFormation.html">StartTeamFormation</a></li><li><a href="StartTeamRoulette.html">StartTeamRoulette</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Source</p>
+                    <h1>classes/cave.js</h1>
+                </header>
+                
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const Discord = require('discord.js');
+const discordServices = require('../discord-services');
+const Prompt = require('../classes/prompt');
+const Ticket = require('../classes/ticket');
+const BotGuild = require('../db/mongo/BotGuild');
+const BotGuildModel = require('./bot-guild');
+const winston = require('winston');
+
+class Cave {
+
+    /**
+     * @typedef CaveOptions
+     * @property {String} name - the name of the cave category
+     * @property {String} preEmojis - any pre name emojis
+     * @property {String} preRoleText - the text to add before every role name, not including '-'
+     * @property {String} color - the role color to use for this cave
+     * @property {Discord.Role} role - the role associated with this cave
+     * @property {Emojis} emojis - object holding emojis to use in this cave
+     * @property {Times} times - object holding times to use in this cave
+     */
+
+    /**
+     * @typedef Emojis
+     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} joinTicketEmoji - emoji for mentors to accept a ticket
+     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} giveHelpEmoji - emoji for mentors to join an ongoing ticket
+     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} requestTicketEmoji - emoji for hackers to request a ticket
+     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} addRoleEmoji - emoji for Admins to add a mentor role
+     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} deleteChannelsEmoji - emoji for Admins to force delete ticket channels
+     * @property {Discord.GuildEmoji | Discord.ReactionEmoji} excludeFromAutoDeleteEmoji - emoji for Admins to opt tickets in/out of garbage collector
+     */
+
+    /**
+      * @typedef Times
+      * @property {Number} inactivePeriod - number of minutes a ticket channel will be inactive before bot starts to delete it
+      * @property {Number} bufferTime - number of minutes the bot will wait for a response before deleting ticket
+      * @property {Number} reminderTime - number of minutes the bot will wait before reminding mentors of unaccepted tickets
+      */
+
+    /**
+     * @typedef RoleInfo
+     * @property {String} name - the role name
+     * @property {Discord.Snowflake} id - the role id (snowflake)
+     * @property {Number} activeUsers - number of users with this role
+     */
+
+    /**
+     * @typedef PublicChannels
+     * @property {Discord.CategoryChannel} category - the public category
+     * @property {Discord.TextChannel} outgoingTickets - the outgoing ticket channel
+     */
+
+    /**
+     * @typedef PrivateChannels
+     * @property {Discord.CategoryChannel} category - the private category
+     * @property {Discord.TextChannel} generalText - the general text channel
+     * @property {Discord.TextChannel} console - the console channel
+     * @property {Discord.TextChannel} incomingTickets - the incoming tickets channel
+     * @property {Array&lt;Discord.VoiceChannel>} voiceChannels - the cave voice channels
+     */
+
+    /**
+     * @typedef EmbedMessages
+     * @property {Discord.Message} adminConsole - the admin console embed message
+     * @property {Discord.Message} console - the console embed message
+     * @property {Discord.Message} request - the request embed message
+     */
+
+
+    /**
+     * Constructor to create a cave.
+     * @param {CaveOptions} caveOptions - the cave options
+     * @param {BotGuildModel} botGuild
+     */
+    constructor(caveOptions, botGuild) {
+
+        /**
+         * The cave options.
+         * @type {CaveOptions}
+         */
+        this.caveOptions;
+
+        this.validateCaveOptions(caveOptions);
+
+        /**
+         * The private channels of this cave.
+         * @type {PrivateChannels}
+         */
+        this.privateChannels = {
+            voiceChannels: [],
+        };
+
+        /**
+         * The public channel of this cave.
+         * @type {PublicChannels}
+         */
+        this.publicChannels = {};
+
+        /**
+         * The adminEmojis
+         * @type {Discord.Collection&lt;String, Discord.GuildEmoji | Discord.ReactionEmoji>}
+         */
+        this.adminEmojis = new Discord.Collection();
+        this.adminEmojis.set(this.caveOptions.emojis.addRoleEmoji.name, this.caveOptions.emojis.addRoleEmoji);
+        this.adminEmojis.set(this.caveOptions.emojis.deleteChannelsEmoji.name, this.caveOptions.emojis.deleteChannelsEmoji);
+        this.adminEmojis.set(this.caveOptions.emojis.excludeFromAutoDeleteEmoji.name, this.caveOptions.emojis.excludeFromAutoDeleteEmoji);
+
+        /**
+         * The emojis to use for roles.
+         * key :  emoji id, 
+         * value : RoleInfo
+         * @type {Map&lt;String, RoleInfo>}
+         */
+        this.emojis = new Map();
+
+        /**
+         * The embed messages
+         * @type {EmbedMessages}
+         */
+        this.embedMessages = {};
+
+        /**
+         * The ticket count.
+         * @type {Number}
+         */
+        this.ticketCount = 0;
+
+        this.tickets = new Discord.Collection();
+
+        /**
+         * @type {BotGuildModel}
+         */
+        this.botGuild = botGuild;
+
+        winston.loggers.get(this.botGuild._id).event(`A cave named ${caveOptions.name} was created.`, {data: {caveOptions: caveOptions}, event: 'Cave'});
+    }
+
+
+    /**
+     * Create all the channels needed for this cave.
+     * @param {Discord.GuildChannelManager} guildChannelManager - guild manager to create channels
+     * @async
+     */
+    async init(guildChannelManager) {
+        await this.initPrivate(guildChannelManager);
+        await this.initPublic(guildChannelManager);
+        winston.loggers.get(this.botGuild._id).event(`The cave named ${this.caveOptions.name} has been initialized!`, {event: 'Cave'});
+    }
+
+
+
+    /**
+     * Finds all the already created channels for this cave.
+     * @param {Discord.TextChannel} channel - the channel where to prompt
+     * @param {Discord.Snowflake} userId - the user to prompt
+     * @async
+     */
+    async find(channel, userId) {
+        try {
+            let console = (await Prompt.channelPrompt({prompt: 'What is the cave\'s console channel?', channel, userId})).first();
+            let generalText = (await Prompt.channelPrompt({prompt: 'What is the cave\'s general text channel?', channel, userId})).first();
+            let incomingTickets = (await Prompt.channelPrompt({prompt: 'What is the cave\'s incoming tickets channel?', channel, userId})).first();
+            let outgoingTickets = (await Prompt.channelPrompt({prompt: 'What is the cave\'s outgoing tickets channel?', channel, userId})).first();
+
+            this.privateChannels = {
+                console: console,
+                category: console.parent,
+                generalText: generalText,
+                incomingTickets: incomingTickets,
+                voiceChannels: console.parent.children.filter(channel => channel.type === 'voice').array(),
+            };
+    
+            this.publicChannels = {
+                outgoingTickets: outgoingTickets,
+                category: outgoingTickets.parent,
+            };
+    
+            // add request ticket channel to black list
+            this.botGuild.blackList.set(this.publicChannels.outgoingTickets.id, 5000);
+            this.botGuild.save();
+            
+            // delete everything from incoming outgoing and console
+            this.publicChannels.outgoingTickets.bulkDelete(100, true);
+            this.privateChannels.console.bulkDelete(100, true);
+            this.privateChannels.incomingTickets.bulkDelete(100, true);
+            winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} found all the channels necessary created by the user.`, { event: 'Cave', data: {privateChannels: this.privateChannels, publicChannels: this.publicChannels}});
+        } catch (error) {
+            winston.loggers.get(this.botGuild._id).warning(`The cave ${this.caveOptions.name} was finding the channels, but found the error ${error}.`, {event: 'Cave'});
+            try {
+                var isSure = await Prompt.yesNoPrompt({prompt: 'Are you sure you want to cancel? If you say yes, the channels will be created by me.', channel, userId});
+            } catch (error) {
+                winston.loggers.get(this.botGuild._id).warning(`The cave ${this.caveOptions.name} asked the user if they want to cancel the cave find and got this error ${error}`, {event: 'Cave'});
+                this.init(channel.guild.channels);
+            }
+
+            if (isSure) {
+                winston.loggers.get(this.botGuild._id).verbose(`The cave ${this.caveOptions.name} was finding channels, got canceled and will now create the channels.`, {event: 'Cave'});
+                this.init(channel.guild.channels);
+            } else {
+                winston.loggers.get(this.botGuild._id).verbose(`The cave ${this.caveOptions.name} was finding channels, got canceled, but user re-triggered the find function.`, {event: 'Cave'});
+                this.find(channel, userId);
+            }
+        }
+    }
+
+    /**
+     * Validates and set the cave options.
+     * @param {CaveOptions} caveOptions - the cave options to validate
+     * @param {Discord.Guild} guild - the guild where this cave is happening
+     * @private
+     */
+    validateCaveOptions(caveOptions) {
+        if (typeof caveOptions.name != 'string' &amp;&amp; caveOptions.name.length === 0) throw new Error('caveOptions.name must be a non empty string');
+        if (typeof caveOptions.preEmojis != 'string') throw new Error('The caveOptions.preEmojis must be a string of emojis!');
+        if (typeof caveOptions.preRoleText != 'string' &amp;&amp; caveOptions.preRoleText.length === 0) throw new Error('The caveOptions.preRoleText must be a non empty string!');
+        if (typeof caveOptions.color != 'string' &amp;&amp; caveOptions.color.length === 0) throw new Error('The caveOptions.color must be a non empty string!');
+        if (!(caveOptions.role instanceof Discord.Role)) throw new Error('The caveOptions.role must be Role object!');
+        for (const emoji in caveOptions.emojis) {
+            if (!(emoji instanceof Discord.GuildEmoji) &amp;&amp; !(emoji instanceof Discord.ReactionEmoji)) throw new Error('The ' + emoji + 'must be a GuildEmoji or ReactionEmoji!');
+        }
+        this.caveOptions = caveOptions;
+    }
+
+
+    /**
+     * Creates all the private channels necessary!
+     * @param {Discord.GuildChannelManager} guildChannelManager - guild manager to create channels
+     * @private
+     * @async
+     */
+    async initPrivate(guildChannelManager) {
+        // Create category
+        this.privateChannels.category = await guildChannelManager.create(this.caveOptions.preEmojis + this.caveOptions.name + ' Cave', {
+            type: 'category',  
+            permissionOverwrites: [
+                {
+                    id: this.botGuild.roleIDs.everyoneRole,
+                    deny: ['VIEW_CHANNEL']
+                },
+                {
+                    id: this.caveOptions.role.id,
+                    allow: ['VIEW_CHANNEL'],
+                    deny: ['SEND_MESSAGES'],
+                },
+                {
+                    id: this.botGuild.roleIDs.staffRole,
+                    allow: ['VIEW_CHANNEL'],
+                }
+            ]
+        });
+
+        // general text channel to talk
+        this.privateChannels.generalText = await guildChannelManager.create('✍' + this.caveOptions.name + '-banter', {
+            type: 'text',
+            parent: this.privateChannels.category,
+            topic: 'For any and all social interactions. This entire category is only for ' + this.caveOptions.name + 's and staff!',
+        }).then(channel => channel.updateOverwrite(this.caveOptions.role.id, { SEND_MESSAGES: true }));
+
+
+        // console channel to ask for tags
+        this.privateChannels.console = await guildChannelManager.create('📝' + this.caveOptions.name + '-console', {
+            type: 'text',
+            parent: this.privateChannels.category,
+            topic: 'Sign yourself up for specific roles! New roles will be added as requested, only add yourself to one if you feel comfortable responding to questions about the topic.',
+        });
+
+        // incoming tickets
+        this.privateChannels.incomingTickets = await guildChannelManager.create('📨incoming-tickets', {
+            type: 'text',
+            parent: this.privateChannels.category,
+            topic: 'All incoming tickets! Those in yellow still need help!!! Those in green have been handled by someone.',
+        });
+
+        // create a couple of voice channels
+        for (var i = 0; i &lt; 3; i++) {
+            this.privateChannels.voiceChannels.push(await guildChannelManager.create('🗣️ Room ' + i, { type: 'voice', parent: this.privateChannels.category }));
+        }
+
+        winston.loggers.get(this.botGuild._id).verbose(`The cave ${this.caveOptions.name} created the private channels. `, { event: 'Cave', data: {privateChannels: this.privateChannels}});
+    }
+
+    /**
+     * Creates the public channels needed for this cave.
+     * @param {Discord.GuildChannelManager} guildChannelManager - guild manager to create channels
+     * @private
+     * @async
+     */
+    async initPublic(guildChannelManager) {
+        // create help public channels category
+        this.publicChannels.category = await guildChannelManager.create('👉🏽👈🏽' + this.caveOptions.name + ' Help', {
+            type: 'category',
+        });
+
+        // create request ticket channel
+        this.publicChannels.outgoingTickets = await guildChannelManager.create('🎫request-ticket', {
+            type: 'text',
+            parent: this.publicChannels.category,
+            topic: 'Do you need help? Request a ticket here! Do not send messages, they will be automatically removed!',
+        });
+
+        // add request ticket channel to black list
+        this.botGuild.blackList.set(this.publicChannels.outgoingTickets.id, 5000);
+        this.botGuild.save();
+
+        winston.loggers.get(this.botGuild._id).verbose(`The cave ${this.caveOptions.name} created the public channels. `, { event: 'Cave', data: {publicChannels: this.publicChannels}});
+    }
+
+    /**
+     * Sends all the necessary embeds to the channels.
+     * @param {Discord.TextChannel} adminConsole - the admin console
+     * @async
+     */
+    async sendConsoleEmbeds(adminConsole) {
+        await this.sendAdminConsole(adminConsole);
+
+        await this.sendCaveConsole();
+
+        await this.sendRequestConsole();
+
+        winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} has sent all console embeds.`, {event: 'Cave'});
+    }
+
+    /**
+     * Send the request ticket console and creates the reaction collector.
+     * @async
+     * @private
+     */
+    async sendRequestConsole() {
+        // cave request ticket embed
+        const requestTicketEmbed = new Discord.MessageEmbed()
+            .setColor(this.botGuild.colors.embedColor)
+            .setTitle('Ticket Request System')
+            .setDescription('If you or your team want to talk with a ' + this.caveOptions.name + ' follow the instructions below:' +
+                '\n* React to this message with the correct emoji and follow instructions' +
+                '\n* Once done, wait for someone to accept your ticket!')
+            .addField('For a general ticket:', 'React with ' + this.caveOptions.emojis.requestTicketEmoji.toString());
+        this.embedMessages.request = await (await this.publicChannels.outgoingTickets.send(requestTicketEmbed)).pin();
+        this.embedMessages.request.react(this.caveOptions.emojis.requestTicketEmoji);
+
+        /**
+         * collection of users already working on a ticket
+         * @type {Discord.Collection&lt;Discord.Snowflake, Discord.User | Discord.GuildMember>} - &lt;ID, user | member>
+         */
+        const usersSubmittingTicket = new Discord.Collection();
+
+        const collector = this.embedMessages.request.createReactionCollector((reaction, user) => !user.bot &amp;&amp; !usersSubmittingTicket.has(user.id) &amp;&amp; (this.emojis.has(reaction.emoji.name) || reaction.emoji.name === this.caveOptions.emojis.requestTicketEmoji.name));
+
+        collector.on('collect', async (reaction, user) => {
+
+            // check if role they request has users in it
+            if (this.emojis.has(reaction.emoji.name) &amp;&amp; this.emojis.get(reaction.emoji.name).activeUsers === 0) {
+                this.publicChannels.outgoingTickets.send('&lt;@' + user.id + '> There are no mentors available with that role. Please request another role or the general role!').then(msg => msg.delete({ timeout: 10000 }));
+                winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.caveOptions.name} received a ticket from user ${user.id} but was canceled due to no mentor having the role ${this.emojis.get(reaction.emoji.name).name}.`, {event: 'Cave'});
+                return;
+            }
+            
+            // currently submitting a ticket
+            usersSubmittingTicket.set(user.id, user);
+
+            try {
+                var promptMsg = await Prompt.messagePrompt({prompt: 'Please send ONE message with: \n* A one liner of your problem ' + 
+                                    '\n* Mention your team members using @friendName .', channel: this.publicChannels.outgoingTickets, userId: user.id}, 'string', 45);
+            } catch (error) {
+                // prompt was canceled, cancel ticket and return;
+                usersSubmittingTicket.delete(user.id);
+                winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.caveOptions.name} received a ticket from user ${user.id} but was canceled due to error ${error}.`, {event: 'Cave'});
+                return;
+            }
+            
+            usersSubmittingTicket.delete(user.id);
+
+            var role;
+            if (this.emojis.has(reaction.emoji.name)) role = this.emojis.get(reaction.emoji.name);
+            else role = this.caveOptions.role;
+
+            this.ticketCount ++;
+
+            // the embed used in the incoming tickets channel to let mentors know about the question
+            const incomingTicketEmbed = new Discord.MessageEmbed()
+                .setColor(this.caveOptions.color)
+                .setTitle('New Ticket! - ' + this.ticketCount)
+                .setDescription('&lt;@' + user.id + '> has the question: ' + promptMsg.content)
+                .addField('They are requesting:', '&lt;@&amp;' + role.id + '>')
+                .addField('Can you help them?', 'If so, react to this message with ' + this.caveOptions.emojis.giveHelpEmoji.name + '.');
+
+            let ticketMsg = await this.privateChannels.incomingTickets.send('&lt;@&amp;' + role.id + '>', incomingTicketEmbed);
+
+            ticketMsg.react(this.caveOptions.emojis.giveHelpEmoji);
+
+            // initialize a ticket and add it to the Collection of active tickets
+            var hackers = Array.from(promptMsg.mentions.users.values());
+            hackers.push(user);
+            let ticket = new Ticket(promptMsg.guild, promptMsg.content, this, user, hackers, this.ticketCount, ticketMsg, 
+                this.caveOptions.times.inactivePeriod, this.caveOptions.times.bufferTime);
+            this.tickets.set(this.ticketCount, ticket);
+
+            winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.caveOptions.name} has received a ticket from user ${user.id} for role ${role.name} 
+                with id ${role.id}. This is ticket number ${this.ticketCount}.`, {event: 'Cave'});
+        });
+    }
+
+
+    /**
+     * Will send the cave console embed and create the collector.
+     * @private
+     * @async
+     */
+    async sendCaveConsole() {
+        // cave console embed
+        const caveConsoleEmbed = new Discord.MessageEmbed()
+            .setColor(this.caveOptions.color)
+            .setTitle(this.caveOptions.name + ' Role Console')
+            .setDescription('Hi! Thank you for being here. \n* Please read over all the available roles. \n* Choose those you would feel ' +
+                'comfortable answering questions for. \n* When someone sends a help ticket, and has specified one of your roles, you will get pinged!');
+        this.embedMessages.console = await (await this.privateChannels.console.send(caveConsoleEmbed)).pin();
+
+        const collector = this.embedMessages.console.createReactionCollector((reaction, user) => !user.bot &amp;&amp; this.emojis.has(reaction.emoji.name), { dispose: true });
+
+        collector.on('collect', async (reaction, user) => {
+            let member = reaction.message.guild.member(user);
+            let role = this.emojis.get(reaction.emoji.name);
+
+            if (member.roles.cache.has(role.id)) {
+                this.privateChannels.console.send('&lt;@' + user.id + '> You already have the ' + role.name + ' role!').then(msg => msg.delete({ timeout: 10000 }));
+                winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.caveOptions.name} had a add role request from user ${user.id} but could not complete as 
+                    he already has that role ${role.name} with id ${role.id}`, {event: 'Cave'});
+                return;
+            }
+
+            discordServices.addRoleToMember(member, role.id);
+            role.activeUsers += 1;
+            this.privateChannels.console.send('&lt;@' + user.id + '> You have been granted the ' + role.name + ' role!').then(msg => msg.delete({ timeout: 10000 }));
+            winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.caveOptions.name} gave the user ${user.id} the role ${role.name} with id ${role.id}.`, {event: 'Cave'});
+        });
+
+        collector.on('remove', (reaction, user) => {
+            let member = reaction.message.guild.member(user);
+            let role = this.emojis.get(reaction.emoji.name);
+
+            discordServices.removeRolToMember(member, role.id);
+            role.activeUsers -= 1;
+            this.privateChannels.console.send('&lt;@' + user.id + '> You have lost the ' + role.name + ' role!').then(msg => msg.delete({ timeout: 10000 }));
+            winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.caveOptions.name} has removed the users ${user.id}'s role named ${role.name} with id ${role.id}.`, {event: 'Cave'});
+        });
+    }
+
+
+    /**
+     * Will send the admin console embed and create the collector.
+     * @param {Discord.TextChannel} adminConsole - the admin console
+     * @private
+     * @async
+     */
+    async sendAdminConsole(adminConsole) {
+        // admin console embed
+        const msgEmbed = new Discord.MessageEmbed()
+            .setColor(this.botGuild.colors.embedColor)
+            .setTitle(this.caveOptions.name + ' Cave Console')
+            .setDescription(this.caveOptions.name + ' cave options are found below.')
+            .addField('Add a role', 'To add a role please click the ' + this.caveOptions.emojis.addRoleEmoji.toString() + ' emoji.')
+            .addField('Delete ticket channels', 'Click the ' + this.caveOptions.emojis.deleteChannelsEmoji.toString() + ' emoji to delete some or all mentor ticket channels.\n' +
+                'Note that if some of a ticket\'s channels are deleted, it will be automatically excluded from the garbage collector.')
+            .addField('Include/Exclude tickets from garbage collector', 'Click the ' + this.caveOptions.emojis.excludeFromAutoDeleteEmoji.toString() +
+                ' emoji to include/exclude a ticket from being automatically deleted for inactivity or mentors leaving. (All tickets are included by default, and the status of partially deleted tickets cannot be changed)');
+        this.embedMessages.adminConsole = await adminConsole.send(msgEmbed);
+        this.adminEmojis.forEach(emoji => this.embedMessages.adminConsole.react(emoji));
+
+        // create collector
+        const collector = this.embedMessages.adminConsole.createReactionCollector((reaction, user) => !user.bot &amp;&amp; this.adminEmojis.has(reaction.emoji.name));
+
+        // on emoji reaction
+        collector.on('collect', async (reaction, admin) => {
+            // helpful prompt vars
+            let channel = adminConsole;
+            let userId = admin.id;
+
+            // remove reaction
+            reaction.users.remove(admin.id);
+
+            if (reaction.emoji.name === this.adminEmojis.first().name) {
+                winston.loggers.get(this.botGuild._id).verbose(`The cave ${this.caveOptions.name} is working on getting a new role thanks to user ${admin.id}.`, {event: 'Cave'});
+                
+                try {
+                    let role = await this.newRole(adminConsole, admin.id);
+                    winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} got a new role named ${role.name} with id ${role.id}.`, {event: 'Cave'});
+
+                    // let admin know the action was successful
+                    adminConsole.send('&lt;@' + admin.id + '> The role has been added!').then(msg => msg.delete({ timeout: 8000 }));
+                } catch (error) {
+                    winston.loggers.get(this.botGuild._id).warning(`The cave ${this.caveOptions.name} was getting a new role but was canceled due to ${error}.`, {event: 'Cave'});
+                    adminConsole.send('&lt;@' + admin.id + '> The role was not created!').then(msg => msg.delete({timeout: 5000}));
+                    return;
+                }
+            } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[1]) { // check if the delete channels emoji was selected
+                winston.loggers.get(this.botGuild._id).verbose(`The cave ${this.caveOptions.name} is working on deleting some channels from its ticket system thanks to user ${admin.id}.`, {event: 'Cave'});
+
+                // ask user whether they want to delete all channels / all channels older than an age that they specify, or specific channels
+                let all = await Prompt.yesNoPrompt({prompt: 'Type "yes" if you would like to delete all ticket channels (you can also specify to delete all channels older than a certain age if you choose this option),\n' +
+                    '"no" if you would like to only delete some.', channel, userId});
+                if (all) {
+                    // if user chose to delete all ticket channels, ask if they would like to delete all channels or all channels over
+                    // a certain age
+                    let deleteNow = await Prompt.yesNoPrompt({prompt: 'All ticket categories older than a minute will be deleted. ' +
+                        'Type "yes" to confirm or "no" to set a different timescale. Careful - this cannot be undone!', channel, userId});
+                    // get the age in minutes of the channels to delete if they wanted to specify an age
+                    var age;
+                    (deleteNow) ? age = 1 : age = (await Prompt.numberPrompt({prompt: 'Enter the number of minutes. ' +
+                        'All ticket channels older than this time will be deleted. Careful - this cannot be undone!', channel, userId}))[0];
+
+                    // delete all active tickets fitting the given age criteria
+                    this.tickets.forEach(async (ticket) => {
+                        var timeNow = Date.now();
+                        // check if ticket is over the given number of minutes old
+                        if (ticket.category != null &amp;&amp; ((timeNow - ticket.category.createdTimestamp) > (age * 60 * 1000))) { 
+                            if (!ticket.category.deleted) {
+                                await ticket.category.children.forEach(async child => await discordServices.deleteChannel(child));
+                                await discordServices.deleteChannel(ticket.category);
+                                this.tickets.delete(ticket.ticketNumber); // remove ticket from the tickets Collection
+                            }
+                        }
+                    });
+                    adminConsole.send('&lt;@' + admin.id + '> All tickets over ' + age + ' minutes old have been deleted!').then(msg => msg.delete({ timeout: 8000 }));
+                    winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} deleted all of its tickets over ${age} minutes old.`, {event: 'Cave'});
+                } else {
+                    // ask user if they want to name the tickets to not delete, or name the tickets to delete
+                    var exclude = await Prompt.yesNoPrompt({prompt: 'Type "yes" if you would like to delete all ticket channels **except** for the ones you mention, ' +
+                        '"no" if you would like for the tickets you mention to be deleted.', channel, userId});
+                    var prompt;
+                    if (exclude) {
+                        prompt = 'In **one** message, send all the ticket numbers to be excluded, separated by spaces. Careful - this cannot be undone!';
+                    } else {
+                        prompt = 'In **one** message, send all the ticket numbers to be deleted, separated by spaces. Careful - this cannot be undone!';
+                    }
+
+                    var ticketMentions = await Prompt.numberPrompt({prompt, channel, userId});
+                    // do nothing if no response given
+                    try {
+                        
+                        var ticketsToDelete; // will be initialized as a Map/Collection to keep track of tickets that the user chose to delete
+                        if (exclude) { // check if user specified to exclude certain channels from being deleted
+                            // start with ticketsToDelete being a Collection of all active tickets, and delete the excluded tickets from the 
+                            // Collection as long as their CategoryChannels have not been deleted 
+                            ticketsToDelete = new Map(this.tickets);
+                            ticketMentions.forEach(ticketNumber => {
+                                // check if the number provided by the user is an active ticket and that this ticket's category is still there
+                                if (ticketsToDelete.has(ticketNumber) &amp;&amp; !ticketsToDelete.get(ticketNumber).category.deleted) {
+                                    ticketsToDelete.delete(ticketNumber);
+                                }
+                            });
+                        } else {
+                            // if user is listing tickets to delete, start with empty map and add each ticket
+                            ticketsToDelete = new Map();
+                            ticketMentions.forEach(ticketNumber => {
+                                // check if the number provided by the user is an active ticket and that this ticket's category is still there
+                                if (this.tickets.has(ticketNumber) &amp;&amp; !this.tickets.get(ticketNumber).category.deleted) {
+                                    ticketsToDelete.set(ticketNumber, this.tickets.get(ticketNumber));
+                                }
+                            });
+                        }
+
+                        // iterate through each ticket object on the list of tickets to delete
+                        Array.from(ticketsToDelete.values()).forEach(async ticket => {
+                            if (!ticket.category.deleted) {
+                                // delete the category's channels, then category, then delete from the tickets Collection
+                                await ticket.category.children.forEach(async child => await discordServices.deleteChannel(child));
+                                await discordServices.deleteChannel(ticket.category);
+                                this.tickets.delete(ticket.ticketNumber);
+                            }
+                        });
+                        adminConsole.send('&lt;@' + admin.id + '> The following tickets have been deleted: ' + Array.from(ticketsToDelete.keys()).join(', '))
+                            .then(msg => msg.delete({ timeout: 8000 }));
+                        winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} lost the following tickets: ${Array.from(ticketsToDelete.keys()).join()}`, {event: 'Cave'});
+                    } catch {
+                        // do nothing if no tickets mentioned before timing out
+                    }
+                }
+            } else if (reaction.emoji.name === Array.from(this.adminEmojis.keys())[2]) { // check if Admin selected to include/exclude tickets from garbage collection
+                winston.loggers.get(this.botGuild._id).verbose(`The cave ${this.caveOptions.name} is working on including or excluding some tickets from the 
+                    ticket garbage collector thanks to user ${admin.id}.`, {event: 'Cave'});
+
+                var response = await Prompt.messagePrompt({prompt: '**In one message separated by spaces**, ' +
+                    'type whether you want to "include" or "exclude" tickets along with the ticket numbers to operate on.', channel, userId}, 'string', 30);
+                if (response != null) {
+                    var words = response.content.split(' '); // array to store each word in user's response
+                    // use variable exclude to flag whether user wants to do an include or exclude operation
+                    var exclude;
+                    if (words.includes('include')) {
+                        exclude = false;
+                    } else if (words.includes('exclude')) {
+                        exclude = true;
+                    } else {
+                        adminConsole.send('&lt;@' + admin.id + '> You did not specify "include" or "exclude"! Please try again.')
+                            .then(message => message.delete({ timeout: 5000 }));
+                    }
+
+                    // for each ticket the user mentioned, check that it is a valid active ticket then toggle the exclude property of 
+                    // the Ticket object correspondingly and store the list of tickets that were updated in validNumbers
+                    var validNumbers = [];
+                    words.forEach(word => {
+                        if (!isNaN(word) &amp;&amp; this.tickets.has(parseInt(word))) {
+                            var ticket = this.tickets.get(parseInt(word));
+                            if (!ticket.category.deleted &amp;&amp; !ticket.text.deleted &amp;&amp; !ticket.voice.deleted) { // checks that the ticket has all 3 channels
+                                ticket.includeExclude(exclude);
+                                validNumbers.push(word);
+                            }
+                        }
+                    });
+
+                    // print the changes in Admin Console 
+                    (exclude) ? exclude = '"exclude"' : exclude = '"include"';
+                    if (validNumbers.length > 0) {
+                        adminConsole.send('Status updated to ' + exclude + ' for tickets: ' + validNumbers.join(', '));
+                        winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} changed some tickets status to ${exclude}. The tickets affected are: ${validNumbers.join()}`, {event: 'Cave'});
+                    }
+                }
+            }
+        });
+    }
+
+
+    /**
+     * Will check the guild for already created roles for this cave.
+     * @param {Discord.RoleManager} roleManager - the guild role manager
+     * @param {Discord.TextChannel} adminConsole - the channel to prompt
+     * @param {Discord.Snowflake} userId - the user's id to prompt
+     */
+    checkForExistingRoles(roleManager, adminConsole, userId) {
+        let initialRoles = roleManager.cache.filter(role => role.name.startsWith(this.caveOptions.preRoleText + '-'));
+
+        initialRoles.each(async role => {
+            let emoji = await this.promptAndCheckReaction('React with emoji for role named: ', role.name, adminConsole, userId);
+
+            let activeUsers = role.members.size;
+            this.addRole(role, emoji, activeUsers);
+        });
+    }
+
+
+    /**
+     * Prompt for an emoji for a role, will make sure that emoji is not already in use!
+     * @param {String} prompt - the prompt string
+     * @param {String} roleName - the role name
+     * @param {Discord.TextChannel} channel - channel to prompt for role
+     * @param {Discord.Snowflake} userId - the user to prompt
+     * @async
+     * @private
+     * @returns {Promise&lt;Discord.GuildEmoji | Discord.ReactionEmoji>}
+     */
+    async promptAndCheckReaction(prompt, roleName, channel, userId) {
+        return await Prompt.reactionPrompt({prompt: prompt + ' ' +  roleName + '.', channel, userId}, this.emojis);
+    }
+
+
+    /**
+     * Adds a role to this cave
+     * @param {Discord.Role} role - the role to add
+     * @param {Discord.GuildEmoji} emoji - the emoji associated to this role
+     * @param {Number} currentActiveUsers - number of active users with this role
+     * @private
+     */
+    addRole(role, emoji, currentActiveUsers = 0) {
+        // add to the emoji collection
+        this.emojis.set(emoji.name, {
+            name: role.name.substring(this.caveOptions.preRoleText.length + 1),
+            id: role.id,
+            activeUsers: currentActiveUsers,
+        });
+
+        // add to the embeds
+        this.embedMessages.console.edit(this.embedMessages.console.embeds[0].addField('If you know ' + role.name.substring(2) + ' -> ' + emoji.toString(), '-------------------------------------'));
+        this.embedMessages.console.react(emoji);
+
+        this.embedMessages.request.edit(this.embedMessages.request.embeds[0].addField('Question about ' + role.name.substring(2) + ' -> ' + emoji.toString(), '-------------------------------------'));
+        this.embedMessages.request.react(emoji);
+    }
+
+
+    /**
+     * Prompts a user for a new role.
+     * @param {Discord.TextChannel} channel - channel where to prompt
+     * @param {Discord.Snowflake} userId - the user to prompt
+     * @returns {Promise&lt;Discord.Role>}
+     * @async
+     * @throws Throws an error if the prompt is canceled and the new role cant be created.
+     */
+    async newRole(channel, userId) {
+        let roleNameMsg = await Prompt.messagePrompt({prompt: 'What is the name of the new role?', channel, userId}, 'string');
+
+        let roleName = roleNameMsg.content;
+
+        let emoji = await this.promptAndCheckReaction('What emoji do you want to associate with this new role?', roleName, channel, userId);
+
+        // make sure the reaction is not already in use!
+        if (this.emojis.has(emoji.name)) {
+            channel.send('&lt;@' + userId + '>This emoji is already in use! Please try again!').then(msg => msg.delete({ timeout: 8000 }));
+            return;
+        }
+
+        let role = await channel.guild.roles.create({
+            data: {
+                name: this.caveOptions.preRoleText + '-' + roleName,
+                color: this.caveOptions.color,
+            }
+        });
+
+        this.addRole(role, emoji);
+
+        var addPublic;
+
+        try {
+            addPublic = await Prompt.yesNoPrompt({prompt: 'Do you want me to create a public text channel?', channel, userId});
+        } catch (error) {
+            // if canceled treat it as a false
+            addPublic = false;
+        }
+
+        if (addPublic) {
+            channel.guild.channels.create(roleName, {
+                type: 'text',
+                parent: this.publicChannels.category,
+                topic: 'For you to have a chat about ' + roleName,
+            });
+        }
+
+        return role;
+    }
+}
+module.exports = Cave;</code></pre>
+        </article>
+    </section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+<script src="scripts/search.js"> </script>
+
+</body>
+</html>
