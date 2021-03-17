@@ -1,8 +1,11 @@
 const Activity = require('./activities/activity');
 const TicketManager = require('./tickets/ticket-manager');
 const BotGuildModel = require('./bot-guild');
-const { Guild, Collection, Role, TextChannel, VoiceChannel, GuildEmoji, ReactionEmoji } = require('discord.js');
+const { Guild, Collection, Role, TextChannel, MessageEmbed, GuildEmoji, ReactionEmoji } = require('discord.js');
 const Room = require('./room');
+const Console = require('./console');
+const { messagePrompt, reactionPrompt, yesNoPrompt, stringPrompt, numberPrompt } = require('./prompt');
+const { sendMsgToChannel } = require('../discord-services');
 
 /**
  * @typedef CaveOptions
@@ -33,6 +36,13 @@ const Room = require('./room');
  */
 
 /**
+ * @typedef SubRole
+ * @property {String} name - the role name
+ * @property {String} id - the role id (snowflake)
+ * @property {Number} activeUsers - number of users with this role
+ */
+
+/**
  * @typedef CaveChannels
  * @property {TextChannel} console
  */
@@ -59,12 +69,10 @@ class Cave extends Activity {
         this.caveOptions = caveOptions;
 
         /**
-         * The emojis to use for roles.
-         * key :  emoji id, 
-         * value : RoleInfo
-         * @type {Map<String, RoleInfo>}
+         * The cave sub roles, keys are the emoji name, holds the subRole
+         * @type {Map<String, SubRole>} - <Emoji Name, SubRole>
          */
-        this.emojis = new Map();
+        this.subRoles = new Map();
 
         /**
          * @type {TicketManager}
@@ -82,6 +90,12 @@ class Cave extends Activity {
           * @type {Room}
           */
         this.publicRoom = new Room(guild, botGuild, `👉🏽👈🏽${caveOptions.name} Help`);
+
+        /**
+         * The console where cave members can get sub roles.
+         * @type {Console}
+         */
+        this.subRoleConsole;
 
     }
 
@@ -127,7 +141,12 @@ class Cave extends Activity {
                     role: this.caveOptions.role,
                     emoji: this.caveOptions.emojis.requestTicketEmoji,
                 },
-                // embedCreator
+                embedCreator: (ticket) => new MessageEmbed()
+                    .setTitle(`New Ticket - ${ticket.id}`)
+                    .setDescription(`<@${ticket.group.first().id}> has a question: ${ticket.question}`)
+                    .addField('They are requesting:', `<@&${ticket.requestedRole.id}>`)
+                    .addField('Can you help them?', `If so react to this message with ${ticket.ticketManager.ticketDispatcherInfo.takeTicketEmoji}.`)
+                    .setTimestamp(),
             },
             systemWideTicketInfo: {
                 garbageCollectorInfo: {
@@ -144,18 +163,171 @@ class Cave extends Activity {
         /** @type {Activity.ActivityFeature[]} */
         let localFeatures = [
             {
-                name: 'Add Role',
+                name: 'Add Sub-Role',
                 description: 'Add a new sub-role cave members can select and users can use to ask specific tickets.',
                 emoji: this.caveOptions.emojis.addRoleEmoji.name,
                 callback: () => {
-                    
+                    // TODO call addSubRoleCallback(channel, userId);
                 },
+            },
+            {
+                name: 'Delete Channel(s)',
+                description: 'Get the ticket manager to delete ticket rooms to clear up the server.',
+                emoji: this.caveOptions.emojis.deleteChannelsEmoji,
+                callback: () => {
+                    // TODO call deleteChannelsCallback(channel, userId);
+                },
+            },
+            {
+                name: 'Include/Exclude Tickets',
+                description: 'Include or exclude tickets from the automatic garbage collector.',
+                emoji: this.caveOptions.emojis.excludeFromAutoDeleteEmoji,
+                callback: () => {
+                    // TODO call includeExcludeCallback(channel, userId);
+                }
             }
         ];
 
         localFeatures.forEach(feature => this.features.set(feature.name, feature));
 
         super.addDefaultFeatures();
+    }
+
+    /**
+     * Prompts a user for information to create a new sub role for this cave.
+     * @param {TextChannel} channel 
+     * @param {String} userId 
+     * @returns {Role}
+     */
+    async addSubRoleCallback(channel, userId) {
+        let roleNameMsg = await messagePrompt({prompt: 'What is the name of the new role?', channel, userId}, 'string');
+
+        let roleName = roleNameMsg.content;
+
+        let emoji = await reactionPrompt({ prompt: 'What emoji do you want to associate with this new role?', channel, userId }, this.subRoles);
+
+        let role = await this.guild.roles.create({
+            data: {
+                name: `${this.caveOptions.preRoleText}-${roleName}`,
+                color: this.caveOptions.color,
+            }
+        });
+
+        this.addSubRole(role, emoji);
+
+        try {
+            let addPublic = await yesNoPrompt({ prompt: 'Do you want me to create a public text channel?', channel, userId });
+            if (addPublic) this.publicRoom.addRoomChannel({ name: roleName });
+        } catch {
+            // do nothing
+        }
+
+        return role;
+    }
+
+    /**
+     * Will prompt the user for more information to delete some, all, or a few tickets.
+     * @param {TextChannel} channel 
+     * @param {String} userId 
+     * @async
+     */
+    async deleteChannelsCallback(channel, userId) {
+        let type = await stringPrompt({
+            prompt: 'Type "all" if you would like to delete all tickets before x amount of time or type "some" to specify which tickets to remove.', 
+            channel, 
+            userId,
+        }, ['all', 'some']);
+
+        switch (type) {
+            case 'all': {
+                let age = (await numberPrompt({prompt: 'Enter how old, in minutes, a ticket has to be to remove. Send 0 if you want to remove all of them. Careful - this cannot be undone!', channel, userId}))[0];
+                this.ticketManager.removeTicketsByAge(age);
+                sendMsgToChannel(channel, userId, `All tickets over ${age} have been deleted!`);
+                break;
+            }
+            case('some'): {
+                let subtype = await stringPrompt({
+                    prompt: 'Would you like to remove all tickets except for some tickets you specify later or would you like to remove just some tickets. Type all or some respectively.',
+                    channel,
+                    userId
+                }, ['all', 'some']);
+
+                switch (subtype) {
+                    case 'all': {
+                        let ticketMentions = await numberPrompt({
+                            prompt: 'In one message write the numbers of the tickets to not delete! (Separated by spaces, ex 1 2 13).',
+                            channel,
+                            userId
+                        });
+                        this.ticketManager.removeAllTickets(ticketMentions);
+                        break;
+                    }
+                    case 'some': {
+                        let ticketMentions = await numberPrompt({
+                            prompt: 'In one message type the ticket numbers you would like to remove! (Separated by spaces, ex. 1 23 3).',
+                            channel,
+                            userId,
+                        });
+                        this.ticketManager.removeTicketsById(ticketMentions);
+                        break;
+                    }
+                }
+            }  
+        }
+    }
+
+    /**
+     * Will prompt the user for channel numbers to include or exclude from the garbage collector.
+     * @param {TextChannel} channel 
+     * @param {String} userId 
+     */
+    async includeExcludeCallback(channel, userId) {
+        let type = await stringPrompt({
+            prompt: 'Would you like to include tickets on the automatic garbage collector or exclude tickets? Respond with include or exclude respectively.',
+            channel,
+            userId,
+        }, ['include', 'exclude']);
+
+        let tickets = await numberPrompt({
+            prompt: `Type the ticket numbers you would like to ${type} separated by spaces.`,
+            channel, 
+            userId,
+        });
+
+        tickets.forEach((ticketNumber) => {
+            let ticket = this.ticketManager.tickets.get(ticketNumber);
+            ticket?.includeExclude(type === 'exclude' ? true : false);
+        });
+    }
+
+    /**
+     * Adds a subRole.
+     * @param {Role} role - the role to add
+     * @param {GuildEmoji} emoji - the emoji associated to this role
+     * @param {Number} [currentActiveUsers=0] - number of active users with this role
+     * @private
+     */
+    addSubRole(role, emoji, currentActiveUsers = 0) {
+        /** @type {SubRole} */
+        let subRole = {
+            name: role.name.substring(this.caveOptions.preRoleText.length + 1),
+            id: role.id,
+            activeUsers: currentActiveUsers,
+        };
+
+        // add to list of emojis being used
+        this.subRoles.set(emoji.name, subRole);
+
+        // TODO add to subRole selector console
+        
+
+        // MIGHT MOVE THIS TO THE TICKET MANAGER
+        this.ticketManager.ticketCreatorInfo.console.addFeature({
+            name: `Question about ${subRole.name}`,
+            description: '---------------------------------',
+            emojiName: emoji.name,
+            callback: (user, reaction, stopInteracting) => {},// TODO
+        });
     }
 }
 module.exports = Cave;
