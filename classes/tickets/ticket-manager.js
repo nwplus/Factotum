@@ -1,11 +1,11 @@
-const { Collection, GuildEmoji, ReactionEmoji, MessageEmbed, TextChannel, Guild, Role, MessageReaction, User,  } = require("discord.js");
+const { Collection, GuildEmoji, ReactionEmoji, MessageEmbed, TextChannel, Guild, Role, MessageReaction, User,  } = require('discord.js');
 const Ticket = require('./ticket');
 const Activity = require('../activities/activity');
 const Cave = require('../cave');
 const BotGuildModel = require('../bot-guild');
-const Console = require("../console");
-const winston = require("winston/lib/winston/config");
-const { messagePrompt } = require("../prompt");
+const Console = require('../console');
+const winston = require('winston/lib/winston/config');
+const { messagePrompt } = require('../prompt');
 
 
 /**
@@ -97,7 +97,7 @@ class TicketManager {
         this.ticketCreatorInfo = {
             channel: null,
             console: null,
-        }
+        };
 
         /**
          * @type {TicketDispatcherInfo}
@@ -116,7 +116,7 @@ class TicketManager {
                 role: null,
                 emoji: null,
             },
-        }
+        };
 
         /**
          * @type {SystemWideTicketInfo}
@@ -128,7 +128,7 @@ class TicketManager {
                 bufferTime : null,
             },
             isAdvancedMode: false,
-        }
+        };
 
         /**
          * Information about the system being multi role, if its the case, it needs a 
@@ -137,7 +137,7 @@ class TicketManager {
         this.multiRoleInfo = {
             isEnabled : false,
             multiRoleSelector : null,
-        }
+        };
 
         /** @type {BotGuildModel} */
         this.botGuild = botGuild;
@@ -202,7 +202,7 @@ class TicketManager {
                                 '\n* Mention your team members using @friendName .', channel: this.ticketCreatorInfo.channel, userId: user.id}, 'string', 45);
         } catch (error) {
             // prompt was canceled, return;
-            winston.loggers.get(this.botGuild._id).warning(`New ticket was canceled due to error: ${error}`, {event: "Ticket Manager"});
+            winston.loggers.get(this.botGuild._id).warning(`New ticket was canceled due to error: ${error}`, {event: 'Ticket Manager'});
             return;
         }
 
