@@ -245,6 +245,7 @@ class Prompt {
      * Will prompt the user and return a string, the clean content of the message.
      * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
      * @param {String[]} [possibleResponses=[]] - possible responses the user must respond with
+     * @returns {Promise<String>}
      */
     static async stringPrompt({prompt, channel, userId}, possibleResponses = []) {
         let msg = await Prompt.messagePrompt({prompt, channel, userId}, 'string');
