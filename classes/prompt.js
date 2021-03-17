@@ -240,5 +240,21 @@ class Prompt {
         if (spotChosen <= channels.length) return channels[spotChosen];
         else return Prompt.chooseChannel(channels, channel, userId);
     }
+
+    /**
+     * Will prompt the user and return a string, the clean content of the message.
+     * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
+     * @param {String[]} [possibleResponses=[]] - possible responses the user must respond with
+     */
+    static async stringPrompt({prompt, channel, userId}, possibleResponses = []) {
+        let msg = await Prompt.messagePrompt({prompt, channel, userId}, 'string');
+
+        if (possibleResponses.length > 0) {
+            if (possibleResponses.includes(msg.cleanContent)) return msg.cleanContent;
+            else Prompt.stringPrompt({prompt: `Please respond with one of the options!\n ${prompt}`, channel, userId}, possibleResponses);
+        } else {
+            return msg.cleanContent;
+        }
+    }
 }
 module.exports = Prompt;
