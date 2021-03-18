@@ -273,9 +273,8 @@ class Workshop extends Activity {
 
     /**
      * Will send all the consoles the workshop needs to work.
-     * @param {CommandoClient} client 
      */
-    sendConsoles(client) {
+    sendConsoles() {
         let mentorColor = randomColor();
 
         const TAInfoEmbed = new MessageEmbed()
@@ -287,16 +286,29 @@ class Workshop extends Activity {
             ' and disable the pull in functionality. \n* TAs will have to DM hackers that need help and then react to the wait list.')
             .setColor(mentorColor);
         this.TAConsole.send(TAInfoEmbed).then(message => this.TAInfoEmbedHandler(message));
-        
-        const pollingAndStampConsoleEmbed = new MessageEmbed()
-            .setColor(mentorColor)
-            .setTitle('Polling and Stamp Console')
-            .setDescription('Here are some common polls you might want to use!')
-            .addField('Stamp Distribution', '📇 Will activate a stamp distribution that will be open for ' + this.botGuild.stamps.stampCollectionTime + ' seconds.')
-            .addField('Speed Poll', '🏎️ Will send an embedded message asking how the speed is.')
-            .addField('Difficulty Poll', '🎓 Will send an embedded message asking how the difficulty is.')
-            .addField('Explanation Poll', '🧑‍🏫 Will send an embedded message asking how good the explanations are.');
-        this.TAConsole.send(pollingAndStampConsoleEmbed).then(message => this.pollingAndStampHandler(message, client));
+
+        // Console for TAs to send polls and stamp distribution
+        let TAPollingConsole = new Console({
+            title: 'Polling and Stamp Console',
+            description: 'Here are some common polls you might want to use!',
+            channel: this.TAConsole,
+        });
+        this.polls.forEach((pollInfo) => TAPollingConsole.addFeature({
+            name: pollInfo.title,
+            description: `Asks the question: ${pollInfo.title} - ${pollInfo.question}`,
+            emoji: pollInfo.emojiName,
+            callback: (user, reaction, stopInteracting, console) => this.sendPoll(pollInfo.type).then(() => stopInteracting(user)),
+        }));
+        TAPollingConsole.addFeature({
+            name: 'Stamp Distribution',
+            description: 'Activate a stamp distribution on the activity\'s text channel',
+            emojiName: '📇',
+            callback: (user, reaction, stopInteracting, console) => {
+                this.distributeStamp(this.room.channels.generalText);
+                stopInteracting(user);
+            }
+        });
+        TAPollingConsole.sendConsole();
         
         // embed message for TA console
         const incomingTicketsEmbed = new MessageEmbed()
@@ -425,42 +437,6 @@ class Workshop extends Activity {
             
             // send a quick message to let ta know a new user is on the wait list
             this.TAConsole.send('A new hacker needs help!').then(msg => msg.delete({timeout: 3000}));
-        });
-    }
-
-    /**
-     * Creates and handles the emoji reactions on the polling and stamp console Embed 
-     * @param {Message} message 
-     * @param {CommandoClient} client
-     */
-    pollingAndStampHandler(message, client) {
-        message.pin();
-
-        var emojis = ['📇', '🏎️', '🎓', '🧑‍🏫'];
-
-        emojis.forEach(emoji => message.react(emoji));
-
-        const collector = message.createReactionCollector((reaction, user) => !user.bot && emojis.includes(reaction.emoji.name));
-
-        collector.on('collect', async (reaction, user) => {
-            var commandRegistry = client.registry;
-
-            // emoji name
-            var emojiName = reaction.emoji.name;
-
-            // remove new reaction
-            reaction.users.remove(user.id);
-
-            if (emojiName === emojis[0]) {
-                if (this.botGuild.stamps.isEnabled) commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(this.botGuild, message, { timeLimit: this.botGuild.stamps.stampCollectTime });
-                else sendMsgToChannel(message.channel, user.id, 'The distribute stamp command is not available because stamps are disabled in this server.');
-            } else if (emojiName === emojis[1]) {
-                commandRegistry.findCommands('workshop-polls', true)[0].runCommand(this.botGuild, message, this, { questionType: 'speed' });
-            } else if (emojiName === emojis[2]) {
-                commandRegistry.findCommands('workshop-polls', true)[0].runCommand(this.botGuild, message, this, { questionType: 'difficulty'});
-            } else if (emojiName === emojis[3]) {
-                commandRegistry.findCommands('workshop-polls', true)[0].runCommand(this.botGuild, message, this, { questionType: 'explanations'});
-            }
         });
     }
 
