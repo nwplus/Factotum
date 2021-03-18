@@ -29,6 +29,8 @@ jobs:
       - name: JSDoc Build
         uses: andstor/jsdoc-action@v1.2.0
         with:
+          source_dir: ./
+          recurse: true
           # Output folder for the generated documentation
           output_dir: ./docs
           # The path to a JSDoc configuration file
