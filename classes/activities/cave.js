@@ -184,25 +184,19 @@ class Cave extends Activity {
                 name: 'Add Sub-Role',
                 description: 'Add a new sub-role cave members can select and users can use to ask specific tickets.',
                 emoji: this.caveOptions.emojis.addRoleEmoji.name,
-                callback: () => {
-                    // TODO call addSubRoleCallback(channel, userId);
-                },
+                callback: (user, reaction, stopInteracting, console) => this.addSubRoleCallback(console.channel, user.id).then(() => stopInteracting(user)),
             },
             {
-                name: 'Delete Channel(s)',
+                name: 'Delete Ticket Channels',
                 description: 'Get the ticket manager to delete ticket rooms to clear up the server.',
                 emoji: this.caveOptions.emojis.deleteChannelsEmoji,
-                callback: () => {
-                    // TODO call deleteChannelsCallback(channel, userId);
-                },
+                callback: (user, reaction, stopInteracting, console) => this.deleteTicketChannelsCallback(console.channel, user.id).then(() => stopInteracting(user)),
             },
             {
                 name: 'Include/Exclude Tickets',
                 description: 'Include or exclude tickets from the automatic garbage collector.',
                 emoji: this.caveOptions.emojis.excludeFromAutoDeleteEmoji,
-                callback: () => {
-                    // TODO call includeExcludeCallback(channel, userId);
-                }
+                callback: (user, reaction, stopInteracting, console) => this.includeExcludeCallback(console.channel, user.id).then(() => stopInteracting(user)),
             }
         ];
 
@@ -215,7 +209,8 @@ class Cave extends Activity {
      * Prompts a user for information to create a new sub role for this cave.
      * @param {TextChannel} channel 
      * @param {String} userId 
-     * @returns {Role}
+     * @returns {Promise<Role>}
+     * @async
      */
     async addSubRoleCallback(channel, userId) {
         let roleNameMsg = await messagePrompt({prompt: 'What is the name of the new role?', channel, userId}, 'string');
@@ -249,7 +244,7 @@ class Cave extends Activity {
      * @param {String} userId 
      * @async
      */
-    async deleteChannelsCallback(channel, userId) {
+    async deleteTicketChannelsCallback(channel, userId) {
         let type = await stringPrompt({
             prompt: 'Type "all" if you would like to delete all tickets before x amount of time or type "some" to specify which tickets to remove.', 
             channel, 
