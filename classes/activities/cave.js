@@ -1,11 +1,11 @@
-const Activity = require('./activities/activity');
-const TicketManager = require('./tickets/ticket-manager');
-const BotGuildModel = require('./bot-guild');
+const Activity = require('./activity');
+const TicketManager = require('../tickets/ticket-manager');
+const BotGuildModel = require('../bot-guild');
 const { Guild, Collection, Role, TextChannel, MessageEmbed, GuildEmoji, ReactionEmoji } = require('discord.js');
-const Room = require('./room');
-const Console = require('./console');
-const { messagePrompt, reactionPrompt, yesNoPrompt, stringPrompt, numberPrompt } = require('./prompt');
-const { sendMsgToChannel } = require('../discord-services');
+const Room = require('../room');
+const Console = require('../console');
+const { messagePrompt, reactionPrompt, yesNoPrompt, stringPrompt, numberPrompt } = require('../prompt');
+const { sendMsgToChannel } = require('../../discord-services');
 
 /**
  * @typedef CaveOptions
@@ -44,7 +44,7 @@ const { sendMsgToChannel } = require('../discord-services');
 
 /**
  * @typedef CaveChannels
- * @property {TextChannel} console
+ * @property {TextChannel} roleSelection
  */
 
 class Cave extends Activity {
@@ -66,7 +66,8 @@ class Cave extends Activity {
         /**
          * @type {CaveOptions}
          */
-        this.caveOptions = caveOptions;
+        this.caveOptions;
+        this.validateCaveOptions(caveOptions);
 
         /**
          * The cave sub roles, keys are the emoji name, holds the subRole
@@ -96,13 +97,30 @@ class Cave extends Activity {
          * @type {Console}
          */
         this.subRoleConsole;
+    }
 
+    /**
+     * Validates and set the cave options.
+     * @param {CaveOptions} caveOptions - the cave options to validate
+     * @param {Discord.Guild} guild - the guild where this cave is happening
+     * @private
+     */
+    validateCaveOptions(caveOptions) {
+        if (typeof caveOptions.name != 'string' && caveOptions.name.length === 0) throw new Error('caveOptions.name must be a non empty string');
+        if (typeof caveOptions.preEmojis != 'string') throw new Error('The caveOptions.preEmojis must be a string of emojis!');
+        if (typeof caveOptions.preRoleText != 'string' && caveOptions.preRoleText.length === 0) throw new Error('The caveOptions.preRoleText must be a non empty string!');
+        if (typeof caveOptions.color != 'string' && caveOptions.color.length === 0) throw new Error('The caveOptions.color must be a non empty string!');
+        if (!(caveOptions.role instanceof Role)) throw new Error('The caveOptions.role must be Role object!');
+        for (const emoji in caveOptions.emojis) {
+            if (!(emoji instanceof GuildEmoji) && !(emoji instanceof ReactionEmoji)) throw new Error('The ' + emoji + 'must be a GuildEmoji or ReactionEmoji!');
+        }
+        this.caveOptions = caveOptions;
     }
 
     async init() {
         await super.init();
 
-        this.channels.console = this.room.addRoomChannel({
+        this.channels.roleSelection = this.room.addRoomChannel({
             name: `📝${this.name}-role-selector`,
             info: {
                 topic: 'Sign yourself up for specific roles! New roles will be added as requested, only add yourself to one if you feel comfortable responding to questions about the topic.',

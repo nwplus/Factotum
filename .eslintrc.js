@@ -4,9 +4,11 @@ module.exports = {
         'commonjs': true,
         'es2021': true
     },
+    // 'parser' : '@babel/eslint-parser',
     'extends': 'eslint:recommended',
     'parserOptions': {
-        'ecmaVersion': 12
+        'ecmaVersion': 12,
+        // 'requireConfigFile' : false,
     },
     'rules': {
         'indent': [
