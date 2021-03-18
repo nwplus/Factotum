@@ -2,6 +2,7 @@ const { Collection, TextChannel, VoiceChannel, GuildCreateChannelOptions, Messag
 const { CommandoClient } = require('discord.js-commando');
 const winston = require('winston');
 const { randomColor, sendMessageToMember, sendMsgToChannel } = require('../../discord-services');
+const Console = require('../console');
 const { messagePrompt, yesNoPrompt, chooseChannel } = require('../prompt');
 const Activity = require('./activity');
 
@@ -121,17 +122,17 @@ class Workshop extends Activity {
     addDefaultFeatures() {
         this.addDefaultPolls();
 
-        /** @type {Activity.ActivityFeature[]} */
+        /** @type {Console.Feature[]} */
         let localFeatures = [];
 
         this.polls.forEach((pollInfo) => localFeatures.push({
             name: pollInfo.title,
             description: `Asks the question: ${pollInfo.title} - ${pollInfo.question}`,
             emoji: pollInfo.emojiName,
-            callback: () => this.sendPoll(pollInfo.type),
+            callback: (user, reaction, stopInteracting, console) => this.sendPoll(pollInfo.type).then(() => stopInteracting(user)),
         }));
 
-        localFeatures.forEach(feature => this.features.set(feature.name, feature));
+        localFeatures.forEach(feature => this.adminConsole.addFeature(feature));
 
         super.addDefaultFeatures();
     }

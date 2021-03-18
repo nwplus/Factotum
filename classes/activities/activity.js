@@ -6,6 +6,7 @@ const { rolePrompt, messagePrompt, reactionPicker, chooseChannel } = require('..
 const { deleteMessage, shuffleArray, sendMsgToChannel } = require('../../discord-services');
 const StampsManager = require('../stamps-manager');
 const Room = require('../room');
+const Console = require('../console');
 
 /**
  * @typedef ActivityInfo
@@ -94,22 +95,20 @@ class Activity {
         this.room = new Room(guild, botGuild, activityName, roleParticipants);
 
         /**
-         * The message that holds the admin console.
-         * @type {Message}
+         * The admin console with activity features.
+         * @type {Console}
          */
-        this.adminConsoleMsg;
+        this.adminConsole = new Console({
+            title: `Activity ${activityName} Console`,
+            description: `This activity's information can be found below, you can also find the features available.`,
+            channel: guild.channels.resolve(botGuild.channelIDs.adminConsole),
+        });
 
         /**
          * The mongoose BotGuildModel Object
          * @type {BotGuildModel}
          */
         this.botGuild = botGuild;
-
-        /**
-         * All the features this activity has to show in the console.
-         * @type {Collection<String, ActivityFeature>} - <Feature name, Feature>
-         */
-        this.features = new Collection();
 
         winston.loggers.get(guild.id).event(`An activity named ${this.name} was created.`, {data: {permissions: roleParticipants}});
     }
@@ -125,7 +124,7 @@ class Activity {
 
         this.addDefaultFeatures();
 
-        await this.sendAdminConsole();
+        await this.adminConsole.sendConsole();
 
         winston.loggers.get(this.guild.id).event(`The activity ${this.name} was initialized.`, {event: "Activity"});
         return this;
@@ -137,31 +136,31 @@ class Activity {
      * @protected
      */
     addDefaultFeatures() {
-        /** @type {ActivityFeature[]} */
+        /** @type {Console.Feature[]} */
         let localFeatures = [
             {
                 name: 'Add Channel',
                 description: 'Add one channel to the activity.',
                 emoji: '⏫',
-                callback: (user) => this.addChannel(this.adminConsoleMsg.channel, user.id),
+                callback: (user, reaction, stopInteracting, console) => this.addChannel(console.channel, user.id).then(() => stopInteracting(user)),
             },
             {
                 name: 'Remove Channel',
                 description: 'Remove a channel, decide from a list.',
                 emoji: '⏬',
-                callback: (user) => this.removeChannel(this.adminConsoleMsg.channel, user.id),
+                callback: (user, reaction, stopInteracting, console) => this.removeChannel(console.channel, user.id).then(() => stopInteracting(user)),
             },
             {
                 name: 'Delete', 
                 description: 'Delete this activity and its channels.',
                 emoji: '⛔',
-                callback: () => this.delete(),
+                callback: (user, reaction, stopInteracting, console) => this.delete(),
             },
             {
                 name: 'Archive',
                 description: 'Archive the activity, text channels are saved.',
                 emoji: '💼',
-                callback: () => {
+                callback: (user, reaction, stopInteracting, console) => {
                     let archiveCategory = this.guild.channels.resolve(this.botGuild.channelIDs.archiveCategory);
                     this.archive(archiveCategory);
                 }
@@ -170,73 +169,36 @@ class Activity {
                 name: 'Callback',
                 description: 'Move all users in the activity\'s voice channels back to a specified voice channel.',
                 emoji: '🔃',
-                callback: (user) => this.voiceCallBack(this.adminConsoleMsg.channel, user.id),
+                callback: (user, reaction, stopInteracting, console) => this.voiceCallBack(console.channel, user.id).then(() => stopInteracting(user)),
             },
             {
                 name: 'Shuffle',
                 description: 'Shuffle all members from one channel to all others in the activity.',
                 emoji: '🌬️',
-                callback: (user) => this.shuffle(this.adminConsoleMsg.channel, user.id),
+                callback: (user, reaction, stopInteracting, console) => this.shuffle(console.channel, user.id).then(() => stopInteracting(user)),
             },
             {
                 name: 'Role Shuffle',
                 description: 'Shuffle all the members with a specific role from one channel to all others in the activity.',
                 emoji: '🦜',
-                callback: (user) => this.roleShuffle(this.adminConsoleMsg.channel, user.id),
+                callback: (user, reaction, stopInteracting, console) => this.roleShuffle(console.channel, user.id).then(() => stopInteracting(user)),
             },
             {
                 name: 'Distribute Stamp',
                 description: 'Send a emoji collector for users to get a stamp.',
                 emoji: '🏕️',
-                callback: (user) => this.distributeStamp(this.adminConsoleMsg.channel, user.id),
+                callback: (user, reaction, stopInteracting, console) => this.distributeStamp(console.channel, user.id).then(() => stopInteracting(user)),
             },
             {
                 name: 'Rules Lock',
                 description: 'Lock the activity behind rules, users must agree to the rules to access the channels.',
                 emoji: '🔒',
-                callback: (user) => this.ruleValidation(this.adminConsoleMsg.channel, user.id),
+                callback: (user, reaction, stopInteracting, console) => this.ruleValidation(console.channel, user.id).then(() => stopInteracting(user)),
             }
         ];
 
-        localFeatures.forEach(feature => this.features.set(feature.name, feature));
-    }
-
-
-    /**
-     * Creates the admin console containing the features.
-     * @private
-     * @async
-     */
-    async sendAdminConsole() {
-        const adminConsoleEmbed = new MessageEmbed()
-            .setColor(this.botGuild.colors.embedColor)
-            .setTitle(`Activity ${this.name} console.`)
-            .setDescription(`This activity's information can be found below, you can also find the features available.`);
-
-        // add all the features
-        this.features.forEach((feature, key, map) => {
-            adminConsoleEmbed.addField(`${feature.emoji} ${feature.name}`, `${feature.description}`);
-        });
-
-        /** @type {TextChannel} */
-        let adminConsoleChannel = this.guild.channels.resolve(this.botGuild.channelIDs.adminConsole);
-        this.adminConsoleMsg = await adminConsoleChannel.send(adminConsoleEmbed);
-
-        // add all the feature emojis
-        this.features.forEach((feature, key, map) => this.adminConsoleMsg.react(feature.emoji));
-
-        // reaction collector to call feature callbacks
-        const adminConsoleCollector = this.adminConsoleMsg.createReactionCollector((creation, user) => !user.bot);
-        adminConsoleCollector.on('collect', (reaction, user) => {
-            let feature = this.features.find(feature => feature.emoji === reaction.emoji.name);
-
-            if (feature) {
-                feature.callback(user);
-                winston.loggers.get(this.guild.id).event(`Feature ${feature.name} was triggered on activity ${this.name} by user ${user.id}.`, { event: "Activity" });
-            }
-
-            reaction.users.remove(user);
-        });
+        localFeatures.forEach(feature => this.adminConsole.addFeature(feature));
+        
     }
 
     /**
@@ -287,7 +249,7 @@ class Activity {
     async archive(archiveCategory) {
         await this.room.archive(archiveCategory);
 
-        deleteMessage(this.adminConsoleMsg);
+        this.adminConsole.delete();
 
         winston.loggers.get(this.guild.id).event(`The activity ${this.name} was archived!`, {event: "Activity"});
     }
@@ -299,7 +261,7 @@ class Activity {
     async delete() {
         await this.room.delete();
 
-        await deleteMessage(this.adminConsoleMsg);
+        this.adminConsole.delete();
 
         winston.loggers.get(this.guild.id).event(`The activity ${this.name} was deleted!`, {event: "Activity"});
     }

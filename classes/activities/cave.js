@@ -178,7 +178,7 @@ class Cave extends Activity {
     }
 
     addDefaultFeatures() {
-        /** @type {Activity.ActivityFeature[]} */
+        /** @type {Console.Feature[]} */
         let localFeatures = [
             {
                 name: 'Add Sub-Role',
@@ -206,7 +206,7 @@ class Cave extends Activity {
             }
         ];
 
-        localFeatures.forEach(feature => this.features.set(feature.name, feature));
+        localFeatures.forEach(feature => this.adminConsole.addFeature(feature));
 
         super.addDefaultFeatures();
     }

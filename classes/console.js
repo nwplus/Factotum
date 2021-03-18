@@ -17,6 +17,7 @@ const { randomColor } = require('../discord-services');
  * @param {StopInteractingCallback} stopInteracting - callback to let the console know the user has
  * stopped interacting.
  * @param {Console} console - the console this feature is working on
+ * @async
  */
 
 /**

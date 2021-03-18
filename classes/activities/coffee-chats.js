@@ -3,6 +3,7 @@ const { MessageEmbed, TextChannel, User, GuildMember, Collection, VoiceChannel }
 const { memberPrompt, chooseChannel } = require('../prompt');
 const winston = require('winston');
 const { sendMsgToChannel } = require('../../discord-services');
+const Console = require('../console');
 
 /**
  * A CoffeeChat is a special activity where users join as a team. The teams are then 
@@ -83,29 +84,38 @@ class CoffeeChats extends Activity {
      * @override
      */
     addDefaultFeatures() {
-        /** @type {Activity.ActivityFeature[]} */
+        /** @type {Console.Feature[]} */
         let localFeatures = [
             {
                 name: 'Team Shuffle',
                 description: 'Shuffle all the teams from the main voice channel to the other channels.',
                 emoji: '👨‍👩‍👧‍👦',
-                callback: () => this.groupShuffle(),
+                callback: (user, reaction, stopInteracting, console) => {
+                    this.groupShuffle();
+                    stopInteracting(user);
+                },
             },
             {
                 name: 'Reset Teams',
                 description: 'Remove all the signed up teams.',
                 emoji: '🗜️',
-                callback: () => this.resetTeams(),
+                callback: (user, reaction, stopInteracting, console) => {
+                    this.resetTeams();
+                    stopInteracting(user);
+                },
             },
             {
                 name: 'Add Team Slot',
                 description: 'Adds a team slot and a voice channel for them.',
                 emoji: '☝️',
-                callback: () => this.addTeamSlot(),
+                callback: (user, reaction, stopInteracting, console) => {
+                    this.addTeamSlot();
+                    stopInteracting(user);
+                },
             }
         ];
 
-        localFeatures.forEach(feature => this.features.set(feature.name, feature));
+        localFeatures.forEach(feature => this.adminConsole.addFeature(feature));
 
         super.addDefaultFeatures();
     }
