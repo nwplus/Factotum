@@ -57,7 +57,7 @@ class SelfCareReminders extends PermissionCommand {
         // keeps track of whether it has been paused
         var paused = false;        
 
-        const startEmbed = new Discord.MessageEmbed()
+        const startEmbed = new MessageEmbed()
             .setColor(botGuild.colors.embedColor)
             .setTitle('To encourage healthy hackathon habits, we will be sending hourly self-care reminders!')
             // temp

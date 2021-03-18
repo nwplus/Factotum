@@ -522,7 +522,7 @@ class Cave {
                     winston.loggers.get(this.botGuild._id).event(`The cave ${this.caveOptions.name} deleted all of its tickets over ${age} minutes old.`, {event: 'Cave'});
                 } else {
                     // ask user if they want to name the tickets to not delete, or name the tickets to delete
-                    var exclude = await Prompt.yesNoPrompt({prompt: 'Type "yes" if you would like to delete all ticket channels **except** for the ones you mention, ' +
+                    let exclude = await Prompt.yesNoPrompt({prompt: 'Type "yes" if you would like to delete all ticket channels **except** for the ones you mention, ' +
                         '"no" if you would like for the tickets you mention to be deleted.', channel, userId});
                     var prompt;
                     if (exclude) {
@@ -577,7 +577,7 @@ class Cave {
                 winston.loggers.get(this.botGuild._id).verbose(`The cave ${this.caveOptions.name} is working on including or excluding some tickets from the 
                     ticket garbage collector thanks to user ${admin.id}.`, {event: 'Cave'});
 
-                var response = await Prompt.messagePrompt({prompt: '**In one message separated by spaces**, ' +
+                let response = await Prompt.messagePrompt({prompt: '**In one message separated by spaces**, ' +
                     'type whether you want to "include" or "exclude" tickets along with the ticket numbers to operate on.', channel, userId}, 'string', 30);
                 if (response != null) {
                     var words = response.content.split(' '); // array to store each word in user's response

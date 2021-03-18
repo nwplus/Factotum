@@ -43,7 +43,7 @@ class Help extends Command {
             deleteMessage(message);
 
             if ((checkForRole(message.member, botGuild.roleIDs.staffRole))) {
-                var commandGroups = this.client.registry.groups;
+                commandGroups = this.client.registry.groups;
             } else {
                 commandGroups = this.client.registry.findGroups('utility', true);
             }
