@@ -130,39 +130,40 @@ class CoffeeChats extends Activity {
         // reaction to use
         var emoji = '⛷️';
 
-        // send embed and react with emoji
-        const msgEmbed = new MessageEmbed()
-            .setColor(this.botGuild.colors.embedColor)
-            .setTitle('Join the activity!')
-            .setDescription('If you want to join this activity, please react to this message with ' + emoji +' and follow my instructions!\n If the emojis are not working' +
-            ' it means the activity is full. Check the activity text channel for other activity times!');
-        var joinMsg = await this.joinActivityChannel.send(msgEmbed);
-        await joinMsg.react(emoji);
-
-        // reactor collector and its filter
-        const emojiFilter = (reaction, user) => !user.bot && reaction.emoji.name === emoji;
-        const emojiCollector = joinMsg.createReactionCollector(emojiFilter);
-
-        emojiCollector.on('collect', async (reaction, user) => {
-
-            // check to make sure there are spots left
-            if (this.teams.size > this.numOfTeams) {
-                sendMsgToChannel(this.joinActivityChannel, user.id, 'Sorry, but the activity is full!', 10);
-                return;
-            }
-
-            let members = await memberPrompt({prompt: 'Who are you team members? Let me know in ONE message!', channel: this.joinActivityChannel, userId: user.id});
-
-            // add team captain to members list
-            members.set(user.id, this.guild.member(user));
-
-            // add the team to the team list
-            this.teams.set(this.teams.size, members.array());
-
-            this.joinActivityChannel.send('<@' + user.id + '> Your team has been added to the activity! Make sure you follow the instructions in the main channel.').then(msg => {
-                msg.delete({ timeout: 5000 });
-            });
+        let joinActivityConsole = new Console({
+            title: `${this.name}'s Join Console!`,
+            description: 'To join this activity read below! This activity is first come, first serve so get in quick!',
+            channel: this.joinActivityChannel,
         });
+
+        joinActivityConsole.addFeature({
+            name: 'Join the activity!',
+            description: `React to this message with ${emoji} and follow my instructions!`,
+            emojiName: emoji,
+            callback: async (user, reaction, stopInteracting, console) => {
+                // check to make sure there are spots left
+                if (this.teams.size > this.numOfTeams) {
+                    sendMsgToChannel(this.joinActivityChannel, user.id, 'Sorry, but the activity is full! Check back again later for a new cycle!', 10);
+                    return;
+                }
+
+                let members = await memberPrompt({prompt: 'Who are you team members? Let me know in ONE message!', channel: this.joinActivityChannel, userId: user.id});
+
+                // add team captain to members list
+                members.set(user.id, this.guild.member(user));
+
+                // add the team to the team list
+                this.teams.set(this.teams.size, members.array());
+
+                this.joinActivityChannel.send('<@' + user.id + '> Your team has been added to the activity! Make sure you follow the instructions in the main channel.').then(msg => {
+                    msg.delete({ timeout: 5000 });
+                });
+
+                stopInteracting(user);
+            }
+        });
+
+        joinActivityConsole.sendConsole();
     }
 
     /**
