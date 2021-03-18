@@ -241,6 +241,7 @@ class InitBot extends Command {
         }
 
         await botGuild.save();
+        botGuild.setCommandStatus(this.client);
 
         sendMsgToChannel(channel, userId, 'The bot is set and ready to hack!', 10);
     }
@@ -261,7 +262,7 @@ class InitBot extends Command {
      */
     async getVerificationTypes(channel, userId) {
 
-        let typeMsg = await Prompt.messagePrompt({ prompt: 'Please tell me the type and mention the role for a verification option. Type should be equal to the firebase type. Add nothing more but type and role mention.', channel, userId });
+        let typeMsg = await messagePrompt({ prompt: 'Please tell me the type and mention the role for a verification option. Type should be equal to the firebase type. Add nothing more but type and role mention.', channel, userId });
         let type = typeMsg.content.replace(/<(@&?|#)[a-z0-9]*>/ , ''); // clean out any snowflakes
         type = type.toLowerCase().trim();
         let role = typeMsg.mentions.roles.first();
