@@ -5,7 +5,7 @@ const { Guild, Collection, Role, TextChannel, MessageEmbed, GuildEmoji, Reaction
 const Room = require('../room');
 const Console = require('../console');
 const { messagePrompt, reactionPrompt, yesNoPrompt, stringPrompt, numberPrompt } = require('../prompt');
-const { sendMsgToChannel } = require('../../discord-services');
+const { sendMsgToChannel, addRoleToMember, removeRolToMember } = require('../../discord-services');
 
 /**
  * @typedef CaveOptions
@@ -217,7 +217,12 @@ class Cave extends Activity {
 
         let roleName = roleNameMsg.content;
 
-        let emoji = await reactionPrompt({ prompt: 'What emoji do you want to associate with this new role?', channel, userId }, this.subRoles);
+        let emojis = new Map();
+        this.subRoles.forEach((subRole, emojiName, map) => {
+            emojis.set(emojiName, subRole.name);
+        });
+        
+        let emoji = await reactionPrompt({ prompt: 'What emoji do you want to associate with this new role?', channel, userId }, emojis);
 
         let role = await this.guild.roles.create({
             data: {
@@ -322,8 +327,9 @@ class Cave extends Activity {
      */
     addSubRole(role, emoji, currentActiveUsers = 0) {
         /** @type {SubRole} */
+        let subRoleName = role.name.substring(this.caveOptions.preRoleText.length + 1);
         let subRole = {
-            name: role.name.substring(this.caveOptions.preRoleText.length + 1),
+            name: subRoleName,
             id: role.id,
             activeUsers: currentActiveUsers,
         };
@@ -331,16 +337,26 @@ class Cave extends Activity {
         // add to list of emojis being used
         this.subRoles.set(emoji.name, subRole);
 
-        // TODO add to subRole selector console
-        
-
-        // MIGHT MOVE THIS TO THE TICKET MANAGER
-        this.ticketManager.ticketCreatorInfo.console.addFeature({
-            name: `Question about ${subRole.name}`,
+        // add to subRole selector console
+        this.subRoleConsole.addFeature({
+            name: `-> If you know ${subRoleName}`,
             description: '---------------------------------',
             emojiName: emoji.name,
-            callback: (user, reaction, stopInteracting) => {},// TODO
+            callback: (user, reaction, stopInteracting, console) => {
+                let member = this.guild.member(user);
+                addRoleToMember(member, role);
+                sendMsgToChannel(console.channel, user.id, `You have received the ${subRoleName} role!`, 10);
+                stopInteracting(user);
+            },
+            removeCallback: (user, reaction, stopInteracting, console) => {
+                let member = this.guild.member(user);
+                removeRolToMember(member, role);
+                sendMsgToChannel(console.channel, user.id, `You have lost the ${subRoleName} role!`, 10);
+                stopInteracting(user);
+            },
         });
+
+        this.ticketManager.addTicketType(role, subRole.name, emoji.name);
     }
 }
 module.exports = Cave;

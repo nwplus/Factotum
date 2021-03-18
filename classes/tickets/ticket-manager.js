@@ -6,6 +6,7 @@ const BotGuildModel = require('../bot-guild');
 const Console = require('../console');
 const winston = require('winston/lib/winston/config');
 const { messagePrompt } = require('../prompt');
+const { sendMsgToChannel } = require('../../discord-services');
 
 
 /**
@@ -172,7 +173,7 @@ class TicketManager {
                 name: 'General Ticket',
                 description: 'A general ticket aimed to all helpers.',
                 emojiName: this.ticketDispatcherInfo.mainHelperInfo.emoji.name,
-                callback: (user, reaction, stopInteracting) => this.startTicketCreationProcess(user, reaction).then( () => stopInteracting(user)),
+                callback: (user, reaction, stopInteracting, console) => this.startTicketCreationProcess(user, this.ticketDispatcherInfo.mainHelperInfo.role, console.channel).then(() => stopInteracting(user)),
             }
         ];
 
@@ -183,31 +184,46 @@ class TicketManager {
     }
 
     /**
-     * 
+     * Adds a new type of ticket, usually a more focused field, there must be a role associated 
+     * to this new type of ticket.
+     * @param {Role} role - role to add
+     * @param {String} typeName
+     * @param {String} emojiName 
+     */
+    addTicketType(role, typeName, emoji) {
+        this.ticketCreatorInfo.console.addFeature({
+            name: `Question about ${typeName}`,
+            description: '---------------------------------',
+            emojiName: emoji,
+            callback: (user, reaction, stopInteracting, console) => {
+                this.startTicketCreationProcess(user, role, console.channel).then(() => stopInteracting(user));
+            }
+        });
+    }
+
+    /**
+     * Prompts a user for more information to create a new ticket for them.
      * @param {User} user - the user creating a ticket
-     * @param {MessageReaction} reaction 
+     * @param {Role} role 
+     * @param {TextChannel | DMChannel}
      * @async
      */
-    async startTicketCreationProcess(user, reaction) {
-
+    async startTicketCreationProcess(user, role, channel) {
         // check if role has mentors in it
-        // if (this.emojis.has(reaction.emoji.name) && this.emojis.get(reaction.emoji.name).activeUsers === 0) {
-        //     this.publicChannels.outgoingTickets.send('<@' + user.id + '> There are no mentors available with that role. Please request another role or the general role!').then(msg => msg.delete({ timeout: 10000 }));
-        //     winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.caveOptions.name} received a ticket from user ${user.id} but was canceled due to no mentor having the role ${this.emojis.get(reaction.emoji.name).name}.`, {event: "Cave"});
-        //     return;
-        // }
+        if (role.members.size <= 0) {
+            sendMsgToChannel(channel, user.id, 'There are no mentors available with that role. Please request another role or the general role!', 10);
+            winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.caveOptions.name} received a ticket from user ${user.id} but was canceled due to no mentor having the role ${role.name}.`, {event: 'Cave'});
+            return;
+        }
 
         try {
             var promptMsg = await messagePrompt({prompt: 'Please send ONE message with: \n* A one liner of your problem ' + 
-                                '\n* Mention your team members using @friendName .', channel: this.ticketCreatorInfo.channel, userId: user.id}, 'string', 45);
+                                '\n* Mention your team members using @friendName (example: @John).', channel, userId: user.id}, 'string', 45);
         } catch (error) {
-            // prompt was canceled, return;
             winston.loggers.get(this.botGuild._id).warning(`New ticket was canceled due to error: ${error}`, {event: 'Ticket Manager'});
             return;
         }
 
-        // var role = this.emojis.get(reaction.emoji.name) || this.ticketDispatcherInfo.mainHelperInfo.role;
-        let role = this.ticketDispatcherInfo.mainHelperInfo.role;
         let hackers = promptMsg.mentions.users.array();
         hackers.push(user);
 
@@ -219,6 +235,7 @@ class TicketManager {
      * @param {User[]} hackers
      * @param {String} question
      * @param {Role} roleRequested
+     * @private
      */
     newTicket(hackers, question, roleRequested) {
         let ticket = new Ticket(hackers, question, roleRequested, this.ticketCount, this);
@@ -254,7 +271,7 @@ class TicketManager {
      * @returns {Number}
      */
     getTicketCount() {
-        return this.tickets.array().length;
+        return this.tickets.size;
     }
 
     /**

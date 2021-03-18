@@ -92,7 +92,7 @@ class Prompt {
     /**
      * Prompts the user to respond to a message with an emoji.
      * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
-     * @param {Collection<String, Emoji>} [unavailableEmojis] - <emoji name, emoji>, the emojis the user can't select, re-prompt if necessary
+     * @param {Map<String, *>} [unavailableEmojis] - <emoji name, any (number)>, the emojis the user can't select, re-prompt if necessary
      * @async
      * @returns {Promise<GuildEmoji | ReactionEmoji>} - the message reaction
      */
