@@ -16,9 +16,11 @@ const Activity = require('./activity');
  */
 
 /**
- * The Workshop class extends the Activity class. A workshop has a TA system to help users with 
- * questions. It also has polls the TAs can send to learn basic knowledge from the audience.
- * @class
+ * A workshop is an activity with a TA system to help users with questions.
+ * The TA system has two options, regular or advanced. Regular option involves TAs reaching out via DMs to users while advanced option 
+ * involves users joining a voice channel to receive help. The advanced option is only recommended with knowledgeable discord users.
+ * It also has polls the TAs can send to learn basic knowledge from the audience.
+ * @extends Activity
  */
 class Workshop extends Activity {
 

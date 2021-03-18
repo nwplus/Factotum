@@ -41,7 +41,9 @@ const StampsManager = require('../stamps-manager');
 
 /**
  * An activity is a overarching class for any kind of activity. An activity consists of a 
- * category with voice and text channels. Activities also have roles that have access to it.
+ * category with voice and text channels.
+ * Activities have features admins can run from the admin console by reacting to a message (console).
+ * The activity can be private to specified roles or public to all users.
  * @class
  */
 class Activity {

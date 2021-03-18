@@ -7,7 +7,7 @@ const BotGuildModel = require('../../classes/bot-guild');
 
 /**
  * The self care command will send pre made reminders from firebase to the command channel. These reminders are self
- * care reminders. Will prompt a role to mention for each reminder. We recommend that be an opt-in role. 
+ * care reminders. Will prompt a role to mention with each reminder. We recommend that be an opt-in role. 
  * @category Commands
  * @subcategory Admin-Utility
  * @extends PermissionCommand
@@ -57,7 +57,7 @@ class SelfCareReminders extends PermissionCommand {
         // keeps track of whether it has been paused
         var paused = false;        
 
-        const startEmbed = new Discord.MessageEmbed()
+        const startEmbed = new MessageEmbed()
             .setColor(botGuild.colors.embedColor)
             .setTitle('To encourage healthy hackathon habits, we will be sending hourly self-care reminders!')
             // temp

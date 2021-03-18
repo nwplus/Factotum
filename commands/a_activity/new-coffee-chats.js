@@ -5,7 +5,8 @@ const PermissionCommand = require('../../classes/permission-command');
 const CoffeeChats = require('../../classes/activities/coffee-chats');
 
 /**
- * Creates a new coffee chats activity. Prompts the user for information.
+ * Creates a new coffee chats activity.
+ * See the [coffee chats]{@link CoffeeChats} class to learn what a coffee chats activity is.
  * @category Commands
  * @subcategory Activity
  * @extends PermissionCommand

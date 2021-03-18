@@ -13,7 +13,7 @@ const BotGuildModel = require('../../classes/bot-guild');
  * @extends PermissionCommand
  * @guildonly
  */
-module.exports = class AlternateDM extends PermissionCommand {
+class AlternateDM extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'alternate-dm',
@@ -62,4 +62,5 @@ module.exports = class AlternateDM extends PermissionCommand {
             }
         });
     }
-};
+}
+module.exports = AlternateDM;

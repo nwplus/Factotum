@@ -6,7 +6,11 @@ const Team = require('../../classes/team');
 const BotGuildModel = require('../../classes/bot-guild');
 
 /**
- * The start team roulette command starts the team roulette activity.
+ * The team roulette activity is a special type of team formation activity. Users can join the activity by reacting to a message embed (console). They can join
+ * as a solo or a group of up to 3 members (them included). The bot will then create teams of 4 as they become available.
+ * When a team is created, the new team members are invited to a text channel only available to them. Users can leave the team and the bot will 
+ * add a new member from the list (if any available).
+ * Admins can check the list of users waiting on a team by reacting to a message embed (console) sent to the admin channel.
  * @category Commands
  * @subcategory Start-Commands
  * @extends PermissionCommand

@@ -5,9 +5,9 @@ const winston = require('winston');
 const { sendMsgToChannel } = require('../../discord-services');
 
 /**
- * A CoffeeChat is a special activity where users join as a team. The teams are then 
- * scattered around in voice channels to talk with mentors or other teams.
- * @class
+ * A CoffeeChat is a special activity where teams get shuffled around voice channels to talk with other teams or members like mentors. 
+ * Users can join the activity by reacting to a message. Groups are of unlimited size but must be pre-made. The activity will not create groups.
+ * Admins get additional features to run this activity. These features let shuffle the groups around the available voice channels.
  * @extends Activity
  */
 class CoffeeChats extends Activity {

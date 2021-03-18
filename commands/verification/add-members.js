@@ -9,16 +9,15 @@ const { sendMsgToChannel } = require('../../discord-services');
 const winston = require('winston');
 
 /**
- * @category Commands
- * @subcategory Verification
- * @extends PermissionCommand
- * @guildOnly
- * 
  * Will prompt the user for a csv file to add members to firebase. The csv file must have the following columns with exactly those names:
  * * email -> the user's email, must be a string
  * * firstName -> the user's first name, must be a string
  * * lastName -> the user's last name, must be a string
  * * types -> the types the user will get, must be a list of strings separated by a comma, spaces are okay, types must be the same ones used when setting up verification
+ * @category Commands
+ * @subcategory Verification
+ * @extends PermissionCommand
+ * @guildOnly
  */
 class AddMembers extends PermissionCommand {
     constructor(client) {

@@ -4,6 +4,7 @@ const Activity = require('../../classes/activities/activity');
 
 /**
  * Creates a new activity and prompts the user for any information.
+ * Look at the [activity]{@link Activity} class to learn what an activity is.
  * @category Commands
  * @subcategory Activity
  * @extends PermissionCommand

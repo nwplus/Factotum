@@ -62,7 +62,7 @@ class StampsManager {
      */
     static parseRole(member, activityName, botGuild) {
         if (!botGuild.stamps.isEnabled) {
-            winston.loggers.get(botGuild._id).error(`Stamp system is turned of for guild ${botGuild._id} but I was asked to parse a role for member ${member.id} for activity ${activityName}.`, { event: 'Activity Manager' });
+            winston.loggers.get(botGuild._id).error(`Stamp system is turned off for guild ${botGuild._id} but I was asked to parse a role for member ${member.id} for activity ${activityName}.`, { event: 'Activity Manager' });
             throw Error(`Stamp system is turned of for guild ${botGuild._id} but I was asked to parse a role for member ${member.id} for activity ${activityName}.`);
         }
 

@@ -6,6 +6,10 @@ const BotGuildModel = require('../../classes/bot-guild');
 
 /**
  * The start channel creation command lets users create private channels for them to use.
+ * Users can create voice or text channels, invite as many people as they want when created and name the channels whatever they want.
+ * A category and channel is created for this feature. The new channels are created inside this category.
+ * Users can delete the channel by reacting to a message in their DMs with the bot.
+ * THERE IS A LIMIT OF CHANNELS! Categories can only have up to 50 channels, if you expect more than 50 channels please DO NOT USE THIS FEATURE.
  * @category Commands
  * @subcategory Start-Commands
  * @extends PermissionCommand
