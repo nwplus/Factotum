@@ -1,7 +1,7 @@
 const { Collection, GuildEmoji, ReactionEmoji, MessageEmbed, TextChannel, Guild, Role, MessageReaction, User,  } = require('discord.js');
 const Ticket = require('./ticket');
 const Activity = require('../activities/activity');
-const Cave = require('../cave');
+const Cave = require('../activities/cave');
 const BotGuildModel = require('../bot-guild');
 const Console = require('../console');
 const winston = require('winston/lib/winston/config');
@@ -178,8 +178,8 @@ class TicketManager {
 
         let features = new Collection(featureList.map(feature => [feature.emojiName, feature]));
 
-        this.ticketCreatorInfo.console = new Console({title, description, features, color});
-        this.ticketCreatorInfo.console.sendConsole(this.ticketCreatorInfo.channel);
+        this.ticketCreatorInfo.console = new Console({title, description, channel: this.ticketCreatorInfo.channel, features, color});
+        this.ticketCreatorInfo.console.sendConsole();
     }
 
     /**

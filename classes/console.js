@@ -28,6 +28,7 @@ const { randomColor } = require('../discord-services');
  * @typedef ConsoleInfo
  * @property {String} title - the console title
  * @property {String} description - the description of the console
+ * @property {TextChannel | DMChannel} channel - the channel this console lives in
  * @property {Collection<String, Feature>} [features] - the collection of features mapped by emoji name
  * @property {String} [color] - console color in hex
  * @property {ReactionCollectorOptions} [options] collector options
@@ -44,7 +45,7 @@ class Console {
      * @constructor
      * @param {ConsoleInfo} args
      */
-    constructor({title, description, features = new Collection(), color = randomColor(), options}) {
+    constructor({title, description, channel, features = new Collection(), color = randomColor(), options}) {
 
         /**
          * @type {String}
@@ -89,15 +90,20 @@ class Console {
          * @type {ReactionCollector}
          */
         this.collector;
+
+        /**
+         * The channel this console lives in.
+         * @type {TextChannel | DMChannel}
+         */
+        this.channel = channel;
     }
 
     /**
      * Sends the console to a channel
-     * @param {TextChannel | DMChannel} channel - channel to send console to
      * @param {String} [messageText] - text to add to the message used to send the embed
      * @async
      */
-    async sendConsole(channel, messageText = '') {
+    async sendConsole(messageText = '') {
         let embed = new MessageEmbed().setColor(this.color)
             .setTimestamp()
             .setTitle(this.title)
@@ -105,7 +111,7 @@ class Console {
         
         this.features.forEach(feature => embed.addField(`${feature.emojiName} ${feature.name}`, `${feature.description}`));
 
-        this.message = await channel.send(messageText ,embed);
+        this.message = await this.channel.send(messageText ,embed);
 
         this.features.forEach(feature => this.message.react(feature.emojiName));
 
@@ -118,7 +124,7 @@ class Console {
         this.collector.on('collect', (reaction, user) => {
             this.interacting.set(user.id, user);
             this.features.get(reaction.emoji.name)?.callback(user, reaction, this.stopInteracting, this);
-            if (channel.type != 'dm') reaction.users.remove(user);
+            if (this.channel.type != 'dm') reaction.users.remove(user);
         });
 
         this.collector.on('remove', (reaction, user) => {

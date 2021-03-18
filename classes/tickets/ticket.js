@@ -166,6 +166,7 @@ class Ticket {
         this.consoles.ticketManager = new Console({
             title: ticketManagerMsgEmbed.title,
             description: ticketManagerMsgEmbed.description,
+            channel: this.ticketManager.ticketDispatcherInfo.channel,
         });
 
         ticketManagerMsgEmbed.fields.forEach((embedField => {
@@ -186,7 +187,7 @@ class Ticket {
 
         this.consoles.ticketManager.addFeature(joinTicketFeature);
 
-        this.consoles.ticketManager.sendConsole(this.ticketManager.ticketDispatcherInfo.channel, `<@&${this.requestedRole.id}>`);
+        this.consoles.ticketManager.sendConsole(`<@&${this.requestedRole.id}>`);
     }
 
     /**
@@ -198,6 +199,7 @@ class Ticket {
         this.consoles.groupLeader = new Console({ 
             title: 'Ticket was Successful!',
             description: `Your ticket to the ${this.ticketManager.parent.name} group was successful! It is ticket number ${this.id}`,
+            channel: await this.group.first().createDM(),
             features: new Collection([
                 [removeTicketEmoji, {
                     name: 'Remove the ticket',
@@ -212,7 +214,7 @@ class Ticket {
             options: { max: 1 }
         });
 
-        this.consoles.groupLeader.sendConsole(await this.group.first().createDM());
+        this.consoles.groupLeader.sendConsole();
     }
 
     /**
@@ -254,6 +256,7 @@ class Ticket {
         this.consoles.ticketRoom = new Console({
             title: 'Original Question',
             description: `<@${this.group.first().id}> has the question: ${this.question}`,
+            channel: this.room.channels.generalText,
             color: this.ticketManager.botGuild.colors.embedColor
         });
 
@@ -277,14 +280,14 @@ class Ticket {
                 // tell hackers all mentors are gone and ask to delete the ticket if this has not been done already 
                 else if (this.helpers.size === 0 && !this.garbageCollectorInfo.mentorDeletionSequence && !this.garbageCollectorInfo.exclude) {
                     this.garbageCollectorInfo.mentorDeletionSequence = true;
-                    await this.askToDelete('mentor');
+                    this.askToDelete('mentor');
                 }
 
                 stopInteracting(user);
             }
         });
 
-        this.consoles.ticketRoom.sendConsole(this.room.channels.generalText);
+        this.consoles.ticketRoom.sendConsole();
 
         //create a listener for inactivity in the text channel
         this.startChannelActivityListener();
