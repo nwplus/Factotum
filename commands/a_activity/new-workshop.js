@@ -8,6 +8,7 @@ const Activity = require('../../classes/activities/activity');
 
 /**
  * Creates a new Workshop and prompts the user for any information.
+ * Take a look at the [workshop]{@link Workshop} class to learn what a workshop activity is.
  * @category Commands
  * @subcategory Activity
  * @extends PermissionCommand

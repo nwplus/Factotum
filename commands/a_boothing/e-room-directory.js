@@ -7,7 +7,7 @@ const winston = require('winston');
 
 /**
  * Shows an embed with a link used for activities happening outside discord. Initial intent was to be used for 
- * sponsor booths. Sponsors can open and close their rooms as they want. When rooms open, a role is notified.
+ * sponsor booths. A specified role can open and close the rooms as they want. When rooms open, a specified role is notified.
  * @category Commands
  * @subcategory Boothing
  * @extends PermissionCommand

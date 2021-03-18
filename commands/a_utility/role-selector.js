@@ -6,8 +6,8 @@ const { reactionPrompt, messagePrompt } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
 
 /**
- * The role selector command sends a console where users can select roles by reacting to the console with an
- * emoji. Staff can add roles for users to get by reacting to the console and responding to some prompts.
+ * Make a message embed (console) available on the channel for users to react and un-react for roles. Staff can dynamically add 
+ * roles to the console. Users can react to get the role, then un-react to loose the role.
  * @category Commands
  * @subcategory Admin-Utility
  * @extends PermissionCommand

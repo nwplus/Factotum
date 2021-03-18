@@ -6,6 +6,11 @@ const BotGuild = require('../db/mongo/BotGuild');
 const BotGuildModel = require('./bot-guild');
 const winston = require('winston');
 
+/**
+ * A cave is a collection of two categories with a ticket system. A specified role gains only access to the private category while all other users 
+ * gain access to the public category. Users can request tickets for the specified role members to respond.
+ * Admins can create sub-roles for cave members to self-assign. These sub-roles are used by users to request specific ticket help.
+ */
 class Cave {
 
     /**
