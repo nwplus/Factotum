@@ -1,10 +1,15 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
-const { addRoleToMember, removeRolToMember } = require('../../discord-services');
+const { addRoleToMember, removeRolToMember, sendMsgToChannel } = require('../../discord-services');
 const { Message, MessageEmbed } = require('discord.js');
 
 /**
- * The pronouns command sends a role reaction console for users to select a pronoun role.
+ * The pronouns command sends a role reaction console for users to select a pronoun role out of 4 options:
+ * * she/her
+ * * he/him
+ * * they/them
+ * * other pronouns
+ * The roles must be already created on the server for this to work.
  * @category Commands
  * @subcategory Admin-Utility
  * @extends PermissionCommand
@@ -33,6 +38,12 @@ class Pronouns extends PermissionCommand {
         const heRole = message.guild.roles.cache.find(role => role.name === 'he/him');
         const theyRole = message.guild.roles.cache.find(role => role.name === 'they/them');
         const otherRole = message.guild.roles.cache.find(role => role.name === 'other pronouns');
+
+        // check to make sure all 4 roles are available
+        if (!sheRole || !heRole || !theyRole || !otherRole) {
+            sendMsgToChannel(message.channel, message.author.id, 'Could not find all four roles! Make sure the role names are exactly like stated on the documentation.', 20);
+            return;
+        }
 
         var emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'];
 
