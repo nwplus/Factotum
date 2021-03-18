@@ -41,35 +41,38 @@ class AddMembers extends PermissionCommand {
      */
     async runCommand(botGuild, message) {
         
-        // request file
+        try {
+            // request file
+            let msg = await messagePrompt({ prompt: 'Please send the csv file!', channel: message.channel, userId: message.author.id}, 'string');
 
-        let msg = await messagePrompt({ prompt: 'Please send the csv file!', channel: message.channel, userId: message.author.id}, 'string');
+            let fileUrl = msg.attachments.first().url;
 
-        let fileUrl = msg.attachments.first().url;
+            request(fileUrl);
 
-        request(fileUrl);
+            var holdMsg = await sendMsgToChannel(message.channel, message.author.id, 'Adding data please hold ...');
 
-        var holdMsg = await sendMsgToChannel(message.channel, message.author.id, 'Adding data please hold ...');
+            request(fileUrl).pipe(csvParser()).on('data', async (data) => {
 
-        request(fileUrl).pipe(csvParser()).on('data', async (data) => {
+                /** @type {String} */
+                let typesString = data.types;
 
-            /** @type {String} */
-            let typesString = data.types;
+                let typesList = typesString.split(',').map(string => string.trim().toLowerCase());
 
-            let typesList = typesString.split(',').map(string => string.trim().toLowerCase());
-
-            typesList = typesList.filter(type => botGuild.verification.verificationRoles.has(type));
+                typesList = typesList.filter(type => botGuild.verification.verificationRoles.has(type));
             
-            if (typesList.length > 0) await addUserData(data.email, typesList, message.guild.id, undefined, data.firstName, data.lastName);
-        }).on('end', () => {
-            holdMsg.delete();
-            sendMsgToChannel(message.channel, message.author.id, 'The members have been added to the database!', 10);
-            winston.loggers.get(message.guild.id).verbose(`Members have been added to the database by ${message.author.id}.`, { event: 'Add Member Command' });
-        }).on('error', (error) => {
-            holdMsg.delete();
-            sendMsgToChannel(message.channel, message.author.id, `There was an error, please try again! Error: ${error}`, 10);
-            winston.loggers.get(message.guild.id).warning(`There was an error while adding members- Error: ${error}`, { event: 'Add Member Command' });
-        });
+                if (typesList.length > 0) await addUserData(data.email, typesList, message.guild.id, undefined, data.firstName, data.lastName);
+            }).on('end', () => {
+                holdMsg.delete();
+                sendMsgToChannel(message.channel, message.author.id, 'The members have been added to the database!', 10);
+                winston.loggers.get(message.guild.id).verbose(`Members have been added to the database by ${message.author.id}.`, { event: 'Add Member Command' });
+            }).on('error', (error) => {
+                holdMsg.delete();
+                sendMsgToChannel(message.channel, message.author.id, `There was an error, please try again! Error: ${error}`, 10);
+                winston.loggers.get(message.guild.id).warning(`There was an error while adding members- Error: ${error}`, { event: 'Add Member Command' });
+            });
+        } catch (error) {
+            winston.loggers.get(message.guild.id).warning(`There was an error when adding members. Error: ${error}`, { event: 'Add Member Command' });
+        }
     }
 }
 module.exports = AddMembers;

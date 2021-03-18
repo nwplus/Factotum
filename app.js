@@ -340,7 +340,7 @@ async function greetNewMember(member, botGuild) {
 
         verifyCollector.on('collect', async (reaction, user) => {
             try {
-                var email = (await Prompt.messagePrompt({prompt: 'What email did you get accepted with? Please send it now!', channel: member.user.dmChannel, userId: member.id}, 'string', 30)).content;
+                var email = (await Prompt.messagePrompt({prompt: 'Please send me your email associated to this event!', channel: member.user.dmChannel, userId: member.id}, 'string', 30)).content;
             } catch (error) {
                 discordServices.sendEmbedToMember(member, {
                     title: 'Verification Error',
