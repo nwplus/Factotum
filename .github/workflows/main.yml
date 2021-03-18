@@ -36,7 +36,7 @@ jobs:
           # The path to a JSDoc configuration file
           config_file: ./jsdoc-conf.json
           # The JSDoc template to install
-          template: better-docs
+          # template: better-docs
           
           
           
