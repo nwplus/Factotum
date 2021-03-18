@@ -1,0 +1,52 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the develop branch
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  deploy:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout 
+        uses: actions/checkout@v2
+
+      - name: JSDoc Build
+        uses: andstor/jsdoc-action@v1.2.0
+        with:
+          # Output folder for the generated documentation
+          output_dir: ./docs
+          # The path to a JSDoc configuration file
+          config_file: ./jsdoc-conf.json
+          # The JSDoc template to install
+          template: better-docs
+          
+      - name: EsLint Check
+        uses: Krizzu/eslint-check-action@v1.1.0
+        with: 
+          ghToken: ${{ secrets.GITHUB_TOKEN }}
+          eslintConfig: ".eslintrc.js"
+          
+          
+          
+          
+          
+          
+          
+          
+          
