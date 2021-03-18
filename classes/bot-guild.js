@@ -483,6 +483,7 @@ class BotGuild {
         let guild = await client.guilds.fetch(this._id);
 
         guild.setCommandEnabled('verify', this.verification.isEnabled);
+        guild.setCommandEnabled('add-members', this.verification.isEnabled);
         guild.setCommandEnabled('manual-verify', this.verification.isEnabled);
         guild.setCommandEnabled('check-member', this.verification.isEnabled | this.attendance.isEnabled);
         guild.setCommandEnabled('start-attend', this.attendance.isEnabled);

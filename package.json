@@ -24,6 +24,7 @@
     "lokijs": "^1.5.11",
     "mongodb": "^3.6.4",
     "mongoose": "^5.11.19",
+    "request": "^2.88.2",
     "winston": "^3.3.3"
   },
   "devDependencies": {

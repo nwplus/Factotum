@@ -1,4 +1,4 @@
-const { GuildMember, TextChannel, Message, User, MessageEmbed, RoleResolvable } = require('discord.js');
+const { GuildMember, TextChannel, Message, User, MessageEmbed, RoleResolvable, Guild } = require('discord.js');
 const winston = require('winston');
 const BotGuild = require('./db/mongo/BotGuild');
 
@@ -185,7 +185,7 @@ module.exports.replaceRoleToMember = replaceRoleToMember;
 async function discordLog(guild, message) {
     let botGuild = await BotGuild.findById(guild.id);
     if (botGuild?.channelIDs?.adminLog) {
-        guild.channels.cache.get(botGuild.channelIDs.adminLog).send(message);
+        guild.channels.cache.get(botGuild.channelIDs.adminLog)?.send(message);
         winston.loggers.get(guild.id).silly(`The following was logged to discord: ${message}`);
     }
     else winston.loggers.get(guild.id).error('I was not able to log something to discord!! I could not find the botGuild or the adminLog channel!');
