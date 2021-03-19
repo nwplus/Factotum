@@ -75,10 +75,12 @@ class Prompt {
         winston.loggers.get(channel?.guild?.id || 'main').event(`The number prompt has been used in channel ${channel.name} for user ${userId}`, {event: 'Prompt'});
         let promptMsg = await Prompt.messagePrompt({prompt, channel, userId}, 'number');
         var invalid = false;
-        let numbers = promptMsg.content.split(' ');
-        numbers.forEach(num => {
+        let stringNumbers = promptMsg.content.split(' ');
+        let numbers = [];
+        stringNumbers.forEach(num => {
             //let number = parseInt(num);
             if (isNaN(num)) invalid = true;
+            numbers.push(parseInt(num));
         });
         if (invalid) {
             discordServices.sendMsgToChannel(channel, userId, 'One of the numbers is invalid, please try again, numbers only!', 10);
