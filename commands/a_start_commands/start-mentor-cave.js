@@ -64,16 +64,29 @@ class StartMentorCave extends PermissionCommand {
                 });
             }
 
+            let publicRoles = await rolePrompt({ prompt: 'What roles can request tickets?', channel, userId });
+
             /**
              * @param {String} prompt - message to ask user to choose an emoji for a function
              * 
              * Gets user's reaction and adds them to the emoji collection.
              */
+            // eslint-disable-next-line no-inner-declarations
             async function checkForDuplicateEmojis(prompt) {
                 var emoji = await reactionPrompt({prompt, channel, userId}, emojis);
                 emojis.set(emoji.name, emoji);
                 return emoji;
             }
+
+            let inactivePeriod = (await numberPrompt({prompt: 'How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
+                channel, userId}))[0];
+            var bufferTime = inactivePeriod;
+            while (bufferTime >= inactivePeriod) {
+                bufferTime = (await numberPrompt({prompt: `How long, in minutes, will the bot wait for a response to its request to delete a ticket? Must be less than inactive period: ${inactivePeriod}`,
+                    channel, userId}))[0];
+            }
+            let reminderTime = (await numberPrompt({prompt: 'How long, in minutes, shall a ticket go unaccepted before the bot sends a reminder to all mentors?',
+                channel, userId}))[0];
 
             let cave = new Cave({
                 name: 'Mentor',
@@ -90,13 +103,11 @@ class StartMentorCave extends PermissionCommand {
                     excludeFromAutoDeleteEmoji: excludeFromAutoDeleteEmoji,
                 },
                 times: {
-                    inactivePeriod: (await numberPrompt({prompt: 'How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
-                        channel, userId}))[0],
-                    bufferTime: (await numberPrompt({prompt: 'How long, in minutes, will the bot wait for a response to its request to delete a ticket?',
-                        channel, userId}))[0],
-                    reminderTime: (await numberPrompt({prompt: 'How long, in minutes, shall a ticket go unaccepted before the bot sends a reminder to all mentors?',
-                        channel, userId}))[0],
-                }
+                    inactivePeriod,
+                    bufferTime,
+                    reminderTime,
+                },
+                publicRoles: publicRoles,
             }, botGuild, message.guild);
 
             await cave.init(message.guild.channels);

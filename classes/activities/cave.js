@@ -16,6 +16,7 @@ const { sendMsgToChannel, addRoleToMember, removeRolToMember } = require('../../
  * @property {Role} role - the role associated with this cave
  * @property {Emojis} emojis - object holding emojis to use in this cave
  * @property {Times} times - object holding times to use in this cave
+ * @property {Collection<String, Role>} publicRoles - the roles that can request tickets
  */
 
 /**
@@ -90,7 +91,7 @@ class Cave extends Activity {
           * The public room for this cave.
           * @type {Room}
           */
-        this.publicRoom = new Room(guild, botGuild, `👉🏽👈🏽${caveOptions.name} Help`);
+        this.publicRoom = new Room(guild, botGuild, `👉🏽👈🏽${caveOptions.name} Help`, caveOptions.publicRoles);
 
         /**
          * The console where cave members can get sub roles.
@@ -120,12 +121,17 @@ class Cave extends Activity {
     async init() {
         await super.init();
 
-        this.channels.roleSelection = this.room.addRoomChannel({
+        this.channels.roleSelection = await this.room.addRoomChannel({
             name: `📝${this.name}-role-selector`,
             info: {
                 topic: 'Sign yourself up for specific roles! New roles will be added as requested, only add yourself to one if you feel comfortable responding to questions about the topic.',
             },
             isSafe: true,
+        });
+        this.subRoleConsole = new Console({
+            title: 'Choose your sub roles!',
+            description: 'Choose sub roles you are comfortable answering questions for! Remove your reaction to loose the sub role.',
+            channel: this.channels.roleSelection,
         });
 
         for (var i = 0; i < 3; i++) {
@@ -163,7 +169,6 @@ class Cave extends Activity {
                     .setTitle(`New Ticket - ${ticket.id}`)
                     .setDescription(`<@${ticket.group.first().id}> has a question: ${ticket.question}`)
                     .addField('They are requesting:', `<@&${ticket.requestedRole.id}>`)
-                    .addField('Can you help them?', `If so react to this message with ${ticket.ticketManager.ticketDispatcherInfo.takeTicketEmoji}.`)
                     .setTimestamp(),
             },
             systemWideTicketInfo: {
@@ -192,13 +197,13 @@ class Cave extends Activity {
             {
                 name: 'Delete Ticket Channels',
                 description: 'Get the ticket manager to delete ticket rooms to clear up the server.',
-                emojiName: this.caveOptions.emojis.deleteChannelsEmoji,
+                emojiName: this.caveOptions.emojis.deleteChannelsEmoji.name,
                 callback: (user, reaction, stopInteracting, console) => this.deleteTicketChannelsCallback(console.channel, user.id).then(() => stopInteracting()),
             },
             {
                 name: 'Include/Exclude Tickets',
                 description: 'Include or exclude tickets from the automatic garbage collector.',
-                emojiName: this.caveOptions.emojis.excludeFromAutoDeleteEmoji,
+                emojiName: this.caveOptions.emojis.excludeFromAutoDeleteEmoji.name,
                 callback: (user, reaction, stopInteracting, console) => this.includeExcludeCallback(console.channel, user.id).then(() => stopInteracting()),
             }
         ];
