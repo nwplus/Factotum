@@ -166,26 +166,24 @@ class InitBot extends Command {
 
                 await botGuild.setUpVerification(this.client, guestRole.id, types);
                 sendMsgToChannel(channel, userId, 'The verification service has been set up correctly!', 60);
+
+                // ask if attendance will be used
+                try {
+                    if (await yesNoPrompt({prompt: 'Will you be using the attendance service?', channel, userId})) {    
+                        const attendeeRole = await this.askOrCreate('attendee', channel, userId, guild, '#0099E1');
+                        await botGuild.setUpAttendance(this.client, attendeeRole.id);
+                        sendMsgToChannel(channel, userId, 'The attendance service has been set up correctly!', 60);
+                    } else {
+                        sendMsgToChannel(channel, userId, 'Attendance was not set up!', 60);
+                    }
+                } catch (error) {
+                    sendMsgToChannel(channel, userId, 'Attendance was not set up due to Prompt cancellation.', 10);
+                }
             }
         } catch (error) {
             sendMsgToChannel(channel, userId, 'Verification service was not set due to Prompt cancellation.', 10);
             winston.loggers.get(guild.id).warning(`Handled an error when setting up verification, and thus was not set up. Error was ${error.name}`, { event: 'InitBot Command', data: error });
         }
-        
-
-        // ask if attendance will be used
-        try {
-            if (await yesNoPrompt({prompt: 'Will you be using the attendance service?', channel, userId})) {    
-                const attendeeRole = await this.askOrCreate('attendee', channel, userId, guild, '#0099E1');
-                await botGuild.setUpAttendance(this.client, attendeeRole.id);
-                sendMsgToChannel(channel, userId, 'The attendance service has been set up correctly!', 60);
-            } else {
-                sendMsgToChannel(channel, userId, 'Attendance was not set up!', 60);
-            }
-        } catch (error) {
-            sendMsgToChannel(channel, userId, 'Attendance was not set up due to Prompt cancellation.', 10);
-        }
-
 
         // ask if the announcements will be used
         try {
