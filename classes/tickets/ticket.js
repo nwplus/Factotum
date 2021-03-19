@@ -56,7 +56,7 @@ class Ticket {
          * The room this ticket will be solved in.
          * @type {Room}
          */
-        this.room = new Room(ticketManager.guild, ticketManager.botGuild, `Ticket-${ticketNumber}`, undefined, hackers);
+        this.room = new Room(ticketManager.guild, ticketManager.botGuild, `Ticket-${ticketNumber}`, undefined, hackers.clone());
 
         /**
          * Question from hacker
@@ -73,7 +73,7 @@ class Ticket {
          * All the group members, group leader should be the first one!
          * @type {Collection<String, User>} - <ID, User>
          */
-        this.group = hackers;
+        this.group = hackers.clone();
 
         /**
          * Mentors who join the ticket
@@ -203,7 +203,7 @@ class Ticket {
             features: new Collection([
                 [removeTicketEmoji, {
                     name: 'Remove the ticket',
-                    description: `If you don't need help anymore, react to this message with ⚔${removeTicketEmoji}`,
+                    description: `If you don't need help anymore, react to this message with ${removeTicketEmoji}`,
                     emojiName: removeTicketEmoji,
                     callback: (user, reaction, stopInteracting) => {
                         // make sure user can only close the ticket if no one has taken the ticket
@@ -229,7 +229,7 @@ class Ticket {
         this.addHelper(helper);
 
         // edit ticket manager helper console with mentor information
-        await this.consoles.ticketManager.addField('This ticket is being handled!', `<@${helper.id} is helping this team!`);
+        await this.consoles.ticketManager.addField('This ticket is being handled!', `<@${helper.id}> is helping this team!`);
         await this.consoles.ticketManager.changeColor('#80c904');
 
         let takeTicketFeature = {
@@ -260,7 +260,7 @@ class Ticket {
             color: this.ticketManager.botGuild.colors.embedColor
         });
 
-        this.consoles.ticketRoom.addField('Thank you for helping this team.', `<@${helper.id} best of luck!`);
+        this.consoles.ticketRoom.addField('Thank you for helping this team.', `<@${helper.id}> best of luck!`);
         this.consoles.ticketRoom.addFeature({
             name: 'When done:',
             description: `React to this message with ${leaveTicketEmoji} to lose access to these channels!`,
@@ -347,7 +347,7 @@ class Ticket {
         
         deletionCollector.on('end', async (collected) => {
             // if a channel has already been deleted by another process, stop this deletion sequence
-            if (collected.size === 0 && !this.garbageCollectorInfo.exclude) { // checks to see if no one has responded and this ticket is not exempt
+            if (collected.size === 0 && !this.garbageCollectorInfo.exclude && this.status != Ticket.STATUS.closed) { // checks to see if no one has responded and this ticket is not exempt
                 this.setStatus(Ticket.STATUS.closed, 'inactivity');
             } else if (collected.size > 0) {
                 await this.room.channels.generalText.send('You have indicated that you need more time. I\'ll check in with you later!');
@@ -368,7 +368,7 @@ class Ticket {
         // message collector that stops when there are no messages for inactivePeriod minutes
         const activityListener = this.room.channels.generalText.createMessageCollector(m => !m.author.bot, { idle: this.ticketManager.systemWideTicketInfo.garbageCollectorInfo.inactivePeriod * 60 * 1000 });
         activityListener.on('end', async collected => {
-            if (collected.size === 0 && this.room.channels.generalVoice.members.size === 0) {
+            if (collected.size === 0 && this.room.channels.generalVoice.members.size === 0 && this.status === Ticket.STATUS.taken) {
                 await this.askToDelete('inactivity');
                 
                 // start listening again for inactivity in case they ask for more time
@@ -400,6 +400,8 @@ class Ticket {
         // delete the room, clear intervals
         this.room.delete();
         clearInterval(this.garbageCollectorInfo.noHelperInterval);
+        
+        if (this.consoles?.ticketRoom) this.consoles.ticketRoom.stopConsole();
     }
 }
 
