@@ -1,9 +1,9 @@
 const { Collection, TextChannel, VoiceChannel, GuildCreateChannelOptions, MessageEmbed, Message } = require('discord.js');
-const { CommandoClient } = require('discord.js-commando');
 const winston = require('winston');
 const { randomColor, sendMessageToMember, sendMsgToChannel } = require('../../discord-services');
 const Console = require('../console');
 const { messagePrompt, yesNoPrompt, chooseChannel } = require('../prompt');
+const Room = require('../room');
 const Activity = require('./activity');
 
 
@@ -323,7 +323,7 @@ class Workshop extends Activity {
             .setTitle(this.name + ' Help Desk')
             .setDescription('Welcome to the ' + this.name + ' help desk. There are two ways to get help explained below:')
             .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, ask them in the main banter channel!')
-            .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the ' +  Activity.mainVoiceChannelName + ' voice channel if not already there!');
+            .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the ' +  this.room.channels.generalVoice.name || Room.voiceChannelName + ' voice channel if not already there!');
         this.assistanceChannel.send(outgoingTicketEmbed).then(message => this.outgoingTicketHandler(message));
     }
 
