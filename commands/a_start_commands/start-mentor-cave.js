@@ -97,24 +97,9 @@ class StartMentorCave extends PermissionCommand {
                     reminderTime: (await numberPrompt({prompt: 'How long, in minutes, shall a ticket go unaccepted before the bot sends a reminder to all mentors?',
                         channel, userId}))[0],
                 }
-            }, botGuild);
+            }, botGuild, message.guild);
 
-
-            let adminConsole = message.guild.channels.resolve(botGuild.channelIDs.adminConsole);
-
-            try {
-                let isCreated = await yesNoPrompt({prompt: 'Are the categories and channels already created?', channel, userId});
-
-                if (isCreated) await cave.find(channel, userId);
-                else await cave.init(message.guild.channels);
-            } catch (error) {
-                // if prompt canceled then init then take it as false
-                await cave.init(message.guild.channels);
-            }
-
-            await cave.sendConsoleEmbeds(adminConsole);
-
-            cave.checkForExistingRoles(message.guild.roles, adminConsole, userId);
+            await cave.init(message.guild.channels);
           
         } catch (error) {
             message.channel.send('Due to a prompt cancel, the mentor cave creation was unsuccessful.').then(msg => msg.delete({timeout: 5000}));

@@ -100,10 +100,10 @@ class Prompt {
         let reactionMsg = await channel.send('<@' + userId + '> ' + prompt + ' React to this message with the emoji.');
         let reactions = await reactionMsg.awaitReactions((reaction, user) => !user.bot && user.id === userId, {max: 1});
         discordServices.deleteMessage(reactionMsg);
-
+        
         if (unavailableEmojis.has(reactions.first().emoji.name)) {
             channel.send('<@' + userId + '> The emoji you choose is already in use, please try again!').then(msg => msg.delete({timeout: 5000}));
-            return this.reactionPrompt({prompt, channel, userId}, unavailableEmojis);
+            return Prompt.reactionPrompt({prompt, channel, userId}, unavailableEmojis);
         }
 
         return reactions.first().emoji;

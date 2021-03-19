@@ -128,8 +128,8 @@ class Workshop extends Activity {
         this.polls.forEach((pollInfo) => localFeatures.push({
             name: pollInfo.title,
             description: `Asks the question: ${pollInfo.title} - ${pollInfo.question}`,
-            emoji: pollInfo.emojiName,
-            callback: (user, reaction, stopInteracting, console) => this.sendPoll(pollInfo.type).then(() => stopInteracting(user)),
+            emojiName: pollInfo.emojiName,
+            callback: (user, reaction, stopInteracting, console) => this.sendPoll(pollInfo.type).then(() => stopInteracting()),
         }));
 
         localFeatures.forEach(feature => this.adminConsole.addFeature(feature));
@@ -296,8 +296,8 @@ class Workshop extends Activity {
         this.polls.forEach((pollInfo) => TAPollingConsole.addFeature({
             name: pollInfo.title,
             description: `Asks the question: ${pollInfo.title} - ${pollInfo.question}`,
-            emoji: pollInfo.emojiName,
-            callback: (user, reaction, stopInteracting, console) => this.sendPoll(pollInfo.type).then(() => stopInteracting(user)),
+            emojiName: pollInfo.emojiName,
+            callback: (user, reaction, stopInteracting, console) => this.sendPoll(pollInfo.type).then(() => stopInteracting()),
         }));
         TAPollingConsole.addFeature({
             name: 'Stamp Distribution',
@@ -305,7 +305,7 @@ class Workshop extends Activity {
             emojiName: '📇',
             callback: (user, reaction, stopInteracting, console) => {
                 this.distributeStamp(this.room.channels.generalText);
-                stopInteracting(user);
+                stopInteracting();
             }
         });
         TAPollingConsole.sendConsole();

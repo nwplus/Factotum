@@ -32,7 +32,7 @@ const { randomColor } = require('../discord-services');
  * @property {TextChannel | DMChannel} channel - the channel this console lives in
  * @property {Collection<String, Feature>} [features] - the collection of features mapped by emoji name
  * @property {String} [color] - console color in hex
- * @property {ReactionCollectorOptions} [options] collector options
+ * @property {ReactionCollectorOptions} [options={}] collector options
  */
 
 /**
@@ -46,7 +46,7 @@ class Console {
      * @constructor
      * @param {ConsoleInfo} args
      */
-    constructor({title, description, channel, features = new Collection(), color = randomColor(), options}) {
+    constructor({title, description, channel, features = new Collection(), color = randomColor(), options = {}}) {
 
         /**
          * @type {String}
@@ -62,6 +62,13 @@ class Console {
          * @type {Collection<String, Feature>} - <Emoji Name, Button Info>
          */
         this.features = features;
+
+        /**
+         * The fields this console has, not including feature fields.
+         * <Field Name, Field Description>
+         * @type {Collection<String, String>}
+         */
+        this.fields = new Collection();
 
         /**
          * @type {String} - hex color
@@ -111,6 +118,7 @@ class Console {
             .setDescription(this.description);
         
         this.features.forEach(feature => embed.addField(`${feature.emojiName} ${feature.name}`, `${feature.description}`));
+        this.fields.forEach((description, name) => embed.addField(name, description));
 
         this.message = await this.channel.send(messageText ,embed);
 
@@ -124,13 +132,13 @@ class Console {
 
         this.collector.on('collect', (reaction, user) => {
             this.interacting.set(user.id, user);
-            this.features.get(reaction.emoji.name)?.callback(user, reaction, this.stopInteracting, this);
+            this.features.get(reaction.emoji.name)?.callback(user, reaction, () => this.stopInteracting(user), this);
             if (this.channel.type != 'dm') reaction.users.remove(user);
         });
 
         this.collector.on('remove', (reaction, user) => {
             this.interacting.set(user.id, user);
-            this.features.get(reaction.emoji.name)?.removeCallback(user, reaction, this.stopInteracting, this);
+            if (this.features.get(reaction.emoji.name)?.removeCallback) this.features.get(reaction.emoji.name).removeCallback(user, reaction, this.stopInteracting, this);
         });
     }
 
@@ -156,7 +164,8 @@ class Console {
      * @async
      */
     async addField(name, value, inline) {
-        await this.message.edit(this.message.embeds[0].addField(name, value, inline));
+        this.fields.set(name, value);
+        if(this.message) await this.message.edit(this.message.embeds[0].addField(name, value, inline));
     }
 
     /**

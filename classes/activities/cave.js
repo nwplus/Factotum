@@ -59,7 +59,7 @@ class Cave extends Activity {
         super({
             activityName: caveOptions.name,
             guild: guild,
-            roleParticipants: new Collection([caveOptions.role.id, caveOptions.role]),
+            roleParticipants: new Collection([[caveOptions.role.id, caveOptions.role]]),
             botGuild: botGuild
         });
 
@@ -112,7 +112,7 @@ class Cave extends Activity {
         if (typeof caveOptions.color != 'string' && caveOptions.color.length === 0) throw new Error('The caveOptions.color must be a non empty string!');
         if (!(caveOptions.role instanceof Role)) throw new Error('The caveOptions.role must be Role object!');
         for (const emoji in caveOptions.emojis) {
-            if (!(emoji instanceof GuildEmoji) && !(emoji instanceof ReactionEmoji)) throw new Error('The ' + emoji + 'must be a GuildEmoji or ReactionEmoji!');
+            if (!(caveOptions.emojis[emoji] instanceof GuildEmoji) && !(caveOptions.emojis[emoji] instanceof ReactionEmoji)) throw new Error('The ' + emoji + 'must be a GuildEmoji or ReactionEmoji!');
         }
         this.caveOptions = caveOptions;
     }
@@ -135,7 +135,7 @@ class Cave extends Activity {
             });
         }
 
-        this.publicRoom.init();
+        await this.publicRoom.init();
 
         this.ticketManager = new TicketManager(this, {
             ticketCreatorInfo: {
@@ -175,6 +175,9 @@ class Cave extends Activity {
                 isAdvancedMode: true,
             }
         }, this.guild, this.botGuild);
+
+        await this.ticketManager.sendTicketCreatorConsole('Get some help from our mentors!', 
+            'To submit a ticket to the mentors please react to this message with the appropriate emoji. **If you are unsure, select a general ticket!**');
     }
 
     addDefaultFeatures() {
@@ -183,20 +186,20 @@ class Cave extends Activity {
             {
                 name: 'Add Sub-Role',
                 description: 'Add a new sub-role cave members can select and users can use to ask specific tickets.',
-                emoji: this.caveOptions.emojis.addRoleEmoji.name,
-                callback: (user, reaction, stopInteracting, console) => this.addSubRoleCallback(console.channel, user.id).then(() => stopInteracting(user)),
+                emojiName: this.caveOptions.emojis.addRoleEmoji.name,
+                callback: (user, reaction, stopInteracting, console) => this.addSubRoleCallback(console.channel, user.id).then(() => stopInteracting()),
             },
             {
                 name: 'Delete Ticket Channels',
                 description: 'Get the ticket manager to delete ticket rooms to clear up the server.',
-                emoji: this.caveOptions.emojis.deleteChannelsEmoji,
-                callback: (user, reaction, stopInteracting, console) => this.deleteTicketChannelsCallback(console.channel, user.id).then(() => stopInteracting(user)),
+                emojiName: this.caveOptions.emojis.deleteChannelsEmoji,
+                callback: (user, reaction, stopInteracting, console) => this.deleteTicketChannelsCallback(console.channel, user.id).then(() => stopInteracting()),
             },
             {
                 name: 'Include/Exclude Tickets',
                 description: 'Include or exclude tickets from the automatic garbage collector.',
-                emoji: this.caveOptions.emojis.excludeFromAutoDeleteEmoji,
-                callback: (user, reaction, stopInteracting, console) => this.includeExcludeCallback(console.channel, user.id).then(() => stopInteracting(user)),
+                emojiName: this.caveOptions.emojis.excludeFromAutoDeleteEmoji,
+                callback: (user, reaction, stopInteracting, console) => this.includeExcludeCallback(console.channel, user.id).then(() => stopInteracting()),
             }
         ];
 
@@ -221,7 +224,7 @@ class Cave extends Activity {
         this.subRoles.forEach((subRole, emojiName, map) => {
             emojis.set(emojiName, subRole.name);
         });
-        
+
         let emoji = await reactionPrompt({ prompt: 'What emoji do you want to associate with this new role?', channel, userId }, emojis);
 
         let role = await this.guild.roles.create({
@@ -346,17 +349,25 @@ class Cave extends Activity {
                 let member = this.guild.member(user);
                 addRoleToMember(member, role);
                 sendMsgToChannel(console.channel, user.id, `You have received the ${subRoleName} role!`, 10);
-                stopInteracting(user);
+                stopInteracting();
             },
             removeCallback: (user, reaction, stopInteracting, console) => {
                 let member = this.guild.member(user);
                 removeRolToMember(member, role);
                 sendMsgToChannel(console.channel, user.id, `You have lost the ${subRoleName} role!`, 10);
-                stopInteracting(user);
+                stopInteracting();
             },
         });
 
         this.ticketManager.addTicketType(role, subRole.name, emoji.name);
+    }
+
+    /**
+     * @override
+     */
+    delete() {
+        this.publicRoom.delete();
+        super.delete();
     }
 }
 module.exports = Cave;

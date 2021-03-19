@@ -110,29 +110,35 @@ class Room {
      * @returns {Promise<Room>}
      */
     async init(args) {
-        if (args.category) this.channels.category = args.category;
+        if (args?.category) this.channels.category = args.category;
         else {
             let position = this.guild.channels.cache.filter(channel => channel.type === 'category').size;
             this.channels.category = await this.createCategory(position);
         }
 
-        if (args.textChannel) {
+        if (args?.textChannel) {
             this.channels.generalText = args.textChannel;
             this.addExcisingChannel(args.textChannel);
         }
-        else this.channels.generalText = await this.addRoomChannel(Room.mainTextChannelName, {
+        else this.channels.generalText = await this.addRoomChannel({
+            name: Room.mainTextChannelName, 
+            info: {
             parent: this.channels.category,
-            type: 'text',
-            topic: 'A general banter channel to be used to communicate with other members, mentors, or staff. The !ask command is available for questions.',
+                type: 'text',
+                topic: 'A general banter channel to be used to communicate with other members, mentors, or staff. The !ask command is available for questions.',
+            }
         });
 
-        if (args.voiceChannel) {
+        if (args?.voiceChannel) {
             this.channels.generalVoice = args.voiceChannel;
             this.addExcisingChannel(args.voiceChannel);
         }
-        else this.channels.generalVoice = await this.addRoomChannel(Room.mainVoiceChannelName, {
-            parent: this.channels.category,
-            type: 'voice',
+        else this.channels.generalVoice = await this.addRoomChannel({
+            name: Room.mainVoiceChannelName, 
+            info: {
+                parent: this.channels.category,
+                type: 'voice',
+            }
         });
 
         winston.loggers.get(this.guild.id).event(`The room ${this.name} was initialized.`, {event: "Room"});
@@ -164,14 +170,14 @@ class Room {
      * Adds a channels to the room.
      * @param {Object} args
      * @param {String} args.name - name of the channel to create
-     * @param {GuildCreateChannelOptions} args.info - one of voice or text
+     * @param {GuildCreateChannelOptions} [args.info={}] - one of voice or text
      * @param {RolePermission[]} [args.permissions=[]] - the permissions per role to be added to this channel after creation.
      * @param {Boolean} [args.isSafe=false] - true if the channel is safe and cant be removed
      * @async
      */
-    async addRoomChannel({name, info, permissions = [], isSafe = false}) {
-        info.parent = info.parent || this.channels.category;
-        info.type = info.type || 'text';
+    async addRoomChannel({name, info = {}, permissions = [], isSafe = false}) {
+        info.parent = info?.parent || this.channels.category;
+        info.type = info?.type || 'text';
 
         let channel = await this.guild.channels.create(name, info);
 
@@ -257,7 +263,11 @@ class Room {
         this.rolesAllowed.forEach((role, key) => this.channels.category.updateOverwrite(role, { VIEW_CHANNEL: false }))
 
         /** @type {TextChannel} */
-        this.channels.nonLockedChannel = await this.addRoomChannel('Activity Rules START HERE', { type: 'text' }, this.rolesAllowed.map((role, key) => ({ id: role.id, permissions: { VIEW_CHANNEL: true, SEND_MESSAGES: false, }})), true);
+        this.channels.nonLockedChannel = await this.addRoomChannel({
+            name: 'Activity Rules START HERE', 
+            info: { type: 'text' }, 
+            permissions: this.rolesAllowed.map((role, key) => ({ id: role.id, permissions: { VIEW_CHANNEL: true, SEND_MESSAGES: false, }})), 
+            isSafe: true});
         this.channels.safeChannels.set(this.channels.nonLockedChannel.id, this.channels.nonLockedChannel);
 
         this.locked = true;

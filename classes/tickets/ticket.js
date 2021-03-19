@@ -181,7 +181,7 @@ class Ticket {
                 if (this.status === Ticket.STATUS.new) {
                     this.setStatus(Ticket.STATUS.taken, 'helper has taken the ticket', user);
                 }
-                stopInteracting(user);
+                stopInteracting();
             }
         };
 
@@ -238,7 +238,7 @@ class Ticket {
                 emojiName: this.ticketManager.ticketDispatcherInfo.joinTicketEmoji.name,
                 callback: (user, reaction, stopInteracting) => {
                     if (this.status === Ticket.STATUS.taken) this.helperJoinsTicket(user);
-                    stopInteracting(user);
+                    stopInteracting();
                 }
         }
         await this.consoles.ticketManager.addFeature(takeTicketFeature);
@@ -283,7 +283,7 @@ class Ticket {
                     this.askToDelete('mentor');
                 }
 
-                stopInteracting(user);
+                stopInteracting();
             }
         });
 

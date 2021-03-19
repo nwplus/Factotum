@@ -141,25 +141,25 @@ class Activity {
             {
                 name: 'Add Channel',
                 description: 'Add one channel to the activity.',
-                emoji: '⏫',
-                callback: (user, reaction, stopInteracting, console) => this.addChannel(console.channel, user.id).then(() => stopInteracting(user)),
+                emojiName: '⏫',
+                callback: (user, reaction, stopInteracting, console) => this.addChannel(console.channel, user.id).then(() => stopInteracting()),
             },
             {
                 name: 'Remove Channel',
                 description: 'Remove a channel, decide from a list.',
-                emoji: '⏬',
-                callback: (user, reaction, stopInteracting, console) => this.removeChannel(console.channel, user.id).then(() => stopInteracting(user)),
+                emojiName: '⏬',
+                callback: (user, reaction, stopInteracting, console) => this.removeChannel(console.channel, user.id).then(() => stopInteracting()),
             },
             {
                 name: 'Delete', 
                 description: 'Delete this activity and its channels.',
-                emoji: '⛔',
+                emojiName: '⛔',
                 callback: (user, reaction, stopInteracting, console) => this.delete(),
             },
             {
                 name: 'Archive',
                 description: 'Archive the activity, text channels are saved.',
-                emoji: '💼',
+                emojiName: '💼',
                 callback: (user, reaction, stopInteracting, console) => {
                     let archiveCategory = this.guild.channels.resolve(this.botGuild.channelIDs.archiveCategory);
                     this.archive(archiveCategory);
@@ -168,32 +168,32 @@ class Activity {
             {
                 name: 'Callback',
                 description: 'Move all users in the activity\'s voice channels back to a specified voice channel.',
-                emoji: '🔃',
-                callback: (user, reaction, stopInteracting, console) => this.voiceCallBack(console.channel, user.id).then(() => stopInteracting(user)),
+                emojiName: '🔃',
+                callback: (user, reaction, stopInteracting, console) => this.voiceCallBack(console.channel, user.id).then(() => stopInteracting()),
             },
             {
                 name: 'Shuffle',
                 description: 'Shuffle all members from one channel to all others in the activity.',
-                emoji: '🌬️',
-                callback: (user, reaction, stopInteracting, console) => this.shuffle(console.channel, user.id).then(() => stopInteracting(user)),
+                emojiName: '🌬️',
+                callback: (user, reaction, stopInteracting, console) => this.shuffle(console.channel, user.id).then(() => stopInteracting()),
             },
             {
                 name: 'Role Shuffle',
                 description: 'Shuffle all the members with a specific role from one channel to all others in the activity.',
-                emoji: '🦜',
-                callback: (user, reaction, stopInteracting, console) => this.roleShuffle(console.channel, user.id).then(() => stopInteracting(user)),
+                emojiName: '🦜',
+                callback: (user, reaction, stopInteracting, console) => this.roleShuffle(console.channel, user.id).then(() => stopInteracting()),
             },
             {
                 name: 'Distribute Stamp',
                 description: 'Send a emoji collector for users to get a stamp.',
-                emoji: '🏕️',
-                callback: (user, reaction, stopInteracting, console) => this.distributeStamp(console.channel, user.id).then(() => stopInteracting(user)),
+                emojiName: '🏕️',
+                callback: (user, reaction, stopInteracting, console) => this.distributeStamp(console.channel, user.id).then(() => stopInteracting()),
             },
             {
                 name: 'Rules Lock',
                 description: 'Lock the activity behind rules, users must agree to the rules to access the channels.',
-                emoji: '🔒',
-                callback: (user, reaction, stopInteracting, console) => this.ruleValidation(console.channel, user.id).then(() => stopInteracting(user)),
+                emojiName: '🔒',
+                callback: (user, reaction, stopInteracting, console) => this.ruleValidation(console.channel, user.id).then(() => stopInteracting()),
             }
         ];
 

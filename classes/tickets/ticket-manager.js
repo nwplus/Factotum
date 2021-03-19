@@ -4,9 +4,9 @@ const Activity = require('../activities/activity');
 const Cave = require('../activities/cave');
 const BotGuildModel = require('../bot-guild');
 const Console = require('../console');
-const winston = require('winston/lib/winston/config');
 const { messagePrompt } = require('../prompt');
 const { sendMsgToChannel } = require('../../discord-services');
+const winston = require('winston');
 
 
 /**
@@ -165,22 +165,23 @@ class TicketManager {
      * @param {String} title - the ticket creator console title
      * @param {String} description - the ticket creator console description
      * @param {String} [color] - the ticket creator console color, hex
+     * @async
      */
-    sendTicketCreatorConsole(title, description, color) {
+    async sendTicketCreatorConsole(title, description, color) {
         /** @type {Console.Feature[]} */
         let featureList = [
             {
                 name: 'General Ticket',
                 description: 'A general ticket aimed to all helpers.',
                 emojiName: this.ticketDispatcherInfo.mainHelperInfo.emoji.name,
-                callback: (user, reaction, stopInteracting, console) => this.startTicketCreationProcess(user, this.ticketDispatcherInfo.mainHelperInfo.role, console.channel).then(() => stopInteracting(user)),
+                callback: (user, reaction, stopInteracting, console) => this.startTicketCreationProcess(user, this.ticketDispatcherInfo.mainHelperInfo.role, console.channel).then(() => stopInteracting()),
             }
         ];
 
         let features = new Collection(featureList.map(feature => [feature.emojiName, feature]));
 
         this.ticketCreatorInfo.console = new Console({title, description, channel: this.ticketCreatorInfo.channel, features, color});
-        this.ticketCreatorInfo.console.sendConsole();
+        await this.ticketCreatorInfo.console.sendConsole();
     }
 
     /**
@@ -196,7 +197,7 @@ class TicketManager {
             description: '---------------------------------',
             emojiName: emoji,
             callback: (user, reaction, stopInteracting, console) => {
-                this.startTicketCreationProcess(user, role, console.channel).then(() => stopInteracting(user));
+                this.startTicketCreationProcess(user, role, console.channel).then(() => stopInteracting());
             }
         });
     }
@@ -224,15 +225,16 @@ class TicketManager {
             return;
         }
 
-        let hackers = promptMsg.mentions.users.array();
-        hackers.push(user);
+        let hackers = new Collection();
+        hackers.set(user.id, user);
+        hackers = hackers.concat([promptMsg.mentions.users]);
 
         this.newTicket(hackers, promptMsg.cleanContent, role);
     }
 
     /**
      * Adds a new ticket.
-     * @param {User[]} hackers
+     * @param {Collection<String, User>} hackers
      * @param {String} question
      * @param {Role} roleRequested
      * @private
@@ -244,6 +246,8 @@ class TicketManager {
         this.setReminder(ticket);
 
         this.ticketCount ++;
+
+        ticket.setStatus('new');
     }
 
     /**

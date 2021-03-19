@@ -89,28 +89,28 @@ class CoffeeChats extends Activity {
             {
                 name: 'Team Shuffle',
                 description: 'Shuffle all the teams from the main voice channel to the other channels.',
-                emoji: '👨‍👩‍👧‍👦',
+                emojiName: '👨‍👩‍👧‍👦',
                 callback: (user, reaction, stopInteracting, console) => {
                     this.groupShuffle();
-                    stopInteracting(user);
+                    stopInteracting();
                 },
             },
             {
                 name: 'Reset Teams',
                 description: 'Remove all the signed up teams.',
-                emoji: '🗜️',
+                emojiName: '🗜️',
                 callback: (user, reaction, stopInteracting, console) => {
                     this.resetTeams();
-                    stopInteracting(user);
+                    stopInteracting();
                 },
             },
             {
                 name: 'Add Team Slot',
                 description: 'Adds a team slot and a voice channel for them.',
-                emoji: '☝️',
+                emojiName: '☝️',
                 callback: (user, reaction, stopInteracting, console) => {
                     this.addTeamSlot();
-                    stopInteracting(user);
+                    stopInteracting();
                 },
             }
         ];
@@ -159,7 +159,7 @@ class CoffeeChats extends Activity {
                     msg.delete({ timeout: 5000 });
                 });
 
-                stopInteracting(user);
+                stopInteracting();
             }
         });
 
