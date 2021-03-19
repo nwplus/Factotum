@@ -38,10 +38,6 @@ const Console = require('../console');
  */
 class Activity {
 
-    static voiceChannelName = '🔊Room-';
-    static mainTextChannelName = '🖌️activity-banter';
-    static mainVoiceChannelName = '🗣️activity-room';
-
     /**
      * Prompts a user for the roles that can have access to an activity.
      * @param {TextChannel} channel - the channel to prompt in
@@ -100,7 +96,7 @@ class Activity {
          */
         this.adminConsole = new Console({
             title: `Activity ${activityName} Console`,
-            description: `This activity's information can be found below, you can also find the features available.`,
+            description: 'This activity\'s information can be found below, you can also find the features available.',
             channel: guild.channels.resolve(botGuild.channelIDs.adminConsole),
         });
 
@@ -126,7 +122,7 @@ class Activity {
 
         await this.adminConsole.sendConsole();
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was initialized.`, {event: "Activity"});
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was initialized.`, {event: 'Activity'});
         return this;
     }
 
@@ -237,7 +233,7 @@ class Activity {
             return;
         }
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} lost a channel named ${removeChannel.name}`, { event: "Activity" });
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} lost a channel named ${removeChannel.name}`, { event: 'Activity' });
     }
 
     /**
@@ -251,7 +247,7 @@ class Activity {
 
         this.adminConsole.delete();
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was archived!`, {event: "Activity"});
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was archived!`, {event: 'Activity'});
     }
 
     /**
@@ -263,7 +259,7 @@ class Activity {
 
         this.adminConsole.delete();
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was deleted!`, {event: "Activity"});
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was deleted!`, {event: 'Activity'});
     }
 
     /**
@@ -278,7 +274,7 @@ class Activity {
             channel.members.forEach(member => member.voice.setChannel(mainChannel));
         });
 
-        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channels called backs to channel ${mainChannel.name}.`, {event: "Activity"});
+        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channels called backs to channel ${mainChannel.name}.`, {event: 'Activity'});
     }
 
     /**
@@ -310,11 +306,11 @@ class Activity {
                 member.voice.setChannel(channels[channelIndex % channelsLength]);
                 channelIndex++;
             } catch (error) {
-                winston.loggers.get(this.guild.id).warning(`Could not set a users voice channel when shuffling an activity by role. Error: ${error}`, { event: "Activity" })
+                winston.loggers.get(this.guild.id).warning(`Could not set a users voice channel when shuffling an activity by role. Error: ${error}`, { event: 'Activity' });
             }
         });
 
-        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channel members shuffled around!`, {event: "Activity"});
+        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channel members shuffled around!`, {event: 'Activity'});
     }
 
     /**
@@ -325,9 +321,9 @@ class Activity {
      */
     async roleShuffle(channel, userId) {
         try {
-            var role = (await rolePrompt({ prompt: "What role would you like to shuffle?", channel, userId })).first();
+            var role = (await rolePrompt({ prompt: 'What role would you like to shuffle?', channel, userId })).first();
         } catch (error) {
-            winston.loggers.get(this.guild.id).warning(`User canceled a request when asking for a role for role shuffle. Error: ${error}.`, { event: "Activity" });
+            winston.loggers.get(this.guild.id).warning(`User canceled a request when asking for a role for role shuffle. Error: ${error}.`, { event: 'Activity' });
         }
 
         this.shuffle(channel, userId, (member) => member.roles.cache.has(role.id));
@@ -348,7 +344,7 @@ class Activity {
             .setTitle('React within ' + this.botGuild.stamps.stampCollectionTime + ' seconds of the posting of this message to get a stamp for ' + this.name + '!');
 
         // send embed to general text or prompt for channel
-        let promptMsg
+        let promptMsg;
         if ((await this.room.channels.generalText.fetch(true))) promptMsg = await this.room.channels.generalText.send(promptEmbed);
         else {
             let stampChannel = await chooseChannel('What channel should the stamp distribution go?', this.room.channels.textChannels.array(), channel, userId);
@@ -372,7 +368,7 @@ class Activity {
 
         // edit the message to closed when the collector ends
         collector.on('end', () => {
-            winston.loggers.get(this.guild.id).event(`Activity named ${this.name} stamp distribution has stopped.`, {event: "Activity"});
+            winston.loggers.get(this.guild.id).event(`Activity named ${this.name} stamp distribution has stopped.`, {event: 'Activity'});
             if (!promptMsg.deleted) {
                 promptMsg.edit(promptEmbed.setTitle('Time\'s up! No more responses are being collected. Thanks for participating in ' + this.name + '!'));
             }
