@@ -220,7 +220,7 @@ class Cave {
         if (typeof caveOptions.color != 'string' && caveOptions.color.length === 0) throw new Error('The caveOptions.color must be a non empty string!');
         if (!(caveOptions.role instanceof Discord.Role)) throw new Error('The caveOptions.role must be Role object!');
         for (const emoji in caveOptions.emojis) {
-            if (!(emoji instanceof Discord.GuildEmoji) && !(emoji instanceof Discord.ReactionEmoji)) throw new Error('The ' + emoji + 'must be a GuildEmoji or ReactionEmoji!');
+            if (!(caveOptions.emojis[emoji] instanceof Discord.GuildEmoji) && !(caveOptions.emojis[emoji] instanceof Discord.ReactionEmoji)) throw new Error('The ' + emoji + 'must be a GuildEmoji or ReactionEmoji!');
         }
         this.caveOptions = caveOptions;
     }
