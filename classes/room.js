@@ -121,7 +121,7 @@ class Room {
             this.addExcisingChannel(args.textChannel);
         }
         else this.channels.generalText = await this.addRoomChannel({
-            name: Room.mainTextChannelName, 
+            name: this.name.length < 12 ? `${this.name}-banter` : Room.mainTextChannelName, 
             info: {
             parent: this.channels.category,
                 type: 'text',
@@ -134,7 +134,7 @@ class Room {
             this.addExcisingChannel(args.voiceChannel);
         }
         else this.channels.generalVoice = await this.addRoomChannel({
-            name: Room.mainVoiceChannelName, 
+            name: this.name.length < 12 ? `${this.name}-room` : Room.mainVoiceChannelName, 
             info: {
                 parent: this.channels.category,
                 type: 'voice',
@@ -159,6 +159,7 @@ class Room {
                 deny: ['VIEW_CHANNEL'],
             }];
         this.rolesAllowed.each(role => overwrites.push({ id: role.id, allow: ['VIEW_CHANNEL'] }));
+        this.usersAllowed.each(user => overwrites.push({ id: user.id, allow: ['VIEW_CHANNEL'] }));
         return this.guild.channels.create(this.name, {
             type: 'category',
             position: position >= 0 ? position : 0,
@@ -217,13 +218,15 @@ class Room {
      * @async
      */
     async delete() {
-        var listOfChannels = this.channels.category.children.array();
-        for (var i = 0; i < listOfChannels.length; i++) {
-            await deleteChannel(listOfChannels[i]);
+        // only delete channels if they were created!
+        if (this.channels?.category) {
+            var listOfChannels = this.channels.category.children.array();
+            for (var i = 0; i < listOfChannels.length; i++) {
+                await deleteChannel(listOfChannels[i]);
+            }
+
+            await deleteChannel(this.channels.category);
         }
-
-        await deleteChannel(this.channels.category);
-
         winston.loggers.get(this.guild.id).event(`The activity ${this.name} was deleted!`, {event: "Activity"});
     }
 
