@@ -2,6 +2,9 @@
 
 Previously known as nwPlus Discord Bot, Factotum started as a Discord bot to support small and medium hackathons run on the Discord platform for free. Now it has become a fully customizable, feature rich bot to support any and all types of events over discord. 
 
+## Set up the bot
+At the moment, the bot is still in development, but IT CAN BE USED. Please email me at juapgarc@gmail.com or reach out to me on discord JPGarcia99#8803 to talk about using the bot in its current state! If you would like to test the bot that is also a possibility, just reach out!
+
 ## How does Factotum support hackathon teams and events?
 Factotum brings a lot of features that would traditionally happen at in-person hacakthons all over the word to the Discord platform.
 
