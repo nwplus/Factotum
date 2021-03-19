@@ -227,7 +227,7 @@ class TicketManager {
 
         let hackers = new Collection();
         hackers.set(user.id, user);
-        hackers = hackers.concat([promptMsg.mentions.users]);
+        if (promptMsg.mentions.users.size > 0) hackers = hackers.concat([promptMsg.mentions.users]);
 
         this.newTicket(hackers, promptMsg.cleanContent, role);
     }
@@ -260,7 +260,8 @@ class TicketManager {
         if (this.ticketDispatcherInfo.reminderInfo.isEnabled) {
             let timeout = setTimeout(() => {
                 if (ticket.status === Ticket.STATUS.new) {
-                    this.ticketDispatcherInfo.channel.send(`Hello <@&${this.ticketDispatcherInfo.mainHelperInfo.role.id}> ticket number ${ticket.id} still needs help!`);
+                    this.ticketDispatcherInfo.channel.send(`Hello <@&${this.ticketDispatcherInfo.mainHelperInfo.role.id}> ticket number ${ticket.id} still needs help!`)
+                        .then(msg => msg.delete({ timeout: (this.ticketDispatcherInfo.reminderInfo.time * 60 * 1000)/2 }));
                     // sets another timeout
                     this.setReminder(ticket);
                 }
