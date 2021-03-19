@@ -192,7 +192,7 @@ class Ticket {
 
         // if ticket has not been accepted after the specified time, it will send a reminder to the incoming tickets channel tagging all mentors
         var timeout = setTimeout(() => {
-            this.cave.privateChannels.incomingTickets.send('Hello <@&' + this.cave.caveOptions.role + '> ticket number ' + this.ticketNumber + ' still needs help!');
+            this.cave.privateChannels.incomingTickets.send('Hello <@&' + this.cave.caveOptions.role + '> ticket number ' + this.ticketNumber + ' still needs help!').then(msg => msg.delete({ timeout: (this.cave.caveOptions.times.reminderTime * 60 * 1000)/4 }));
         }, this.cave.caveOptions.times.reminderTime * 60 * 1000);
 
         // let user know that ticket was submitted and give option to remove ticket
