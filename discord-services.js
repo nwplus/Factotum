@@ -38,10 +38,11 @@ async function sendMsgToChannel(channel, userId, message, timeout = 0) {
 module.exports.sendMsgToChannel = sendMsgToChannel;
 
 /**
- * Send a Direct message to a member, option to delete after 10 seconds
+ * Send a Direct message to a member, option to delete after a few seconds.
+ * Helps user fix DM issue if the bot can't reach them over DM.
  * @param {User | GuildMember} member - the user or member to send a DM to
  * @param {String | MessageEmbed} message - the message to send
- * @param {Boolean} isDelete - weather to delete message after 10 seconds
+ * @param {Boolean} isDelete - weather to delete message after 60 seconds
  * @async
  * @return {Promise<Message>}
  */
