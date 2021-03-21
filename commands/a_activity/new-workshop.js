@@ -63,7 +63,7 @@ class NewWorkshop extends PermissionCommand {
 
         let workshop = await new Workshop({activityName, guild: message.guild, roleParticipants, botGuild}, TARoles).init();
 
-        workshop.sendConsoles(this.client);
+        workshop.sendConsoles();
 
         // report success of workshop creation
         replyAndDelete(message, 'Activity named: ' + activityName + ' was created as a workshop!');

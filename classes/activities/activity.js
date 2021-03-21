@@ -1,20 +1,12 @@
-const { Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable, Emoji, GuildEmoji, MessageEmbed, Message, GuildMember, PermissionOverwriteOption, GuildCreateChannelOptions } = require('discord.js');
+const { Guild, Collection, Role, CategoryChannel, TextChannel, MessageEmbed, Message, GuildMember, PermissionOverwriteOption } = require('discord.js');
 const winston = require('winston');
 const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../bot-guild');
 const { rolePrompt, messagePrompt, reactionPicker, chooseChannel } = require('../prompt');
-const { deleteChannel, deleteMessage, shuffleArray, sendMsgToChannel } = require('../../discord-services');
+const { deleteMessage, shuffleArray, sendMsgToChannel } = require('../../discord-services');
 const StampsManager = require('../stamps-manager');
-
-/**
- * @typedef ActivityChannels
- * @property {CategoryChannel} category
- * @property {TextChannel} generalText
- * @property {VoiceChannel} generalVoice
- * @property {Collection<String, VoiceChannel>} voiceChannels
- * @property {Collection<String, TextChannel>} textChannels
- * @property {Collection<String, TextChannel | VoiceChannel>} safeChannels - channels that can not be removed
- */
+const Room = require('../room');
+const Console = require('../console');
 
 /**
  * @typedef ActivityInfo
@@ -33,7 +25,7 @@ const StampsManager = require('../stamps-manager');
 
 /**
  * @typedef ActivityFeature
- * @property {String} emoji
+ * @property {String} emoji - the emoji as a string
  * @property {String} name
  * @property {String} description
  * @property {Function} callback
@@ -47,10 +39,6 @@ const StampsManager = require('../stamps-manager');
  * @class
  */
 class Activity {
-
-    static voiceChannelName = '🔊Room-';
-    static mainTextChannelName = '🖌️activity-banter';
-    static mainVoiceChannelName = '🗣️activity-room';
 
     /**
      * Prompts a user for the roles that can have access to an activity.
@@ -72,7 +60,6 @@ class Activity {
         }
 
         // add staff role
-        
         if (isStaffAuto) {
             let staffRoleId = (await BotGuild.findById(channel.guild.id)).roleIDs.staffRole;
             allowedRoles.set(staffRoleId, channel.guild.roles.resolve(staffRoleId));
@@ -88,42 +75,33 @@ class Activity {
      */
     constructor({activityName, guild, roleParticipants, botGuild}) {
         /**
-         * The name of this activity. Will remove all leading and trailing whitespace and
-         * switch spaces for '-'. Will also replace all character except for numbers, letters and '-' 
-         * and make it lowercase.
+         * The name of this activity.
          * @type {string}
          */
-        this.name = activityName.split(' ').join('-').trim().replace(/[^0-9a-zA-Z-]/g, '').toLowerCase();
+        this.name = activityName;
 
         /**
          * The guild this activity is in.
          * @type {Guild}
          */
         this.guild = guild;
-        
-        /**
-         * Roles allowed to view activity.
-         * @type {Collection<String, Role>}
-         */
-        this.rolesAllowed = roleParticipants;
 
         /**
-         * @type {ActivityChannels}
+         * The room this activity lives in.
+         * @type {Room}
          */
-        this.channels = {
-            category: null,
-            generalVoice: null,
-            generalText: null,
-            voiceChannels: new Collection(),
-            textChannels: new Collection(),
-            safeChannels: new Collection(),
-        };
+        this.room = new Room(guild, botGuild, activityName, roleParticipants);
 
         /**
-         * The message that holds the admin console.
-         * @type {Message}
+         * The admin console with activity features.
+         * @type {Console}
          */
-        this.adminConsoleMsg;
+        this.adminConsole = new Console({
+            title: `Activity ${activityName} Console`,
+            description: 'This activity\'s information can be found below, you can also find the features available.',
+            channel: guild.channels.resolve(botGuild.channelIDs.adminConsole),
+            guild: this.guild,
+        });
 
         /**
          * The mongoose BotGuildModel Object
@@ -131,13 +109,7 @@ class Activity {
          */
         this.botGuild = botGuild;
 
-        /**
-         * All the features this activity has to show in the console.
-         * @type {Collection<String, ActivityFeature>} - <Feature name, Feature>
-         */
-        this.features = new Collection();
-
-        winston.loggers.get(guild.id).event(`An activity named ${this.name} was created.`, {data: {permissions: this.rolesAllowed}});
+        winston.loggers.get(guild.id).event(`An activity named ${this.name} was created.`, {data: {permissions: roleParticipants}});
     }
 
 
@@ -147,46 +119,14 @@ class Activity {
      * @returns {Promise<Activity>}
      */
     async init() {
-        let position = this.guild.channels.cache.filter(channel => channel.type === 'category').size;
-        this.channels.category = await this.createCategory(position);
-
-        this.channels.generalText = await this.addChannelHelper(Activity.mainTextChannelName, {
-            parent: this.channels.category,
-            type: 'text',
-            topic: 'A general banter channel to be used to communicate with other members, mentors, or staff. The !ask command is available for questions.',
-        });
-        this.channels.generalVoice = await this.addChannelHelper(Activity.mainVoiceChannelName, {
-            parent: this.channels.category,
-            type: 'voice',
-        });
+        await this.room.init();
 
         this.addDefaultFeatures();
 
-        await this.sendAdminConsole();
+        await this.adminConsole.sendConsole();
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was initialized.`, {event: "Activity"});
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was initialized.`, {event: 'Activity'});
         return this;
-    }
-    /**
-     * Helper function to create the category 
-     * @param {Number} position - the position of this category on the server
-     * @returns {Promise<CategoryChannel>} - a category with the activity name
-     * @async
-     * @private
-     */
-    async createCategory(position) {
-        /** @type {OverwriteResolvable[]} */
-        let overwrites = [
-            {
-                id: this.botGuild.roleIDs.everyoneRole,
-                deny: ['VIEW_CHANNEL'],
-            }];
-        this.rolesAllowed.each(role => overwrites.push({ id: role.id, allow: ['VIEW_CHANNEL'] }));
-        return this.guild.channels.create(this.name, {
-            type: 'category',
-            position: position >= 0 ? position : 0,
-            permissionOverwrites: overwrites
-        });
     }
 
 
@@ -195,31 +135,31 @@ class Activity {
      * @protected
      */
     addDefaultFeatures() {
-        /** @type {ActivityFeature[]} */
+        /** @type {Console.Feature[]} */
         let localFeatures = [
             {
                 name: 'Add Channel',
                 description: 'Add one channel to the activity.',
-                emoji: '⏫',
-                callback: (user) => this.addChannel(this.adminConsoleMsg.channel, user.id),
+                emojiName: '⏫',
+                callback: (user, reaction, stopInteracting, console) => this.addChannel(console.channel, user.id).then(() => stopInteracting()),
             },
             {
                 name: 'Remove Channel',
                 description: 'Remove a channel, decide from a list.',
-                emoji: '⏬',
-                callback: (user) => this.removeChannel(this.adminConsoleMsg.channel, user.id),
+                emojiName: '⏬',
+                callback: (user, reaction, stopInteracting, console) => this.removeChannel(console.channel, user.id).then(() => stopInteracting()),
             },
             {
                 name: 'Delete', 
                 description: 'Delete this activity and its channels.',
-                emoji: '⛔',
-                callback: () => this.delete(),
+                emojiName: '⛔',
+                callback: (user, reaction, stopInteracting, console) => this.delete(),
             },
             {
                 name: 'Archive',
                 description: 'Archive the activity, text channels are saved.',
-                emoji: '💼',
-                callback: () => {
+                emojiName: '💼',
+                callback: (user, reaction, stopInteracting, console) => {
                     let archiveCategory = this.guild.channels.resolve(this.botGuild.channelIDs.archiveCategory);
                     this.archive(archiveCategory);
                 }
@@ -227,118 +167,38 @@ class Activity {
             {
                 name: 'Callback',
                 description: 'Move all users in the activity\'s voice channels back to a specified voice channel.',
-                emoji: '🔃',
-                callback: (user) => this.voiceCallBack(this.adminConsoleMsg.channel, user.id),
+                emojiName: '🔃',
+                callback: (user, reaction, stopInteracting, console) => this.voiceCallBack(console.channel, user.id).then(() => stopInteracting()),
             },
             {
                 name: 'Shuffle',
                 description: 'Shuffle all members from one channel to all others in the activity.',
-                emoji: '🌬️',
-                callback: (user) => this.shuffle(this.adminConsoleMsg.channel, user.id),
+                emojiName: '🌬️',
+                callback: (user, reaction, stopInteracting, console) => this.shuffle(console.channel, user.id).then(() => stopInteracting()),
             },
             {
                 name: 'Role Shuffle',
                 description: 'Shuffle all the members with a specific role from one channel to all others in the activity.',
-                emoji: '🦜',
-                callback: (user) => this.roleShuffle(this.adminConsoleMsg.channel, user.id),
+                emojiName: '🦜',
+                callback: (user, reaction, stopInteracting, console) => this.roleShuffle(console.channel, user.id).then(() => stopInteracting()),
             },
             {
                 name: 'Distribute Stamp',
                 description: 'Send a emoji collector for users to get a stamp.',
-                emoji: '🏕️',
-                callback: (user) => this.distributeStamp(this.adminConsoleMsg.channel, user.id),
+                emojiName: '🏕️',
+                callback: (user, reaction, stopInteracting, console) => this.distributeStamp(console.channel, user.id).then(() => stopInteracting()),
             },
             {
                 name: 'Rules Lock',
                 description: 'Lock the activity behind rules, users must agree to the rules to access the channels.',
-                emoji: '🔒',
-                callback: (user) => this.ruleValidation(this.adminConsoleMsg.channel, user.id),
+                emojiName: '🔒',
+                callback: (user, reaction, stopInteracting, console) => this.ruleValidation(console.channel, user.id).then(() => stopInteracting()),
             }
         ];
 
-        localFeatures.forEach(feature => this.features.set(feature.name, feature));
+        localFeatures.forEach(feature => this.adminConsole.addFeature(feature));
+        
     }
-
-
-    /**
-     * Creates the admin console containing the features.
-     * @private
-     * @async
-     */
-    async sendAdminConsole() {
-        const adminConsoleEmbed = new MessageEmbed()
-            .setColor(this.botGuild.colors.embedColor)
-            .setTitle(`Activity ${this.name} console.`)
-            .setDescription(`This activity's information can be found below, you can also find the features available.`);
-
-        // add all the features
-        this.features.forEach((feature, key, map) => {
-            adminConsoleEmbed.addField(`${feature.emoji} ${feature.name}`, `${feature.description}`);
-        });
-
-        /** @type {TextChannel} */
-        let adminConsoleChannel = this.guild.channels.resolve(this.botGuild.channelIDs.adminConsole);
-        this.adminConsoleMsg = await adminConsoleChannel.send(adminConsoleEmbed);
-
-        // add all the feature emojis
-        this.features.forEach((feature, key, map) => this.adminConsoleMsg.react(feature.emoji));
-
-        // reaction collector to call feature callbacks
-        const adminConsoleCollector = this.adminConsoleMsg.createReactionCollector((creation, user) => !user.bot);
-        adminConsoleCollector.on('collect', (reaction, user) => {
-            let feature = this.features.find(feature => feature.emoji === reaction.emoji.name);
-
-            if (feature) {
-                feature.callback(user);
-                winston.loggers.get(this.guild.id).event(`Feature ${feature.name} was triggered on activity ${this.name} by user ${user.id}.`, { event: "Activity" });
-            }
-
-            reaction.users.remove(user);
-        });
-    }
-
-
-    /**
-     * Adds a channels to this activity. Will automatically set the parent and add it to the correct collection.
-     * @param {String} name - name of the channel to create
-     * @param {GuildCreateChannelOptions} info - one of voice or text
-     * @param {RolePermission[]} permissions - the permissions per role to be added to this channel after creation.
-     * @param {Boolean} [isSafe=false] - true if the channel is safe and cant be removed
-     * @protected
-     */
-    async addChannelHelper(name, info, permissions = [], isSafe = false) {
-        info.parent = info.parent || this.channels.category;
-        info.type = info.type || 'text';
-
-        let channel = await this.guild.channels.create(name, info);
-
-        permissions.forEach(rolePermission => channel.updateOverwrite(rolePermission.id, rolePermission.permissions));
-
-        // add channel to correct list
-        if (info.type == 'text') this.channels.textChannels.set(channel.id, channel);
-        else this.channels.voiceChannels.set(channel.id, channel);
-
-        if (isSafe) this.channels.safeChannels.set(channel.id, channel);
-
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} had a channel named ${name} added to it of type ${info?.type || 'text'}.`, {event: "Activity"});
-
-        return channel;
-    }
-
-
-    /**
-     * will add a max amount of users to the activity voice channels 
-     * @param {Number} limit - the user limit
-     * @async
-     * @protected
-     */
-    async addLimitToVoiceChannels(limit) {
-        this.channels.voiceChannels.forEach(async (channel) => {
-            await channel.edit({ userLimit: limit });
-        });
-        winston.loggers.get(this.guild.id).verbose(`The activity ${this.name} had its voice channels added a limit of ${limit}`, {event: "Activity"});
-    }
-
 
     /**
      * FEATURES FROM THIS POINT DOWN.
@@ -356,7 +216,7 @@ class Activity {
         // channel name
         let name = (await messagePrompt({ prompt: 'What is the name of the channel?', channel, userId }, 'string')).content;
 
-        return await this.addChannelHelper(name, { type: option.name});
+        return await this.room.addRoomChannel({name, info: { type: option.name}});
     }
 
     /**
@@ -367,15 +227,16 @@ class Activity {
      */
     async removeChannel(channel, userId) {
         // channel to remove
-        let removeChannel = await chooseChannel('What channel should be removed?', this.channels.category.children.array(), channel, userId);
+        let removeChannel = await chooseChannel('What channel should be removed?', this.room.channels.category.children.array(), channel, userId);
 
-        if (this.channels.safeChannels.has(removeChannel.id)) {
+        try {
+            this.room.removeRoomChannel(removeChannel);
+        } catch (error) {
             sendMsgToChannel(channel, userId, 'Can\'t remove that channel!', 10);
             return;
         }
 
-        deleteChannel(removeChannel);
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} lost a channel named ${removeChannel.name}`, { event: "Activity" });
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} lost a channel named ${removeChannel.name}`, { event: 'Activity' });
     }
 
     /**
@@ -385,25 +246,11 @@ class Activity {
      * @async
      */
     async archive(archiveCategory) {
-        // move all text channels to the archive and rename with activity name
-        // remove all voice channels in the category one at a time to not get a UI glitch
+        await this.room.archive(archiveCategory);
 
-        this.channels.category.children.forEach(async (channel, key) => {
-            this.botGuild.blackList.delete(channel.id);
-            if (channel.type === 'text') {
-                let channelName = channel.name;
-                await channel.setName(`${this.name}-${channelName}`);
-                await channel.setParent(archiveCategory);
-            } else deleteChannel(channel);
-        });
+        this.adminConsole.delete();
 
-        await deleteChannel(this.channels.category);
-
-        deleteMessage(this.adminConsoleMsg);
-
-        this.botGuild.save();
-
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was archived!`, {event: "Activity"});
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was archived!`, {event: 'Activity'});
     }
 
     /**
@@ -411,16 +258,11 @@ class Activity {
      * @async
      */
     async delete() {
-        var listOfChannels = this.channels.category.children.array();
-        for (var i = 0; i < listOfChannels.length; i++) {
-            await deleteChannel(listOfChannels[i]);
-        }
+        await this.room.delete();
 
-        await deleteChannel(this.channels.category);
+        this.adminConsole.delete();
 
-        await deleteMessage(this.adminConsoleMsg);
-
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was deleted!`, {event: "Activity"});
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was deleted!`, {event: 'Activity'});
     }
 
     /**
@@ -429,13 +271,13 @@ class Activity {
      * @param {String} userId - user to prompt for specified voice channel
      */
     async voiceCallBack(channel, userId) {
-        let mainChannel = await chooseChannel('What channel should people be moved to?', this.channels.voiceChannels.array(), channel, userId);
+        let mainChannel = await chooseChannel('What channel should people be moved to?', this.room.channels.voiceChannels.array(), channel, userId);
 
-        this.channels.voiceChannels.forEach(channel => {
+        this.room.channels.voiceChannels.forEach(channel => {
             channel.members.forEach(member => member.voice.setChannel(mainChannel));
         });
 
-        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channels called backs to channel ${mainChannel.name}.`, {event: "Activity"});
+        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channels called backs to channel ${mainChannel.name}.`, {event: 'Activity'});
     }
 
     /**
@@ -450,7 +292,7 @@ class Activity {
      * @async
      */
     async shuffle(channel, userId, filter) {
-        let mainChannel = await chooseChannel('What channel should I move people from?', this.channels.voiceChannels.array(), channel, userId);
+        let mainChannel = await chooseChannel('What channel should I move people from?', this.room.channels.voiceChannels.array(), channel, userId);
 
         let members = mainChannel.members;
         if (filter) members = members.filter(member => filter(member));
@@ -458,7 +300,7 @@ class Activity {
         let memberList = members.array();
         shuffleArray(memberList);
 
-        let channels = this.channels.voiceChannels.filter(channel => channel.id != mainChannel.id).array();
+        let channels = this.room.channels.voiceChannels.filter(channel => channel.id != mainChannel.id).array();
 
         let channelsLength = channels.length;
         let channelIndex = 0;
@@ -467,11 +309,11 @@ class Activity {
                 member.voice.setChannel(channels[channelIndex % channelsLength]);
                 channelIndex++;
             } catch (error) {
-                winston.loggers.get(this.guild.id).warning(`Could not set a users voice channel when shuffling an activity by role. Error: ${error}`, { event: "Activity" })
+                winston.loggers.get(this.guild.id).warning(`Could not set a users voice channel when shuffling an activity by role. Error: ${error}`, { event: 'Activity' });
             }
         });
 
-        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channel members shuffled around!`, {event: "Activity"});
+        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channel members shuffled around!`, {event: 'Activity'});
     }
 
     /**
@@ -482,9 +324,9 @@ class Activity {
      */
     async roleShuffle(channel, userId) {
         try {
-            var role = (await rolePrompt({ prompt: "What role would you like to shuffle?", channel, userId })).first();
+            var role = (await rolePrompt({ prompt: 'What role would you like to shuffle?', channel, userId })).first();
         } catch (error) {
-            winston.loggers.get(this.guild.id).warning(`User canceled a request when asking for a role for role shuffle. Error: ${error}.`, { event: "Activity" });
+            winston.loggers.get(this.guild.id).warning(`User canceled a request when asking for a role for role shuffle. Error: ${error}.`, { event: 'Activity' });
         }
 
         this.shuffle(channel, userId, (member) => member.roles.cache.has(role.id));
@@ -505,10 +347,10 @@ class Activity {
             .setTitle('React within ' + this.botGuild.stamps.stampCollectionTime + ' seconds of the posting of this message to get a stamp for ' + this.name + '!');
 
         // send embed to general text or prompt for channel
-        let promptMsg
-        if ((await this.channels.generalText.fetch(true))) promptMsg = await this.channels.generalText.send(promptEmbed);
+        let promptMsg;
+        if ((await this.room.channels.generalText.fetch(true))) promptMsg = await this.room.channels.generalText.send(promptEmbed);
         else {
-            let stampChannel = await chooseChannel('What channel should the stamp distribution go?', this.channels.textChannels, channel, userId);
+            let stampChannel = await chooseChannel('What channel should the stamp distribution go?', this.room.channels.textChannels.array(), channel, userId);
             promptMsg = await stampChannel.send(promptEmbed);
         }
         
@@ -529,7 +371,7 @@ class Activity {
 
         // edit the message to closed when the collector ends
         collector.on('end', () => {
-            winston.loggers.get(this.guild.id).event(`Activity named ${this.name} stamp distribution has stopped.`, {event: "Activity"});
+            winston.loggers.get(this.guild.id).event(`Activity named ${this.name} stamp distribution has stopped.`, {event: 'Activity'});
             if (!promptMsg.deleted) {
                 promptMsg.edit(promptEmbed.setTitle('Time\'s up! No more responses are being collected. Thanks for participating in ' + this.name + '!'));
             }
@@ -537,18 +379,14 @@ class Activity {
     }
 
     /**
-     * Will let hackers get a stamp for attending the activity.
+     * Will lock the channels behind an emoji collector.
      * @param {TextChannel} channel - channel to prompt user for specified voice channel
      * @param {String} userId - user to prompt for specified voice channel
      */
     async ruleValidation(channel, userId) {
-        // set category private
-        this.rolesAllowed.forEach((role, key) => this.channels.category.updateOverwrite(role, { VIEW_CHANNEL: false }))
 
-        // create rules channel and make it public
-        /** @type {TextChannel} */
-        let rulesChannel = await this.addChannelHelper('Activity Rules START HERE', { type: 'text' }, this.rolesAllowed.map((role, key) => ({ id: role.id, permissions: { VIEW_CHANNEL: true, SEND_MESSAGES: false, }})), true);
-        
+        let rulesChannel = await this.room.lockRoom();
+
         let rules = (await messagePrompt({ prompt: 'What are the activity rules?', channel, userId })).cleanContent;
 
         let joinEmoji = '🚗';
@@ -562,7 +400,7 @@ class Activity {
         const collector = embedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === joinEmoji);
 
         collector.on('collect', (reaction, user) => {
-            this.channels.category.updateOverwrite(user.id, { VIEW_CHANNEL: true, SEND_MESSAGES: true});
+            this.room.giveUserAccess(user);
             rulesChannel.updateOverwrite(user.id, { VIEW_CHANNEL: false});
         });
     }

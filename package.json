@@ -17,6 +17,7 @@
     "dotenv-flow": "^3.2.0",
     "firebase-admin": "^9.5.0",
     "fs": "0.0.1-security",
+    "get-random-emoji": "^1.0.0",
     "jsdoc": "^3.6.6",
     "mongodb": "^3.6.4",
     "mongoose": "^5.11.19",

@@ -1,8 +1,9 @@
 const { Collection, TextChannel, VoiceChannel, GuildCreateChannelOptions, MessageEmbed, Message } = require('discord.js');
-const { CommandoClient } = require('discord.js-commando');
 const winston = require('winston');
 const { randomColor, sendMessageToMember, sendMsgToChannel } = require('../../discord-services');
+const Console = require('../console');
 const { messagePrompt, yesNoPrompt, chooseChannel } = require('../prompt');
+const Room = require('../room');
 const Activity = require('./activity');
 
 
@@ -11,7 +12,7 @@ const Activity = require('./activity');
  * @property {String} type
  * @property {String} title
  * @property {String} question
- * @property {String} emojiName - emoji to use to call this poll
+ * @property {String} emojiName - must be unicode emoji!
  * @property {Collection<String, String>} responses - <Emoji String, Description>
  */
 
@@ -98,10 +99,14 @@ class Workshop extends Activity {
             topic: 'For TAs to talk without cluttering the console.',
         });
 
-        this.assistanceChannel = await super.addChannelHelper('🙋🏽assistance', {
-            type: 'text',
-            topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
-        }, [], true);
+        this.assistanceChannel = await this.room.addRoomChannel({
+            name: '🙋🏽assistance', 
+            info: {
+                type: 'text',
+                topic: 'For hackers to request help from TAs for this workshop, please don\'t send any other messages!'
+            },
+            isSafe: true,
+        });
 
         this.botGuild.blackList.set(this.assistanceChannel.id, 3000);
         this.botGuild.save();
@@ -119,17 +124,17 @@ class Workshop extends Activity {
     addDefaultFeatures() {
         this.addDefaultPolls();
 
-        /** @type {Activity.ActivityFeature[]} */
+        /** @type {Console.Feature[]} */
         let localFeatures = [];
 
         this.polls.forEach((pollInfo) => localFeatures.push({
             name: pollInfo.title,
             description: `Asks the question: ${pollInfo.title} - ${pollInfo.question}`,
-            emoji: pollInfo.emojiName,
-            callback: () => this.sendPoll(pollInfo.type),
+            emojiName: pollInfo.emojiName,
+            callback: (user, reaction, stopInteracting, console) => this.sendPoll(pollInfo.type).then(() => stopInteracting()),
         }));
 
-        localFeatures.forEach(feature => this.features.set(feature.name, feature));
+        localFeatures.forEach(feature => this.adminConsole.addFeature(feature));
 
         super.addDefaultFeatures();
     }
@@ -198,7 +203,7 @@ class Workshop extends Activity {
      * @async 
      */
     async addTAChannel(name, info) {
-        let channel = await super.addChannelHelper(name, info, this.getTAChannelPermissions());
+        let channel = await this.room.addRoomChannel({name, info, permissions: this.getTAChannelPermissions()});
         this.TAChannels.set(channel.name, channel);
         return channel;
     }
@@ -216,7 +221,7 @@ class Workshop extends Activity {
         ];
 
         // add regular activity members to the TA perms list as non tas, so they cant see that channel
-        this.rolesAllowed.forEach(role => {
+        this.room.rolesAllowed.forEach(role => {
             TAChannelPermissions.push({id: role.id, permissions: {VIEW_CHANNEL: false}});
 
         });
@@ -257,8 +262,8 @@ class Workshop extends Activity {
 
         // send poll to general text or prompt for channel
         let pollChannel;
-        if ((await this.channels.generalText.fetch(true))) pollChannel = this.channels.generalText;
-        else pollChannel = await chooseChannel('What channel should the poll go to?', this.channels.textChannels, channel, userId);
+        if ((await this.room.channels.generalText.fetch(true))) pollChannel = this.room.channels.generalText;
+        else pollChannel = await chooseChannel('What channel should the poll go to?', this.room.channels.textChannels.array(), channel, userId);
 
         pollChannel.send(qEmbed).then(msg => {
             poll.responses.forEach((value, key) => msg.react(key));
@@ -270,9 +275,8 @@ class Workshop extends Activity {
 
     /**
      * Will send all the consoles the workshop needs to work.
-     * @param {CommandoClient} client 
      */
-    sendConsoles(client) {
+    sendConsoles() {
         let mentorColor = randomColor();
 
         const TAInfoEmbed = new MessageEmbed()
@@ -284,16 +288,30 @@ class Workshop extends Activity {
             ' and disable the pull in functionality. \n* TAs will have to DM hackers that need help and then react to the wait list.')
             .setColor(mentorColor);
         this.TAConsole.send(TAInfoEmbed).then(message => this.TAInfoEmbedHandler(message));
-        
-        const pollingAndStampConsoleEmbed = new MessageEmbed()
-            .setColor(mentorColor)
-            .setTitle('Polling and Stamp Console')
-            .setDescription('Here are some common polls you might want to use!')
-            .addField('Stamp Distribution', '📇 Will activate a stamp distribution that will be open for ' + this.botGuild.stamps.stampCollectionTime + ' seconds.')
-            .addField('Speed Poll', '🏎️ Will send an embedded message asking how the speed is.')
-            .addField('Difficulty Poll', '🎓 Will send an embedded message asking how the difficulty is.')
-            .addField('Explanation Poll', '🧑‍🏫 Will send an embedded message asking how good the explanations are.');
-        this.TAConsole.send(pollingAndStampConsoleEmbed).then(message => this.pollingAndStampHandler(message, client));
+
+        // Console for TAs to send polls and stamp distribution
+        let TAPollingConsole = new Console({
+            title: 'Polling and Stamp Console',
+            description: 'Here are some common polls you might want to use!',
+            channel: this.TAConsole,
+            guild: this.guild,
+        });
+        this.polls.forEach((pollInfo) => TAPollingConsole.addFeature({
+            name: pollInfo.title,
+            description: `Asks the question: ${pollInfo.title} - ${pollInfo.question}`,
+            emojiName: pollInfo.emojiName,
+            callback: (user, reaction, stopInteracting, console) => this.sendPoll(pollInfo.type).then(() => stopInteracting()),
+        }));
+        TAPollingConsole.addFeature({
+            name: 'Stamp Distribution',
+            description: 'Activate a stamp distribution on the activity\'s text channel',
+            emojiName: '📇',
+            callback: (user, reaction, stopInteracting, console) => {
+                this.distributeStamp(this.room.channels.generalText);
+                stopInteracting();
+            }
+        });
+        TAPollingConsole.sendConsole();
         
         // embed message for TA console
         const incomingTicketsEmbed = new MessageEmbed()
@@ -308,7 +326,7 @@ class Workshop extends Activity {
             .setTitle(this.name + ' Help Desk')
             .setDescription('Welcome to the ' + this.name + ' help desk. There are two ways to get help explained below:')
             .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, ask them in the main banter channel!')
-            .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the ' +  Activity.mainVoiceChannelName + ' voice channel if not already there!');
+            .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the ' +  this.room.channels.generalVoice.name || Room.voiceChannelName + ' voice channel if not already there!');
         this.assistanceChannel.send(outgoingTicketEmbed).then(message => this.outgoingTicketHandler(message));
     }
 
@@ -338,7 +356,7 @@ class Workshop extends Activity {
             // if pullInFunctionality is turned off then then just remove from list
             if (this.isLowTechSolution) {
                 // remove hacker from wait list
-                var hackerKey = this.waitlist.firstKey();
+                let hackerKey = this.waitlist.firstKey();
                 this.waitlist.delete(hackerKey);
 
             } else {
@@ -353,7 +371,7 @@ class Workshop extends Activity {
                 }
 
                 // get next user
-                var hackerKey = this.waitlist.firstKey();
+                let hackerKey = this.waitlist.firstKey();
                 this.waitlist.delete(hackerKey);
                 var hacker = message.guild.member(hackerKey);
 
@@ -422,42 +440,6 @@ class Workshop extends Activity {
             
             // send a quick message to let ta know a new user is on the wait list
             this.TAConsole.send('A new hacker needs help!').then(msg => msg.delete({timeout: 3000}));
-        });
-    }
-
-    /**
-     * Creates and handles the emoji reactions on the polling and stamp console Embed 
-     * @param {Message} message 
-     * @param {CommandoClient} client
-     */
-    pollingAndStampHandler(message, client) {
-        message.pin();
-
-        var emojis = ['📇', '🏎️', '🎓', '🧑‍🏫'];
-
-        emojis.forEach(emoji => message.react(emoji));
-
-        const collector = message.createReactionCollector((reaction, user) => !user.bot && emojis.includes(reaction.emoji.name));
-
-        collector.on('collect', async (reaction, user) => {
-            var commandRegistry = client.registry;
-
-            // emoji name
-            var emojiName = reaction.emoji.name;
-
-            // remove new reaction
-            reaction.users.remove(user.id);
-
-            if (emojiName === emojis[0]) {
-                if (this.botGuild.stamps.isEnabled) commandRegistry.findCommands('distribute-stamp', true)[0].runCommand(this.botGuild, message, { timeLimit: this.botGuild.stamps.stampCollectTime });
-                else sendMsgToChannel(message.channel, user.id, 'The distribute stamp command is not available because stamps are disabled in this server.');
-            } else if (emojiName === emojis[1]) {
-                commandRegistry.findCommands('workshop-polls', true)[0].runCommand(this.botGuild, message, this, { questionType: 'speed' });
-            } else if (emojiName === emojis[2]) {
-                commandRegistry.findCommands('workshop-polls', true)[0].runCommand(this.botGuild, message, this, { questionType: 'difficulty'});
-            } else if (emojiName === emojis[3]) {
-                commandRegistry.findCommands('workshop-polls', true)[0].runCommand(this.botGuild, message, this, { questionType: 'explanations'});
-            }
         });
     }
 

@@ -3,6 +3,7 @@ const { MessageEmbed, TextChannel, User, GuildMember, Collection, VoiceChannel }
 const { memberPrompt, chooseChannel } = require('../prompt');
 const winston = require('winston');
 const { sendMsgToChannel } = require('../../discord-services');
+const Console = require('../console');
 
 /**
  * A CoffeeChat is a special activity where teams get shuffled around voice channels to talk with other teams or members like mentors. 
@@ -57,17 +58,21 @@ class CoffeeChats extends Activity {
     async init(channel, userId) {
         await super.init();
 
-        this.mainVoiceChannel = await chooseChannel('What channel will the teams join first before being shuffled?', this.channels.voiceChannels.array(), channel, userId);
-        this.channels.safeChannels.set(this.mainVoiceChannel.id, this.mainVoiceChannel);
+        this.mainVoiceChannel = await chooseChannel('What channel will the teams join first before being shuffled?', this.room.channels.voiceChannels.array(), channel, userId);
+        this.room.channels.safeChannels.set(this.mainVoiceChannel.id, this.mainVoiceChannel);
 
         for (var i = 0; i < this.numOfTeams; i++) {
-            this.addChannelHelper(`voice-${i}`, {type: 'voice'});
+            this.room.addRoomChannel({name: `voice-${i}`, info: {type: 'voice'}});
         }
 
-        this.joinActivityChannel = await this.addChannelHelper('☕' + 'join-activity', {
-            type: 'text',
-            topic: 'This channel is only intended to add your team to the activity list! Please do not use it for anything else!',
-        }, [], true);
+        this.joinActivityChannel = await this.room.addRoomChannel({
+            name: '☕' + 'join-activity', 
+            info: {
+                type: 'text',
+                topic: 'This channel is only intended to add your team to the activity list! Please do not use it for anything else!',
+            }, 
+            isSafe: true
+        });
 
         this.joinActivityConsole();
 
@@ -79,29 +84,38 @@ class CoffeeChats extends Activity {
      * @override
      */
     addDefaultFeatures() {
-        /** @type {Activity.ActivityFeature[]} */
+        /** @type {Console.Feature[]} */
         let localFeatures = [
             {
                 name: 'Team Shuffle',
                 description: 'Shuffle all the teams from the main voice channel to the other channels.',
-                emoji: '👨‍👩‍👧‍👦',
-                callback: () => this.groupShuffle(),
+                emojiName: '👨‍👩‍👧‍👦',
+                callback: (user, reaction, stopInteracting, console) => {
+                    this.groupShuffle();
+                    stopInteracting();
+                },
             },
             {
                 name: 'Reset Teams',
                 description: 'Remove all the signed up teams.',
-                emoji: '🗜️',
-                callback: () => this.resetTeams(),
+                emojiName: '🗜️',
+                callback: (user, reaction, stopInteracting, console) => {
+                    this.resetTeams();
+                    stopInteracting();
+                },
             },
             {
                 name: 'Add Team Slot',
                 description: 'Adds a team slot and a voice channel for them.',
-                emoji: '☝️',
-                callback: () => this.addTeamSlot(),
+                emojiName: '☝️',
+                callback: (user, reaction, stopInteracting, console) => {
+                    this.addTeamSlot();
+                    stopInteracting();
+                },
             }
         ];
 
-        localFeatures.forEach(feature => this.features.set(feature.name, feature));
+        localFeatures.forEach(feature => this.adminConsole.addFeature(feature));
 
         super.addDefaultFeatures();
     }
@@ -116,39 +130,41 @@ class CoffeeChats extends Activity {
         // reaction to use
         var emoji = '⛷️';
 
-        // send embed and react with emoji
-        const msgEmbed = new MessageEmbed()
-            .setColor(this.botGuild.colors.embedColor)
-            .setTitle('Join the activity!')
-            .setDescription('If you want to join this activity, please react to this message with ' + emoji +' and follow my instructions!\n If the emojis are not working' +
-            ' it means the activity is full. Check the activity text channel for other activity times!');
-        var joinMsg = await this.joinActivityChannel.send(msgEmbed);
-        await joinMsg.react(emoji);
-
-        // reactor collector and its filter
-        const emojiFilter = (reaction, user) => !user.bot && reaction.emoji.name === emoji;
-        const emojiCollector = joinMsg.createReactionCollector(emojiFilter);
-
-        emojiCollector.on('collect', async (reaction, user) => {
-
-            // check to make sure there are spots left
-            if (this.teams.size > this.numOfTeams) {
-                sendMsgToChannel(this.joinActivityChannel, user.id, 'Sorry, but the activity is full!', 10);
-                return;
-            }
-
-            let members = await memberPrompt({prompt: 'Who are you team members? Let me know in ONE message!', channel: this.joinActivityChannel, userId: user.id});
-
-            // add team captain to members list
-            members.set(user.id, this.guild.member(user));
-
-            // add the team to the team list
-            this.teams.set(this.teams.size, members.array());
-
-            this.joinActivityChannel.send('<@' + user.id + '> Your team has been added to the activity! Make sure you follow the instructions in the main channel.').then(msg => {
-                msg.delete({ timeout: 5000 });
-            });
+        let joinActivityConsole = new Console({
+            title: `${this.name}'s Join Console!`,
+            description: 'To join this activity read below! This activity is first come, first serve so get in quick!',
+            channel: this.joinActivityChannel,
+            guild: this.guild,
         });
+
+        joinActivityConsole.addFeature({
+            name: 'Join the activity!',
+            description: `React to this message with ${emoji} and follow my instructions!`,
+            emojiName: emoji,
+            callback: async (user, reaction, stopInteracting, console) => {
+                // check to make sure there are spots left
+                if (this.teams.size > this.numOfTeams) {
+                    sendMsgToChannel(this.joinActivityChannel, user.id, 'Sorry, but the activity is full! Check back again later for a new cycle!', 10);
+                    return;
+                }
+
+                let members = await memberPrompt({prompt: 'Who are you team members? Let me know in ONE message!', channel: this.joinActivityChannel, userId: user.id});
+
+                // add team captain to members list
+                members.set(user.id, this.guild.member(user));
+
+                // add the team to the team list
+                this.teams.set(this.teams.size, members.array());
+
+                this.joinActivityChannel.send('<@' + user.id + '> Your team has been added to the activity! Make sure you follow the instructions in the main channel.').then(msg => {
+                    msg.delete({ timeout: 5000 });
+                });
+
+                stopInteracting();
+            }
+        });
+
+        joinActivityConsole.sendConsole();
     }
 
     /**
@@ -160,7 +176,7 @@ class CoffeeChats extends Activity {
      * Shuffle users in general voice as groups in firebase
      */
     groupShuffle() {
-        let channels = this.channels.voiceChannels;
+        let channels = this.room.channels.voiceChannels;
         let voiceChannels = channels.filter(voiceChannel => voiceChannel.id != this.mainVoiceChannel.id).array();
 
         // loop over the groups and channels at the same time using an index, add users for each group in a single voice channel
@@ -193,7 +209,7 @@ class CoffeeChats extends Activity {
      */
     addTeamSlot() {
         this.numOfTeams += 1;
-        this.addChannelHelper(`voice-${this.numOfTeams - 1}`, { type: 'voice' }); // -1 because we start from 0
+        this.room.addRoomChannel({name: `voice-${this.numOfTeams - 1}`, info: { type: 'voice' }}); // -1 because we start from 0
     }
 
 }
