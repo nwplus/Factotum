@@ -31,6 +31,8 @@ class AddMembers extends PermissionCommand {
         {
             role: PermissionCommand.FLAGS.STAFF_ROLE,
             roleMessage: 'Hey there, the !add-members command is only for staff!',
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
+            channelMessage: 'Hey there, the !add-members command is only available on the admin console!',
         });
     }
 
