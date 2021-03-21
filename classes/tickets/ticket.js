@@ -167,23 +167,24 @@ class Ticket {
             title: ticketManagerMsgEmbed.title,
             description: ticketManagerMsgEmbed.description,
             channel: this.ticketManager.ticketDispatcherInfo.channel,
+            guild: this.ticketManager.guild,
         });
 
         ticketManagerMsgEmbed.fields.forEach((embedField => {
             this.consoles.ticketManager.addField(embedField.name, embedField.value, embedField.inline);
         }));
 
-        let joinTicketFeature = {
+        let joinTicketFeature = Console.newFeature({
             name: 'Can you help them?',
             description: 'If so, react to this message with the emoji!',
-            emojiName: this.ticketManager.ticketDispatcherInfo.takeTicketEmoji.name,
+            emoji: this.ticketManager.ticketDispatcherInfo.takeTicketEmoji,
             callback: (user, reaction, stopInteracting) => {
                 if (this.status === Ticket.STATUS.new) {
                     this.setStatus(Ticket.STATUS.taken, 'helper has taken the ticket', user);
                 }
                 stopInteracting();
             }
-        };
+        });
 
         this.consoles.ticketManager.addFeature(joinTicketFeature);
 
@@ -196,14 +197,15 @@ class Ticket {
      */
     async contactGroupLeader() {
         let removeTicketEmoji = '⚔️';
-        this.consoles.groupLeader = new Console({ 
+        this.consoles.groupLeader = new Console({
             title: 'Ticket was Successful!',
             description: `Your ticket to the ${this.ticketManager.parent.name} group was successful! It is ticket number ${this.id}`,
             channel: await this.group.first().createDM(),
+            guild: this.ticketManager.guild,
             features: new Collection([
                 [removeTicketEmoji, {
                     name: 'Remove the ticket',
-                    description: `If you don't need help anymore, react to this message with ${removeTicketEmoji}`,
+                    description: `React to this message if you don't need help any more!`,
                     emojiName: removeTicketEmoji,
                     callback: (user, reaction, stopInteracting) => {
                         // make sure user can only close the ticket if no one has taken the ticket
@@ -232,15 +234,15 @@ class Ticket {
         await this.consoles.ticketManager.addField('This ticket is being handled!', `<@${helper.id}> is helping this team!`);
         await this.consoles.ticketManager.changeColor('#80c904');
 
-        let takeTicketFeature = {
+        let takeTicketFeature = Console.newFeature({
             name: 'Still want to help?',
                 description: `Click the ${this.ticketManager.ticketDispatcherInfo.joinTicketEmoji.toString()} emoji to join the ticket!`,
-                emojiName: this.ticketManager.ticketDispatcherInfo.joinTicketEmoji.name,
+                emoji: this.ticketManager.ticketDispatcherInfo.joinTicketEmoji,
                 callback: (user, reaction, stopInteracting) => {
                     if (this.status === Ticket.STATUS.taken) this.helperJoinsTicket(user);
                     stopInteracting();
                 }
-        }
+        });
         await this.consoles.ticketManager.addFeature(takeTicketFeature);
 
         // update dm with user to reflect that their ticket has been accepted
@@ -257,7 +259,8 @@ class Ticket {
             title: 'Original Question',
             description: `<@${this.group.first().id}> has the question: ${this.question}`,
             channel: this.room.channels.generalText,
-            color: this.ticketManager.botGuild.colors.embedColor
+            color: this.ticketManager.botGuild.colors.embedColor,
+            guild: this.ticketManager.guild,
         });
 
         this.consoles.ticketRoom.addField('Thank you for helping this team.', `<@${helper.id}> best of luck!`);

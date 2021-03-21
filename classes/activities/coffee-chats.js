@@ -134,6 +134,7 @@ class CoffeeChats extends Activity {
             title: `${this.name}'s Join Console!`,
             description: 'To join this activity read below! This activity is first come, first serve so get in quick!',
             channel: this.joinActivityChannel,
+            guild: this.guild,
         });
 
         joinActivityConsole.addFeature({

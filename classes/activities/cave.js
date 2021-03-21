@@ -61,7 +61,7 @@ class Cave extends Activity {
             activityName: caveOptions.name,
             guild: guild,
             roleParticipants: new Collection([[caveOptions.role.id, caveOptions.role]]),
-            botGuild: botGuild
+            botGuild: botGuild,
         });
 
         /**
@@ -132,7 +132,9 @@ class Cave extends Activity {
             title: 'Choose your sub roles!',
             description: 'Choose sub roles you are comfortable answering questions for! Remove your reaction to loose the sub role.',
             channel: this.channels.roleSelection,
+            guild: this.guild,
         });
+        this.subRoleConsole.sendConsole();
 
         for (var i = 0; i < 3; i++) {
             this.room.addRoomChannel({
@@ -188,24 +190,24 @@ class Cave extends Activity {
     addDefaultFeatures() {
         /** @type {Console.Feature[]} */
         let localFeatures = [
-            {
+            Console.newFeature({
                 name: 'Add Sub-Role',
                 description: 'Add a new sub-role cave members can select and users can use to ask specific tickets.',
-                emojiName: this.caveOptions.emojis.addRoleEmoji.name,
+                emoji: this.caveOptions.emojis.addRoleEmoji,
                 callback: (user, reaction, stopInteracting, console) => this.addSubRoleCallback(console.channel, user.id).then(() => stopInteracting()),
-            },
-            {
+            }),
+            Console.newFeature({
                 name: 'Delete Ticket Channels',
                 description: 'Get the ticket manager to delete ticket rooms to clear up the server.',
-                emojiName: this.caveOptions.emojis.deleteChannelsEmoji.name,
+                emoji: this.caveOptions.emojis.deleteChannelsEmoji,
                 callback: (user, reaction, stopInteracting, console) => this.deleteTicketChannelsCallback(console.channel, user.id).then(() => stopInteracting()),
-            },
-            {
+            }),
+            Console.newFeature({
                 name: 'Include/Exclude Tickets',
                 description: 'Include or exclude tickets from the automatic garbage collector.',
-                emojiName: this.caveOptions.emojis.excludeFromAutoDeleteEmoji.name,
+                emoji: this.caveOptions.emojis.excludeFromAutoDeleteEmoji,
                 callback: (user, reaction, stopInteracting, console) => this.includeExcludeCallback(console.channel, user.id).then(() => stopInteracting()),
-            }
+            }),
         ];
 
         localFeatures.forEach(feature => this.adminConsole.addFeature(feature));
@@ -346,25 +348,27 @@ class Cave extends Activity {
         this.subRoles.set(emoji.name, subRole);
 
         // add to subRole selector console
-        this.subRoleConsole.addFeature({
-            name: `-> If you know ${subRoleName}`,
-            description: '---------------------------------',
-            emojiName: emoji.name,
-            callback: (user, reaction, stopInteracting, console) => {
-                let member = this.guild.member(user);
-                addRoleToMember(member, role);
-                sendMsgToChannel(console.channel, user.id, `You have received the ${subRoleName} role!`, 10);
-                stopInteracting();
-            },
-            removeCallback: (user, reaction, stopInteracting, console) => {
-                let member = this.guild.member(user);
-                removeRolToMember(member, role);
-                sendMsgToChannel(console.channel, user.id, `You have lost the ${subRoleName} role!`, 10);
-                stopInteracting();
-            },
-        });
+        this.subRoleConsole.addFeature(
+            Console.newFeature({
+                name: `-> If you know ${subRoleName}`,
+                description: '---------------------------------',
+                emoji: emoji,
+                callback: (user, reaction, stopInteracting, console) => {
+                    let member = this.guild.member(user);
+                    addRoleToMember(member, role);
+                    sendMsgToChannel(console.channel, user.id, `You have received the ${subRoleName} role!`, 10);
+                    stopInteracting();
+                },
+                removeCallback: (user, reaction, stopInteracting, console) => {
+                    let member = this.guild.member(user);
+                    removeRolToMember(member, role);
+                    sendMsgToChannel(console.channel, user.id, `You have lost the ${subRoleName} role!`, 10);
+                    stopInteracting();
+                },
+            })
+        );
 
-        this.ticketManager.addTicketType(role, subRole.name, emoji.name);
+        this.ticketManager.addTicketType(role, subRole.name, emoji);
     }
 
     /**

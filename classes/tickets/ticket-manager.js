@@ -170,17 +170,17 @@ class TicketManager {
     async sendTicketCreatorConsole(title, description, color) {
         /** @type {Console.Feature[]} */
         let featureList = [
-            {
+            Console.newFeature({
                 name: 'General Ticket',
                 description: 'A general ticket aimed to all helpers.',
-                emojiName: this.ticketDispatcherInfo.mainHelperInfo.emoji.name,
+                emoji: this.ticketDispatcherInfo.mainHelperInfo.emoji,
                 callback: (user, reaction, stopInteracting, console) => this.startTicketCreationProcess(user, this.ticketDispatcherInfo.mainHelperInfo.role, console.channel).then(() => stopInteracting()),
-            }
+            })
         ];
 
         let features = new Collection(featureList.map(feature => [feature.emojiName, feature]));
 
-        this.ticketCreatorInfo.console = new Console({title, description, channel: this.ticketCreatorInfo.channel, features, color});
+        this.ticketCreatorInfo.console = new Console({ title, description, channel: this.ticketCreatorInfo.channel, features, color, guild: this.guild });
         await this.ticketCreatorInfo.console.sendConsole();
     }
 
@@ -189,17 +189,19 @@ class TicketManager {
      * to this new type of ticket.
      * @param {Role} role - role to add
      * @param {String} typeName
-     * @param {String} emojiName 
+     * @param {GuildEmoji | ReactionEmoji} emoji 
      */
     addTicketType(role, typeName, emoji) {
-        this.ticketCreatorInfo.console.addFeature({
-            name: `Question about ${typeName}`,
-            description: '---------------------------------',
-            emojiName: emoji,
-            callback: (user, reaction, stopInteracting, console) => {
-                this.startTicketCreationProcess(user, role, console.channel).then(() => stopInteracting());
-            }
-        });
+        this.ticketCreatorInfo.console.addFeature(
+            Console.newFeature({
+                name: `Question about ${typeName}`,
+                description: '---------------------------------',
+                emoji: emoji,
+                callback: (user, reaction, stopInteracting, console) => {
+                    this.startTicketCreationProcess(user, role, console.channel).then(() => stopInteracting());
+                }
+            })
+        );
     }
 
     /**

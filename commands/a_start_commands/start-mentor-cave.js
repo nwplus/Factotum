@@ -82,7 +82,7 @@ class StartMentorCave extends PermissionCommand {
                 channel, userId}))[0];
             var bufferTime = inactivePeriod;
             while (bufferTime >= inactivePeriod) {
-                bufferTime = (await numberPrompt({prompt: `How long, in minutes, will the bot wait for a response to its request to delete a ticket? Must be less than inactive period: ${inactivePeriod}`,
+                bufferTime = (await numberPrompt({prompt: `How long, in minutes, will the bot wait for a response to its request to delete a ticket? Must be less than inactive period: ${inactivePeriod}.`,
                     channel, userId}))[0];
             }
             let reminderTime = (await numberPrompt({prompt: 'How long, in minutes, shall a ticket go unaccepted before the bot sends a reminder to all mentors?',

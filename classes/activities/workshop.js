@@ -12,7 +12,7 @@ const Activity = require('./activity');
  * @property {String} type
  * @property {String} title
  * @property {String} question
- * @property {String} emojiName - emoji to use to call this poll
+ * @property {String} emojiName - must be unicode emoji!
  * @property {Collection<String, String>} responses - <Emoji String, Description>
  */
 
@@ -292,6 +292,7 @@ class Workshop extends Activity {
             title: 'Polling and Stamp Console',
             description: 'Here are some common polls you might want to use!',
             channel: this.TAConsole,
+            guild: this.guild,
         });
         this.polls.forEach((pollInfo) => TAPollingConsole.addFeature({
             name: pollInfo.title,

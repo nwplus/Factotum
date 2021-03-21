@@ -98,6 +98,7 @@ class Activity {
             title: `Activity ${activityName} Console`,
             description: 'This activity\'s information can be found below, you can also find the features available.',
             channel: guild.channels.resolve(botGuild.channelIDs.adminConsole),
+            guild: this.guild,
         });
 
         /**
