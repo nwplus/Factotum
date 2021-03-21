@@ -43,11 +43,11 @@ class CheckMember extends PermissionCommand {
      */
     async runCommand(botGuild, message, { emailOrName }) {
         if (emailOrName.split('-').length === 1) { // check for similar emails if given argument is an email
-            var result = await firebaseServices.checkEmail(emailOrName, message.guild.id);
+            let result = await firebaseServices.checkEmail(emailOrName, message.guild.id);
             if (result.length > 0) { // if similar emails were found, print them
-                var listMembers = '';
+                let listMembers = '';
                 result.forEach(member => {
-                    var listMember = member.email + ' (' + member.types.join(', ') + ') ';
+                    let listMember = member.email + ' (' + member.types.join(', ') + ') ';
                     listMembers += listMember;
                 });
                 message.channel.send('Here are the results I found similar to ' + emailOrName + ': ' + listMembers);
@@ -55,9 +55,9 @@ class CheckMember extends PermissionCommand {
                 message.channel.send('No matches to this email were found').then(msg => msg.delete({ timeout: 8000 }));
             }
         } else { // check for members of the given name if argument was a name
-            var firstName = emailOrName.split('-')[0];
-            var lastName = emailOrName.split('-')[1];
-            var result = firebaseServices.checkName(firstName, lastName, message.guild.id);
+            let firstName = emailOrName.split('-')[0];
+            let lastName = emailOrName.split('-')[1];
+            let result = firebaseServices.checkName(firstName, lastName, message.guild.id);
             if (result != null) { // print email if member was found
                 message.channel.send('Email found for ' + firstName + ' ' + lastName + ' is: ' + result);
             } else { // message if member was not found

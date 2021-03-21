@@ -8,7 +8,7 @@ const winston = require('winston');
 const BotGuildModel = require('../../classes/bot-guild');
 
 /**
- * The start mentor cave command starts a cave special for mentors. 
+ * The start mentor cave command creates a cave for mentors. To know what a cave is look at [cave]{@link Cave} class.
  * @category Commands
  * @subcategory Start-Commands
  * @extends PermissionCommand

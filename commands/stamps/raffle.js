@@ -3,8 +3,7 @@ const { Message, MessageEmbed } = require('discord.js');
 const BotGuildModel = require('../../classes/bot-guild');
 
 /**
- * The Raffle class randomly picks a set number of winners from all members in a Discord server that have a role ending in a 1-2 digit 
- * number. Can only be run in Admin console.
+ * Picks x amount of winners from the stamp contest. The more stamps a user has, the more chances they have of winning.
  * @category Commands
  * @subcategory Stamps
  * @extends PermissionCommand
@@ -46,9 +45,10 @@ class Raffle extends PermissionCommand {
     async runCommand(botGuild, message, {numberOfWinners}) {
 
         //check that numberOfWinners is less than the number of people with stamp roles or it will infinite loop
-        var memberCount = message.guild.members.cache.filter(member => member.roles.cache.has(botGuild.roleIDs.memberRole)).size;
+        let validMembers = message.guild.members.cache.filter(member => member.roles.cache.has(botGuild.roleIDs.memberRole));
+        var memberCount = validMembers.size;
         if (memberCount <= numberOfWinners) {
-            message.channel.send('Whoa there, you have more winners than hackers!').then((msg) => {
+            message.channel.send('Whoa there, you want more winners than hackers!').then((msg) => {
                 msg.delete({ timeout: 5000 });
             });
             return;
@@ -57,62 +57,33 @@ class Raffle extends PermissionCommand {
         //array to contain the ids
         var entries = new Array(); 
         
-        await message.guild.members.cache.forEach(member => {
-            entries = this.addEntries(member, entries);
+        validMembers.forEach(member => {
+            let roleId = member.roles.cache.find(role => botGuild.stamps.stampRoleIDs.has(role.id));
+            if (!roleId) return;
+            let stampNumber = botGuild.stamps.stampRoleIDs.get(roleId);
+
+            for (let i = 0; i < stampNumber; i++) {
+                entries.push(member.user.id);
+            }
         });
 
         //number of array spaces that are actually occupied by ids
-
         var length = entries.length;
+
         //set to keep track of winners
         let winners = new Set();
         //randomly generate a number and add the corresponding winner into the set
         while (winners.size < numberOfWinners) {
-            var num = Math.floor(Math.random() * length);
-            var winner = entries[num];
-            winners.add(winner);
+            let num = Math.floor(Math.random() * length);
+            let winner = entries[num];
+            if (!winners.has(winner)) winners.add(winner);
         }
-        winners = Array.from(winners);
+        let winnersList = Array.from(winners);
         const embed = new MessageEmbed()
             .setColor(botGuild.colors.embedColor)
             .setTitle('The winners of the raffle draw are:')
-            .setDescription('<@' + winners.join('><@') + '>');
+            .setDescription( winnersList.map(id => `<@${id}>`).join(', '));
         await message.channel.send(embed);
-    }
-
-    /**
-     * Function that takes a member and checks through all their roles to see if they have a stamp role. If they do, they get entered into
-     * the entries array that many times.
-     * @param {member} member - given member to check roles and add entries for
-     * @param {Array} entries - array from runCommand to collect entries
-    */
-    addEntries(member, entries) {
-        //don't add entries if member is a bot
-        if (member.user.bot) {
-            return entries;
-        }
-        
-        var stampRole;
-        //loop through member's roles and save the role that ends in a number, if any
-        member.roles.cache.forEach(role => {
-            var curr = role.name.substring(role.name.length - 2);
-            if (!isNaN(curr)) {
-                stampRole = role;
-            }
-        });
-        //if member has no stamp roles, return
-        if (stampRole == null) {
-            return entries;
-        }
-        
-        var stampNumber = parseInt(stampRole.name.slice(-2));
-
-        var i;
-        //starting from the first empty value in entries indicated by pos.value, add member's id stampNumber times 
-        for (i = 0; i < stampNumber; i++) {
-            entries.push(member.user.id);
-        }
-        return entries;
     }
 }
 module.exports = Raffle;

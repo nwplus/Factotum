@@ -188,19 +188,22 @@ async function checkName(firstName, lastName, guildId) {
 module.exports.checkName = checkName;
 
 /**
- * Adds new document in Firebase members collection for manually verified member
+ * Adds a new guild member to the guild's member collection. Email is used as ID, there can be no duplicates.
  * @param {String} email - email of member verified
- * @param {GuildMember} member - member verified
  * @param {String[]} types - types this user might verify for
  * @param {String} guildId - the guild id
+ * @param {GuildMember} [member={}] - member verified
+ * @param {String} [firstName=''] - users first name
+ * @param {String} [lastName=''] - users last name
  * @async
  */
-async function addUserData(email, member, types, guildId) {
-    var newDocument = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').doc();
+async function addUserData(email, types, guildId, member = {}, firstName = '', lastName = '') {
+    var newDocument = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').doc(email.toLowerCase());
+
     /** @type {FirebaseUser} */
     let data = {
         email: email.toLowerCase(),
-        discordId: member.id,
+        discordId: member?.id || null,
         types: types.map((type, index, array) => {
             /** @type {UserType} */
             let userType = {
@@ -209,6 +212,8 @@ async function addUserData(email, member, types, guildId) {
             };
             return userType;
         }),
+        firstName: firstName,
+        lastName: lastName,
     };
 
     await newDocument.set(data);

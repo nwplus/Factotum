@@ -5,7 +5,12 @@ const { reactionPrompt, yesNoPrompt, rolePrompt, } = require('../../classes/prom
 const TeamFormation = require('../../classes/team-formation');
 
 /**
- * The start team formation command starts the team formation activity. 
+ * The team formation activity is the most basic team formation activity available. This activity works like a menu or directory of available teams and solo participants.
+ * To join, a participant reacts to a message. The bot then sends instructions via DM, including a set of questions the user must respond to and send back to the bot. The responses 
+ * are then sent to either a looking-for-team channel or looking-for-members channel. Other parties can then browse these channels and create teams over DMs. Members cannot send 
+ * messages to these channels. 
+ * There is an option for users in the activity to be notified of new posts of interest. For example, a team leader will get notified of new solo participants looking for a team.
+ * When someone finds a team, they can go back to their DMs with the bot and react to a message to remove their post from the channels and stop receiving notifications of new posts.
  * @category Commands
  * @subcategory Start-Commands
  * @extends PermissionCommand
