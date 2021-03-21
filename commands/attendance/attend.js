@@ -16,7 +16,7 @@ class Attend extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'attend',
-            group: 'verification',
+            group: 'attendance',
             memberName: 'hacker attendance',
             description: 'Will mark a hacker as attending and upgrade role to Attendee. Can only be called once!',
             args: [

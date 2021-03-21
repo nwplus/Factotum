@@ -31,6 +31,8 @@ class AddMembers extends PermissionCommand {
         {
             role: PermissionCommand.FLAGS.STAFF_ROLE,
             roleMessage: 'Hey there, the !add-members command is only for staff!',
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
+            channelMessage: 'Hey there, the !add-members command is only available on the admin console!',
         });
     }
 
@@ -52,6 +54,11 @@ class AddMembers extends PermissionCommand {
             
             https.get(fileUrl, (response) => {
                 response.pipe(csvParser()).on('data', async (data) => {
+
+                    if (!data.email || !data.firstName || !data.lastName || !data.types) {
+                        sendMsgToChannel(message.channel, message.author.id, 'The excel data is incomplete or the file type is not CSV (might be CSV UTF-8). Try again!', 10);
+                        return;
+                    }
 
                     /** @type {String} */
                     let typesString = data.types;
