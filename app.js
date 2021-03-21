@@ -67,6 +67,7 @@ bot.registry
     .registerGroup('a_utility', 'utility commands for admins')
     .registerGroup('hacker_utility', 'utility commands for users')
     .registerGroup('verification', 'verification commands')
+    .registerGroup('attendance', 'attendance commands')
     .registerGroup('stamps', 'stamp related commands')
     .registerGroup('utility', 'utility commands')
     .registerGroup('essentials', 'essential commands for any guild', true)
