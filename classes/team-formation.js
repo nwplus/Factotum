@@ -1,8 +1,10 @@
-const { GuildEmoji, ReactionEmoji, Role, TextChannel, MessageEmbed, Guild, GuildChannelManager, User, Message, RoleManager } = require('discord.js');
+const { GuildEmoji, ReactionEmoji, Role, TextChannel, MessageEmbed, Guild, Collection, User, Message, RoleManager } = require('discord.js');
 const { messagePrompt } = require('./prompt');
 const { sendEmbedToMember, addRoleToMember, deleteMessage, sendMessageToMember, removeRolToMember } = require('../discord-services');
 const BotGuild = require('../db/mongo/BotGuild');
 const winston = require('winston');
+const Activity = require('./activities/activity');
+const BotGuildModel = require('./bot-guild');
 
 /**
  * @class TeamFormation
@@ -13,7 +15,7 @@ const winston = require('winston');
  * posts in the catalogue.
  * 
  */
-class TeamFormation {
+class TeamFormation extends Activity {
     
     static defaultTeamForm = 'Team Member(s): \nTeam Background: \nObjective: \nFun Fact About Team: \nLooking For: ';
     static defaultProspectForm = 'Name: \nSchool: \nPlace of Origin: \nSkills: \nFun Fact: \nDeveloper or Designer?:';
@@ -48,7 +50,8 @@ class TeamFormation {
      * @property {TeamFormationPartyInfo} teamInfo
      * @property {TeamFormationPartyInfo} prospectInfo
      * @property {Guild} guild
-     * @property {TeamFormationChannels} channels
+     * @property {BotGuildModel} botGuild
+     * @property {Collection<string, Role>} activityRoles
      * @property {Boolean} [isNotificationsEnabled]
      * @property {SignupEmbedCreator} [signupEmbedCreator]
      */
@@ -63,7 +66,13 @@ class TeamFormation {
         this.validatePartyInfo(teamFormationInfo.teamInfo);
         this.validatePartyInfo(teamFormationInfo.prospectInfo);
         if (!teamFormationInfo?.guild) throw new Error('A guild is required for a team formation!');
-        if (!teamFormationInfo?.channels) throw new Error('The channels are required for a team formation!');
+
+        super({
+            activityName: 'Team Formation',
+            guild: teamFormationInfo.guild,
+            roleParticipants: teamFormationInfo.activityRoles,
+            botGuild: teamFormationInfo.botGuild
+        });
 
         /**
          * The team information, those teams willing to join will use this.
@@ -86,12 +95,6 @@ class TeamFormation {
             form: teamFormationInfo.prospectInfo?.form || TeamFormation.defaultProspectForm,
             signupEmbed : teamFormationInfo.prospectInfo?.signupEmbed,
         }
-
-        /**
-         * The guild where this team formation is active.
-         * @type {Guild}
-         */
-        this.guild = teamFormationInfo.guild;
 
         /**
          * The channels that a team formation activity needs.
@@ -126,46 +129,46 @@ class TeamFormation {
         if (partyInfo.form && typeof partyInfo.form != String) throw new Error('The form must be a string!');
     }
 
+    async init() {
+        await super.init();
+        await this.createChannels();
+    }
+
     /**
      * Will create the TeamFormationChannels object with new channels to use with a new TeamFormation
-     * @param {GuildChannelManager} guildChannelManager - the channel manager to create the channels
-     * @returns {Promise<TeamFormationChannels>}
      * @async
-     * @static
      */
-    static async createChannels(guildChannelManager) {
-        /** @type {TeamFormationChannels} */
-        let channels = {}
+    async createChannels() {
 
-        let category = await guildChannelManager.create('🏅Team Formation', {
-            type: 'category',
-            permissionOverwrites: guildChannelManager.guild.roles.cache.filter((role, key, roles) => role.permissions.has('SEND_MESSAGES')).map((role, key, roles) => {
-                return {
-                    id: role.id,
-                    deny: ['SEND_MESSAGES']
-                };
-            }),
+        this.room.channels.category.setName('🏅Team Formation');
+        this.room.channels.generalText.delete();
+        this.room.channels.generalVoice.delete();
+
+        this.channels.info = await this.room.addRoomChannel({
+            name: '👀team-formation',
+            permissions: [{ id: this.botGuild.roleIDs.everyoneRole, permissions: { SEND_MESSAGES: false }}],
+            isSafe: true,
         });
 
-        channels.info = await guildChannelManager.create('👀team-formation', {
-            type: 'text',
-            parent: category,
+        this.channels.prospectCatalogue = await this.room.addRoomChannel({
+            name: '🙋🏽prospect-catalogue',
+            info: {
+                topic: 'Information about users looking to join teams can be found here. Happy hunting!!!',
+            },
+            permissions: [{ id: this.botGuild.roleIDs.everyoneRole, permissions: { SEND_MESSAGES: false }}],
+            isSafe: true,
         });
 
-        channels.prospectCatalogue = await guildChannelManager.create('🙋🏽prospect-catalogue', {
-            type: 'text',
-            parent: category,
-            topic: 'Information about users looking to join teams can be found here. Happy hunting!!!',
+        this.channels.teamCatalogue = await this.room.addRoomChannel({
+            name: '💼team-catalogue',
+            info: {
+                topic: 'Channel for teams to post about themselves and who they are looking for! Expect people to send you private messages.',
+            },
+            permissions: [{ id: this.botGuild.roleIDs.everyoneRole, permissions: { SEND_MESSAGES: false }}],
+            isSafe: true,
         });
 
-        channels.teamCatalogue = await guildChannelManager.create('💼team-catalogue', {
-            type: 'text',
-            parent: category,
-            topic: 'Channel for teams to post about themselves and who they are looking for! Expect people to send you private messages.',
-        });
-
-        winston.loggers.get(guildChannelManager.guild.id).verbose(`Team formation channels have been created!`, { event: "Team Formation" });
-        return channels;
+        winston.loggers.get(this.guild.id).verbose(`Team formation channels have been created!`, { event: "Team Formation" });
     }
 
     /**

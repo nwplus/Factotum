@@ -3,6 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const { Message } = require('discord.js');
 const { reactionPrompt, yesNoPrompt, rolePrompt, } = require('../../classes/prompt.js');
 const TeamFormation = require('../../classes/team-formation');
+const Activity = require('../../classes/activities/activity');
 
 /**
  * The team formation activity is the most basic team formation activity available. This activity works like a menu or directory of available teams and solo participants.
@@ -42,6 +43,8 @@ class StartTeamFormation extends PermissionCommand {
         let channel = message.channel;
         let userId = message.author.id;
 
+        let activityRoles = await Activity.promptForRoleParticipants(channel, userId, true);
+
         try {
             
             var teamFormation = new TeamFormation({
@@ -58,7 +61,8 @@ class StartTeamFormation extends PermissionCommand {
                         await TeamFormation.createProspectRole(message.guild.roles),
                 },
                 guild: message.guild,
-                channels: await TeamFormation.createChannels(message.guild.channels),
+                botGuild: botGuild,
+                activityRoles,
                 isNotificationsEnabled: await yesNoPrompt({prompt: 'Do you want to notify users when the opposite party has a new post?', channel, userId}),
             });
 
@@ -67,6 +71,8 @@ class StartTeamFormation extends PermissionCommand {
             message.channel.send('<@' + message.author.id + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;
         }
+
+        teamFormation.init();
 
         message.channel.send('<@' + userId + '> The team formation activity is ready to go! <#' + teamFormation.channels.info + '>');
 
