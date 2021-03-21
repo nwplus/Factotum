@@ -1,6 +1,6 @@
 const csvParser = require('csv-parser');
 const { Message } = require('discord.js');
-const request = require('request');
+const https = require('https');
 const PermissionCommand = require('../../classes/permission-command');
 const { messagePrompt } = require('../../classes/prompt');
 const { addUserData } = require('../../db/firebase/firebase-services');
@@ -31,6 +31,8 @@ class AddMembers extends PermissionCommand {
         {
             role: PermissionCommand.FLAGS.STAFF_ROLE,
             roleMessage: 'Hey there, the !add-members command is only for staff!',
+            channel: PermissionCommand.FLAGS.ADMIN_CONSOLE,
+            channelMessage: 'Hey there, the !add-members command is only available on the admin console!',
         });
     }
 
@@ -46,24 +48,31 @@ class AddMembers extends PermissionCommand {
 
             let fileUrl = msg.attachments.first().url;
 
-            request(fileUrl);
+            https.get(fileUrl).on('error', (error) => winston.loggers.get(message.guild.id).warning(`There was an error while adding members- Error: ${error}`, { event: 'Add Member Command' }));
 
             var holdMsg = await sendMsgToChannel(message.channel, message.author.id, 'Adding data please hold ...');
-
-            request(fileUrl).pipe(csvParser()).on('data', async (data) => {
-
-                /** @type {String} */
-                let typesString = data.types;
-
-                let typesList = typesString.split(',').map(string => string.trim().toLowerCase());
-
-                typesList = typesList.filter(type => botGuild.verification.verificationRoles.has(type));
             
-                if (typesList.length > 0) await addUserData(data.email, typesList, message.guild.id, undefined, data.firstName, data.lastName);
-            }).on('end', () => {
-                holdMsg.delete();
-                sendMsgToChannel(message.channel, message.author.id, 'The members have been added to the database!', 10);
-                winston.loggers.get(message.guild.id).verbose(`Members have been added to the database by ${message.author.id}.`, { event: 'Add Member Command' });
+            https.get(fileUrl, (response) => {
+                response.pipe(csvParser()).on('data', async (data) => {
+
+                    if (!data.email || !data.firstName || !data.lastName || !data.types) {
+                        sendMsgToChannel(message.channel, message.author.id, 'The excel data is incomplete or the file type is not CSV (might be CSV UTF-8). Try again!', 10);
+                        return;
+                    }
+
+                    /** @type {String} */
+                    let typesString = data.types;
+    
+                    let typesList = typesString.split(',').map(string => string.trim().toLowerCase());
+    
+                    typesList = typesList.filter(type => botGuild.verification.verificationRoles.has(type));
+                
+                    if (typesList.length > 0) await addUserData(data.email, typesList, message.guild.id, undefined, data.firstName, data.lastName);
+                }).on('end', () => {
+                    holdMsg.delete();
+                    sendMsgToChannel(message.channel, message.author.id, 'The members have been added to the database!', 10);
+                    winston.loggers.get(message.guild.id).verbose(`Members have been added to the database by ${message.author.id}.`, { event: 'Add Member Command' });
+                });
             }).on('error', (error) => {
                 holdMsg.delete();
                 sendMsgToChannel(message.channel, message.author.id, `There was an error, please try again! Error: ${error}`, 10);

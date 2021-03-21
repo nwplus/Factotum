@@ -105,6 +105,11 @@ interface BotGuild extends Document {
     isSetUpComplete: Boolean,
 
     /**
+     * The prefix used by the bot in this guild.
+     */
+     prefix: String,
+
+    /**
      * Will set the minimum required information for the bot to work on this guild.
      * @param {BotGuildInfo} botGuildInfo 
      * @param {CommandoClient} client

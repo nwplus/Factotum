@@ -57,7 +57,7 @@ class CheckMember extends PermissionCommand {
         } else { // check for members of the given name if argument was a name
             let firstName = emailOrName.split('-')[0];
             let lastName = emailOrName.split('-')[1];
-            let result = firebaseServices.checkName(firstName, lastName, message.guild.id);
+            let result = await firebaseServices.checkName(firstName, lastName, message.guild.id);
             if (result != null) { // print email if member was found
                 message.channel.send('Email found for ' + firstName + ' ' + lastName + ' is: ' + result);
             } else { // message if member was not found
