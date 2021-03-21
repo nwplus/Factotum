@@ -157,7 +157,13 @@ const BotGuildSchema = new Schema({
     isSetUpComplete: {
         type: Boolean,
         default: false,
-    }
+    },
+
+    prefix: {
+        type: String,
+        default: '!',
+        required: true,
+    },
 });
 
 BotGuildSchema.loadClass(BotGuildClass);

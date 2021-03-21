@@ -111,6 +111,8 @@ bot.once('ready', async () => {
             });
 
             await botGuild.setCommandStatus(bot);
+
+            guild.commandPrefix = botGuild.prefix;
             
             mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`, { event: 'Ready Event' });
         }
