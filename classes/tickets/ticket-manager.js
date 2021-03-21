@@ -215,7 +215,7 @@ class TicketManager {
         // check if role has mentors in it
         if (role.members.size <= 0) {
             sendMsgToChannel(channel, user.id, 'There are no mentors available with that role. Please request another role or the general role!', 10);
-            winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.caveOptions.name} received a ticket from user ${user.id} but was canceled due to no mentor having the role ${role.name}.`, {event: 'Cave'});
+            winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.parent.name} received a ticket from user ${user.id} but was canceled due to no mentor having the role ${role.name}.`, { event: 'Cave' });
             return;
         }
 
@@ -223,7 +223,7 @@ class TicketManager {
             var promptMsg = await messagePrompt({prompt: 'Please send ONE message with: \n* A one liner of your problem ' + 
                                 '\n* Mention your team members using @friendName (example: @John).', channel, userId: user.id}, 'string', 45);
         } catch (error) {
-            winston.loggers.get(this.botGuild._id).warning(`New ticket was canceled due to error: ${error}`, {event: 'Ticket Manager'});
+            winston.loggers.get(this.botGuild._id).warning(`New ticket was canceled due to error: ${error}`, { event: 'Ticket Manager' });
             return;
         }
 

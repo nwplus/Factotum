@@ -171,13 +171,16 @@ class Console {
 
         this.collector.on('collect', (reaction, user) => {
             this.interacting.set(user.id, user);
-            this.features.get(reaction.emoji.id || reaction.emoji.name)?.callback(user, reaction, () => this.stopInteracting(user), this);
-            if (this.channel.type != 'dm') reaction.users.remove(user);
+            let feature = this.features.get(reaction.emoji.id || reaction.emoji.name);
+            feature?.callback(user, reaction, () => this.stopInteracting(user), this);
+            if (this.channel.type != 'dm' && !feature?.removeCallback) reaction.users.remove(user);
         });
 
         this.collector.on('remove', (reaction, user) => {
             this.interacting.set(user.id, user);
-            if (this.features.get(reaction.emoji.id || reaction.emoji.name)?.removeCallback) this.features.get(reaction.emoji.id || reaction.emoji.name).removeCallback(user, reaction, this.stopInteracting, this);
+            let feature = this.features.get(reaction.emoji.id || reaction.emoji.name);
+            if (feature?.removeCallback) 
+                feature?.removeCallback(user, reaction, () => this.stopInteracting(user), this);
         });
     }
 

@@ -234,8 +234,7 @@ process.on('uncaughtException', (error) => {
         '\nmessage: ' + error.message +
         '\nfile: ' + error.fileName +
         '\nline number: ' + error.lineNumber +
-        '\nstack: ' + error.stack +
-        `Exception origin: ${origin}`
+        '\nstack: ' + error.stack
     );
 });
 
