@@ -98,7 +98,7 @@ class StartAttend extends PermissionCommand {
 
             // check if user needs to attend
             if (!checkForRole(member, botGuild.attendance.attendeeRoleID)) {
-                Verification.attend(member);
+                Verification.attend(member, botGuild);
             } else {
                 sendEmbedToMember(member, {
                     title: 'Attend Error',
