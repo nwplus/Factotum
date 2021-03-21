@@ -2,8 +2,6 @@ const { Command, CommandoGuild } = require('discord.js-commando');
 const { MessageEmbed, Message, TextChannel, Snowflake, Guild, ColorResolvable, Role, } = require('discord.js');
 const { sendMsgToChannel, addRoleToMember, } = require('../../discord-services');
 const { yesNoPrompt, channelPrompt, rolePrompt, messagePrompt, numberPrompt } = require('../../classes/prompt');
-const jsonfile = require('jsonfile');
-
 const BotGuild = require('../../db/mongo/BotGuild');
 const winston = require('winston');
 
@@ -22,23 +20,14 @@ class InitBot extends Command {
             memberName: 'initialize the bot',
             description: 'Will start the bot given some information.',
             hidden: true,
-            args: [
-                {
-                    type: 'boolean',
-                    key: 'isDev',
-                    prompt: 'Should the dev config be used',
-                    default: false,
-                }
-            ]
+            args: []
         });
     }
 
     /**
      * @param {Message} message
-     * @param {Object} args
-     * @param {Boolean} args.isDev
      */
-    async run(message, { isDev }) {
+    async run(message) {
         message.delete();
 
         // easy constants to use
@@ -57,48 +46,6 @@ class InitBot extends Command {
 
         if (botGuild?.isSetUpComplete) {
             sendMsgToChannel(channel, userId, 'This guild is already set up!!', 30);
-            return;
-        }
-
-        if (isDev) {
-            const file = './dev_config.json';
-            let data = await jsonfile.readFile(file);
-            
-            await botGuild.readyUp(this.client, {
-                roleIDs:{
-                    adminRole: data.adminRoleID,
-                    staffRole: data.staffRoleID,
-                    memberRole: data.memberRoleID,
-                    everyoneRole: data.everyoneRoleID,
-                },
-                channelIDs: {
-                    adminConsole: data.adminConsoleID,
-                    adminLog: data.adminLogsID,
-                    botSupportChannel: data.botSupportChannelID
-                }
-            });
-
-            if (data.isVerificationOn) {
-                await botGuild.setUpVerification(this.client, data.guestRoleID, data.types, {
-                    welcomeChannelID: data.welcomeChannelID,
-                    welcomeChannelSupportID: data.welcomeChannelSupportID,
-                });
-            }
-
-            if (data.isAttendanceOn) {
-                await botGuild.setUpAttendance(this.client, data.attendeeRoleID);
-            }
-
-            if (data.isStampOn) {
-                await botGuild.setUpStamps(this.client, undefined, undefined, data.stamps);
-            }
-
-            botGuild.isSetUpComplete = true;
-
-            await botGuild.save();
-
-            sendMsgToChannel(channel, userId, 'The bot is set and ready to hack!', 10);
-
             return;
         }
 
