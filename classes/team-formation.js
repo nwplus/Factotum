@@ -62,17 +62,17 @@ class TeamFormation extends Activity {
       */
     constructor(teamFormationInfo) {
 
-        if (!teamFormationInfo?.teamInfo || !teamFormationInfo?.prospectInfo) throw new Error('Team and prospect info must be given!');
-        this.validatePartyInfo(teamFormationInfo.teamInfo);
-        this.validatePartyInfo(teamFormationInfo.prospectInfo);
-        if (!teamFormationInfo?.guild) throw new Error('A guild is required for a team formation!');
-
         super({
             activityName: 'Team Formation',
             guild: teamFormationInfo.guild,
             roleParticipants: teamFormationInfo.activityRoles,
             botGuild: teamFormationInfo.botGuild
         });
+
+        if (!teamFormationInfo?.teamInfo || !teamFormationInfo?.prospectInfo) throw new Error('Team and prospect info must be given!');
+        this.validatePartyInfo(teamFormationInfo.teamInfo);
+        this.validatePartyInfo(teamFormationInfo.prospectInfo);
+        if (!teamFormationInfo?.guild) throw new Error('A guild is required for a team formation!');
 
         /**
          * The team information, those teams willing to join will use this.
@@ -100,7 +100,7 @@ class TeamFormation extends Activity {
          * The channels that a team formation activity needs.
          * @type {TeamFormationChannels}
          */
-        this.channels = teamFormationInfo.channels;
+        this.channels = {};
 
         /**
          * True if the parties will be notified when the opposite party has a new post.
@@ -121,6 +121,7 @@ class TeamFormation extends Activity {
     /**
      * Validates a TeamFormationPartyInfo object
      * @param {TeamFormationPartyInfo} partyInfo - the party info to validate
+     * @private
      */
     validatePartyInfo(partyInfo) {
         if (!partyInfo?.emoji && typeof partyInfo.emoji != (GuildEmoji || ReactionEmoji)) throw new Error('A Discord emoji is required for a TeamFormationPartyInfo');

@@ -4,6 +4,7 @@ const { Message } = require('discord.js');
 const { reactionPrompt, yesNoPrompt, rolePrompt, } = require('../../classes/prompt.js');
 const TeamFormation = require('../../classes/team-formation');
 const Activity = require('../../classes/activities/activity');
+const { sendMsgToChannel } = require('../../discord-services');
 
 /**
  * The team formation activity is the most basic team formation activity available. This activity works like a menu or directory of available teams and solo participants.
@@ -72,11 +73,11 @@ class StartTeamFormation extends PermissionCommand {
             return;
         }
 
-        teamFormation.init();
+        await teamFormation.init();
 
-        message.channel.send('<@' + userId + '> The team formation activity is ready to go! <#' + teamFormation.channels.info + '>');
+        sendMsgToChannel(message.channel, userId, `The team formation activity is ready to go! <#${teamFormation.channels.info}>`, 10);
 
-        teamFormation.start();
+        await teamFormation.start();
     }
 }
 module.exports = StartTeamFormation;
