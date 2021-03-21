@@ -75,7 +75,7 @@ class StartTeamFormation extends PermissionCommand {
 
         await teamFormation.init();
 
-        sendMsgToChannel(message.channel, userId, `The team formation activity is ready to go! <#${teamFormation.channels.info}>`, 10);
+        sendMsgToChannel(message.channel, userId, `The team formation activity is ready to go! <#${teamFormation.channels.info.id}>`, 10);
 
         await teamFormation.start();
     }

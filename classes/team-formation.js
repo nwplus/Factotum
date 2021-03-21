@@ -5,6 +5,7 @@ const BotGuild = require('../db/mongo/BotGuild');
 const winston = require('winston');
 const Activity = require('./activities/activity');
 const BotGuildModel = require('./bot-guild');
+const Console = require('./console');
 
 /**
  * @class TeamFormation
@@ -253,80 +254,74 @@ class TeamFormation extends Activity {
     async reachOutToUser(user, isTeam) {
         let logger = winston.loggers.get(this.guild.id);
 
-        // try to set the embed to the given ones, else create one and add the form
-        var dmMessage = isTeam ? this.teamInfo?.signupEmbed : this.prospectInfo?.signupEmbed;
-        logger.verbose(`${dmMessage ? 'A custom DM message' : 'The default DM message'} is being used to contact a team formation signee with id ${user.id}`);
-
-        if (!dmMessage) dmMessage = new MessageEmbed().setTitle('Team Formation -' + (isTeam ? ' Team Format' : ' Prospect Format'))
-        .setDescription('We are very excited for you to find your perfect ' + (isTeam ? 'team members.' : 'team.') + '\n* Please **copy and paste** the following format in your next message. ' +
+        let console = new Console({
+            title: `Team Formation - ${isTeam ? 'Team Format' : 'Prospect Format'}`,
+            description: 'We are very excited for you to find your perfect ' + (isTeam ? 'team members.' : 'team.') + '\n* Please **copy and paste** the following format in your next message. ' +
             '\n* Try to respond to all the sections! \n* Once you are ready to submit, react to this message with 🇩 and then send me your information!\n' +
-            '* Once you fill your team, please come back and click the ⛔ emoji.')
-        .addField('Format:', isTeam ? this.teamInfo.form : this.prospectInfo.form);
-
-
-        if (this.isNotificationEnabled) dmMessage.addField('READ THIS!', 'As soon as you submit your form, you will be notified of every new ' + (isTeam ? 'available prospect.' : 'available team.') + 
-                                ' Once you close your form, you will stop receiving notifications!');
-        
-        // send message to user via DM
-        let dmMsg = await user.send(dmMessage);
-        dmMsg.react('🇩');  // emoji for user to send form to bot
-
-        // guard
-        let isResponding = false;
-        
-        // user sends form to bot collector and filter
-        const dmCollector = dmMsg.createReactionCollector((reaction, user) => !user.bot && !isResponding && (reaction.emoji.name === '🇩'));
-
-        dmCollector.on('collect', async (reaction, user) => {
-            isResponding = !isResponding;
-            
-            try {
-                var catalogueMsg = await this.gatherForm(user, isTeam);
-                logger.verbose(`I was able to get the user's team formation response: ${catalogueMsg.cleanContent}`, { event: "Team Formation" });
-            } catch (error) {
-                logger.warning(`While waiting for a user's team formation response I found an error: ${error}`, { event: "Team Formation" });
-                user.dmChannel.send('You have canceled the prompt. You can try again at any time!').then(msg => msg.delete({timeout: 10000}));
-                isResponding = !isResponding;
-                return;
-            }
-    
-            // confirm the post has been received
-            sendEmbedToMember(user, {
-                title: 'Team Formation',
-                description: isTeam ? 'Thanks for sending me your information, you should see it pop up in the respective channel under the team formation category.' +
-                'Once you find your members please react to my original message with ⛔ so I can remove your post. Good luck!!!' : 
-                'Thanks for sending me your information, you should see it pop up in the respective channel under the team formation category.' +
-                'Once you find your ideal team please react to my original message with ⛔ so I can remove your post. Good luck!!!',
-            });
-            logger.event(`The user ${user.id} has successfully sent their information to the team formation feature.`, { event: "Team Formation" });
-    
-            // stop the first collector to add a new one for removal
-            dmCollector.stop();
-    
-            // add role to the user
-            addRoleToMember(this.guild.member(user), isTeam ? this.teamInfo.role : this.prospectInfo.role);
-    
-            // add remove form emoji and collector
-            dmMsg.react('⛔');
-    
-            const removeFilter = (reaction, user) => reaction.emoji.name === '⛔' && !user.bot;
-            const removeCollector = dmMsg.createReactionCollector(removeFilter, { max: 1 });
-    
-            removeCollector.on('collect', async (reaction, user) => {
-                // remove message sent to channel
-                deleteMessage(catalogueMsg);
-    
-                // confirm deletion
-                sendMessageToMember(user, 'This is great! You are all set! Have fun with your new team! Your message has been deleted.', true);
-    
-                removeRolToMember(this.guild.member(user), isTeam ? this.teamInfo.role : this.prospectInfo.role);
-    
-                // remove this message
-                dmMsg.delete();
-
-                logger.event(`The user ${user.id} has found a team and has been removed from the team formation feature.`, { event: "Team Formation" });
-            });
+            '* Once you fill your team, please come back and click the ⛔ emoji.',
+            channel: await user.createDM(),
+            guild: this.guild,
         });
+
+        if (this.isNotificationEnabled) console.addField('READ THIS!', 'As soon as you submit your form, you will be notified of every new ' + (isTeam ? 'available prospect.' : 'available team.') + 
+        ' Once you close your form, you will stop receiving notifications!');
+
+        await console.addField('Format:', isTeam ? this.teamInfo.form || TeamFormation.defaultTeamForm : this.prospectInfo.form || TeamFormation.defaultProspectForm);
+
+        await console.addFeature({
+            name: 'Send completed form',
+            description: 'React to this emoji, wait for my prompt, and send the finished form.',
+            emojiName: '🇩',
+            callback: async (user, reaction, stopInteracting, console) => {
+                // gather and send the form from the user
+                try {
+                    var catalogueMsg = await this.gatherForm(user, isTeam);
+                    logger.verbose(`I was able to get the user's team formation response: ${catalogueMsg.cleanContent}`, { event: "Team Formation" });
+                } catch (error) {
+                    logger.warning(`While waiting for a user's team formation response I found an error: ${error}`, { event: "Team Formation" });
+                    user.dmChannel.send('You have canceled the prompt. You can try again at any time!').then(msg => msg.delete({timeout: 10000}));
+                    stopInteracting();
+                    return;
+                }
+        
+                // confirm the post has been received
+                sendEmbedToMember(user, {
+                    title: 'Team Formation',
+                    description: 'Thanks for sending me your information, you should see it pop up in the respective channel under the team formation category.' +
+                    `Once you find your ${isTeam ? 'members' : 'ideal team'} please react to my original message with ⛔ so I can remove your post. Good luck!!!`,
+                }, 15);
+                logger.event(`The user ${user.id} has successfully sent their information to the team formation feature.`, { event: "Team Formation" });
+
+                // add role to the user
+                addRoleToMember(this.guild.member(user), isTeam ? this.teamInfo.role : this.prospectInfo.role);
+
+                // add remove post feature
+                await console.addFeature({
+                    name: 'Done with team formation!',
+                    description: 'React with this emoji if you are done with team formation.',
+                    emojiName: '⛔',
+                    callback: (user, reaction, stopInteracting, console) => {
+                        // remove message sent to channel
+                        deleteMessage(catalogueMsg);
+            
+                        // confirm deletion
+                        sendMessageToMember(user, 'This is great! You are all set! Have fun with your new team! Your message has been deleted.', true);
+            
+                        removeRolToMember(this.guild.member(user), isTeam ? this.teamInfo.role : this.prospectInfo.role);
+
+                        logger.event(`The user ${user.id} has found a team and has been removed from the team formation feature.`, { event: "Team Formation" });
+
+                        console.delete();
+                    }
+                });
+
+                console.removeFeature('🇩');
+
+                stopInteracting();
+            }
+        });
+
+        console.sendConsole();
     }
 
     /**
