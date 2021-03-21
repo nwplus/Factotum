@@ -234,7 +234,14 @@ class Cave extends Activity {
 
         let emoji = await reactionPrompt({ prompt: 'What emoji do you want to associate with this new role?', channel, userId }, emojis);
 
-        let role = await this.guild.roles.create({
+        // search for possible existing role
+        let findRole = this.guild.roles.cache.find(role => role.name.toLowerCase() === `${this.caveOptions.preRoleText}-${roleName}`.toLowerCase());
+        let useOld;
+        if (findRole) useOld = await yesNoPrompt({ prompt: 'I have found a role with the same name! Would you like to use that one? If not I will create a new one.', channel, userId });
+
+        let role;
+        if (useOld) role = findRole; 
+        else role = await this.guild.roles.create({
             data: {
                 name: `${this.caveOptions.preRoleText}-${roleName}`,
                 color: this.caveOptions.color,
