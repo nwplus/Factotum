@@ -67,6 +67,7 @@ bot.registry
     .registerGroup('a_utility', 'utility commands for admins')
     .registerGroup('hacker_utility', 'utility commands for users')
     .registerGroup('verification', 'verification commands')
+    .registerGroup('attendance', 'attendance commands')
     .registerGroup('stamps', 'stamp related commands')
     .registerGroup('utility', 'utility commands')
     .registerGroup('essentials', 'essential commands for any guild', true)
@@ -111,6 +112,8 @@ bot.once('ready', async () => {
             });
 
             await botGuild.setCommandStatus(bot);
+
+            guild.commandPrefix = botGuild.prefix;
             
             mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`, { event: 'Ready Event' });
         }
@@ -234,8 +237,7 @@ process.on('uncaughtException', (error) => {
         '\nmessage: ' + error.message +
         '\nfile: ' + error.fileName +
         '\nline number: ' + error.lineNumber +
-        '\nstack: ' + error.stack +
-        `Exception origin: ${origin}`
+        '\nstack: ' + error.stack
     );
 });
 

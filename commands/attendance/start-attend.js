@@ -17,7 +17,7 @@ class StartAttend extends PermissionCommand {
     constructor(client) {
         super(client, {
             name: 'start-attend',
-            group: 'a_utility',
+            group: 'attendance',
             memberName: 'initiate attend process',
             description: 'identifies/makes a channel to be used for !attend and notifies people',
             guildOnly: true,
@@ -98,7 +98,7 @@ class StartAttend extends PermissionCommand {
 
             // check if user needs to attend
             if (!checkForRole(member, botGuild.attendance.attendeeRoleID)) {
-                Verification.attend(member);
+                Verification.attend(member, botGuild);
             } else {
                 sendEmbedToMember(member, {
                     title: 'Attend Error',

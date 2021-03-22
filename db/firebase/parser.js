@@ -1,4 +1,3 @@
-require('firebase/firestore');
 const csv = require('csv-parser');
 const fs = require('fs');
 require('dotenv').config();

@@ -75,10 +75,12 @@ class Prompt {
         winston.loggers.get(channel?.guild?.id || 'main').event(`The number prompt has been used in channel ${channel.name} for user ${userId}`, {event: 'Prompt'});
         let promptMsg = await Prompt.messagePrompt({prompt, channel, userId}, 'number');
         var invalid = false;
-        let numbers = promptMsg.content.split(' ');
-        numbers.forEach(num => {
+        let stringNumbers = promptMsg.content.split(' ');
+        let numbers = [];
+        stringNumbers.forEach(num => {
             //let number = parseInt(num);
             if (isNaN(num)) invalid = true;
+            numbers.push(parseInt(num));
         });
         if (invalid) {
             discordServices.sendMsgToChannel(channel, userId, 'One of the numbers is invalid, please try again, numbers only!', 10);
@@ -92,7 +94,7 @@ class Prompt {
     /**
      * Prompts the user to respond to a message with an emoji.
      * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
-     * @param {Collection<String, Emoji>} [unavailableEmojis] - <emoji name, emoji>, the emojis the user can't select, re-prompt if necessary
+     * @param {Map<String, *>} [unavailableEmojis] - <emoji name, any (number)>, the emojis the user can't select, re-prompt if necessary
      * @async
      * @returns {Promise<GuildEmoji | ReactionEmoji>} - the message reaction
      */
@@ -100,10 +102,10 @@ class Prompt {
         let reactionMsg = await channel.send('<@' + userId + '> ' + prompt + ' React to this message with the emoji.');
         let reactions = await reactionMsg.awaitReactions((reaction, user) => !user.bot && user.id === userId, {max: 1});
         discordServices.deleteMessage(reactionMsg);
-
+        
         if (unavailableEmojis.has(reactions.first().emoji.name)) {
             channel.send('<@' + userId + '> The emoji you choose is already in use, please try again!').then(msg => msg.delete({timeout: 5000}));
-            return this.reactionPrompt({prompt, channel, userId}, unavailableEmojis);
+            return Prompt.reactionPrompt({prompt, channel, userId}, unavailableEmojis);
         }
 
         return reactions.first().emoji;
@@ -239,6 +241,23 @@ class Prompt {
 
         if (spotChosen <= channels.length) return channels[spotChosen];
         else return Prompt.chooseChannel(channels, channel, userId);
+    }
+
+    /**
+     * Will prompt the user and return a string, the clean content of the message.
+     * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
+     * @param {String[]} [possibleResponses=[]] - possible responses the user must respond with
+     * @returns {Promise<String>}
+     */
+    static async stringPrompt({prompt, channel, userId}, possibleResponses = []) {
+        let msg = await Prompt.messagePrompt({prompt, channel, userId}, 'string');
+
+        if (possibleResponses.length > 0) {
+            if (possibleResponses.includes(msg.cleanContent)) return msg.cleanContent;
+            else Prompt.stringPrompt({prompt: `Please respond with one of the options!\n ${prompt}`, channel, userId}, possibleResponses);
+        } else {
+            return msg.cleanContent;
+        }
     }
 }
 module.exports = Prompt;

@@ -1,5 +1,5 @@
 import {Document, Model } from 'mongoose'
-import Cave from '../../classes/cave'
+import Cave from '../../classes/activities/cave'
 
 /**
  * @interface BotGuild
@@ -103,6 +103,11 @@ interface BotGuild extends Document {
      * True if the bot has been set up and its ready to hack!
      */
     isSetUpComplete: Boolean,
+
+    /**
+     * The prefix used by the bot in this guild.
+     */
+    prefix: String,
 
     /**
      * Will set the minimum required information for the bot to work on this guild.

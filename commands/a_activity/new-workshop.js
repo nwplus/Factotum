@@ -1,6 +1,6 @@
 const { replyAndDelete } = require('../../discord-services');
 const { Message, Collection } = require('discord.js');
-const { rolePrompt } = require('../../classes/prompt');
+const { rolePrompt, yesNoPrompt } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
 const Workshop = require('../../classes/activities/workshop');
 const PermissionCommand = require('../../classes/permission-command');
@@ -60,10 +60,15 @@ class NewWorkshop extends PermissionCommand {
             // do nothing if canceled
         }
 
+        let isLowTechSolution = await yesNoPrompt({ prompt: `Would you like to use the low tech solution? Else the high tech solution will be used. 
+            \n Low tech solution involves TAs reaching out to users via DM. 
+            \n High tech solution involves users and TAs being in voice channels and being moved to a common voice channel to give/receive assistance. 
+            \n We recommend the low tech solution!`, channel: message.channel, userId: message.author.id});
 
-        let workshop = await new Workshop({activityName, guild: message.guild, roleParticipants, botGuild}, TARoles).init();
 
-        workshop.sendConsoles(this.client);
+        let workshop = await new Workshop({activityName, guild: message.guild, roleParticipants, botGuild}, isLowTechSolution,TARoles).init();
+
+        workshop.sendConsoles();
 
         // report success of workshop creation
         replyAndDelete(message, 'Activity named: ' + activityName + ' was created as a workshop!');

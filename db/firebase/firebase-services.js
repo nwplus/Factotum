@@ -172,7 +172,7 @@ function compareEmails(searchEmail, dbEmail) {
  * @param {String} firstName - first name of member to match with database
  * @param {String} lastName - last name of member to match with database
  * @param {String} guildId - the guild id
- * @returns {String} - email of given member
+ * @returns {Promise<String>} - email of given member
  * @private
  */
 async function checkName(firstName, lastName, guildId) {
