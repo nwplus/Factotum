@@ -54,7 +54,7 @@ class StartTeamFormation extends PermissionCommand {
                     role: (await yesNoPrompt({prompt: 'Have you created the role teams will get when they sign up? If not its okay, I will create it for you!', channel, userId})) ? 
                         (await rolePrompt({prompt: 'What role should team users get?', channel, userId})).first() :
                         await TeamFormation.createTeamRole(message.guild.roles),
-                    form: (await yesNoPrompt({ prompt: `Would you like to use the default form?: ${TeamFormation.defaultTeamForm}, else you create your own!`, channel, userId})) ? 
+                    form: (await yesNoPrompt({ prompt: `Would you like to use the default form?: ${TeamFormation.defaultTeamForm}\n else you create your own!`, channel, userId})) ? 
                         TeamFormation.defaultTeamForm : (await messagePrompt({ prompt: 'Please send your form for teams now:', channel, userId })).content,
                 },
                 prospectInfo: {
@@ -62,7 +62,7 @@ class StartTeamFormation extends PermissionCommand {
                     role: (await yesNoPrompt({prompt: 'Have you created the role prospects will get when they sign up? Worry not if you don\'t I can create it for you!', channel, userId})) ? 
                         (await rolePrompt({prompt: 'What role should prospects get?', channel, userId})).first() : 
                         await TeamFormation.createProspectRole(message.guild.roles),
-                    form: (await yesNoPrompt({ prompt: `Would you like to use the default form?: ${TeamFormation.defaultProspectForm}, else you create your own!`, channel, userId})) ? 
+                    form: (await yesNoPrompt({ prompt: `Would you like to use the default form?: ${TeamFormation.defaultProspectForm}\n else you create your own!`, channel, userId})) ? 
                         TeamFormation.defaultProspectForm : (await messagePrompt({ prompt: 'Please send your form for teams now:', channel, userId })).content,
                 },
                 guild: message.guild,

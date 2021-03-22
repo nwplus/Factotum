@@ -162,7 +162,7 @@ class TeamFormation extends Activity {
         if (!partyInfo?.emoji && typeof partyInfo.emoji != (GuildEmoji || ReactionEmoji)) throw new Error('A Discord emoji is required for a TeamFormationPartyInfo');
         if (!partyInfo?.role && typeof partyInfo.role != Role) throw new Error ('A Discord Role is required in a TeamFormationPartyInfo');
         if (partyInfo.signupEmbed && typeof partyInfo.signupEmbed != MessageEmbed) throw new Error('The message embed must be a Discord Message Embed');
-        if (partyInfo.form && typeof partyInfo.form != String) throw new Error('The form must be a string!');
+        if (partyInfo.form && typeof partyInfo.form != 'string') throw new Error('The form must be a string!');
     }
 
     async init() {
