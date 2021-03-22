@@ -262,6 +262,7 @@ class TicketManager {
         if (this.ticketDispatcherInfo.reminderInfo.isEnabled) {
             let timeout = setTimeout(() => {
                 if (ticket.status === Ticket.STATUS.new) {
+                    ticket.consoles.ticketManager.changeColor('#ff5736');
                     this.ticketDispatcherInfo.channel.send(`Hello <@&${this.ticketDispatcherInfo.mainHelperInfo.role.id}> ticket number ${ticket.id} still needs help!`)
                         .then(msg => msg.delete({ timeout: (this.ticketDispatcherInfo.reminderInfo.time * 60 * 1000)/2 }));
                     // sets another timeout
