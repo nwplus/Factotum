@@ -92,6 +92,7 @@ class CoffeeChats extends Activity {
                 emojiName: '👨‍👩‍👧‍👦',
                 callback: (user, reaction, stopInteracting, console) => {
                     this.groupShuffle();
+                    sendMsgToChannel(console.channel, user.id, 'The teams have been shuffled!');
                     stopInteracting();
                 },
             },
@@ -101,6 +102,7 @@ class CoffeeChats extends Activity {
                 emojiName: '🗜️',
                 callback: (user, reaction, stopInteracting, console) => {
                     this.resetTeams();
+                    sendMsgToChannel(console.channel, user.id, 'The teams have been deleted so new teams can join!');
                     stopInteracting();
                 },
             },
@@ -110,6 +112,7 @@ class CoffeeChats extends Activity {
                 emojiName: '☝️',
                 callback: (user, reaction, stopInteracting, console) => {
                     this.addTeamSlot();
+                    sendMsgToChannel(console.channel, user.id, 'A new team slot has been added!');
                     stopInteracting();
                 },
             }
@@ -147,8 +150,12 @@ class CoffeeChats extends Activity {
                     sendMsgToChannel(this.joinActivityChannel, user.id, 'Sorry, but the activity is full! Check back again later for a new cycle!', 10);
                     return;
                 }
-
-                let members = await memberPrompt({prompt: 'Who are you team members? Let me know in ONE message!', channel: this.joinActivityChannel, userId: user.id});
+                let members;
+                try {
+                    members = await memberPrompt({prompt: 'Who are you team members? Let me know in ONE message! Type cancel if you are joining solo.', channel: this.joinActivityChannel, userId: user.id});
+                } catch (error) {   
+                    members = new Collection();
+                }
 
                 // add team captain to members list
                 members.set(user.id, this.guild.member(user));
