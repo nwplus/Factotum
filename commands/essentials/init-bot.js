@@ -4,6 +4,7 @@ const { sendMsgToChannel, addRoleToMember, } = require('../../discord-services')
 const { yesNoPrompt, channelPrompt, rolePrompt, messagePrompt, numberPrompt } = require('../../classes/prompt');
 const BotGuild = require('../../db/mongo/BotGuild');
 const winston = require('winston');
+const Console = require('../../classes/console');
 
 /**
  * The InitBot command initializes the bot on the guild. It will prompt the user for information needed 
@@ -48,40 +49,55 @@ class InitBot extends Command {
             sendMsgToChannel(channel, userId, 'This guild is already set up!!', 30);
             return;
         }
+        
+        let initialMsg = await sendMsgToChannel(channel, userId, `This is the Factotum Bot Initialization procedure.
+            First, I will ask two short questions.
+            Then, we will move over to another channel and continue the initialization process.
+            PLEASE read every question carefully! All the questions will end with instructions on how to respond.
+            This is only the initial setup. You will be able to change things in the future!`);
 
-        const embedInfo = new MessageEmbed().setColor(botGuild.colors.embedColor)
-            .setTitle('Hackabot Console')
-            .setTimestamp()
-            .setDescription('Bot information will be added here! You can make changes here as well!')
-            .addField('Role Changes', 'You are free to change role colors and role names! However, stamp role numbers can NOT be changed. You can add permissions but don\'t remove any!');
-
-        sendMsgToChannel(channel, userId, 'Please follow the following simple instructions!\n If you cancel any of the prompts, the selected functionality will not be used, however, try not to cancel any prompts.', 60);
+        await new Promise((resolve) => setTimeout(resolve, 15000));
 
         // grab the admin role
         const adminRole = await this.askOrCreate('admin', channel, userId, guild, '#008369');
         addRoleToMember(message.member, adminRole);
 
-        // create the admin channel package
-        let {adminConsole, adminLog} = await BotGuild.createAdminChannels(guild, adminRole, everyoneRole);
-        await sendMsgToChannel(channel, userId, 'The admin channels have been created successfully! <#' + adminConsole.id + '>. Lets jump over there and continue yes?!', 60);
+        // create the admin channel room
+        let {adminConsoleChannel, adminLog} = await BotGuild.createAdminChannels(guild, adminRole, everyoneRole);
+        await sendMsgToChannel(channel, userId, 'The admin channels have been created successfully! <#' + adminConsoleChannel.id + '>. Lets jump over there and continue yes?!', 10);
+
+        initialMsg.delete();
 
         // transition to the admin console
-        channel = adminConsole;
+        channel = adminConsoleChannel;
         await sendMsgToChannel(channel, userId, 'I am over here!!! Lets continue!');
-        const mainConsoleMsg = await channel.send(embedInfo);
+
+        const adminConsole = new Console({
+            title: 'Factotum Admin Console',
+            description: 'In this console you will be able to edit bot information.',
+            channel: adminConsoleChannel,
+            guild: guild,
+        });
+        adminConsole.addField('Role Changes', 'You are free to change role colors and role names! However, stamp role numbers can NOT be changed. You can add permissions but don\'t remove any!');
+        adminConsole.sendConsole();
 
         // ask the user to move our role up the list
-        await sendMsgToChannel(channel, userId, 'Before we move on, could you please move my role up the role list as high as possible, this will give me the ability to assign roles! I will wait for at least 10 seconds!');
-        await new Promise((resolve) => setTimeout(resolve, 10000));
+        await sendMsgToChannel(channel, userId, `Before we move on, could you please move my role up the role list as high as possible, this will give me the ability to assign roles! 
+            I will wait for 15 seconds but feel free to take as long as you need!
+            You can learn more here: https://support.discord.com/hc/en-us/articles/214836687-Role-Management-101`, 30);
+        await new Promise((resolve) => setTimeout(resolve, 15000));
 
         // grab the staff role
         const staffRole = await this.askOrCreate('staff', channel, userId, guild, '#00D166');
+        adminConsole.addField('The staff role:', `<@&${staffRole.id}>`);
 
         // get the regular member, this role will have the general member permissions
         const memberRole = await this.askOrCreate('member', channel, userId, guild, '#006798');
+        adminConsole.addField('The member role:', `<@&${memberRole.id}>`);
 
         // bot support channel prompt
         let botSupportChannel = await this.askForBotSupportChannel(channel, userId);
+        adminConsole.addField('Channel used to contact Users with DM issues', `<#${botSupportChannel.id}>`);
 
         botGuild.readyUp(this.client, {
             roleIDs: {
@@ -92,105 +108,150 @@ class InitBot extends Command {
             },
             channelIDs: {
                 adminLog: adminLog.id,
-                adminConsole: adminConsole.id,
+                adminConsole: adminConsoleChannel.id,
                 botSupportChannel: botSupportChannel.id,
             }
         });
         
         // ask if verification will be used
+        var isVerification;
         try {
-            if (await yesNoPrompt({prompt: 'Will you be using the verification service?', channel, userId})) {
-                // ask for guest role
-                var guestRole;
-                try {
-                    guestRole = await this.askOrCreate('guest', channel, userId, guild, '#969C9F');
-                } catch (error) {
-                    sendMsgToChannel(channel, userId, 'You need to give a guest role! Please try again', 10);
-                    return this.setVerification(channel, userId, guild, everyoneRole);
-                }
-
-                let types = await this.getVerificationTypes(channel, userId);
-
-                await botGuild.setUpVerification(this.client, guestRole.id, types);
-                sendMsgToChannel(channel, userId, 'The verification service has been set up correctly!', 60);
-            }
+            isVerification = await yesNoPrompt({prompt: 'Will you be using the verification service?', channel, userId});
         } catch (error) {
-            sendMsgToChannel(channel, userId, 'Verification service was not set due to Prompt cancellation.', 10);
             winston.loggers.get(guild.id).warning(`Handled an error when setting up verification, and thus was not set up. Error was ${error.name}`, { event: 'InitBot Command', data: error });
+            isVerification = false;
         }
-        
 
-        // ask if attendance will be used
-        try {
-            if (await yesNoPrompt({prompt: 'Will you be using the attendance service?', channel, userId})) {    
+        if (isVerification) {
+            // ask for guest role
+            var guestRole = await this.askOrCreate('guest', channel, userId, guild, '#969C9F');
+
+            let infoMsg = await sendMsgToChannel(channel, userId, 'I need to know what types to verify when a user tries to verify. Please follow the instructions, it will let you add as many types as you wish.');
+
+            let types = await this.getVerificationTypes(channel, userId);
+            infoMsg.delete();
+            await botGuild.setUpVerification(this.client, guestRole.id, types);
+
+            sendMsgToChannel(channel, userId, 'The verification service has been set up correctly!', 8);
+            let typeListString = types.map(typeInfo => `${typeInfo.type} -> <@&${typeInfo.roleId}>`).join(', ');
+            adminConsole.addField('Verification Feature', `IS ENABLED!\n Guest Role: <@&${guestRole.id}>\nTypes: ${typeListString}`);
+        } else {
+            sendMsgToChannel(channel, userId, 'Verification service was not set due to Prompt cancellation.', 8);
+            adminConsole.addField('Verification Feature', 'IS NOT ENABLED!');
+        }
+
+        // only do attendance if verification is on!
+        if (isVerification) {
+            var isAttendance;
+            try {
+                isAttendance = await yesNoPrompt({prompt: 'Will you be using the attendance service?', channel, userId});
+            } catch (error) {
+                winston.loggers.get(guild.id).warning(`Handled an error when setting up verification, and thus was not set up. Error was ${error.name}`, { event: 'InitBot Command', data: error });
+                isAttendance = false;
+            }
+
+            if (isAttendance) {
                 const attendeeRole = await this.askOrCreate('attendee', channel, userId, guild, '#0099E1');
                 await botGuild.setUpAttendance(this.client, attendeeRole.id);
-                sendMsgToChannel(channel, userId, 'The attendance service has been set up correctly!', 60);
-            } else {
-                sendMsgToChannel(channel, userId, 'Attendance was not set up!', 60);
-            }
-        } catch (error) {
-            sendMsgToChannel(channel, userId, 'Attendance was not set up due to Prompt cancellation.', 10);
-        }
 
+                sendMsgToChannel(channel, userId, 'The attendance service has been set up correctly!', 8);
+                adminConsole.addField('Attendance Feature', `IS ENABLED!\n Attendance Role: <@&${attendeeRole.id}>`);
+            } else {
+                sendMsgToChannel(channel, userId, 'Attendance was not set up!', 8);
+                adminConsole.addField('Attendance Feature', 'IS NOT ENABLED!');
+            }
+        } else {
+            sendMsgToChannel(channel, userId, 'Attendance was not set up!', 8);
+            adminConsole.addField('Attendance Feature', 'IS NOT ENABLED!');
+        }
 
         // ask if the announcements will be used
         try {
             if (await yesNoPrompt({prompt: 'Have firebase announcements been set up code-side? If not say no, or the bot will fail!', channel, userId})) {
                 let announcementChannel = (await channelPrompt('What channel should announcements be sent to? If you don\'t have it, create it and come back, do not cancel.')).first();
                 await botGuild.setUpAnnouncements(this.client, announcementChannel.id);
-                sendMsgToChannel(channel, userId, 'The announcements have been set up correctly!', 60);
+
+                sendMsgToChannel(channel, userId, 'The announcements have been set up correctly!', 8);
+                adminConsole.addField('Announcement Feature', `IS ENABLED!\n Announcements Channel: <#${announcementChannel.id}>`);
             } else {
-                sendMsgToChannel(channel, userId, 'Announcements functionality was not set up.', 10);
+                sendMsgToChannel(channel, userId, 'Announcements functionality was not set up.', 8);
+                adminConsole.addField('Announcement Feature', 'IS NOT ENABLED!');
             }
         } catch (error) {
-            sendMsgToChannel(channel, userId, 'Announcements functionality was not set up due to a Prompt cancellation.', 10);
+            sendMsgToChannel(channel, userId, 'Announcements functionality was not set up due to a Prompt cancellation.', 8);
+            adminConsole.addField('Announcement Feature', 'IS NOT ENABLED!');
         }
 
 
         // ask if the stamps will be used
+        var isStamps;
         try {
-            if (await yesNoPrompt({prompt: 'Will you be using the stamp service?', channel, userId})) {
-                let numberOfStamps = (await numberPrompt({prompt: 'How many stamps do you want?', channel, userId}))[0];
+            isStamps = await yesNoPrompt({prompt: 'Will you be using the stamp service?', channel, userId});
+        } catch {
+            isStamps = false;   
+        }
+        if (isStamps) {
+            var numberOfStamps = 0;
+            try {
+                numberOfStamps = (await numberPrompt({prompt: 'How many stamps do you want?', channel, userId}))[0];
+            } catch (error) {/** Do nothing */}
 
-                await botGuild.setUpStamps(this.client, numberOfStamps);
-                guild.setGroupEnabled('stamps', true);
-                sendMsgToChannel(channel, userId, 'The stamp roles have been created, you can change their name and/or color, but their stamp number is final!', 60);
-            } else {
-                sendMsgToChannel(channel, userId, 'The stamp functionality was not set up.', 10);
-            }
-        } catch (error) {
-            sendMsgToChannel(channel, userId, 'The stamp functionality will not be used due to prompt cancellation.', 10);
+            await botGuild.setUpStamps(this.client, numberOfStamps);
+            guild.setGroupEnabled('stamps', true);
+
+            sendMsgToChannel(channel, userId, 'The stamp roles have been created, you can change their name and/or color, but their stamp number is final!', 8);
+            adminConsole.addField('Stamps Feature', 'IS ENABLED!\n You can change the role\'s name and color, but their number is final. For example, stamps 3 is stamp 3 even if its name changes.');
+        } else {
+            sendMsgToChannel(channel, userId, 'The stamp functionality was not set up.', 8);
+            adminConsole.addField('Stamps Feature', 'IS NOT ENABLED!');
         }
 
 
         // ask if the user will use the report functionality
+        var isReport;
         try {
-            if (await yesNoPrompt({prompt: 'Will you be using the report functionality?', channel, userId})) {
-                let incomingReportChannel = (await channelPrompt({prompt: 'What channel should prompts be sent to? We recommend this channel be accessible to your staff.', channel, userId})).first();
-                
-                await botGuild.setUpReport(this.client, incomingReportChannel.id);
-                sendMsgToChannel(channel, userId, 'The report command is available and reports will be sent to: <#' + incomingReportChannel.id + '>', 60);
-            }
-        } catch (error) {
-            sendMsgToChannel(channel, userId, 'Report command will not be loaded due to prompt cancel.', 10);
+            isReport = await yesNoPrompt({prompt: 'Will you be using the report functionality?', channel, userId});
+        } catch {
+            isReport = false;
+        }
+        if (isReport) {
+            var incomingReportChannel;
+            try {
+                incomingReportChannel = incomingReportChannel = (await channelPrompt({prompt: 'What channel should prompts be sent to? We recommend this channel be accessible to your staff.', channel, userId})).first();
+            } catch {/** Do nothing */}
+
+            // Send report to report channel or admin log if none given!
+            let channelId = incomingReportChannel ? incomingReportChannel.id : adminLog.id;
+            await botGuild.setUpReport(this.client, channelId);
+
+            sendMsgToChannel(channel, userId, `The report command is available and reports will be sent to: <#${channelId}>`, 8);
+            adminConsole.addField('Report Feature', `IS ENABLED!\n Reports are sent to <#${channelId}>`);
+        } else {
+            sendMsgToChannel(channel, userId, 'Report command is not enabled.', 8);
+            adminConsole.addField('Report Feature', 'IS NOT ENABLED!');
         }
 
 
         // ask if the user wants to use the experimental !ask command
+        var isAsk;
         try {
-            if (await yesNoPrompt({prompt: 'Do you want to let users use the experimental !ask command?', channel, userId})) {
-                botGuild.setUpAsk(this.client);
-                sendMsgToChannel(channel, userId, 'The ask command is now available to the server users.', 60);
-            }
-        } catch (error) {
-            sendMsgToChannel(channel, userId, 'Ask command will not be loaded due to prompt cancel.', 10);
+            isAsk = await yesNoPrompt({prompt: 'Do you want to let users use the experimental !ask command?', channel, userId});
+        } catch {
+            isAsk = false;
+        }
+        if (isAsk) {
+            botGuild.setUpAsk(this.client);
+            sendMsgToChannel(channel, userId, 'The ask command is now available to the server users.', 8);
+            adminConsole.addField('Experimental Ask Command', 'IS ENABLED!');
+        } else {
+            sendMsgToChannel(channel, userId, 'Ask command is not enabled.', 8);
+            adminConsole.addField('Experimental Ask Command', 'IS NOT ENABLED!');
         }
 
         await botGuild.save();
         botGuild.setCommandStatus(this.client);
 
-        sendMsgToChannel(channel, userId, 'The bot is set and ready to hack!', 10);
+        sendMsgToChannel(channel, userId, 'The bot is set and ready to hack!', 8);
     }
 
     /**
@@ -208,8 +269,8 @@ class InitBot extends Command {
      * @async
      */
     async getVerificationTypes(channel, userId) {
-
-        let typeMsg = await messagePrompt({ prompt: 'Please tell me the type and mention the role for a verification option. Type should be equal to the firebase type. Add nothing more but type and role mention.', channel, userId });
+        let typeMsg = await messagePrompt({ prompt: `Please tell me the type and mention the role for a verification option. 
+            For example: hacker @hacker . Make sure you add nothing more to the message!`, channel, userId });
         let type = typeMsg.content.replace(/<(@&?|#)[a-z0-9]*>/ , ''); // clean out any snowflakes
         type = type.toLowerCase().trim();
         let role = typeMsg.mentions.roles.first();
@@ -252,19 +313,23 @@ class InitBot extends Command {
      * @param {ColorResolvable} - the role color
      * @async
      * @returns {Promise<Role>}
-     * @throws Error from Prompt if canceled
      */
     async askOrCreate(roleName, channel, userId, guild, color) {
-        let hasRole = await yesNoPrompt({prompt: 'Have you created the ' + roleName + ' role? You can go ahead and create it if you wish, or let me do the hard work.', channel, userId});
-        if (hasRole) {
-            return (await rolePrompt({prompt: 'What is the ' + roleName + ' role?', channel, userId})).first();
-        } else {
-            return await guild.roles.create({
-                data: {
-                    name: (await messagePrompt({prompt: 'What name would you like the ' + roleName + ' role to have?', channel, userId}, 'string')).content,
-                    color: color,
-                }
-            });
+        try {
+            let hasRole = await yesNoPrompt({prompt: 'Have you created the ' + roleName + ' role? You can go ahead and create it if you wish, or let me do the hard work.', channel, userId});
+            if (hasRole) {
+                return (await rolePrompt({prompt: 'What is the ' + roleName + ' role?', channel, userId})).first();
+            } else {
+                return await guild.roles.create({
+                    data: {
+                        name: (await messagePrompt({prompt: 'What name would you like the ' + roleName + ' role to have?', channel, userId}, 'string')).content,
+                        color: color,
+                    }
+                });
+            }
+        } catch (error) {
+            sendMsgToChannel(channel, userId, 'You need to complete this prompt please try again!', 5);
+            return await this.askOrCreate(roleName, channel, userId, guild, color);
         }
     }
 }
