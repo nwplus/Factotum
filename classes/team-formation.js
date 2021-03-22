@@ -24,6 +24,40 @@ class TeamFormation extends Activity {
     static defaultProspectColor = '#d470cd';
 
     /**
+     * Creates the team role and returns it.
+     * @param {RoleManager} roleManager
+     * @returns {Promise<Role>}
+     * @static
+     * @async
+     */
+     static async createTeamRole(roleManager) {
+        winston.loggers.get(roleManager.guild.id).verbose(`Team formation team role has been created!`, { event: "Team Formation" });
+        return await roleManager.create({
+            data: {
+                name: 'tf-team-leader',
+                color: TeamFormation.defaultTeamColor,
+            }
+        });
+    }
+
+    /**
+     * Creates the prospect role and returns it.
+     * @param {RoleManager} roleManager
+     * @returns {Promise<Role>}
+     * @static
+     * @async
+     */
+    static async createProspectRole(roleManager) {
+        winston.loggers.get(roleManager.guild.id).verbose(`Team formation prospect role has been created!`, { event: "Team Formation" });
+        return await roleManager.create({
+            data: {
+                name: 'tf-prospect',
+                color: TeamFormation.defaultProspectColor,
+            }
+        });
+    }
+
+    /**
      * @typedef TeamFormationPartyInfo
      * @property {GuildEmoji | ReactionEmoji} emoji - the emoji used to add this party to the team formation
      * @property {Role} role - the role given to the users of this party
@@ -172,41 +206,6 @@ class TeamFormation extends Activity {
 
         winston.loggers.get(this.guild.id).verbose(`Team formation channels have been created!`, { event: "Team Formation" });
     }
-
-    /**
-     * Creates the team role and returns it.
-     * @param {RoleManager} roleManager
-     * @returns {Promise<Role>}
-     * @static
-     * @async
-     */
-    static async createTeamRole(roleManager) {
-        winston.loggers.get(roleManager.guild.id).verbose(`Team formation team role has been created!`, { event: "Team Formation" });
-        return await roleManager.create({
-            data: {
-                name: 'tf-team-leader',
-                color: TeamFormation.defaultTeamColor,
-            }
-        });
-    }
-
-    /**
-     * Creates the prospect role and returns it.
-     * @param {RoleManager} roleManager
-     * @returns {Promise<Role>}
-     * @static
-     * @async
-     */
-    static async createProspectRole(roleManager) {
-        winston.loggers.get(roleManager.guild.id).verbose(`Team formation prospect role has been created!`, { event: "Team Formation" });
-        return await roleManager.create({
-            data: {
-                name: 'tf-prospect',
-                color: TeamFormation.defaultProspectColor,
-            }
-        });
-    }
-
 
     /**
      * Will start the activity!
