@@ -39,8 +39,8 @@ class TicketManager {
     /**
      * @typedef TicketDispatcherInfo
      * @property {TextChannel} channel - the channel where tickets are dispatched to 
-     * @property {GuildEmoji | ReactionEmoji} takeTicketEmoji - emoji for mentors to accept/take a ticket
-     * @property {GuildEmoji | ReactionEmoji} joinTicketEmoji - emoji for mentors to join a taken ticket
+     * @property {GuildEmoji | ReactionEmoji} takeTicketEmoji - emoji for mentors to accept/take a ticket, can be a unicode emoji string
+     * @property {GuildEmoji | ReactionEmoji} joinTicketEmoji - emoji for mentors to join a taken ticket, can be a unicode emoji string
      * @property {NewTicketEmbedCreator} embedCreator - function to create a Discord MessageEmbed
      * @property {ReminderInfo} reminderInfo - the reminder information
      * @property {MainHelperInfo} mainHelperInfo
@@ -59,7 +59,7 @@ class TicketManager {
     /**
      * @typedef MainHelperInfo
      * @property {Role} role
-     * @property {GuildEmoji | ReactionEmoji} emoji
+     * @property {GuildEmoji | ReactionEmoji} emoji - can be a unicode emoji string
      */
 
 
@@ -310,8 +310,11 @@ class TicketManager {
     /**
      * Removes all tickets older than the given age.
      * @param {Number} minAge - the minimum age in minutes
+     * @throws Error when used and advanced mode is turned off
      */
     removeTicketsByAge(minAge) {
+        // only usable when advanced mode is turned on
+        if (!this.systemWideTicketInfo.isAdvancedMode) throw new Error('Remove by age is only available when advanced mode is on!');
         this.tickets.forEach((ticket, ticketId, tickets) => {
             let now = Date.now();
 

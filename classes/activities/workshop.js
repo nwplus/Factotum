@@ -1,9 +1,10 @@
-const { Collection, TextChannel, VoiceChannel, GuildCreateChannelOptions, MessageEmbed, Message } = require('discord.js');
+const { Role, Collection, TextChannel, VoiceChannel, GuildCreateChannelOptions, MessageEmbed, Message } = require('discord.js');
 const winston = require('winston');
 const { randomColor, sendMessageToMember, sendMsgToChannel } = require('../../discord-services');
 const Console = require('../console');
 const { messagePrompt, yesNoPrompt, chooseChannel } = require('../prompt');
 const Room = require('../room');
+const TicketManager = require('../tickets/ticket-manager');
 const Activity = require('./activity');
 
 
@@ -28,10 +29,11 @@ class Workshop extends Activity {
     /**
      * 
      * @constructor
-     * @param {Activity.ActivityInfo} ActivityInfo
+     * @param {Activity.ActivityInfo} 
+     * @param {Boolean} [isLowTechSolution=true]
      * @param {Collection<String, Role>} [TARoles] - roles with TA permissions
      */
-    constructor({activityName, guild, roleParticipants, botGuild}, TARoles) {
+    constructor({activityName, guild, roleParticipants, botGuild}, isLowTechSolution = true, TARoles) {
         super({activityName, guild, roleParticipants, botGuild});
 
         /**
@@ -43,7 +45,7 @@ class Workshop extends Activity {
          * True if the assistance protocol is low tech.
          * @type {Boolean}
          */
-        this.isLowTechSolution = false;
+        this.isLowTechSolution = isLowTechSolution;
 
         /**
          * The channel where hackers can ask questions.
@@ -80,6 +82,12 @@ class Workshop extends Activity {
          * @type {Collection<String, PollInfo>} - <Poll type, PollInfo>
          */
         this.polls = new Collection;
+
+        /**
+         * The ticket manager.
+         * @type {TicketManager}
+         */
+        this.ticketManager;
     }
 
 
@@ -90,12 +98,12 @@ class Workshop extends Activity {
     async init() {
         await super.init();
 
-        this.TAConsole = await this.addTAChannel('🧑🏽‍🏫ta-console', {
+        this.TAConsole = await this.addTAChannel('_🧑🏽‍🏫ta-console', {
             type: 'text',
             topic: 'The TA console, here TAs can chat, communicate with the workshop lead, look at the wait list, and send polls!',
         }, [], true);
 
-        this.addTAChannel('ta-banter', {
+        this.addTAChannel('_ta-banter', {
             topic: 'For TAs to talk without cluttering the console.',
         });
 
@@ -110,6 +118,40 @@ class Workshop extends Activity {
 
         this.botGuild.blackList.set(this.assistanceChannel.id, 3000);
         this.botGuild.save();
+
+        if (this.isLowTechSolution) {
+            this.ticketManager = new TicketManager(this, {
+                ticketCreatorInfo: {
+                    channel: this.assistanceChannel,
+                },
+                ticketDispatcherInfo: {
+                    channel: await this.room.addRoomChannel({
+                        name: '_Incoming Tickets',
+                        isSafe: true,
+                    }),
+                    takeTicketEmoji: '👍',
+                    joinTicketEmoji: '☝️',
+                    reminderInfo: {
+                        isEnabled: true,
+                        time: 5
+                    },
+                    mainHelperInfo: {
+                        role: this.TARoles.first(),
+                        emoji: '✋',
+                    },
+                    embedCreator: (ticket) => new MessageEmbed()
+                        .setTitle(`New Ticket - ${ticket.id}`)
+                        .setDescription(`<@${ticket.group.first().id}> has a question: ${ticket.question}`)
+                        .setTimestamp(),
+                },
+                systemWideTicketInfo: {
+                    garbageCollectorInfo: {
+                        isEnabled: false,
+                    },
+                    isAdvancedMode: false,
+                }
+            }, this.guild, this.botGuild);
+        }
 
         winston.loggers.get(this.guild.id).event(`The activity ${this.name} was transformed to a workshop.`, {event: 'Activity'});
 
@@ -171,6 +213,74 @@ class Workshop extends Activity {
         ];
 
         localPolls.forEach(pollInfo => this.polls.set(pollInfo.type, pollInfo));
+    }
+    
+
+    /**
+     * Will send all the consoles the workshop needs to work.
+     * @async
+     */
+    async sendConsoles() {
+        let mentorColor = randomColor();
+
+        const TAInfoEmbed = new MessageEmbed()
+            .setTitle('TA Information')
+            .setDescription('Please read this before the workshop starts!')
+            .setColor(mentorColor);
+        this.isLowTechSolution ? TAInfoEmbed.addField('Ticketing System is turned on!', `* Tickets will be sent to <#${this.ticketManager.ticketDispatcherInfo.channel.id}>
+            \n* React to the ticket message and send the user a DM by clicking on their name`) :
+            TAInfoEmbed.addField('Advanced Voice Channel System is turned on!', `* Users who need help will be listed in a message on channel <#${this.TAConsole}>
+                \n* Users must be on the general voice channel to receive assistance
+                \n* You must be on a private voice channel to give assistance
+                \n* When you react to the message, the user will be moved to your voice channel so you can give assistance
+                \n* Once you are done, move the user back to the general voice channel`);
+        this.TAConsole.send(TAInfoEmbed);
+
+        // Console for TAs to send polls and stamp distribution
+        let TAPollingConsole = new Console({
+            title: 'Polling and Stamp Console',
+            description: 'Here are some common polls you might want to use!',
+            channel: this.TAConsole,
+            guild: this.guild,
+        });
+        this.polls.forEach((pollInfo) => TAPollingConsole.addFeature({
+            name: pollInfo.title,
+            description: `Asks the question: ${pollInfo.title} - ${pollInfo.question}`,
+            emojiName: pollInfo.emojiName,
+            callback: (user, reaction, stopInteracting, console) => this.sendPoll(pollInfo.type).then(() => stopInteracting()),
+        }));
+        TAPollingConsole.addFeature({
+            name: 'Stamp Distribution',
+            description: 'Activate a stamp distribution on the activity\'s text channel',
+            emojiName: '📇',
+            callback: (user, reaction, stopInteracting, console) => {
+                this.distributeStamp(this.room.channels.generalText);
+                stopInteracting();
+            }
+        });
+        TAPollingConsole.sendConsole();
+
+        if (this.isLowTechSolution) {
+            await this.ticketManager.sendTicketCreatorConsole('Get some help from the Workshop TAs!', 
+                'React to this message with the emoji and write a quick description of your question. A TA will reach out via DM soon.');
+            this.ticketManager.ticketCreatorInfo.console.addField('Simple or Theoretical Questions', 'If you have simple or theory questions, ask them in the main banter channel!');
+        } else {
+            // embed message for TA console
+            const incomingTicketsEmbed = new MessageEmbed()
+                .setColor(mentorColor)
+                .setTitle('Hackers in need of help waitlist')
+                .setDescription('* Make sure you are on a private voice channel not the general voice channel \n* To get the next hacker that needs help click 🤝');
+            this.TAConsole.send(incomingTicketsEmbed).then(message => this.incomingTicketsHandler(message));
+
+            // where users can request assistance
+            const outgoingTicketEmbed = new MessageEmbed()
+                .setColor(this.botGuild.colors.embedColor)
+                .setTitle(this.name + ' Help Desk')
+                .setDescription('Welcome to the ' + this.name + ' help desk. There are two ways to get help explained below:')
+                .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, ask them in the main banter channel!')
+                .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the ' +  this.room.channels.generalVoice.name || Room.voiceChannelName + ' voice channel if not already there!');
+            this.assistanceChannel.send(outgoingTicketEmbed).then(message => this.outgoingTicketHandler(message));
+        }
     }
 
 
@@ -270,64 +380,6 @@ class Workshop extends Activity {
         });
 
         winston.loggers.get(this.guild.id).event(`Activity named ${this.name} sent a poll with title: ${poll.title} and question ${poll.question}.`, { event: 'Workshop' });
-    }
-
-
-    /**
-     * Will send all the consoles the workshop needs to work.
-     */
-    sendConsoles() {
-        let mentorColor = randomColor();
-
-        const TAInfoEmbed = new MessageEmbed()
-            .setTitle('TA Information')
-            .setDescription('Please read this before the workshop starts!')
-            .addField('Create Private Channels', 'If you can only see one voice channel called activity room, go to the staff console and add voice channels to this activity.')
-            .addField('Keep Track Of', '* The wait list will update but won\'t notify you about it. Keep an eye on it!\n *The activity-banter channel for any questions!')
-            .addField('Low Tech Solution', '* React to this message with 🤡 to enable the low tech solution! \n* This solution will disable the public voice channel ' +
-            ' and disable the pull in functionality. \n* TAs will have to DM hackers that need help and then react to the wait list.')
-            .setColor(mentorColor);
-        this.TAConsole.send(TAInfoEmbed).then(message => this.TAInfoEmbedHandler(message));
-
-        // Console for TAs to send polls and stamp distribution
-        let TAPollingConsole = new Console({
-            title: 'Polling and Stamp Console',
-            description: 'Here are some common polls you might want to use!',
-            channel: this.TAConsole,
-            guild: this.guild,
-        });
-        this.polls.forEach((pollInfo) => TAPollingConsole.addFeature({
-            name: pollInfo.title,
-            description: `Asks the question: ${pollInfo.title} - ${pollInfo.question}`,
-            emojiName: pollInfo.emojiName,
-            callback: (user, reaction, stopInteracting, console) => this.sendPoll(pollInfo.type).then(() => stopInteracting()),
-        }));
-        TAPollingConsole.addFeature({
-            name: 'Stamp Distribution',
-            description: 'Activate a stamp distribution on the activity\'s text channel',
-            emojiName: '📇',
-            callback: (user, reaction, stopInteracting, console) => {
-                this.distributeStamp(this.room.channels.generalText);
-                stopInteracting();
-            }
-        });
-        TAPollingConsole.sendConsole();
-        
-        // embed message for TA console
-        const incomingTicketsEmbed = new MessageEmbed()
-            .setColor(mentorColor)
-            .setTitle('Hackers in need of help waitlist')
-            .setDescription('* Make sure you are on a private voice channel not the general voice channel \n* To get the next hacker that needs help click 🤝');
-        this.TAConsole.send(incomingTicketsEmbed).then(message => this.incomingTicketsHandler(message));
-
-        // where users can request assistance
-        const outgoingTicketEmbed = new MessageEmbed()
-            .setColor(this.botGuild.colors.embedColor)
-            .setTitle(this.name + ' Help Desk')
-            .setDescription('Welcome to the ' + this.name + ' help desk. There are two ways to get help explained below:')
-            .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, ask them in the main banter channel!')
-            .addField('Advanced Question or Code Assistance', 'If you have a more advanced question, or need code assistance, click the 🧑🏽‍🏫 emoji for live TA assistance! Join the ' +  this.room.channels.generalVoice.name || Room.voiceChannelName + ' voice channel if not already there!');
-        this.assistanceChannel.send(outgoingTicketEmbed).then(message => this.outgoingTicketHandler(message));
     }
 
     /**
@@ -440,28 +492,6 @@ class Workshop extends Activity {
             
             // send a quick message to let ta know a new user is on the wait list
             this.TAConsole.send('A new hacker needs help!').then(msg => msg.delete({timeout: 3000}));
-        });
-    }
-
-    /**
-     * Creates and handles the emoji reactions on the TAInfo console Embed 
-     * @param {Message} message 
-     */
-    TAInfoEmbedHandler(message) {
-        const lowTechSolutionEmoji = '🤡';
-
-        message.pin();
-        message.react(lowTechSolutionEmoji);
-
-        message.awaitReactions((reaction, user) => !user.bot && reaction.emoji.name === lowTechSolutionEmoji, {max: 1}).then(collected => {
-            // hide all voice channels
-
-            this.isLowTechSolution = true;
-
-            // let TAs know about the change!
-            this.TAConsole.send('Low tech solution has been turned on!');
-            message.edit(message.embeds[0].addField('Low Tech Solution Is On', 'To give assistance: \n* Send a DM to the highers member on the wait list \n* Then click on the emoji to remove them from the list!'));
-            this.assistanceChannel.send(new MessageEmbed().setColor(this.botGuild.colors.embedColor).setTitle('Quick Update!').setDescription('You do not need to join a voice channel. TAs will send you a DM when they are ready to assist you!'));
         });
     }
 }

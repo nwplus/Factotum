@@ -56,7 +56,7 @@ class Ticket {
          * The room this ticket will be solved in.
          * @type {Room}
          */
-        this.room = new Room(ticketManager.guild, ticketManager.botGuild, `Ticket-${ticketNumber}`, undefined, hackers.clone());
+        this.room = ticketManager.systemWideTicketInfo.isAdvancedMode ? new Room(ticketManager.guild, ticketManager.botGuild, `Ticket-${ticketNumber}`, undefined, hackers.clone()) : null;
 
         /**
          * Question from hacker
@@ -148,7 +148,8 @@ class Ticket {
                 break;
 
             case Ticket.STATUS.taken:
-                await this.takenStatusCallback(user);
+                if (this.ticketManager.systemWideTicketInfo.isAdvancedMode) await this.advancedTakenStatusCallback(user);
+                else await this.basicTakenStatusCallback(user);
                 break;
             case Ticket.STATUS.closed:
                 this.delete(reason);
@@ -221,11 +222,27 @@ class Ticket {
     }
 
     /**
+     * Callback for status change to taken when ticket manager is NOT in advanced mode.
+     * @param {User} helper - the user who is taking the ticket
+     */
+    async basicTakenStatusCallback(helper) {
+        this.addHelper(helper);
+
+        // edit ticket manager helper console with mentor information
+        await this.consoles.ticketManager.addField('This ticket is being handled!', `<@${helper.id}> is helping this team!`);
+        await this.consoles.ticketManager.changeColor('#36c3ff');
+
+        // update dm with user to reflect that their ticket has been accepted
+        this.consoles.groupLeader.addField('Your ticket has been taken by a helper!', 'Expect a DM from a helper soon!');
+        this.consoles.groupLeader.stopConsole();
+    }
+
+    /**
      * Callback for status change for when the ticket is taken by a helper.
      * @param {User} helper - the helper user
      * @private
      */
-    async takenStatusCallback(helper) {
+    async advancedTakenStatusCallback(helper) {
         await this.room.init();
 
         // add helper and clear the ticket reminder timeout
@@ -320,7 +337,7 @@ class Ticket {
      */
     addHelper(user, timeoutId) {
         this.helpers.set(user.id, user);
-        this.room.giveUserAccess(user);
+        if (this.room) this.room.giveUserAccess(user);
         if (timeoutId) clearTimeout(timeoutId);
     }
 
@@ -402,7 +419,7 @@ class Ticket {
         this.consoles.groupLeader.stopConsole();
 
         // delete the room, clear intervals
-        this.room.delete();
+        if (this.room) this.room.delete();
         clearInterval(this.garbageCollectorInfo.noHelperInterval);
         
         if (this.consoles?.ticketRoom) this.consoles.ticketRoom.stopConsole();

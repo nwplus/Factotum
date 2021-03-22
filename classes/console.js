@@ -52,7 +52,7 @@ class Console {
      * @param {Object} args
      * @param {String} args.name
      * @param {String} args.description
-     * @param {GuildEmoji | ReactionEmoji} args.emoji
+     * @param {GuildEmoji | ReactionEmoji | String} args.emoji
      * @param {FeatureCallback} args.callback
      * @param {FeatureCallback} [args.removeCallback]
      * @returns {Feature}
@@ -61,7 +61,7 @@ class Console {
         return {
             name,
             description,
-            emojiName: emoji.id || emoji.name,
+            emojiName: typeof emoji === 'string' ? emoji : emoji.id || emoji.name,
             callback,
             removeCallback,
         };
