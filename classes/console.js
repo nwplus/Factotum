@@ -177,10 +177,11 @@ class Console {
         });
 
         this.collector.on('remove', (reaction, user) => {
-            this.interacting.set(user.id, user);
             let feature = this.features.get(reaction.emoji.id || reaction.emoji.name);
-            if (feature?.removeCallback) 
+            if (feature && feature?.removeCallback) {
+                this.interacting.set(user.id, user);
                 feature?.removeCallback(user, reaction, () => this.stopInteracting(user), this);
+            }
         });
     }
 
@@ -253,13 +254,13 @@ class Console {
      * @param {String | Feature} identifier - feature name, feature emojiName or feature
      */
     removeFeature(identifier) {
-        if (typeof identifier === String) {
+        if (typeof identifier === 'string') {
             let isDone = this.features.delete(identifier);
             if (!isDone) {
                 let feature = this.features.find(feature => feature.name === identifier);
                 this.features.delete(feature.emojiName);
             }
-        } else if (typeof identifier === Object) {
+        } else if (typeof identifier === 'object') {
             this.features.delete(identifier?.emojiName);
         } else {
             throw Error(`Was not given an identifier to work with when deleting a feature from this console ${this.title}`);

@@ -1,8 +1,11 @@
-const { GuildEmoji, ReactionEmoji, Role, TextChannel, MessageEmbed, Guild, GuildChannelManager, User, Message, RoleManager } = require('discord.js');
+const { GuildEmoji, ReactionEmoji, Role, TextChannel, MessageEmbed, Guild, Collection, User, Message, RoleManager } = require('discord.js');
 const { messagePrompt } = require('./prompt');
 const { sendEmbedToMember, addRoleToMember, deleteMessage, sendMessageToMember, removeRolToMember } = require('../discord-services');
 const BotGuild = require('../db/mongo/BotGuild');
 const winston = require('winston');
+const Activity = require('./activities/activity');
+const BotGuildModel = require('./bot-guild');
+const Console = require('./console');
 
 /**
  * @class TeamFormation
@@ -13,12 +16,46 @@ const winston = require('winston');
  * posts in the catalogue.
  * 
  */
-class TeamFormation {
+class TeamFormation extends Activity {
     
     static defaultTeamForm = 'Team Member(s): \nTeam Background: \nObjective: \nFun Fact About Team: \nLooking For: ';
     static defaultProspectForm = 'Name: \nSchool: \nPlace of Origin: \nSkills: \nFun Fact: \nDeveloper or Designer?:';
     static defaultTeamColor = '#60c2e6';
     static defaultProspectColor = '#d470cd';
+
+    /**
+     * Creates the team role and returns it.
+     * @param {RoleManager} roleManager
+     * @returns {Promise<Role>}
+     * @static
+     * @async
+     */
+     static async createTeamRole(roleManager) {
+        winston.loggers.get(roleManager.guild.id).verbose(`Team formation team role has been created!`, { event: "Team Formation" });
+        return await roleManager.create({
+            data: {
+                name: 'tf-team-leader',
+                color: TeamFormation.defaultTeamColor,
+            }
+        });
+    }
+
+    /**
+     * Creates the prospect role and returns it.
+     * @param {RoleManager} roleManager
+     * @returns {Promise<Role>}
+     * @static
+     * @async
+     */
+    static async createProspectRole(roleManager) {
+        winston.loggers.get(roleManager.guild.id).verbose(`Team formation prospect role has been created!`, { event: "Team Formation" });
+        return await roleManager.create({
+            data: {
+                name: 'tf-prospect',
+                color: TeamFormation.defaultProspectColor,
+            }
+        });
+    }
 
     /**
      * @typedef TeamFormationPartyInfo
@@ -48,7 +85,8 @@ class TeamFormation {
      * @property {TeamFormationPartyInfo} teamInfo
      * @property {TeamFormationPartyInfo} prospectInfo
      * @property {Guild} guild
-     * @property {TeamFormationChannels} channels
+     * @property {BotGuildModel} botGuild
+     * @property {Collection<string, Role>} activityRoles
      * @property {Boolean} [isNotificationsEnabled]
      * @property {SignupEmbedCreator} [signupEmbedCreator]
      */
@@ -59,11 +97,17 @@ class TeamFormation {
       */
     constructor(teamFormationInfo) {
 
+        super({
+            activityName: 'Team Formation',
+            guild: teamFormationInfo.guild,
+            roleParticipants: teamFormationInfo.activityRoles,
+            botGuild: teamFormationInfo.botGuild
+        });
+
         if (!teamFormationInfo?.teamInfo || !teamFormationInfo?.prospectInfo) throw new Error('Team and prospect info must be given!');
         this.validatePartyInfo(teamFormationInfo.teamInfo);
         this.validatePartyInfo(teamFormationInfo.prospectInfo);
         if (!teamFormationInfo?.guild) throw new Error('A guild is required for a team formation!');
-        if (!teamFormationInfo?.channels) throw new Error('The channels are required for a team formation!');
 
         /**
          * The team information, those teams willing to join will use this.
@@ -88,16 +132,10 @@ class TeamFormation {
         }
 
         /**
-         * The guild where this team formation is active.
-         * @type {Guild}
-         */
-        this.guild = teamFormationInfo.guild;
-
-        /**
          * The channels that a team formation activity needs.
          * @type {TeamFormationChannels}
          */
-        this.channels = teamFormationInfo.channels;
+        this.channels = {};
 
         /**
          * True if the parties will be notified when the opposite party has a new post.
@@ -118,90 +156,56 @@ class TeamFormation {
     /**
      * Validates a TeamFormationPartyInfo object
      * @param {TeamFormationPartyInfo} partyInfo - the party info to validate
+     * @private
      */
     validatePartyInfo(partyInfo) {
         if (!partyInfo?.emoji && typeof partyInfo.emoji != (GuildEmoji || ReactionEmoji)) throw new Error('A Discord emoji is required for a TeamFormationPartyInfo');
         if (!partyInfo?.role && typeof partyInfo.role != Role) throw new Error ('A Discord Role is required in a TeamFormationPartyInfo');
         if (partyInfo.signupEmbed && typeof partyInfo.signupEmbed != MessageEmbed) throw new Error('The message embed must be a Discord Message Embed');
-        if (partyInfo.form && typeof partyInfo.form != String) throw new Error('The form must be a string!');
+        if (partyInfo.form && typeof partyInfo.form != 'string') throw new Error('The form must be a string!');
+    }
+
+    async init() {
+        await super.init();
+        await this.createChannels();
     }
 
     /**
      * Will create the TeamFormationChannels object with new channels to use with a new TeamFormation
-     * @param {GuildChannelManager} guildChannelManager - the channel manager to create the channels
-     * @returns {Promise<TeamFormationChannels>}
-     * @async
-     * @static
-     */
-    static async createChannels(guildChannelManager) {
-        /** @type {TeamFormationChannels} */
-        let channels = {}
-
-        let category = await guildChannelManager.create('🏅Team Formation', {
-            type: 'category',
-            permissionOverwrites: guildChannelManager.guild.roles.cache.filter((role, key, roles) => role.permissions.has('SEND_MESSAGES')).map((role, key, roles) => {
-                return {
-                    id: role.id,
-                    deny: ['SEND_MESSAGES']
-                };
-            }),
-        });
-
-        channels.info = await guildChannelManager.create('👀team-formation', {
-            type: 'text',
-            parent: category,
-        });
-
-        channels.prospectCatalogue = await guildChannelManager.create('🙋🏽prospect-catalogue', {
-            type: 'text',
-            parent: category,
-            topic: 'Information about users looking to join teams can be found here. Happy hunting!!!',
-        });
-
-        channels.teamCatalogue = await guildChannelManager.create('💼team-catalogue', {
-            type: 'text',
-            parent: category,
-            topic: 'Channel for teams to post about themselves and who they are looking for! Expect people to send you private messages.',
-        });
-
-        winston.loggers.get(guildChannelManager.guild.id).verbose(`Team formation channels have been created!`, { event: "Team Formation" });
-        return channels;
-    }
-
-    /**
-     * Creates the team role and returns it.
-     * @param {RoleManager} roleManager
-     * @returns {Promise<Role>}
-     * @static
      * @async
      */
-    static async createTeamRole(roleManager) {
-        winston.loggers.get(roleManager.guild.id).verbose(`Team formation team role has been created!`, { event: "Team Formation" });
-        return await roleManager.create({
-            data: {
-                name: 'tf-team-leader',
-                color: TeamFormation.defaultTeamColor,
-            }
-        });
-    }
+    async createChannels() {
 
-    /**
-     * Creates the prospect role and returns it.
-     * @param {RoleManager} roleManager
-     * @returns {Promise<Role>}
-     * @static
-     * @async
-     */
-    static async createProspectRole(roleManager) {
-        winston.loggers.get(roleManager.guild.id).verbose(`Team formation prospect role has been created!`, { event: "Team Formation" });
-        return await roleManager.create({
-            data: {
-                name: 'tf-prospect',
-                color: TeamFormation.defaultProspectColor,
-            }
-        });
-    }
+        this.room.channels.category.setName('🏅Team Formation');
+        this.room.channels.generalText.delete();
+        this.room.channels.generalVoice.delete();
 
+        this.channels.info = await this.room.addRoomChannel({
+            name: '👀team-formation',
+            permissions: [{ id: this.botGuild.roleIDs.everyoneRole, permissions: { SEND_MESSAGES: false }}],
+            isSafe: true,
+        });
+
+        this.channels.prospectCatalogue = await this.room.addRoomChannel({
+            name: '🙋🏽prospect-catalogue',
+            info: {
+                topic: 'Information about users looking to join teams can be found here. Happy hunting!!!',
+            },
+            permissions: [{ id: this.botGuild.roleIDs.everyoneRole, permissions: { SEND_MESSAGES: false }}],
+            isSafe: true,
+        });
+
+        this.channels.teamCatalogue = await this.room.addRoomChannel({
+            name: '💼team-catalogue',
+            info: {
+                topic: 'Channel for teams to post about themselves and who they are looking for! Expect people to send you private messages.',
+            },
+            permissions: [{ id: this.botGuild.roleIDs.everyoneRole, permissions: { SEND_MESSAGES: false }}],
+            isSafe: true,
+        });
+
+        winston.loggers.get(this.guild.id).verbose(`Team formation channels have been created!`, { event: "Team Formation" });
+    }
 
     /**
      * Will start the activity!
@@ -249,80 +253,74 @@ class TeamFormation {
     async reachOutToUser(user, isTeam) {
         let logger = winston.loggers.get(this.guild.id);
 
-        // try to set the embed to the given ones, else create one and add the form
-        var dmMessage = isTeam ? this.teamInfo?.signupEmbed : this.prospectInfo?.signupEmbed;
-        logger.verbose(`${dmMessage ? 'A custom DM message' : 'The default DM message'} is being used to contact a team formation signee with id ${user.id}`);
-
-        if (!dmMessage) dmMessage = new MessageEmbed().setTitle('Team Formation -' + (isTeam ? ' Team Format' : ' Prospect Format'))
-        .setDescription('We are very excited for you to find your perfect ' + (isTeam ? 'team members.' : 'team.') + '\n* Please **copy and paste** the following format in your next message. ' +
+        let console = new Console({
+            title: `Team Formation - ${isTeam ? 'Team Format' : 'Prospect Format'}`,
+            description: 'We are very excited for you to find your perfect ' + (isTeam ? 'team members.' : 'team.') + '\n* Please **copy and paste** the following format in your next message. ' +
             '\n* Try to respond to all the sections! \n* Once you are ready to submit, react to this message with 🇩 and then send me your information!\n' +
-            '* Once you fill your team, please come back and click the ⛔ emoji.')
-        .addField('Format:', isTeam ? this.teamInfo.form : this.prospectInfo.form);
-
-
-        if (this.isNotificationEnabled) dmMessage.addField('READ THIS!', 'As soon as you submit your form, you will be notified of every new ' + (isTeam ? 'available prospect.' : 'available team.') + 
-                                ' Once you close your form, you will stop receiving notifications!');
-        
-        // send message to user via DM
-        let dmMsg = await user.send(dmMessage);
-        dmMsg.react('🇩');  // emoji for user to send form to bot
-
-        // guard
-        let isResponding = false;
-        
-        // user sends form to bot collector and filter
-        const dmCollector = dmMsg.createReactionCollector((reaction, user) => !user.bot && !isResponding && (reaction.emoji.name === '🇩'));
-
-        dmCollector.on('collect', async (reaction, user) => {
-            isResponding = !isResponding;
-            
-            try {
-                var catalogueMsg = await this.gatherForm(user, isTeam);
-                logger.verbose(`I was able to get the user's team formation response: ${catalogueMsg.cleanContent}`, { event: "Team Formation" });
-            } catch (error) {
-                logger.warning(`While waiting for a user's team formation response I found an error: ${error}`, { event: "Team Formation" });
-                user.dmChannel.send('You have canceled the prompt. You can try again at any time!').then(msg => msg.delete({timeout: 10000}));
-                isResponding = !isResponding;
-                return;
-            }
-    
-            // confirm the post has been received
-            sendEmbedToMember(user, {
-                title: 'Team Formation',
-                description: isTeam ? 'Thanks for sending me your information, you should see it pop up in the respective channel under the team formation category.' +
-                'Once you find your members please react to my original message with ⛔ so I can remove your post. Good luck!!!' : 
-                'Thanks for sending me your information, you should see it pop up in the respective channel under the team formation category.' +
-                'Once you find your ideal team please react to my original message with ⛔ so I can remove your post. Good luck!!!',
-            });
-            logger.event(`The user ${user.id} has successfully sent their information to the team formation feature.`, { event: "Team Formation" });
-    
-            // stop the first collector to add a new one for removal
-            dmCollector.stop();
-    
-            // add role to the user
-            addRoleToMember(this.guild.member(user), isTeam ? this.teamInfo.role : this.prospectInfo.role);
-    
-            // add remove form emoji and collector
-            dmMsg.react('⛔');
-    
-            const removeFilter = (reaction, user) => reaction.emoji.name === '⛔' && !user.bot;
-            const removeCollector = dmMsg.createReactionCollector(removeFilter, { max: 1 });
-    
-            removeCollector.on('collect', async (reaction, user) => {
-                // remove message sent to channel
-                deleteMessage(catalogueMsg);
-    
-                // confirm deletion
-                sendMessageToMember(user, 'This is great! You are all set! Have fun with your new team! Your message has been deleted.', true);
-    
-                removeRolToMember(this.guild.member(user), isTeam ? this.teamInfo.role : this.prospectInfo.role);
-    
-                // remove this message
-                dmMsg.delete();
-
-                logger.event(`The user ${user.id} has found a team and has been removed from the team formation feature.`, { event: "Team Formation" });
-            });
+            '* Once you fill your team, please come back and click the ⛔ emoji.',
+            channel: await user.createDM(),
+            guild: this.guild,
         });
+
+        if (this.isNotificationEnabled) console.addField('READ THIS!', 'As soon as you submit your form, you will be notified of every new ' + (isTeam ? 'available prospect.' : 'available team.') + 
+        ' Once you close your form, you will stop receiving notifications!');
+
+        await console.addField('Format:', isTeam ? this.teamInfo.form || TeamFormation.defaultTeamForm : this.prospectInfo.form || TeamFormation.defaultProspectForm);
+
+        await console.addFeature({
+            name: 'Send completed form',
+            description: 'React to this emoji, wait for my prompt, and send the finished form.',
+            emojiName: '🇩',
+            callback: async (user, reaction, stopInteracting, console) => {
+                // gather and send the form from the user
+                try {
+                    var catalogueMsg = await this.gatherForm(user, isTeam);
+                    logger.verbose(`I was able to get the user's team formation response: ${catalogueMsg.cleanContent}`, { event: "Team Formation" });
+                } catch (error) {
+                    logger.warning(`While waiting for a user's team formation response I found an error: ${error}`, { event: "Team Formation" });
+                    user.dmChannel.send('You have canceled the prompt. You can try again at any time!').then(msg => msg.delete({timeout: 10000}));
+                    stopInteracting();
+                    return;
+                }
+        
+                // confirm the post has been received
+                sendEmbedToMember(user, {
+                    title: 'Team Formation',
+                    description: 'Thanks for sending me your information, you should see it pop up in the respective channel under the team formation category.' +
+                    `Once you find your ${isTeam ? 'members' : 'ideal team'} please react to my original message with ⛔ so I can remove your post. Good luck!!!`,
+                }, 15);
+                logger.event(`The user ${user.id} has successfully sent their information to the team formation feature.`, { event: "Team Formation" });
+
+                // add role to the user
+                addRoleToMember(this.guild.member(user), isTeam ? this.teamInfo.role : this.prospectInfo.role);
+
+                // add remove post feature
+                await console.addFeature({
+                    name: 'Done with team formation!',
+                    description: 'React with this emoji if you are done with team formation.',
+                    emojiName: '⛔',
+                    callback: (user, reaction, stopInteracting, console) => {
+                        // remove message sent to channel
+                        deleteMessage(catalogueMsg);
+            
+                        // confirm deletion
+                        sendMessageToMember(user, 'This is great! You are all set! Have fun with your new team! Your message has been deleted.', true);
+            
+                        removeRolToMember(this.guild.member(user), isTeam ? this.teamInfo.role : this.prospectInfo.role);
+
+                        logger.event(`The user ${user.id} has found a team and has been removed from the team formation feature.`, { event: "Team Formation" });
+
+                        console.delete();
+                    }
+                });
+
+                console.removeFeature('🇩');
+
+                stopInteracting();
+            }
+        });
+
+        console.sendConsole();
     }
 
     /**

@@ -1,8 +1,10 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
 const { Message } = require('discord.js');
-const { reactionPrompt, yesNoPrompt, rolePrompt, } = require('../../classes/prompt.js');
+const { reactionPrompt, yesNoPrompt, rolePrompt, messagePrompt, } = require('../../classes/prompt.js');
 const TeamFormation = require('../../classes/team-formation');
+const Activity = require('../../classes/activities/activity');
+const { sendMsgToChannel } = require('../../discord-services');
 
 /**
  * The team formation activity is the most basic team formation activity available. This activity works like a menu or directory of available teams and solo participants.
@@ -42,6 +44,8 @@ class StartTeamFormation extends PermissionCommand {
         let channel = message.channel;
         let userId = message.author.id;
 
+        let activityRoles = await Activity.promptForRoleParticipants(channel, userId, true);
+
         try {
             
             var teamFormation = new TeamFormation({
@@ -50,15 +54,20 @@ class StartTeamFormation extends PermissionCommand {
                     role: (await yesNoPrompt({prompt: 'Have you created the role teams will get when they sign up? If not its okay, I will create it for you!', channel, userId})) ? 
                         (await rolePrompt({prompt: 'What role should team users get?', channel, userId})).first() :
                         await TeamFormation.createTeamRole(message.guild.roles),
+                    form: (await yesNoPrompt({ prompt: `Would you like to use the default form?: ${TeamFormation.defaultTeamForm}\n else you create your own!`, channel, userId})) ? 
+                        TeamFormation.defaultTeamForm : (await messagePrompt({ prompt: 'Please send your form for teams now:', channel, userId })).content,
                 },
                 prospectInfo: {
                     emoji: await reactionPrompt({prompt: 'What emoji do you want to use for prospects to sign up?', channel, userId}),
                     role: (await yesNoPrompt({prompt: 'Have you created the role prospects will get when they sign up? Worry not if you don\'t I can create it for you!', channel, userId})) ? 
                         (await rolePrompt({prompt: 'What role should prospects get?', channel, userId})).first() : 
                         await TeamFormation.createProspectRole(message.guild.roles),
+                    form: (await yesNoPrompt({ prompt: `Would you like to use the default form?: ${TeamFormation.defaultProspectForm}\n else you create your own!`, channel, userId})) ? 
+                        TeamFormation.defaultProspectForm : (await messagePrompt({ prompt: 'Please send your form for teams now:', channel, userId })).content,
                 },
                 guild: message.guild,
-                channels: await TeamFormation.createChannels(message.guild.channels),
+                botGuild: botGuild,
+                activityRoles,
                 isNotificationsEnabled: await yesNoPrompt({prompt: 'Do you want to notify users when the opposite party has a new post?', channel, userId}),
             });
 
@@ -68,9 +77,11 @@ class StartTeamFormation extends PermissionCommand {
             return;
         }
 
-        message.channel.send('<@' + userId + '> The team formation activity is ready to go! <#' + teamFormation.channels.info + '>');
+        await teamFormation.init();
 
-        teamFormation.start();
+        sendMsgToChannel(message.channel, userId, `The team formation activity is ready to go! <#${teamFormation.channels.info.id}>`, 10);
+
+        await teamFormation.start();
     }
 }
 module.exports = StartTeamFormation;

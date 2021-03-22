@@ -1,5 +1,5 @@
 const winston = require("winston");
-const { GuildCreateChannelOptions, User, Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable } = require('discord.js');
+const { GuildCreateChannelOptions, User, Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable, PermissionOverwriteOption } = require('discord.js');
 const BotGuildModel = require('./bot-guild');
 const { deleteChannel } = require("../discord-services");
 
@@ -9,9 +9,9 @@ const { deleteChannel } = require("../discord-services");
  * @property {TextChannel} generalText
  * @property {VoiceChannel} generalVoice
  * @property {TextChannel} nonLockedChannel
- * @property {Collection<String, VoiceChannel>} voiceChannels
- * @property {Collection<String, TextChannel>} textChannels
- * @property {Collection<String, TextChannel | VoiceChannel>} safeChannels - channels that can not be removed
+ * @property {Collection<String, VoiceChannel>} voiceChannels - <Channel ID, channel>
+ * @property {Collection<String, TextChannel>} textChannels - <Channel ID, channel>
+ * @property {Collection<String, TextChannel | VoiceChannel>} safeChannels - <Channel ID, channel>, channels that can not be removed
  */
 
 /**
