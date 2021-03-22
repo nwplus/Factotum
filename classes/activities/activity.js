@@ -338,6 +338,11 @@ class Activity {
      * @param {String} userId - user to prompt for specified voice channel
      */
     async distributeStamp(channel, userId) {
+
+        if (!this.botGuild.stamps.isEnabled) {
+            sendMsgToChannel(channel, userId, 'The stamp system is not enabled in this server!', 10);
+            return;
+        }
         
         // The users already seen by this stamp distribution.
         let seenUsers = new Collection();

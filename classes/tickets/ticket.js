@@ -168,6 +168,7 @@ class Ticket {
             description: ticketManagerMsgEmbed.description,
             channel: this.ticketManager.ticketDispatcherInfo.channel,
             guild: this.ticketManager.guild,
+            color: '#fff536'
         });
 
         ticketManagerMsgEmbed.fields.forEach((embedField => {
@@ -232,7 +233,7 @@ class Ticket {
 
         // edit ticket manager helper console with mentor information
         await this.consoles.ticketManager.addField('This ticket is being handled!', `<@${helper.id}> is helping this team!`);
-        await this.consoles.ticketManager.changeColor('#80c904');
+        await this.consoles.ticketManager.changeColor('#36c3ff');
 
         let takeTicketFeature = Console.newFeature({
             name: 'Still want to help?',
@@ -391,7 +392,7 @@ class Ticket {
             'Ticket Closed', 
             `This ticket has been closed${reason ? ' due to ' + reason : '!! Good job!'}`
         );
-        this.consoles.ticketManager.changeColor('#128c1e');
+        this.consoles.ticketManager.changeColor('#43e65e');
         this.consoles.ticketManager.stopConsole();
         
         this.consoles.groupLeader.addField(
