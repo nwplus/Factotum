@@ -232,7 +232,7 @@ class BotGuild {
 
         winston.loggers.get(guild.id).event(`The botGuild has run the create admin channels function.`, {event: "Bot Guild"});
 
-        return {adminConsole: adminConsoleChannel, adminLog: adminLogChannel};
+        return {adminConsoleChannel: adminConsoleChannel, adminLog: adminLogChannel};
     }
 
     /**
