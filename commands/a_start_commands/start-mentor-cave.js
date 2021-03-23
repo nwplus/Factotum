@@ -110,7 +110,7 @@ class StartMentorCave extends PermissionCommand {
                 publicRoles: publicRoles,
             }, botGuild, message.guild);
 
-            await cave.init(message.guild.channels);
+            await cave.init();
           
         } catch (error) {
             message.channel.send('Due to a prompt cancel, the mentor cave creation was unsuccessful.').then(msg => msg.delete({timeout: 5000}));
