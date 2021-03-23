@@ -1,7 +1,5 @@
-const { Collection, GuildEmoji, ReactionEmoji, MessageEmbed, TextChannel, Guild, Role, MessageReaction, User,  } = require('discord.js');
+const { Collection, GuildEmoji, ReactionEmoji, TextChannel, Guild, Role, User } = require('discord.js');
 const Ticket = require('./ticket');
-const Activity = require('../activities/activity');
-const Cave = require('../activities/cave');
 const BotGuildModel = require('../bot-guild');
 const Console = require('../console');
 const { messagePrompt } = require('../prompt');
@@ -65,7 +63,7 @@ class TicketManager {
 
     /**
      * @constructor
-     * @param {Cave | Activity} parent 
+     * @param {import('../activities/activity')} parent 
      * @param {Object} args
      * @param {TicketCreatorInfo} args.ticketCreatorInfo
      * @param {TicketDispatcherInfo} args.ticketDispatcherInfo
@@ -88,7 +86,7 @@ class TicketManager {
 
         /**
          * The parent of this ticket-system. It must be paired with a cave or an activity.
-         * @type {Cave | Activity}
+         * @type {import('../activities/activity')}
          */
         this.parent = parent;
 
@@ -215,7 +213,7 @@ class TicketManager {
         // check if role has mentors in it
         if (role.members.size <= 0) {
             sendMsgToChannel(channel, user.id, 'There are no mentors available with that role. Please request another role or the general role!', 10);
-            winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.parent.name} received a ticket from user ${user.id} but was canceled due to no mentor having the role ${role.name}.`, { event: 'Cave' });
+            winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.parent.name} received a ticket from user ${user.id} but was canceled due to no mentor having the role ${role.name}.`, { event: 'Ticket Manager' });
             return;
         }
 

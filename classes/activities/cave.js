@@ -1,11 +1,11 @@
-const Activity = require('./activity');
-const TicketManager = require('../tickets/ticket-manager');
-const BotGuildModel = require('../bot-guild');
 const { Guild, Collection, Role, TextChannel, MessageEmbed, GuildEmoji, ReactionEmoji } = require('discord.js');
-const Room = require('../room');
-const Console = require('../console');
 const { messagePrompt, reactionPrompt, yesNoPrompt, stringPrompt, numberPrompt } = require('../prompt');
 const { sendMsgToChannel, addRoleToMember, removeRolToMember } = require('../../discord-services');
+const BotGuildModel = require('../bot-guild');
+const Room = require('../room');
+const Console = require('../console');
+const TicketManager = require('../tickets/ticket-manager');
+const Activity = require('./activity');
 
 /**
  * @typedef CaveOptions

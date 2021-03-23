@@ -2,7 +2,6 @@ const { Collection, MessageEmbed, GuildMember } = require('discord.js');
 const winston = require('winston');
 const { addRoleToMember, sendEmbedToMember, replaceRoleToMember, sendMessageToMember } = require('../discord-services');
 const BotGuildModel = require('./bot-guild');
-const Activity = require('./activities/activity');
 
 /**
  * @class
@@ -11,7 +10,7 @@ const Activity = require('./activities/activity');
 class StampsManager {
     /**
      * Will let hackers get a stamp for attending the activity.
-     * @param {Activity} activity - activity to use
+     * @param {import('./activities/activity')} activity - activity to use
      * @param {Number} [time] - time to wait till collector closes, in seconds
      * @param {BotGuildModel} botGuild
      * @async
