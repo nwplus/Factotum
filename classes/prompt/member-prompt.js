@@ -2,12 +2,17 @@ const { Collection, GuildMember } = require('discord.js');
 const MessagePrompt = require('./message-prompt');
 const { channelMsgWaitDelete } = require('./util/discord-util');
 
+/**
+ * Holds different Guild Member prompts.
+ */
 class MemberPrompt {
 
     /**
      * Prompts the user for a single member mention.
      * @param {PromptInfo} promptInfo
      * @returns {Promise<GuildMember>}
+     * @throws {TimeOutError} if the user does not respond within the given time.
+     * @throws {CancelError} if the user cancels the prompt.
      * @async
      */
     static async single(promptInfo) {
@@ -21,6 +26,8 @@ class MemberPrompt {
      * @param {PromptInfo} promptInfo 
      * @param {Number} [amount=Infinity] - amount of members to prompt for
      * @returns {Promise<Collection<String, GuildMember>>}
+     * @throws {TimeOutError} if the user does not respond within the given time.
+     * @throws {CancelError} if the user cancels the prompt.
      * @async
      */
     static async multi(promptInfo, amount = Infinity) {
@@ -40,4 +47,4 @@ class MemberPrompt {
     }
 
 }
-module.exports.MemberPrompt = MessagePrompt;
+module.exports.MemberPrompt = MemberPrompt;

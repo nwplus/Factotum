@@ -2,7 +2,9 @@ const { Message } = require('discord.js');
 const { TimeOutError, CancelError } = require('./errors');
 
 
-
+/**
+ * Holds different Discord Message prompts.
+ */
 class MessagePrompt {
 
     /**
