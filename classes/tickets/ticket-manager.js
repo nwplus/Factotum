@@ -227,7 +227,7 @@ class TicketManager {
 
         let hackers = new Collection();
         hackers.set(user.id, user);
-        if (promptMsg.mentions.users.size > 0) hackers = hackers.concat([promptMsg.mentions.users]);
+        if (promptMsg.mentions.users.size > 0) hackers = hackers.concat(promptMsg.mentions.users);
 
         this.newTicket(hackers, promptMsg.cleanContent, role);
     }
