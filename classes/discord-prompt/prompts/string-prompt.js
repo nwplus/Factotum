@@ -20,6 +20,7 @@ class StringPrompt {
 
     /**
      * Prompts a user for one of a list of possible responses. Will re-prompt if given something different.
+     * The response is case sensitive!
      * @param {PromptInfo} promptInfo 
      * @param {String[]} possibleResponses - list of responses to match the actual response or re-prompt
      * @throws {TimeOutError} if the user does not respond within the given time.

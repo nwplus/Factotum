@@ -11,6 +11,9 @@ class ChannelPrompt {
      * Prompts the user for a text channel.
      * @param {PromptInfo} promptInfo 
      * @returns {Promise<TextChannel>}
+     * @throws {TimeOutError} if the user does not respond within the given time.
+     * @throws {CancelError} if the user cancels the prompt.
+     * @async
      */
     static async single(promptInfo) {
         let channels = await ChannelPrompt.multi(promptInfo, 1);
@@ -22,11 +25,13 @@ class ChannelPrompt {
      * @param {PromptInfo} promptInfo 
      * @param {Number} [amount=Infinity] - amount of channels to prompt for
      * @returns {Promise<Collection<String, TextChannel>>}
+     * @throws {TimeOutError} if the user does not respond within the given time.
+     * @throws {CancelError} if the user cancels the prompt.
      * @async
      */
     static async multi(promptInfo, amount = Infinity) {
         if (amount != Infinity) promptInfo.prompt = `${promptInfo.prompt} \n* Please mention only ${amount} channel(s).`;
-        let msg = await MessagePrompt.instructionPrompt(promptInfo, MessagePrompt.InstructionType.MENTION);
+        let msg = await MessagePrompt.instructionPrompt(promptInfo, MessagePrompt.InstructionType.CHANNEL);
 
         let channels = msg.mentions.channels;
         if (amount != Infinity && channels.size != amount) {
