@@ -1,6 +1,6 @@
 const { Collection, MessageReaction } = require('discord.js');
 const { TimeOutError } = require('../errors');
-const { channelMsg } = require('../util/discord-util');
+const { channelMsg, channelMsgWaitDelete } = require('../util/discord-util');
 const MessagePrompt = require('./message-prompt');
 
 
@@ -9,13 +9,31 @@ class SpecialPrompts {
     /**
      * Prompts the user for one emoji by reacting to a message.
      * @param {PromptInfo} promptInfo - cancelable is not used! user can not cancel this prompt!
-     * @returns {Promise<MessageReaction>}     
+     * @returns {Promise<MessageReaction>}
      * @throws {TimeOutError} if the user takes longer than the given time to react
      * @async
      */
-    static async singleReactionPrompt(promptInfo) {
+    static async singleReaction(promptInfo) {
         let reactions = await SpecialPrompts.multiReactionPrompt(promptInfo, 1);
         return reactions.first();
+    }
+
+    /**
+     * Prompts the use for an emoji. If the emoji is part of the unavailable emojis, they will be re-prompted.
+     * @param {PromptInfo} promptInfo 
+     * @param {Collection<String, *>} unavailableEmojis - <Emoji Name, any> the emojis the user can not choose!
+     * @returns {Promise<MessageReaction>}
+     * @throws {TimeOutError} if the user takes longer than the given time to react
+     * @async
+     */
+    static async singleRestrictedReaction(promptInfo, unavailableEmojis) {
+        let reaction = await SpecialPrompts.singleReaction(promptInfo);
+        if (unavailableEmojis.has(reaction.emoji.name)) {
+            channelMsgWaitDelete(promptInfo.channel, promptInfo.userId, 'That emoji is already in use! Select another emoji!');
+            return await SpecialPrompts.singleRestrictedReaction(promptInfo, unavailableEmojis);
+        } else {
+            return reaction;
+        }
     }
 
     /**
@@ -26,7 +44,7 @@ class SpecialPrompts {
      * @throws {TimeOutError} if the user takes longer than the given time to react
      * @async
      */
-    static async multiReactionPrompt(promptInfo, amount) {
+    static async multiReaction(promptInfo, amount) {
         let finalPrompt = `${promptInfo.prompt} \n* React to this message with the emojis. \n* You should react with ${amount} different emoji(s).`;
         let prompt = await channelMsg(promptInfo.channel, promptInfo.userId, finalPrompt);
 
@@ -55,7 +73,7 @@ class SpecialPrompts {
      * @throws {CancelError} if the user cancels the prompt.
      * @async
      */
-    static async booleanPrompt(promptInfo) {
+    static async boolean(promptInfo) {
         let response = await MessagePrompt.instructionPrompt(promptInfo, MessagePrompt.InstructionType.BOOLEAN);
 
         if (response.cleanContent.toLowerCase() === 'no') return false;
