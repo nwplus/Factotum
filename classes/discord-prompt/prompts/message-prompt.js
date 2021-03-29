@@ -1,5 +1,5 @@
 const { Message } = require('discord.js');
-const { TimeOutError, CancelError } = require('./errors');
+const { TimeOutError, CancelError } = require('../errors');
 
 
 /**
