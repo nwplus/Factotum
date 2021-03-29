@@ -3,7 +3,9 @@ const { TimeOutError } = require('../errors');
 const { channelMsg, channelMsgWaitDelete, channelMsgDelete } = require('../util/discord-util');
 const MessagePrompt = require('./message-prompt');
 
-
+/**
+ * Holds special prompts like reactions and boolean prompts.
+ */
 class SpecialPrompts {
 
     /**

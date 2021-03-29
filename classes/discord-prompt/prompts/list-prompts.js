@@ -3,7 +3,9 @@ const { TimeOutError } = require('../errors');
 const { channelMsgDelete, channelMsgWaitDelete } = require('../util/discord-util');
 const NumberPrompt = require('./number-prompt');
 
-
+/**
+ * Holds different list prompts.
+ */
 class ListPrompts {
 
     /**
