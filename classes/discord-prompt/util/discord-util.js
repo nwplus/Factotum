@@ -29,3 +29,16 @@ async function channelMsg(channel, userId, msgText) {
     return await channel.send(`<@${userId} ${msgText}`);
 }
 module.exports.channelMsg = channelMsg;
+
+/**
+ * Sends a message to a user via a channel. Message is removed after a time out.
+ * @param {TextChannel} channel 
+ * @param {String} userId 
+ * @param {String} msgText 
+ * @param {Number} time - time to wait to delete message, in seconds
+ */
+async function channelMsgDelete(channel, userId, msgText, time) {
+    let msg = await channelMsg(channel, userId, msgText);
+    msg.delete({timeout: time * 1000});
+}
+module.exports.channelMsgDelete = channelMsgDelete;

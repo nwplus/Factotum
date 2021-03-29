@@ -10,3 +10,10 @@
  * @property {Boolean} [cancelable=true] - if the prompt can be canceled
  */
 
+/**
+ * An option for a list reaction picker prompt.
+ * @typedef PickerOption
+ * @property {String} name - name of this option
+ * @property {String} description - description for this option
+ * @property {String} emojiName - the name of the emoji (only unicode emojis allowed!)
+ */

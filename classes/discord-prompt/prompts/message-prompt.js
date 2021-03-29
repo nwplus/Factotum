@@ -1,5 +1,6 @@
 const { Message } = require('discord.js');
 const { TimeOutError, CancelError } = require('../errors');
+const { channelMsg, channelMsgDelete } = require('../util/discord-util');
 
 
 /**
@@ -27,7 +28,7 @@ class MessagePrompt {
             var msgs = await channel.awaitMessages(filter, {max: 1, time: time == 0 ? null : time * 1000, errors: ['time']});
         } catch (error) {
             if (error.name == 'time') {
-                await channel.send(`<@${userId}> Time is up, please try again once you are ready, we recommend you write the text, then react, then send!`).then(msg => msg.delete({timeout: 10000}));
+                await channelMsgDelete(channel, userId, 'Time is up, please try again once you are ready, we recommend you write the message first, then react, then send the message.', 10);
                 throw new TimeOutError();
             } else {
                 throw error;

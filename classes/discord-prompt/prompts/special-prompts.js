@@ -1,6 +1,6 @@
 const { Collection, MessageReaction } = require('discord.js');
 const { TimeOutError } = require('../errors');
-const { channelMsg, channelMsgWaitDelete } = require('../util/discord-util');
+const { channelMsg, channelMsgWaitDelete, channelMsgDelete } = require('../util/discord-util');
 const MessagePrompt = require('./message-prompt');
 
 
@@ -53,7 +53,7 @@ class SpecialPrompts {
             var reactions = await prompt.awaitReactions(filter, {max: amount, time: (promptInfo.time ? promptInfo.time : null), errors: ['time']});
         } catch (error) {
             if (error.name == 'time') {
-                await channelMsg(promptInfo.channel, promptInfo.userId, 'Time is up, please try again once you are ready, we recommend you think of the emoji to use first.');
+                await channelMsgDelete(promptInfo.channel, promptInfo.userId, 'Time is up, please try again once you are ready, we recommend you think of the emoji to use first.', 10);
                 throw new TimeOutError();
             } else {
                 throw error;
