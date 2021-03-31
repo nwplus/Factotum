@@ -7,7 +7,6 @@ const { shuffleArray, sendMsgToChannel } = require('../../discord-services');
 const StampsManager = require('../stamps-manager');
 const Room = require('../room');
 const Console = require('../console');
-
 /**
  * @typedef ActivityInfo
  * @property {string} activityName - the name of this activity!
@@ -212,7 +211,22 @@ class Activity {
      */
     async addChannel(channel, userId) {
         // voice or text
-        let option = await reactionPicker({ prompt: 'What type of channel do you want?', channel, userId }, new Collection([['🔊', {name: 'voice', description: 'A voice channel'}], ['✍️', {name: 'text', description: 'A text channel'}]]));
+        let option = await ListPrompt.singleReactionPicker({
+            prompt: 'What type of channel do you want?',
+            channel,
+            userId,
+        }, [
+            {
+                name: 'voice',
+                description: 'A voice channel',
+                emojiName: '🔊'
+            },
+            {
+                name: 'text', 
+                description: 'A text channel',
+                emojiName: '✍️',
+            }
+        ]);
         // channel name
         let name = (await messagePrompt({ prompt: 'What is the name of the channel?', channel, userId }, 'string')).content;
 
