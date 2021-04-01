@@ -2,8 +2,8 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { checkForRole, addRoleToMember, removeRolToMember } = require('../../discord-services');
 const { MessageEmbed, Message, Role, Collection } = require('discord.js');
-const { reactionPrompt, messagePrompt } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
+const { MessagePrompt, SpecialPrompt } = require('advanced-discord.js-prompts');
 
 /**
  * Make a message embed (console) available on the channel for users to react and un-react for roles. Staff can dynamically add 
@@ -66,11 +66,11 @@ class RoleSelector extends PermissionCommand {
             if (reaction.emoji.name === newTransferEmoji && checkForRole(message.guild.member(user), botGuild.roleIDs.staffRole)) {
                 
                 try {
-                    var newTransferMsg = await messagePrompt({
+                    var newTransferMsg = await MessagePrompt.prompt({
                         prompt: 'What new transfer do you want to add? Your response should have (in this order, not including <>): @role <transfer name> - <transfer description>',
                         channel: message.channel, 
                         userId: user.id
-                    }, 'string');
+                    });
                 } catch (error) {
                     reaction.users.remove(user.id);
                     return;
@@ -82,7 +82,7 @@ class RoleSelector extends PermissionCommand {
                 let name = newTransferMsg.cleanContent.substring(0, firstStop);
                 let description = newTransferMsg.cleanContent.substring(firstStop + 1);
 
-                let emoji = await reactionPrompt({prompt: 'What emoji to you want to use for this transfer?', channel: message.channel, userId: message.author.id});
+                let emoji = await SpecialPrompt.singleEmoji({prompt: 'What emoji to you want to use for this transfer?', channel: message.channel, userId: message.author.id});
 
                 transfers.set(emoji.name, {
                     name: name,

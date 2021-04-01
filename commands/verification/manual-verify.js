@@ -3,10 +3,10 @@ const PermissionCommand = require('../../classes/permission-command');
 const { addUserData } = require('../../db/firebase/firebase-services');
 const { sendMsgToChannel, checkForRole, validateEmail } = require('../../discord-services');
 const { Message } = require('discord.js');
-const { numberPrompt, messagePrompt } = require('../../classes/prompt');
 const Verification = require('../../classes/verification');
 const BotGuildModel = require('../../classes/bot-guild');
 const winston = require('winston');
+const { StringPrompt, NumberPrompt } = require('advanced-discord.js-prompts');
 
 /**
  * Will manually verify a user to the server and the database. Asks the user for a user ID, email, and type(s) to add with. 
@@ -42,7 +42,7 @@ class ManualVerify extends PermissionCommand {
             let channel = message.channel;
             let userId = message.author.id;
 
-            let guestId = (await numberPrompt({ prompt: 'What is the ID of the member you would like to verify?', channel, userId}))[0];
+            let guestId = await NumberPrompt.single({ prompt: 'What is the ID of the member you would like to verify?', channel, userId, cancelable: true});
             var member = message.guild.member(guestId); // get member object by id
             
             // check for valid ID
@@ -58,13 +58,9 @@ class ManualVerify extends PermissionCommand {
 
             let availableTypes = Array.from(botGuild.verification.verificationRoles.keys()).join();
             
-            let types = (await messagePrompt({ prompt: `These are the available types: ${availableTypes}, 
-                please respond with the types you want this user to verify separated by commas.`, channel, userId })).content.split(',');
+            let types = StringPrompt.multiRestricted({ prompt: 'Please respond with the types you want this user to verify.', channel, userId}, availableTypes);
 
-            // filter types for those valid
-            types = types.filter((type, index, array) => botGuild.verification.verificationRoles.has(type));
-
-            let email = (await messagePrompt({ prompt: 'What is their email?', channel, userId }, 'string')).content;
+            let email = await StringPrompt.single({ prompt: 'What is their email?', channel, userId, cancelable: true});
             
             // validate the email
             if(!validateEmail(email)) {

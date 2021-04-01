@@ -1,9 +1,9 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { discordLog } = require('../../discord-services');
 const { Message, MessageEmbed } = require('discord.js');
-const { numberPrompt, yesNoPrompt, rolePrompt } = require('../../classes/prompt');
 const { getReminder } = require('../../db/firebase/firebase-services');
 const BotGuildModel = require('../../classes/bot-guild');
+const { NumberPrompt, SpecialPrompt, RolePrompt } = require('advanced-discord.js-prompts');
 
 /**
  * The self care command will send pre made reminders from firebase to the command channel. These reminders are self
@@ -41,14 +41,14 @@ class SelfCareReminders extends PermissionCommand {
         //ask user for time interval between reminders
         var timeInterval;
         try {
-            let num = (await numberPrompt({prompt: 'What is the time interval between reminders in minutes (integer only)? ', channel, userId}))[0];
+            let num = await NumberPrompt.single({prompt: 'What is the time interval between reminders in minutes (integer only)? ', channel, userId});
             timeInterval = 1000 * 60 * num;
 
             // ask user whether to start sending reminders now(true) or after 1 interval (false)
-            var isStartNow = await yesNoPrompt({prompt: 'Type "yes" to send first reminder now, "no" to start one time interval from now. ', channel, userId});
+            var isStartNow = await SpecialPrompt.boolean({prompt: 'Type "yes" to send first reminder now, "no" to start one time interval from now. ', channel, userId, cancelable: true});
 
             // id of role to mention when new reminders come out (use-case for self-care still tbd)
-            var roleId = (await rolePrompt({prompt: 'What is the hacker role to notify for self-care reminders?', channel, userId})).first().id;
+            var roleId = (await RolePrompt.single({prompt: 'What is the hacker role to notify for self-care reminders?', channel, userId,cancelable: true})).id;
         } catch (error) {
             channel.send('<@' + userId + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;

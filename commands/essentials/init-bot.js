@@ -1,10 +1,10 @@
 const { Command, CommandoGuild } = require('discord.js-commando');
-const { MessageEmbed, Message, TextChannel, Snowflake, Guild, ColorResolvable, Role, } = require('discord.js');
+const { Message, TextChannel, Snowflake, Guild, ColorResolvable, Role, } = require('discord.js');
 const { sendMsgToChannel, addRoleToMember, } = require('../../discord-services');
-const { yesNoPrompt, channelPrompt, rolePrompt, messagePrompt, numberPrompt } = require('../../classes/prompt');
 const BotGuild = require('../../db/mongo/BotGuild');
 const winston = require('winston');
 const Console = require('../../classes/console');
+const { MessagePrompt, StringPrompt, NumberPrompt, SpecialPrompt, RolePrompt, ChannelPrompt } = require('advanced-discord.js-prompts');
 
 /**
  * The InitBot command initializes the bot on the guild. It will prompt the user for information needed 
@@ -96,7 +96,7 @@ class InitBot extends Command {
         adminConsole.addField('The member role:', `<@&${memberRole.id}>`);
 
         // bot support channel prompt
-        let botSupportChannel = await this.askForBotSupportChannel(channel, userId);
+        let botSupportChannel = await ChannelPrompt.single({prompt: 'What channel can the bot use to contact users when DMs are not available?', channel, userId, cancelable: false});
         adminConsole.addField('Channel used to contact Users with DM issues', `<#${botSupportChannel.id}>`);
 
         botGuild.readyUp(this.client, {
@@ -116,7 +116,7 @@ class InitBot extends Command {
         // ask if verification will be used
         var isVerification;
         try {
-            isVerification = await yesNoPrompt({prompt: 'Will you be using the verification service?', channel, userId});
+            isVerification = await SpecialPrompt.boolean({prompt: 'Will you be using the verification service?', channel, userId, cancelable: true});
         } catch (error) {
             winston.loggers.get(guild.id).warning(`Handled an error when setting up verification, and thus was not set up. Error was ${error.name}`, { event: 'InitBot Command', data: error });
             isVerification = false;
@@ -144,7 +144,7 @@ class InitBot extends Command {
         if (isVerification) {
             var isAttendance;
             try {
-                isAttendance = await yesNoPrompt({prompt: 'Will you be using the attendance service?', channel, userId});
+                isAttendance = await SpecialPrompt.boolean({prompt: 'Will you be using the attendance service?', channel, userId});
             } catch (error) {
                 winston.loggers.get(guild.id).warning(`Handled an error when setting up verification, and thus was not set up. Error was ${error.name}`, { event: 'InitBot Command', data: error });
                 isAttendance = false;
@@ -167,8 +167,8 @@ class InitBot extends Command {
 
         // ask if the announcements will be used
         try {
-            if (await yesNoPrompt({prompt: 'Have firebase announcements been set up code-side? If not say no, or the bot will fail!', channel, userId})) {
-                let announcementChannel = (await channelPrompt('What channel should announcements be sent to? If you don\'t have it, create it and come back, do not cancel.')).first();
+            if (await SpecialPrompt.boolean({prompt: 'Have firebase announcements been set up code-side? If not say no, or the bot will fail!', channel, userId})) {
+                let announcementChannel = await ChannelPrompt.single('What channel should announcements be sent to? If you don\'t have it, create it and come back, do not cancel.');
                 await botGuild.setUpAnnouncements(this.client, announcementChannel.id);
 
                 sendMsgToChannel(channel, userId, 'The announcements have been set up correctly!', 8);
@@ -186,14 +186,14 @@ class InitBot extends Command {
         // ask if the stamps will be used
         var isStamps;
         try {
-            isStamps = await yesNoPrompt({prompt: 'Will you be using the stamp service?', channel, userId});
+            isStamps = await SpecialPrompt.boolean({prompt: 'Will you be using the stamp service?', channel, userId});
         } catch {
             isStamps = false;   
         }
         if (isStamps) {
             var numberOfStamps = 0;
             try {
-                numberOfStamps = (await numberPrompt({prompt: 'How many stamps do you want?', channel, userId}))[0];
+                numberOfStamps = await NumberPrompt.single({prompt: 'How many stamps do you want?', channel, userId, cancelable: true});
             } catch (error) {/** Do nothing */}
 
             await botGuild.setUpStamps(this.client, numberOfStamps);
@@ -210,14 +210,14 @@ class InitBot extends Command {
         // ask if the user will use the report functionality
         var isReport;
         try {
-            isReport = await yesNoPrompt({prompt: 'Will you be using the report functionality?', channel, userId});
+            isReport = await SpecialPrompt.boolean({prompt: 'Will you be using the report functionality?', channel, userId});
         } catch {
             isReport = false;
         }
         if (isReport) {
             var incomingReportChannel;
             try {
-                incomingReportChannel = incomingReportChannel = (await channelPrompt({prompt: 'What channel should prompts be sent to? We recommend this channel be accessible to your staff.', channel, userId})).first();
+                incomingReportChannel = await ChannelPrompt.single({prompt: 'What channel should prompts be sent to? We recommend this channel be accessible to your staff.', channel, userId});
             } catch {/** Do nothing */}
 
             // Send report to report channel or admin log if none given!
@@ -235,7 +235,7 @@ class InitBot extends Command {
         // ask if the user wants to use the experimental !ask command
         var isAsk;
         try {
-            isAsk = await yesNoPrompt({prompt: 'Do you want to let users use the experimental !ask command?', channel, userId});
+            isAsk = await SpecialPrompt.boolean({prompt: 'Do you want to let users use the experimental !ask command?', channel, userId});
         } catch {
             isAsk = false;
         }
@@ -269,13 +269,13 @@ class InitBot extends Command {
      * @async
      */
     async getVerificationTypes(channel, userId) {
-        let typeMsg = await messagePrompt({ prompt: `Please tell me the type and mention the role for a verification option. 
+        let typeMsg = await MessagePrompt.prompt({ prompt: `Please tell me the type and mention the role for a verification option. 
             For example: hacker @hacker . Make sure you add nothing more to the message!`, channel, userId });
         let type = typeMsg.content.replace(/<(@&?|#)[a-z0-9]*>/ , ''); // clean out any snowflakes
         type = type.toLowerCase().trim();
         let role = typeMsg.mentions.roles.first();
 
-        if (await yesNoPrompt({ prompt: 'Would you like to add another verification option?', channel, userId })) {
+        if (await SpecialPrompt.boolean({ prompt: 'Would you like to add another verification option?', channel, userId })) {
             return (await this.getVerificationTypes(channel, userId)).concat([{
                 type: type,
                 roleId: role.id,
@@ -285,22 +285,6 @@ class InitBot extends Command {
                 type: type,
                 roleId: role.id,
             }];
-        }
-    }
-
-    /**
-     * Will ask the user for a channel to be used for the bot, cancellations are not allowed.
-     * @param {TextChannel} channel 
-     * @param {Snowflake} userId 
-     * @returns {Promise<TextChannel>}
-     * @async
-     */
-    async askForBotSupportChannel(channel, userId) {
-        try {
-            return (await channelPrompt({prompt: 'What channel can the bot use to contact users when DMs are not available?', channel, userId})).first();
-        } catch (error) {
-            channel.send('<@' + userId + '> You can not cancel this command, please try again!').then(msg => msg.delete({timeout: 15000}));
-            return await this.askForBotSupportChannel(channel, userId);
         }
     }
 
@@ -316,13 +300,13 @@ class InitBot extends Command {
      */
     async askOrCreate(roleName, channel, userId, guild, color) {
         try {
-            let hasRole = await yesNoPrompt({prompt: 'Have you created the ' + roleName + ' role? You can go ahead and create it if you wish, or let me do the hard work.', channel, userId});
+            let hasRole = await SpecialPrompt.boolean({prompt: 'Have you created the ' + roleName + ' role? You can go ahead and create it if you wish, or let me do the hard work.', channel, userId});
             if (hasRole) {
-                return (await rolePrompt({prompt: 'What is the ' + roleName + ' role?', channel, userId})).first();
+                return await RolePrompt.single({prompt: 'What is the ' + roleName + ' role?', channel, userId});
             } else {
                 return await guild.roles.create({
                     data: {
-                        name: (await messagePrompt({prompt: 'What name would you like the ' + roleName + ' role to have?', channel, userId}, 'string')).content,
+                        name: await StringPrompt.single({prompt: 'What name would you like the ' + roleName + ' role to have?', channel, userId}),
                         color: color,
                     }
                 });

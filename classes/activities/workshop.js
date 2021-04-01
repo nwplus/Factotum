@@ -1,11 +1,11 @@
 const { Role, Collection, TextChannel, VoiceChannel, GuildCreateChannelOptions, MessageEmbed, Message } = require('discord.js');
 const winston = require('winston');
 const { randomColor, sendMessageToMember, sendMsgToChannel } = require('../../discord-services');
-const { messagePrompt, yesNoPrompt, chooseChannel } = require('../prompt');
 const Console = require('../console');
 const Room = require('../room');
 const TicketManager = require('../tickets/ticket-manager');
 const Activity = require('./activity');
+const { StringPrompt, SpecialPrompt, ListPrompt } = require('advanced-discord.js-prompts');
 
 
 /**
@@ -292,7 +292,7 @@ class Workshop extends Activity {
      */
     async addChannel(channel, userId) {
         // ask if it will be for TA
-        let isTa = await yesNoPrompt({ prompt: 'Is this channel for TAs?', channel, userId });
+        let isTa = await SpecialPrompt.boolean({ prompt: 'Is this channel for TAs?', channel, userId });
 
         if (isTa) {
             /** @type {TextChannel} */
@@ -373,7 +373,11 @@ class Workshop extends Activity {
         // send poll to general text or prompt for channel
         let pollChannel;
         if ((await this.room.channels.generalText.fetch(true))) pollChannel = this.room.channels.generalText;
-        else pollChannel = await chooseChannel('What channel should the poll go to?', this.room.channels.textChannels.array(), channel, userId);
+        else pollChannel = ListPrompt.singleListChooser({
+            prompt: 'What channel should the poll go to?',
+            channel: channel,
+            userId: userId
+        }, this.room.channels.textChannels.array());
 
         pollChannel.send(qEmbed).then(msg => {
             poll.responses.forEach((value, key) => msg.react(key));
@@ -475,7 +479,7 @@ class Workshop extends Activity {
                 this.waitlist.set(user.id, user.username);
             }
 
-            let oneLiner = (await messagePrompt({prompt: 'Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond', channel: this.assistanceChannel, userId: user.id })).cleanContent;
+            let oneLiner = await StringPrompt.single({prompt: 'Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond', channel: this.assistanceChannel, userId: user.id });
 
             const hackerEmbed = new MessageEmbed()
                 .setColor(this.botGuild.colors.embedColor)

@@ -1,9 +1,9 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { checkForRole, sendEmbedToMember } = require('../../discord-services');
 const { MessageEmbed, Message } = require('discord.js');
-const { yesNoPrompt, channelPrompt, messagePrompt } = require('../../classes/prompt');
 const Verification = require('../../classes/verification');
 const BotGuildModel = require('../../classes/bot-guild');
+const { StringPrompt, SpecialPrompt, ChannelPrompt } = require('advanced-discord.js-prompts');
 
 /**
  * StartAttend makes a new channel called #attend, or uses an existing channel of the user's choice, as the channel where an embed 
@@ -44,14 +44,14 @@ class StartAttend extends PermissionCommand {
         message.guild.setCommandEnabled('attend', true);
 
         try {
-            let existsChannel = await yesNoPrompt({prompt: 'Is there already a channel that exists that hackers will be using !attend in?', channel: message.channel, userId: message.author.id});
+            let existsChannel = await SpecialPrompt.boolean({prompt: 'Is there already a channel that exists that hackers will be using !attend in?', channel: message.channel, userId: message.author.id, cancelable: true});
 
             if (existsChannel) {
                 //ask user to mention channel to be used for !attend
-                channel = (await channelPrompt({prompt: 'Please mention the channel to be used for the !attend command. ', channel: message.channel, userId: message.author.id})).first();
+                channel = await ChannelPrompt.single({prompt: 'Please mention the channel to be used for the !attend command. ', channel: message.channel, userId: message.author.id, cancelable: true});
             } else {
                 //ask user for category to create new attend channel under
-                let categoryReply = await messagePrompt({prompt: 'What category do you want the new attend channel under? ', channel: message.channel, userId: message.author.id}, 'string', 20);
+                let categoryReply = await StringPrompt.single({prompt: 'What category do you want the new attend channel under? ', channel: message.channel, userId: message.author.id, cancelable: true});
                 
                 var categoryName = categoryReply.content;
 

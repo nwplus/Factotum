@@ -1,7 +1,7 @@
 const { Message } = require('discord.js');
 const PermissionCommand = require('../../classes/permission-command');
-const { messagePrompt } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
+const { StringPrompt } = require('advanced-discord.js-prompts');
 
 /**
  * Gives admin the ability to change the prefix used in the guild by the bot.
@@ -26,10 +26,7 @@ class ChangePreFix extends PermissionCommand {
     async runCommand(botGuild, message) {
         let options = ['!', '#', '$', '%', '&', '?', '|', '°'];
 
-        let prefix = '';
-        while (!options.includes(prefix)) {
-            prefix = (await messagePrompt({ prompt: `What would you like to use as the prefix? Options: ${options.join(', ')}.`, channel: message.channel, userId: message.author.id}, 'string', 45)).content;
-        }
+        let prefix = StringPrompt.restricted({ prompt: 'What would you like to use as the prefix?', channel: message.channel, userId: message.author.id }, options);
 
         botGuild.prefix = prefix;
         botGuild.save();

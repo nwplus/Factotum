@@ -6,10 +6,10 @@ const firebaseServices = require('./db/firebase/firebase-services');
 const winston = require('winston');
 const fs = require('fs');
 const discordServices = require('./discord-services');
-const Prompt = require('./classes/prompt');
 const BotGuild = require('./db/mongo/BotGuild');
 const BotGuildModel = require('./classes/bot-guild');
 const Verification = require('./classes/verification');
+const { StringPrompt } = require('advanced-discord.js-prompts');
 
 /**
  * The Main App module houses the bot events, process events, and initializes
@@ -342,7 +342,7 @@ async function greetNewMember(member, botGuild) {
 
         verifyCollector.on('collect', async (reaction, user) => {
             try {
-                var email = (await Prompt.messagePrompt({prompt: 'Please send me your email associated to this event!', channel: member.user.dmChannel, userId: member.id}, 'string', 30)).content;
+                var email = await StringPrompt.single({prompt: 'Please send me your email associated to this event!', channel: member.user.dmChannel, userId: member.id, time: 30, cancelable: true});
             } catch (error) {
                 discordServices.sendEmbedToMember(member, {
                     title: 'Verification Error',

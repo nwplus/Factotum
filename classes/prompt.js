@@ -8,14 +8,6 @@ const discordServices = require('../discord-services');
 class Prompt {
 
     /**
-     * Common data for all prompts.
-     * @typedef PromptInfo
-     * @property {String} prompt - the text prompt to send to user
-     * @property {TextChannel} channel - the channel to send the prompt to
-     * @property {String} userId - the ID of the user to prompt
-     */
-
-    /**
      * Prompt the user for some text.
      * @param {PromptInfo} promptInfo - the common data, prompt, channel, userId
      * @param {String} responseType - the type of response, one of string, number, boolean, mention
