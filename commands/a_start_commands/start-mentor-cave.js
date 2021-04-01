@@ -3,9 +3,9 @@ const PermissionCommand = require('../../classes/permission-command');
 const { randomColor } = require('../../discord-services');
 const { Message, Collection } = require('discord.js');
 const Cave = require('../../classes/activities/cave');
-const { yesNoPrompt, rolePrompt, numberPrompt, reactionPrompt } = require('../../classes/prompt');
 const winston = require('winston');
 const BotGuildModel = require('../../classes/bot-guild');
+const { NumberPrompt, SpecialPrompt, RolePrompt } = require('advanced-discord.js-prompts');
 
 /**
  * The start mentor cave command creates a cave for mentors. To know what a cave is look at [cave]{@link Cave} class.
@@ -53,8 +53,8 @@ class StartMentorCave extends PermissionCommand {
             let excludeFromAutoDeleteEmoji = await checkForDuplicateEmojis('What is the emoji to opt tickets in/out for the garbage collector?');
 
             var role;
-            if (await yesNoPrompt({prompt: 'Have you created the mentor role? If not it is okay, I can make it for you!', channel, userId})) {
-                role = (await rolePrompt({prompt: 'Please mention the mentor role now!', channel, userId})).first();
+            if (await SpecialPrompt.boolean({prompt: 'Have you created the mentor role? If not it is okay, I can make it for you!', channel, userId})) {
+                role = await RolePrompt.single({prompt: 'Please mention the mentor role now!', channel, userId});
             } else {
                 role = await message.guild.roles.create({
                     data: {
@@ -64,7 +64,7 @@ class StartMentorCave extends PermissionCommand {
                 });
             }
 
-            let publicRoles = await rolePrompt({ prompt: 'What roles can request tickets?', channel, userId });
+            let publicRoles = await RolePrompt.multi({ prompt: 'What roles can request tickets?', channel, userId });
 
             /**
              * @param {String} prompt - message to ask user to choose an emoji for a function
@@ -73,20 +73,21 @@ class StartMentorCave extends PermissionCommand {
              */
             // eslint-disable-next-line no-inner-declarations
             async function checkForDuplicateEmojis(prompt) {
-                var emoji = await reactionPrompt({prompt, channel, userId}, emojis);
+                let reaction = await SpecialPrompt.singleRestrictedReaction({prompt, channel, userId}, emojis);
+                var emoji = reaction.emoji;
                 emojis.set(emoji.name, emoji);
                 return emoji;
             }
 
-            let inactivePeriod = (await numberPrompt({prompt: 'How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
-                channel, userId}))[0];
+            let inactivePeriod = await NumberPrompt.single({prompt: 'How long, in minutes, does a ticket need to be inactive for before asking to delete it?',
+                channel, userId});
             var bufferTime = inactivePeriod;
             while (bufferTime >= inactivePeriod) {
-                bufferTime = (await numberPrompt({prompt: `How long, in minutes, will the bot wait for a response to its request to delete a ticket? Must be less than inactive period: ${inactivePeriod}.`,
-                    channel, userId}))[0];
+                bufferTime = await NumberPrompt.single({prompt: `How long, in minutes, will the bot wait for a response to its request to delete a ticket? Must be less than inactive period: ${inactivePeriod}.`,
+                    channel, userId});
             }
-            let reminderTime = (await numberPrompt({prompt: 'How long, in minutes, shall a ticket go unaccepted before the bot sends a reminder to all mentors?',
-                channel, userId}))[0];
+            let reminderTime = await NumberPrompt.single({prompt: 'How long, in minutes, shall a ticket go unaccepted before the bot sends a reminder to all mentors?',
+                channel, userId});
 
             let cave = new Cave({
                 name: 'Mentor',

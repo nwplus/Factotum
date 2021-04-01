@@ -2,11 +2,11 @@ const csvParser = require('csv-parser');
 const { Message } = require('discord.js');
 const https = require('https');
 const PermissionCommand = require('../../classes/permission-command');
-const { messagePrompt } = require('../../classes/prompt');
 const { addUserData } = require('../../db/firebase/firebase-services');
 const BotGuildModel = require('../../classes/bot-guild');
 const { sendMsgToChannel } = require('../../discord-services');
 const winston = require('winston');
+const { MessagePrompt } = require('advanced-discord.js-prompts');
 
 /**
  * Will prompt the user for a csv file to add members to firebase. The csv file must have the following columns with exactly those names:
@@ -44,7 +44,7 @@ class AddMembers extends PermissionCommand {
         
         try {
             // request file
-            let msg = await messagePrompt({ prompt: 'Please send the csv file!', channel: message.channel, userId: message.author.id}, 'string');
+            let msg = await MessagePrompt.prompt({ prompt: 'Please send the csv file!', channel: message.channel, userId: message.author.id});
 
             let fileUrl = msg.attachments.first().url;
 

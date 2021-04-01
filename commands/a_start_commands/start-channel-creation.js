@@ -1,8 +1,9 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { sendEmbedToMember, replyAndDelete } = require('../../discord-services');
 const { Message, MessageEmbed } = require('discord.js');
-const { channelPrompt, messagePrompt, } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
+const { StringPrompt, MessagePrompt } = require('advanced-discord.js-prompts');
+const ChannelPrompt = require('advanced-discord.js-prompts/prompts/channel-prompt');
 
 /**
  * The start channel creation command lets users create private channels for them to use.
@@ -40,7 +41,7 @@ class StartChannelCreation extends PermissionCommand {
 
         try {
             // grab current channel
-            var channel = (await channelPrompt({prompt: 'What channel do you want to use? The channel\'s category will be used to create the new channels.', channel: message.channel, userId: message.author.id})).first();
+            var channel = await ChannelPrompt.single({prompt: 'What channel do you want to use? The channel\'s category will be used to create the new channels.', channel: message.channel, userId: message.author.id});
         } catch (error) {
             message.channel.send('<@' + message.author.id + '> The command has been canceled due to the prompt cancel.').then(msg => msg.delete({timeout: 5000}));
             return;
@@ -76,18 +77,11 @@ class StartChannelCreation extends PermissionCommand {
             let userId = user.id;
 
             try {
-                let channelType =(await messagePrompt({prompt: 'Do you want a "voice" or "text" channel?', channel, userId}, 'string', 20)).content;
+                let channelType = await StringPrompt.restricted({prompt: 'Do you want a "voice" or "text" channel?', channel, userId, time: 20, cancelable: true}, ['voice', 'text']);
 
-                // make sure input is valid
-                if (channelType != 'voice' && channelType != 'text') {
-                    // report the error and ask to try again
-                    replyAndDelete(message, 'Wrong input, please respond with "voice" or "text" only. Try again.');
-                    return;
-                }
+                let guests = (await MessagePrompt.prompt({prompt: 'Please tag all the invited users to this private ' + channelType + ' channel. Type "none" if no guests are welcomed.', channel, userId, time: 60, cancelable: true})).mentions.members;
 
-                let guests = (await messagePrompt({prompt: 'Please tag all the invited users to this private ' + channelType + ' channel. Type "none" if no guests are welcomed.', channel, userId}, 'string', 60)).mentions.members;
-
-                let channelName = (await messagePrompt({prompt: 'What do you want to name the channel? If you don\'t care then send "default"!', channel, userId}, 'string', 30)).content;
+                let channelName = await StringPrompt.single({prompt: 'What do you want to name the channel? If you don\'t care then send "default"!', channel, userId, time: 30});
 
                 // if channelName is default then use default
                 if (channelName === 'default') {

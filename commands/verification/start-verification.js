@@ -1,9 +1,9 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { sendEmbedToMember } = require('../../discord-services');
 const { Message, MessageEmbed } = require('discord.js');
-const { messagePrompt } = require('../../classes/prompt');
 const Verification = require('../../classes/verification');
 const BotGuildModel = require('../../classes/bot-guild');
+const { StringPrompt } = require('advanced-discord.js-prompts');
 
 /**
  * Sends an embed with reaction collector for users to re-verify
@@ -43,7 +43,7 @@ class StartVerification extends PermissionCommand {
             let member = message.guild.members.cache.get(user.id);
 
             try {
-                var email = (await messagePrompt({prompt: 'Thanks for joining cmd-f 2021! What email did you get accepted with? Please send it now!', channel: (await member.user.createDM()), userId: member.id}, 'string', 45)).content;
+                var email = await StringPrompt.single({prompt: `Thanks for joining ${message.guild.name}! What email did you get accepted with? Please send it now!`, channel: (await member.user.createDM()), userId: member.id, time: 45});
             } catch (error) {
                 sendEmbedToMember(member, {
                     title: 'Verification Error',

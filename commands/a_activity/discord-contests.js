@@ -1,9 +1,9 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { discordLog, checkForRole } = require('../../discord-services');
 const { Message, MessageEmbed, Snowflake } = require('discord.js');
-const { numberPrompt, yesNoPrompt, rolePrompt, memberPrompt } = require('../../classes/prompt');
 const { getQuestion } = require('../../db/firebase/firebase-services');
 const BotGuildModel = require('../../classes/bot-guild');
+const { NumberPrompt, SpecialPrompt, RolePrompt, MemberPrompt } = require('advanced-discord.js-prompts');
 
 /**
  * The DiscordContests class handles all functions related to Discord contests. It will ask questions in set intervals and pick winners
@@ -49,14 +49,14 @@ class DiscordContests extends PermissionCommand {
         //ask user for time interval between questions
         var timeInterval;
         try {
-            let num = (await numberPrompt({prompt: 'What is the time interval between questions in minutes (integer only)? ', channel, userId}))[0];
+            let num = await NumberPrompt.single({prompt: 'What is the time interval between questions in minutes (integer only)? ', channel, userId, cancelable: true});
             timeInterval = 1000 * 60 * num;
 
             // ask user whether to start asking questions now(true) or after 1 interval (false)
-            var startNow = await yesNoPrompt({prompt: 'Type "yes" to start first question now, "no" to start one time interval from now. ', channel, userId});
+            var startNow = await SpecialPrompt.boolean({prompt: 'Type "yes" to start first question now, "no" to start one time interval from now. ', channel, userId, cancelable: true});
 
             // id of role to mention when new questions come out
-            var role = (await rolePrompt({prompt: 'What is the hacker role to notify for Discord contests?', channel, userId})).first().id;
+            var roleId = (await RolePrompt.single({prompt: 'What role should I notify with a new Discord contest is available?', channel, userId})).id;
         } catch (error) {
             channel.send('<@' + userId + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;
@@ -91,7 +91,7 @@ class DiscordContests extends PermissionCommand {
                 '⏸️ to pause\n' +
                 '⏯️ to resume\n');
 
-        message.channel.send('<@&' + role + '>', { embed: startEmbed }).then((msg) => {
+        message.channel.send('<@&' + roleId + '>', { embed: startEmbed }).then((msg) => {
             msg.pin();
             msg.react('⏸️');
             msg.react('⏯️');
@@ -154,7 +154,7 @@ class DiscordContests extends PermissionCommand {
                     'Exact answers only!'));
 
 
-            message.channel.send('<@&' + role + '>' + ((answers.length === 0) ? (' - <@&' + this.botGuild.roleIDs.staffRole + '> Need manual review!') : ''), { embed: qEmbed }).then((msg) => {
+            message.channel.send('<@&' + roleId + '>' + ((answers.length === 0) ? (' - <@&' + this.botGuild.roleIDs.staffRole + '> Need manual review!') : ''), { embed: qEmbed }).then((msg) => {
                 if (answers.length === 0) {
                     msg.react('👑');
 
@@ -165,10 +165,10 @@ class DiscordContests extends PermissionCommand {
                         //once someone from Staff hits the crown emoji, tell them to mention the winner in a message in the channel
                         reaction.users.remove(user.id);
 
-                        memberPrompt({prompt: 'Pick a winner for the previous question by mentioning them in your next message in this channel!', channel: message.channel, userId: user.id})
-                            .then(members => {
-                                winners.push(members.first().id);
-                                message.channel.send('Congrats <@' + members.first().id + '> for the best answer to the previous question!');
+                        MemberPrompt.single({prompt: 'Pick a winner for the previous question by mentioning them in your next message in this channel!', channel: message.channel, userId: user.id, cancelable: true})
+                            .then(member => {
+                                winners.push(member.id);
+                                message.channel.send('Congrats <@' + member.id + '> for the best answer to the previous question!');
                                 emojiCollector.stop();
                             }).catch( () => {
                                 msg.channel.send('<@' + user.id + '> You have canceled the prompt, you can select a winner again at any time.').then(msg => msg.delete({timeout: 8000}));

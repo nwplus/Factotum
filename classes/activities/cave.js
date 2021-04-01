@@ -1,11 +1,11 @@
 const { Guild, Collection, Role, TextChannel, MessageEmbed, GuildEmoji, ReactionEmoji } = require('discord.js');
-const { messagePrompt, reactionPrompt, yesNoPrompt, stringPrompt, numberPrompt } = require('../prompt');
 const { sendMsgToChannel, addRoleToMember, removeRolToMember } = require('../../discord-services');
 const BotGuildModel = require('../bot-guild');
 const Room = require('../room');
 const Console = require('../console');
 const TicketManager = require('../tickets/ticket-manager');
 const Activity = require('./activity');
+const { StringPrompt, NumberPrompt, SpecialPrompt } = require('advanced-discord.js-prompts');
 
 /**
  * @typedef CaveOptions
@@ -223,7 +223,7 @@ class Cave extends Activity {
      * @async
      */
     async addSubRoleCallback(channel, userId) {
-        let roleNameMsg = await messagePrompt({prompt: 'What is the name of the new role?', channel, userId}, 'string');
+        let roleNameMsg = await StringPrompt.single({prompt: 'What is the name of the new role?', channel, userId});
 
         let roleName = roleNameMsg.content;
 
@@ -232,12 +232,13 @@ class Cave extends Activity {
             emojis.set(emojiName, subRole.name);
         });
 
-        let emoji = await reactionPrompt({ prompt: 'What emoji do you want to associate with this new role?', channel, userId }, emojis);
+        let reaction = await SpecialPrompt.singleRestrictedReaction({ prompt: 'What emoji do you want to associate with this new role?', channel, userId }, emojis);
+        let emoji = reaction.emoji;
 
         // search for possible existing role
         let findRole = this.guild.roles.cache.find(role => role.name.toLowerCase() === `${this.caveOptions.preRoleText}-${roleName}`.toLowerCase());
         let useOld;
-        if (findRole) useOld = await yesNoPrompt({ prompt: 'I have found a role with the same name! Would you like to use that one? If not I will create a new one.', channel, userId });
+        if (findRole) useOld = await SpecialPrompt.boolean({ prompt: 'I have found a role with the same name! Would you like to use that one? If not I will create a new one.', channel, userId });
 
         let role;
         if (useOld) role = findRole; 
@@ -251,7 +252,7 @@ class Cave extends Activity {
         this.addSubRole(role, emoji);
 
         try {
-            let addPublic = await yesNoPrompt({ prompt: 'Do you want me to create a public text channel?', channel, userId });
+            let addPublic = await SpecialPrompt.boolean({ prompt: 'Do you want me to create a public text channel?', channel, userId });
             if (addPublic) this.publicRoom.addRoomChannel({ name: roleName });
         } catch {
             // do nothing
@@ -267,7 +268,7 @@ class Cave extends Activity {
      * @async
      */
     async deleteTicketChannelsCallback(channel, userId) {
-        let type = await stringPrompt({
+        let type = await StringPrompt.restricted({
             prompt: 'Type "all" if you would like to delete all tickets before x amount of time or type "some" to specify which tickets to remove.', 
             channel, 
             userId,
@@ -275,13 +276,13 @@ class Cave extends Activity {
 
         switch (type) {
             case 'all': {
-                let age = (await numberPrompt({prompt: 'Enter how old, in minutes, a ticket has to be to remove. Send 0 if you want to remove all of them. Careful - this cannot be undone!', channel, userId}))[0];
+                let age = await NumberPrompt.single({prompt: 'Enter how old, in minutes, a ticket has to be to remove. Send 0 if you want to remove all of them. Careful - this cannot be undone!', channel, userId});
                 this.ticketManager.removeTicketsByAge(age);
                 sendMsgToChannel(channel, userId, `All tickets over ${age} have been deleted!`);
                 break;
             }
             case('some'): {
-                let subtype = await stringPrompt({
+                let subtype = await StringPrompt.restricted({
                     prompt: 'Would you like to remove all tickets except for some tickets you specify later or would you like to remove just some tickets. Type all or some respectively.',
                     channel,
                     userId
@@ -289,7 +290,7 @@ class Cave extends Activity {
 
                 switch (subtype) {
                     case 'all': {
-                        let ticketMentions = await numberPrompt({
+                        let ticketMentions = await NumberPrompt.multi({
                             prompt: 'In one message write the numbers of the tickets to not delete! (Separated by spaces, ex 1 2 13).',
                             channel,
                             userId
@@ -298,7 +299,7 @@ class Cave extends Activity {
                         break;
                     }
                     case 'some': {
-                        let ticketMentions = await numberPrompt({
+                        let ticketMentions = await NumberPrompt.multi({
                             prompt: 'In one message type the ticket numbers you would like to remove! (Separated by spaces, ex. 1 23 3).',
                             channel,
                             userId,
@@ -317,13 +318,13 @@ class Cave extends Activity {
      * @param {String} userId 
      */
     async includeExcludeCallback(channel, userId) {
-        let type = await stringPrompt({
+        let type = await StringPrompt.restricted({
             prompt: 'Would you like to include tickets on the automatic garbage collector or exclude tickets? Respond with include or exclude respectively.',
             channel,
             userId,
         }, ['include', 'exclude']);
 
-        let tickets = await numberPrompt({
+        let tickets = await NumberPrompt.multi({
             prompt: `Type the ticket numbers you would like to ${type} separated by spaces.`,
             channel, 
             userId,

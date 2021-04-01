@@ -1,9 +1,9 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { sendEmbedToMember } = require('../../discord-services');
 const { TextChannel, Snowflake, Message, MessageEmbed, Collection, GuildChannelManager, User } = require('discord.js');
-const { messagePrompt, yesNoPrompt, channelPrompt } = require('../../classes/prompt.js');
 const Team = require('../../classes/team');
 const BotGuildModel = require('../../classes/bot-guild');
+const { MemberPrompt, SpecialPrompt, ChannelPrompt } = require('advanced-discord.js-prompts');
 
 /**
  * The team roulette activity is a special type of team formation activity. Users can join the activity by reacting to a message embed (console). They can join
@@ -133,13 +133,15 @@ class StartTeamRoulette extends PermissionCommand {
             if (reaction.emoji.name === this.teamEmoji) {
                 
                 try {
-                    var groupMsg = await messagePrompt({prompt: 'Please mention all your current team members in one message. You mention by typing @friendName .', channel: this.textChannel, userId: teamLeaderUser.id}, 'string', 30);
+                    var groupMembers = await MemberPrompt.multi({
+                        prompt: 'Please mention all your current team members in one message.', 
+                        channel: this.textChannel, userId: teamLeaderUser.id,
+                        time: 30,
+                    });
                 } catch (error) {
                     reaction.users.remove(newTeam.leader);
                     return;
                 }
-
-                let groupMembers = groupMsg.mentions.users;
 
                 // remove any self mentions
                 groupMembers.delete(newTeam.leader);
@@ -257,7 +259,7 @@ class StartTeamRoulette extends PermissionCommand {
      * @throws Throws an error if the user cancels either of the two Prompts, the command should quit!
      */
     async getOrCreateChannel(promptChannel, promptId, guildChannelManager) {
-        let needChannel = await yesNoPrompt({prompt: 'Do you need a new channel and category or have you created one already?', channel: promptChannel, userId: promptId});
+        let needChannel = await SpecialPrompt.boolean({prompt: 'Do you need a new channel and category or have you created one already?', channel: promptChannel, userId: promptId});
 
         let channel;
 
@@ -272,7 +274,7 @@ class StartTeamRoulette extends PermissionCommand {
                 parent: category,
             });
         } else {
-            channel = (await channelPrompt({prompt: 'What channel would you like to use for team roulette, this channels category will be used for the new team channels.', channel: promptChannel, userId: promptId})).first();
+            channel = await ChannelPrompt.single({prompt: 'What channel would you like to use for team roulette, this channels category will be used for the new team channels.', channel: promptChannel, userId: promptId});
             channel.bulkDelete(100, true);
         }
 

@@ -1,9 +1,9 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { Message, MessageEmbed, Role, Collection} = require('discord.js');
 const { deleteMessage } = require('../../discord-services');
-const { messagePrompt, rolePrompt, reactionPrompt } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
 const winston = require('winston');
+const { StringPrompt, RolePrompt, SpecialPrompt } = require('advanced-discord.js-prompts');
 
 /**
  * Shows an embed with a link used for activities happening outside discord. Initial intent was to be used for 
@@ -45,14 +45,14 @@ class ERoomDirectory extends PermissionCommand {
         let userId = message.author.id;
 
         try {
-            var sponsorName = await messagePrompt({prompt: 'What is the room name?', channel, userId}, 'string');
+            var sponsorName = await StringPrompt.single({prompt: 'What is the room name?', channel, userId, cancelable: true});
             sponsorName = sponsorName.content;
 
-            var link = await messagePrompt({prompt: 'What is the room link? We will add no words to it! (ex. <Room Name> is Currently Open).', channel, userId}, 'string');
+            var link = await StringPrompt.single({prompt: 'What is the room link? We will add no words to it! (ex. <Room Name> is Currently Open).', channel, userId, cancelable: true});
             link = link.content;
 
             //ask user for role and save its id in the role variable
-            var role = (await rolePrompt({prompt: 'What role will get pinged when the rooms open?', channel, userId})).first().id;
+            var role = (await RolePrompt.single({prompt: 'What role will get pinged when the rooms open?', channel, userId})).id;
         } catch (error) {
             channel.send('<@' + userId + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;
@@ -64,7 +64,7 @@ class ERoomDirectory extends PermissionCommand {
          */
         var roomRoles;
         try {
-            roomRoles = await rolePrompt({ prompt: 'What other roles can open/close the room? (Apart form staff) (Reply to cancel for none).', channel, userId });
+            roomRoles = await RolePrompt.multi({ prompt: 'What other roles can open/close the room? (Apart form staff).', channel, userId, cancelable: true });
         } catch (error) {
             // do nothing as this is fine
             winston.loggers.get(message.guild.id).warning(`Got an error: ${error} but I let it go since we expected it from the prompt.`, { event: 'E-Room-Directory Command' });
@@ -73,7 +73,7 @@ class ERoomDirectory extends PermissionCommand {
         roomRoles.set(botGuild.roleIDs.staffRole, message.guild.roles.resolve(botGuild.roleIDs.staffRole));
 
         // prompt user for emoji to use
-        let emoji = await reactionPrompt({prompt: 'What emoji do you want to use to open/close the room?', channel, userId});
+        let emoji = await SpecialPrompt.singleEmoji({prompt: 'What emoji do you want to use to open/close the room?', channel, userId});
     
         //variable to keep track of state (Open vs Closed)
         var closed = true;

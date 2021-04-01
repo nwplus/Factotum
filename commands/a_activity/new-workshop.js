@@ -1,10 +1,10 @@
 const { replyAndDelete } = require('../../discord-services');
 const { Message, Collection } = require('discord.js');
-const { rolePrompt, yesNoPrompt } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
 const Workshop = require('../../classes/activities/workshop');
 const PermissionCommand = require('../../classes/permission-command');
 const Activity = require('../../classes/activities/activity');
+const { SpecialPrompt, RolePrompt } = require('advanced-discord.js-prompts');
 
 /**
  * Creates a new Workshop and prompts the user for any information.
@@ -55,12 +55,12 @@ class NewWorkshop extends PermissionCommand {
         // prompt user for roles that will have access to the TA side of the workshop
         var TARoles = new Collection();
         try {
-            TARoles = await rolePrompt({prompt: 'What roles will have access to the TA portion of this workshop?', channel: message.channel, userId: message.author.id});
+            TARoles = await RolePrompt.multi({prompt: 'What roles will have access to the TA portion of this workshop?', channel: message.channel, userId: message.author.id});
         } catch (error) {
             // do nothing if canceled
         }
 
-        let isLowTechSolution = await yesNoPrompt({ prompt: `Would you like to use the low tech solution? Else the high tech solution will be used. 
+        let isLowTechSolution = await SpecialPrompt.boolean({ prompt: `Would you like to use the low tech solution? Else the high tech solution will be used. 
             \n Low tech solution involves TAs reaching out to users via DM. 
             \n High tech solution involves users and TAs being in voice channels and being moved to a common voice channel to give/receive assistance. 
             \n We recommend the low tech solution!`, channel: message.channel, userId: message.author.id});

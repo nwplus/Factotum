@@ -1,9 +1,9 @@
 const { sendEmbedToMember, sendMessageToMember, deleteMessage } = require('../../discord-services');
 const { MessageEmbed, Message, Snowflake, Collection } = require('discord.js');
 const PermissionCommand = require('../../classes/permission-command');
-const { messagePrompt, channelPrompt } = require('../../classes/prompt');
 const BotGuildModel = require('../../classes/bot-guild');
 const StampsManager = require('../../classes/stamps-manager');
+const { StringPrompt, ChannelPrompt } = require('advanced-discord.js-prompts');
 
 /**
  * Sends a reaction collector for users to react, send a password and receive a stamp. Used to give out stamps for activities that don't have 
@@ -62,19 +62,15 @@ class PasswordStamp extends PermissionCommand {
         let userId = message.author.id;
         // check if arguments have been given and prompt for the channel to use
         try {
-            var prompt;
-
             if (activityName === '') {
-                prompt = await messagePrompt({prompt: 'Please respond with the workshop/activity name.', channel, userId}, 'string');
-                activityName = prompt.content;
+                activityName = await StringPrompt.single({prompt: 'Please respond with the workshop/activity name.', channel, userId, cancelable: true});
             }
 
             if(password === '') {
-                prompt = await messagePrompt({prompt: 'Please respond with the password for hackers to use to get stamp.', channel, userId}, 'string');
-                password = prompt.content;
+                password = await StringPrompt.single({prompt: 'Please respond with the password for hackers to use to get stamp.', channel, userId, cancelable: true});
             }
 
-            var targetChannel = (await channelPrompt({prompt: 'What channel do you want to send the stamp collector to? Users should have access to this channel!', channel, userId})).first();
+            var targetChannel = await ChannelPrompt.single({prompt: 'What channel do you want to send the stamp collector to? Users should have access to this channel!', channel, userId, cancelable: true});
         } catch (error) {
             channel.send('<@' + userId + '> Command was canceled due to prompt being canceled.').then(msg => msg.delete({timeout: 5000}));
             return;

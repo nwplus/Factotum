@@ -2,9 +2,9 @@ const { Collection, GuildEmoji, ReactionEmoji, TextChannel, Guild, Role, User } 
 const Ticket = require('./ticket');
 const BotGuildModel = require('../bot-guild');
 const Console = require('../console');
-const { messagePrompt } = require('../prompt');
 const { sendMsgToChannel } = require('../../discord-services');
 const winston = require('winston');
+const { StringPrompt } = require('advanced-discord.js-prompts');
 
 
 /**
@@ -218,8 +218,8 @@ class TicketManager {
         }
 
         try {
-            var promptMsg = await messagePrompt({prompt: 'Please send ONE message with: \n* A one liner of your problem ' + 
-                                '\n* Mention your team members using @friendName (example: @John).', channel, userId: user.id}, 'string', 45);
+            var promptMsg = await StringPrompt.single({prompt: 'Please send ONE message with: \n* A one liner of your problem ' + 
+                                '\n* Mention your team members using @friendName (example: @John).', channel, userId: user.id, cancelable: true, time: 45});
         } catch (error) {
             winston.loggers.get(this.botGuild._id).warning(`New ticket was canceled due to error: ${error}`, { event: 'Ticket Manager' });
             return;

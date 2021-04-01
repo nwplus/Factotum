@@ -2,12 +2,11 @@ const { Guild, Collection, Role, CategoryChannel, TextChannel, MessageEmbed, Gui
 const winston = require('winston');
 const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../bot-guild');
-const { rolePrompt, messagePrompt, reactionPicker, chooseChannel } = require('../prompt');
 const { shuffleArray, sendMsgToChannel } = require('../../discord-services');
 const StampsManager = require('../stamps-manager');
 const Room = require('../room');
 const Console = require('../console');
-
+const { StringPrompt, RolePrompt, ListPrompt } = require('advanced-discord.js-prompts');
 /**
  * @typedef ActivityInfo
  * @property {string} activityName - the name of this activity!
@@ -53,8 +52,8 @@ class Activity {
         let allowedRoles = new Collection();
         
         try {
-            allowedRoles = await rolePrompt({ prompt: `What roles${isStaffAuto ? ', aside from Staff,' : ''} will be allowed to view this activity? (Type "cancel" if none)`,
-                channel, userId });
+            allowedRoles = await RolePrompt.multi({ prompt: `What roles${isStaffAuto ? ', aside from Staff,' : ''} will be allowed to view this activity? (Type "cancel" if none)`,
+                channel, userId, cancelable: true });
         } catch (error) {
             // nothing given is an empty collection viewable to admins only
         }
@@ -212,9 +211,24 @@ class Activity {
      */
     async addChannel(channel, userId) {
         // voice or text
-        let option = await reactionPicker({ prompt: 'What type of channel do you want?', channel, userId }, new Collection([['🔊', {name: 'voice', description: 'A voice channel'}], ['✍️', {name: 'text', description: 'A text channel'}]]));
+        let option = await ListPrompt.singleReactionPicker({
+            prompt: 'What type of channel do you want?',
+            channel,
+            userId,
+        }, [
+            {
+                name: 'voice',
+                description: 'A voice channel',
+                emojiName: '🔊'
+            },
+            {
+                name: 'text', 
+                description: 'A text channel',
+                emojiName: '✍️',
+            }
+        ]);
         // channel name
-        let name = (await messagePrompt({ prompt: 'What is the name of the channel?', channel, userId }, 'string')).content;
+        let name = await StringPrompt.single({ prompt: 'What is the name of the channel?', channel, userId});
 
         return await this.room.addRoomChannel({name, info: { type: option.name}});
     }
@@ -226,8 +240,12 @@ class Activity {
      * @async
      */
     async removeChannel(channel, userId) {
-        // channel to remove
-        let removeChannel = await chooseChannel('What channel should be removed?', this.room.channels.category.children.array(), channel, userId);
+        /** @type {TextChannel} channel to remove */
+        let removeChannel = await ListPrompt.singleListChooser({
+            prompt: 'What channel should be removed?',
+            channel: channel,
+            userId: userId
+        }, this.room.channels.category.children.array());
 
         try {
             this.room.removeRoomChannel(removeChannel);
@@ -271,7 +289,12 @@ class Activity {
      * @param {String} userId - user to prompt for specified voice channel
      */
     async voiceCallBack(channel, userId) {
-        let mainChannel = await chooseChannel('What channel should people be moved to?', this.room.channels.voiceChannels.array(), channel, userId);
+        /** @type {VoiceChannel} */
+        let mainChannel = await ListPrompt.singleListChooser({
+            prompt: 'What channel should people be moved to?',
+            channel: channel,
+            userId: userId
+        }, this.room.channels.voiceChannels.array());
 
         this.room.channels.voiceChannels.forEach(channel => {
             channel.members.forEach(member => member.voice.setChannel(mainChannel));
@@ -292,7 +315,12 @@ class Activity {
      * @async
      */
     async shuffle(channel, userId, filter) {
-        let mainChannel = await chooseChannel('What channel should I move people from?', this.room.channels.voiceChannels.array(), channel, userId);
+        /** @type {VoiceChannel} */
+        let mainChannel = await ListPrompt.singleListChooser({
+            prompt: 'What channel should I move people from?',
+            channel: channel,
+            userId: userId
+        }, this.room.channels.voiceChannels.array());
 
         let members = mainChannel.members;
         if (filter) members = members.filter(member => filter(member));
@@ -324,7 +352,7 @@ class Activity {
      */
     async roleShuffle(channel, userId) {
         try {
-            var role = (await rolePrompt({ prompt: 'What role would you like to shuffle?', channel, userId })).first();
+            var role = await RolePrompt.single({ prompt: 'What role would you like to shuffle?', channel, userId });
         } catch (error) {
             winston.loggers.get(this.guild.id).warning(`User canceled a request when asking for a role for role shuffle. Error: ${error}.`, { event: 'Activity' });
         }
@@ -355,7 +383,11 @@ class Activity {
         let promptMsg;
         if ((await this.room.channels.generalText.fetch(true))) promptMsg = await this.room.channels.generalText.send(promptEmbed);
         else {
-            let stampChannel = await chooseChannel('What channel should the stamp distribution go?', this.room.channels.textChannels.array(), channel, userId);
+            let stampChannel = await ListPrompt.singleListChooser({
+                prompt: 'What channel should the stamp distribution go?',
+                channel: channel,
+                userId: userId
+            }, this.room.channels.textChannels.array());
             promptMsg = await stampChannel.send(promptEmbed);
         }
         
@@ -392,7 +424,7 @@ class Activity {
 
         let rulesChannel = await this.room.lockRoom();
 
-        let rules = (await messagePrompt({ prompt: 'What are the activity rules?', channel, userId })).cleanContent;
+        let rules = await StringPrompt.single({ prompt: 'What are the activity rules?', channel, userId});
 
         let joinEmoji = '🚗';
 

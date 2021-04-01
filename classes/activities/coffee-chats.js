@@ -1,9 +1,9 @@
 const Activity = require('./activity');
-const { MessageEmbed, TextChannel, User, GuildMember, Collection, VoiceChannel } = require('discord.js');
-const { memberPrompt, chooseChannel } = require('../prompt');
+const { TextChannel, GuildMember, Collection, VoiceChannel } = require('discord.js');
 const winston = require('winston');
 const { sendMsgToChannel } = require('../../discord-services');
 const Console = require('../console');
+const { MemberPrompt, ListPrompt } = require('advanced-discord.js-prompts');
 
 /**
  * A CoffeeChat is a special activity where teams get shuffled around voice channels to talk with other teams or members like mentors. 
@@ -58,7 +58,12 @@ class CoffeeChats extends Activity {
     async init(channel, userId) {
         await super.init();
 
-        this.mainVoiceChannel = await chooseChannel('What channel will the teams join first before being shuffled?', this.room.channels.voiceChannels.array(), channel, userId);
+        /** @type {VoiceChannel} */
+        this.mainVoiceChannel = await ListPrompt.singleListChooser({
+            prompt: 'What channel will the teams join first before being shuffled?',
+            channel: channel,
+            userId: userId
+        }, this.room.channels.voiceChannels.array());
         this.room.channels.safeChannels.set(this.mainVoiceChannel.id, this.mainVoiceChannel);
 
         for (var i = 0; i < this.numOfTeams; i++) {
@@ -152,7 +157,7 @@ class CoffeeChats extends Activity {
                 }
                 let members;
                 try {
-                    members = await memberPrompt({prompt: 'Who are you team members? Let me know in ONE message! Type cancel if you are joining solo.', channel: this.joinActivityChannel, userId: user.id});
+                    members = await MemberPrompt.multi({prompt: 'Who are you team members? Let me know in ONE message! Type cancel if you are joining solo.', channel: this.joinActivityChannel, userId: user.id});
                 } catch (error) {   
                     members = new Collection();
                 }

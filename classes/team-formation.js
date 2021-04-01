@@ -1,11 +1,11 @@
 const { GuildEmoji, ReactionEmoji, Role, TextChannel, MessageEmbed, Guild, Collection, User, Message, RoleManager } = require('discord.js');
-const { messagePrompt } = require('./prompt');
 const { sendEmbedToMember, addRoleToMember, deleteMessage, sendMessageToMember, removeRolToMember } = require('../discord-services');
 const BotGuild = require('../db/mongo/BotGuild');
 const winston = require('winston');
 const Activity = require('./activities/activity');
 const BotGuildModel = require('./bot-guild');
 const Console = require('./console');
+const { StringPrompt } = require('advanced-discord.js-prompts');
 
 /**
  * @class TeamFormation
@@ -333,9 +333,10 @@ class TeamFormation extends Activity {
      */
     async gatherForm(user, isTeam) {
         
-        var formMsg = await messagePrompt({prompt: 'Please send me your completed form, if you do not follow the form your post will be deleted!', 
-            channel: user.dmChannel, userId: user.id},'string', 30);
-        
+        var formMsg = await StringPrompt.single({
+            prompt: 'Please send me your completed form, if you do not follow the form your post will be deleted!', 
+            channel: user.dmChannel, userId: user.id, time: 30, cancelable: true,
+        });
 
         const embed = new MessageEmbed()
                 .setTitle('Information about them can be found below:')

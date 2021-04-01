@@ -1,10 +1,10 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
 const { Message } = require('discord.js');
-const { reactionPrompt, yesNoPrompt, rolePrompt, messagePrompt, } = require('../../classes/prompt.js');
 const TeamFormation = require('../../classes/team-formation');
 const Activity = require('../../classes/activities/activity');
 const { sendMsgToChannel } = require('../../discord-services');
+const { StringPrompt, SpecialPrompt, RolePrompt } = require('advanced-discord.js-prompts');
 
 /**
  * The team formation activity is the most basic team formation activity available. This activity works like a menu or directory of available teams and solo participants.
@@ -50,25 +50,25 @@ class StartTeamFormation extends PermissionCommand {
             
             var teamFormation = new TeamFormation({
                 teamInfo: {
-                    emoji: await reactionPrompt({prompt: 'What emoji do you want to use for teams to sign up?', channel, userId}),
-                    role: (await yesNoPrompt({prompt: 'Have you created the role teams will get when they sign up? If not its okay, I will create it for you!', channel, userId})) ? 
-                        (await rolePrompt({prompt: 'What role should team users get?', channel, userId})).first() :
+                    emoji: await SpecialPrompt.singleEmoji({prompt: 'What emoji do you want to use for teams to sign up?', channel, userId}),
+                    role: (await SpecialPrompt.boolean({prompt: 'Have you created the role teams will get when they sign up? If not its okay, I will create it for you!', channel, userId})) ? 
+                        await RolePrompt.single({prompt: 'What role should team users get?', channel, userId}) :
                         await TeamFormation.createTeamRole(message.guild.roles),
-                    form: (await yesNoPrompt({ prompt: `Would you like to use the default form?: ${TeamFormation.defaultTeamForm}\n else you create your own!`, channel, userId})) ? 
-                        TeamFormation.defaultTeamForm : (await messagePrompt({ prompt: 'Please send your form for teams now:', channel, userId })).content,
+                    form: (await SpecialPrompt.boolean({ prompt: `Would you like to use the default form?: ${TeamFormation.defaultTeamForm}\n else you create your own!`, channel, userId})) ? 
+                        TeamFormation.defaultTeamForm : await StringPrompt.single({ prompt: 'Please send your form for teams now:', channel, userId }),
                 },
                 prospectInfo: {
-                    emoji: await reactionPrompt({prompt: 'What emoji do you want to use for prospects to sign up?', channel, userId}),
-                    role: (await yesNoPrompt({prompt: 'Have you created the role prospects will get when they sign up? Worry not if you don\'t I can create it for you!', channel, userId})) ? 
-                        (await rolePrompt({prompt: 'What role should prospects get?', channel, userId})).first() : 
+                    emoji: await SpecialPrompt.singleEmoji({prompt: 'What emoji do you want to use for prospects to sign up?', channel, userId}),
+                    role: (await SpecialPrompt.boolean({prompt: 'Have you created the role prospects will get when they sign up? Worry not if you don\'t I can create it for you!', channel, userId})) ? 
+                        await RolePrompt.single({prompt: 'What role should prospects get?', channel, userId}) : 
                         await TeamFormation.createProspectRole(message.guild.roles),
-                    form: (await yesNoPrompt({ prompt: `Would you like to use the default form?: ${TeamFormation.defaultProspectForm}\n else you create your own!`, channel, userId})) ? 
-                        TeamFormation.defaultProspectForm : (await messagePrompt({ prompt: 'Please send your form for teams now:', channel, userId })).content,
+                    form: (await SpecialPrompt.boolean({ prompt: `Would you like to use the default form?: ${TeamFormation.defaultProspectForm}\n else you create your own!`, channel, userId})) ? 
+                        TeamFormation.defaultProspectForm : await StringPrompt.single({ prompt: 'Please send your form for teams now:', channel, userId }),
                 },
                 guild: message.guild,
                 botGuild: botGuild,
                 activityRoles,
-                isNotificationsEnabled: await yesNoPrompt({prompt: 'Do you want to notify users when the opposite party has a new post?', channel, userId}),
+                isNotificationsEnabled: await SpecialPrompt.boolean({prompt: 'Do you want to notify users when the opposite party has a new post?', channel, userId}),
             });
 
         } catch (error) {
