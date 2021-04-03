@@ -227,7 +227,7 @@ class Room {
 
             await deleteChannel(this.channels.category);
         }
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was deleted!`, {event: "Activity"});
+        winston.loggers.get(this.guild.id).event(`The room ${this.name} was deleted!`, {event: "Room"});
     }
 
     /**
