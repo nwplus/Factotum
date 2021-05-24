@@ -33,15 +33,15 @@ const getEmoji = require('get-random-emoji');
  * @property {String} title - the console title
  * @property {String} description - the description of the console
  * @property {TextChannel | DMChannel} channel - the channel this console lives in
- * @property {Guild} guild - the guild this console was born from
  * @property {Collection<String, Feature>} [features] - the collection of features mapped by emoji name
+ * @property {Collection<String, String>} [fields] - a collection of fields
  * @property {String} [color] - console color in hex
  * @property {ReactionCollectorOptions} [options={}] collector options
  */
 
 /**
  * The console class represents a Discord UI console. A console is an embed with options users 
- * can interact with my reacting with emojis.
+ * can interact with by reacting with emojis.
  * @class
  */
 class Console {
@@ -68,10 +68,56 @@ class Console {
     }
 
     /**
+     * Creates a Console from JSON data.
+     * @param {JSON} json the json data
+     * @param {Guild} guild the guild where this console lives
+     * @returns {Console}
+     */
+    static async fromJSON(json, guild) {
+        let console = new Console(
+            {
+                title: json['title'],
+                description: json['description'],
+                channel: guild.channels.resolve(json['channelId']),
+                features: new Collection(json['features']),
+                color: json['color'],
+                options: JSON.parse(json['collectorOptions']),
+                fields: new Collection(json['fields']),
+            }
+        );
+
+        if (json['messageId'] != undefined) {
+            let message = await console.channel.messages.fetch(json['messageId']);
+            console.message = message;
+            console.createReactionCollector(console.message);
+        }
+    }
+
+    /**
+     * Creates a JSON representation of this object
+     * @returns {JSON} representation of this object as JSON
+     */
+    toJSON() {
+        return {
+            'title': this.title,
+            'description': this.description,
+            'features': [...this.features],
+            'fields': [...this.fields],
+            'color': this.color,
+            'collectorOptions': JSON.stringify(this.collectorOptions),
+            'messageId': this.message?.id,
+            'interacting': [...this.interacting],
+            'channelId': this.channel.id,
+        };
+    }
+
+    
+
+    /**
      * @constructor
      * @param {ConsoleInfo} args
      */
-    constructor({title, description, channel, guild, features = new Collection(), color = randomColor(), options = {}}) {
+    constructor({title, description, channel, features = new Collection(), fields = new Collection(), color = randomColor(), options = {}}) {
 
         /**
          * @type {String}
@@ -130,13 +176,8 @@ class Console {
          */
         this.channel = channel;
 
-        /**
-         * The guild this console was born from.
-         * @type {Guild}
-         */
-        this.guild = guild;
-
         features.forEach(feature => this.addFeature(feature));
+        fields.forEach((name, description) => this.addField(name, description));
     }
 
     /**
@@ -163,17 +204,28 @@ class Console {
             });
         });
 
-        this.collector = this.message.createReactionCollector((reaction, user) => 
-            !user.bot && 
-            this.features.has(reaction.emoji.id || reaction.emoji.name) && 
-            !this.interacting.has(user.id)
-        , this.collectorOptions);
+        this.createReactionCollector(this.message);
+    }
+
+    /**
+     * Creates the reaction collector in the message.
+     * @param {Message} message
+     */
+    createReactionCollector(message) {
+        // make sure we don't have two collectors going!
+        if (this.collector) this.stopConsole();
+
+        this.collector = message.createReactionCollector((reaction, user) => !user.bot &&
+            this.features.has(reaction.emoji.id || reaction.emoji.name) &&
+            !this.interacting.has(user.id),
+        this.collectorOptions);
 
         this.collector.on('collect', (reaction, user) => {
             this.interacting.set(user.id, user);
             let feature = this.features.get(reaction.emoji.id || reaction.emoji.name);
             feature?.callback(user, reaction, () => this.stopInteracting(user), this);
-            if (this.channel.type != 'dm' && !feature?.removeCallback) reaction.users.remove(user);
+            if (this.channel.type != 'dm' && !feature?.removeCallback)
+                reaction.users.remove(user);
         });
 
         this.collector.on('remove', (reaction, user) => {
@@ -190,7 +242,7 @@ class Console {
      * @param {Feature} feature 
      */
     featureFieldName(feature) {        
-        let emoji = this.guild.emojis.cache.get(feature.emojiName);
+        let emoji = this.channel.guild.emojis.cache.get(feature.emojiName);
 
         return `${emoji ? emoji.toString() : feature.emojiName} - ${feature.name}`;
     }
@@ -271,7 +323,7 @@ class Console {
      * Stop the console from interacting with any users.
      */
     stopConsole() {
-        this.collector.stop();
+        this.collector?.stop();
     }
 
     /**
@@ -279,7 +331,7 @@ class Console {
      */
     delete() {
         this.stopConsole();
-        this.message.delete();
+        this.message?.delete();
     }
 
     /**

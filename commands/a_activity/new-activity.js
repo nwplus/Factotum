@@ -43,7 +43,8 @@ class NewActivity extends PermissionCommand {
     async runCommand(botGuild, message, {activityName}) {
 
         let allowedRoles = await Activity.promptForRoleParticipants(message.channel, message.author.id, true);
-        let activity = await new Activity({ activityName, guild: message.guild, roleParticipants: allowedRoles, botGuild}).init();
+        let activity = new Activity({ activityName, guild: message.guild, roleParticipants: allowedRoles, botGuild});
+        await activity.init();
 
     }
 }
