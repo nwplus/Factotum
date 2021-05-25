@@ -1,7 +1,8 @@
 const { Collection, GuildEmoji, ReactionEmoji, TextChannel, Guild, Role, User } = require('discord.js');
 const Ticket = require('./ticket');
 const BotGuildModel = require('../bot-guild');
-const Console = require('../console');
+const Console = require('../consoles/console');
+const Feature = require('../consoles/feature');
 const { sendMsgToChannel } = require('../../discord-services');
 const winston = require('winston');
 const { StringPrompt } = require('advanced-discord.js-prompts');
@@ -168,7 +169,7 @@ class TicketManager {
     async sendTicketCreatorConsole(title, description, color) {
         /** @type {Console.Feature[]} */
         let featureList = [
-            Console.newFeature({
+            Feature.create({
                 name: 'General Ticket',
                 description: 'A general ticket aimed to all helpers.',
                 emoji: this.ticketDispatcherInfo.mainHelperInfo.emoji,
@@ -191,7 +192,7 @@ class TicketManager {
      */
     addTicketType(role, typeName, emoji) {
         this.ticketCreatorInfo.console.addFeature(
-            Console.newFeature({
+            Feature.create({
                 name: `Question about ${typeName}`,
                 description: '---------------------------------',
                 emoji: emoji,

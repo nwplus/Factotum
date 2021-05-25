@@ -1,7 +1,8 @@
 const { Collection, User, Role } = require('discord.js');
 const winston = require("winston");
 const discordServices = require('../../discord-services');
-const Console = require('../console');
+const Console = require('../consoles/console');
+const Feature = require('../consoles/feature');
 const Room = require("../room");
 
 class Ticket {
@@ -175,7 +176,7 @@ class Ticket {
             this.consoles.ticketManager.addField(embedField.name, embedField.value, embedField.inline);
         }));
 
-        let joinTicketFeature = Console.newFeature({
+        let joinTicketFeature = Feature.create({
             name: 'Can you help them?',
             description: 'If so, react to this message with the emoji!',
             emoji: this.ticketManager.ticketDispatcherInfo.takeTicketEmoji,
@@ -251,7 +252,7 @@ class Ticket {
         await this.consoles.ticketManager.addField('This ticket is being handled!', `<@${helper.id}> is helping this team!`);
         await this.consoles.ticketManager.changeColor('#36c3ff');
 
-        let takeTicketFeature = Console.newFeature({
+        let takeTicketFeature = Feature.create({
             name: 'Still want to help?',
                 description: `Click the ${this.ticketManager.ticketDispatcherInfo.joinTicketEmoji.toString()} emoji to join the ticket!`,
                 emoji: this.ticketManager.ticketDispatcherInfo.joinTicketEmoji,

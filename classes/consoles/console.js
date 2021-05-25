@@ -1,32 +1,7 @@
 const { Collection, Message, TextChannel, MessageEmbed, DMChannel, MessageReaction, User, ReactionCollectorOptions, ReactionCollector, Guild, GuildEmoji, ReactionEmoji } = require('discord.js');
-const { randomColor } = require('../discord-services');
+const { randomColor } = require('../../discord-services');
 const getEmoji = require('get-random-emoji');
-
-/**
- * A feature is an object with information to make an action from a console.
- * The emojiName can be either a custom emoji ID or a unicode emoji name.
- * @typedef Feature
- * @property {String} emojiName
- * @property {String} name
- * @property {String} description
- * @property {FeatureCallback} callback
- * @property {FeatureCallback} [removeCallback]
- */
-
-/**
- * @callback FeatureCallback
- * @param {User} user - the user that reacted
- * @param {MessageReaction} reaction - the reaction
- * @param {StopInteractingCallback} stopInteracting - callback to let the console know the user has
- * stopped interacting.
- * @param {Console} console - the console this feature is working on
- * @async
- */
-
-/**
- * @callback StopInteractingCallback
- * @param {User} user
- */
+const Feature = require('./feature');
 
 /**
  * @typedef ConsoleInfo
@@ -45,73 +20,6 @@ const getEmoji = require('get-random-emoji');
  * @class
  */
 class Console {
-
-    /**
-     * Creates a feature object when you have a GuildEmoji or a ReactionEmoji.
-     * Used for when adding features programmatically!
-     * @param {Object} args
-     * @param {String} args.name
-     * @param {String} args.description
-     * @param {GuildEmoji | ReactionEmoji | String} args.emoji
-     * @param {FeatureCallback} args.callback
-     * @param {FeatureCallback} [args.removeCallback]
-     * @returns {Feature}
-     */
-    static newFeature({name, description, emoji, callback, removeCallback}) {
-        return {
-            name,
-            description,
-            emojiName: typeof emoji === 'string' ? emoji : emoji.id || emoji.name,
-            callback,
-            removeCallback,
-        };
-    }
-
-    /**
-     * Creates a Console from JSON data.
-     * @param {JSON} json the json data
-     * @param {Guild} guild the guild where this console lives
-     * @returns {Console}
-     */
-    static async fromJSON(json, guild) {
-        let console = new Console(
-            {
-                title: json['title'],
-                description: json['description'],
-                channel: guild.channels.resolve(json['channelId']),
-                features: new Collection(json['features']),
-                color: json['color'],
-                options: JSON.parse(json['collectorOptions']),
-                fields: new Collection(json['fields']),
-            }
-        );
-
-        if (json['messageId'] != undefined) {
-            let message = await console.channel.messages.fetch(json['messageId']);
-            console.message = message;
-            console.createReactionCollector(console.message);
-        }
-    }
-
-    /**
-     * Creates a JSON representation of this object
-     * @returns {JSON} representation of this object as JSON
-     */
-    toJSON() {
-        return {
-            'title': this.title,
-            'description': this.description,
-            'features': [...this.features],
-            'fields': [...this.fields],
-            'color': this.color,
-            'collectorOptions': JSON.stringify(this.collectorOptions),
-            'messageId': this.message?.id,
-            'interacting': [...this.interacting],
-            'channelId': this.channel.id,
-        };
-    }
-
-    
 
     /**
      * @constructor
@@ -191,7 +99,7 @@ class Console {
             .setTitle(this.title)
             .setDescription(this.description);
         
-        this.features.forEach(feature => embed.addField(this.featureFieldName(feature), this.featureFieldValue(feature)));
+        this.features.forEach(feature => embed.addField(feature.getFieldName(), feature.getFieldValue()));
         this.fields.forEach((description, name) => embed.addField(name, description));
 
         this.message = await this.channel.send(messageText ,embed);
@@ -238,25 +146,6 @@ class Console {
     }
 
     /**
-     * Returns the feature's name string for when adding it to a embed field.
-     * @param {Feature} feature 
-     */
-    featureFieldName(feature) {        
-        let emoji = this.channel.guild.emojis.cache.get(feature.emojiName);
-
-        return `${emoji ? emoji.toString() : feature.emojiName} - ${feature.name}`;
-    }
-
-    /**
-     * Returns the feature's value string for when adding it to a embed field.
-     * @param {Feature} feature 
-     * @returns {String}
-     */
-    featureFieldValue(feature) {
-        return feature.description;
-    }
-
-    /**
      * Adds a feature to this console.
      * @param {Feature} feature - the feature to add
      * @async
@@ -271,12 +160,30 @@ class Console {
         this.features.set(feature.emojiName, feature);
 
         if (this.message) {
-            await this.message.edit(this.message.embeds[0].addField(this.featureFieldName(feature), this.featureFieldValue(feature)));
+            await this.message.edit(this.message.embeds[0].addField(feature.getFieldName(), feature.getFieldValue()));
             this.message.react(feature.emojiName).catch(reason => {
                 // the emoji is probably custom we need to find it!
                 let emoji = this.message.guild.emojis.cache.find(guildEmoji => guildEmoji.name === feature.emojiName);
                 this.message.react(emoji);
             });
+        }
+    }
+    
+    /**
+     * Removes a feature from this console. TODO remove from embed too!
+     * @param {String | Feature} identifier - feature name, feature emojiName or feature
+     */
+    removeFeature(identifier) {
+        if (typeof identifier === 'string') {
+            let isDone = this.features.delete(identifier);
+            if (!isDone) {
+                let feature = this.features.find(feature => feature.name === identifier);
+                this.features.delete(feature.emojiName);
+            }
+        } else if (typeof identifier === 'object') {
+            this.features.delete(identifier?.emojiName);
+        } else {
+            throw Error(`Was not given an identifier to work with when deleting a feature from this console ${this.title}`);
         }
     }
 
@@ -302,24 +209,6 @@ class Console {
     }
 
     /**
-     * Removes a feature from this console. TODO remove from embed too!
-     * @param {String | Feature} identifier - feature name, feature emojiName or feature
-     */
-    removeFeature(identifier) {
-        if (typeof identifier === 'string') {
-            let isDone = this.features.delete(identifier);
-            if (!isDone) {
-                let feature = this.features.find(feature => feature.name === identifier);
-                this.features.delete(feature.emojiName);
-            }
-        } else if (typeof identifier === 'object') {
-            this.features.delete(identifier?.emojiName);
-        } else {
-            throw Error(`Was not given an identifier to work with when deleting a feature from this console ${this.title}`);
-        }
-    }
-
-    /**
      * Stop the console from interacting with any users.
      */
     stopConsole() {
@@ -342,5 +231,50 @@ class Console {
     stopInteracting(user) {
         this.interacting.delete(user.id);
     }
+    
+    /**
+     * Creates a JSON representation of this object
+     * @returns {JSON} representation of this object as JSON
+     */
+    toJSON() {
+        return {
+            'title': this.title,
+            'description': this.description,
+            'features': [...this.features],
+            'fields': [...this.fields],
+            'color': this.color,
+            'collectorOptions': JSON.stringify(this.collectorOptions),
+            'messageId': this.message?.id,
+            'interacting': [...this.interacting],
+            'channelId': this.channel.id,
+        };
+    }
+
+    /**
+     * Creates a Console from JSON data.
+     * @param {JSON} json the json data
+     * @param {Guild} guild the guild where this console lives
+     * @returns {Console}
+     */
+    static async fromJSON(json, guild) {
+        let console = new Console(
+            {
+                title: json['title'],
+                description: json['description'],
+                channel: guild.channels.resolve(json['channelId']),
+                features: new Collection(json['features']),
+                color: json['color'],
+                options: JSON.parse(json['collectorOptions']),
+                fields: new Collection(json['fields']),
+            }
+        );
+        
+        if (json['messageId'] != undefined) {
+            let message = await console.channel.messages.fetch(json['messageId']);
+            console.message = message;
+            console.createReactionCollector(console.message);
+        }
+    }
+
 }
 module.exports = Console;
