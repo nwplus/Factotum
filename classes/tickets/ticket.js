@@ -1,9 +1,9 @@
 const { Collection, User, Role } = require('discord.js');
-const winston = require("winston");
+const winston = require('winston');
 const discordServices = require('../../discord-services');
 const Console = require('../consoles/console');
 const Feature = require('../consoles/feature');
-const Room = require("../room");
+const Room = require('../room');
 const TicketManager = require('./ticket-manager');
 
 class Ticket {
@@ -24,21 +24,6 @@ class Ticket {
      */
 
     /**
-     * The possible status of the ticket.
-     * @enum {String}
-     * @static
-     */
-    static STATUS = {
-        /** Ticket is open for someone to take. */
-        new: 'new',
-        /** Ticket has been dealt with and is closed. */
-        closed: 'closed',
-        /** Ticket is being handled by someone. */
-        taken: 'taken',
-    }
-
-    /**
-     *      
      * @param {Collection<String, User>} hackers 
      * @param {String} question 
      * @param {Role} requesterRole
@@ -108,7 +93,7 @@ class Ticket {
 
         /**
          * The status of this ticket
-         * @type {Ticket.types}
+         * @type {Ticket.STATUS}
          */
         this.status = null;
 
@@ -213,7 +198,7 @@ class Ticket {
             features: new Collection([
                 [removeTicketEmoji, {
                     name: 'Remove the ticket',
-                    description: `React to this message if you don't need help any more!`,
+                    description: 'React to this message if you don\'t need help any more!',
                     emojiName: removeTicketEmoji,
                     callback: (user, reaction, stopInteracting) => {
                         // make sure user can only close the ticket if no one has taken the ticket
@@ -260,12 +245,12 @@ class Ticket {
 
         let takeTicketFeature = Feature.create({
             name: 'Still want to help?',
-                description: `Click the ${this.ticketManager.ticketDispatcherInfo.joinTicketEmoji.toString()} emoji to join the ticket!`,
-                emoji: this.ticketManager.ticketDispatcherInfo.joinTicketEmoji,
-                callback: (user, reaction, stopInteracting) => {
-                    if (this.status === Ticket.STATUS.taken) this.helperJoinsTicket(user);
-                    stopInteracting();
-                }
+            description: `Click the ${this.ticketManager.ticketDispatcherInfo.joinTicketEmoji.toString()} emoji to join the ticket!`,
+            emoji: this.ticketManager.ticketDispatcherInfo.joinTicketEmoji,
+            callback: (user, reaction, stopInteracting) => {
+                if (this.status === Ticket.STATUS.taken) this.helperJoinsTicket(user);
+                stopInteracting();
+            }
         });
         await this.consoles.ticketManager.addFeature(takeTicketFeature);
 
@@ -358,9 +343,9 @@ class Ticket {
         // assemble message to send to hackers to verify if they still need the ticket
         let msgText = `${this.group.array().map(user => '<@' + user.id + '>').join(' ')} `;
         if (reason === 'inactivity') {
-            msgText += `${this.helpers.array().map(user => '<@' + user.id + '>').join(' ')} Hello! I detected some inactivity on this channel and wanted to check in.\n`
+            msgText += `${this.helpers.array().map(user => '<@' + user.id + '>').join(' ')} Hello! I detected some inactivity on this channel and wanted to check in.\n`;
         } else if (reason === 'mentor') {
-            msgText += 'Hello! Your mentor(s) has/have left the ticket.\n'
+            msgText += 'Hello! Your mentor(s) has/have left the ticket.\n';
         }
 
         let warning = await this.room.channels.generalText.send(`${msgText} If the ticket has been solved, please click the 👋 emoji above 
@@ -431,5 +416,19 @@ class Ticket {
         if (this.consoles?.ticketRoom) this.consoles.ticketRoom.stopConsole();
     }
 }
+
+/**
+ * The possible status of the ticket.
+ * @enum {String}
+ * @static
+ */
+Ticket.STATUS = {
+    /** Ticket is open for someone to take. */
+    new: 'new',
+    /** Ticket has been dealt with and is closed. */
+    closed: 'closed',
+    /** Ticket is being handled by someone. */
+    taken: 'taken',
+};
 
 module.exports = Ticket;
