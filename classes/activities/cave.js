@@ -182,7 +182,7 @@ class Cave extends Activity {
                 },
                 isAdvancedMode: true,
             }
-        }, this.guild, this.botGuild);
+        });
 
         await this.ticketManager.sendTicketCreatorConsole('Get some help from our mentors!', 
             'To submit a ticket to the mentors please react to this message with the appropriate emoji. **If you are unsure, select a general ticket!**');

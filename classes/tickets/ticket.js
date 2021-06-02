@@ -4,6 +4,7 @@ const discordServices = require('../../discord-services');
 const Console = require('../consoles/console');
 const Feature = require('../consoles/feature');
 const Room = require("../room");
+const TicketManager = require('./ticket-manager');
 
 class Ticket {
 
@@ -42,7 +43,7 @@ class Ticket {
      * @param {String} question 
      * @param {Role} requesterRole
      * @param {Number} ticketNumber
-     * @param {import('./ticket-manager')} ticketManager 
+     * @param {TicketManager} ticketManager 
      */
     constructor(hackers, question, requestedRole, ticketNumber, ticketManager) {
 
@@ -107,7 +108,7 @@ class Ticket {
         this.status = null;
 
         /**
-         * @type {import('./ticket-manager')}
+         * @type {TicketManager}
          */
         this.ticketManager = ticketManager; 
     }
