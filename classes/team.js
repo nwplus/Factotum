@@ -23,7 +23,7 @@ class Team {
 
         /**
          * The team's text channel if any
-         * @type {Discord.TextChannel}
+         * @type {Discord.TextChannel | null}
          */
         this.textChannel;
 
