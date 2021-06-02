@@ -57,7 +57,7 @@ class Ticket {
          * The room this ticket will be solved in.
          * @type {Room}
          */
-        this.room = ticketManager.systemWideTicketInfo.isAdvancedMode ? new Room(ticketManager.guild, ticketManager.botGuild, `Ticket-${ticketNumber}`, undefined, hackers.clone()) : null;
+        this.room = ticketManager.systemWideTicketInfo.isAdvancedMode ? new Room(ticketManager.parent.guild, ticketManager.parent.botGuild, `Ticket-${ticketNumber}`, undefined, hackers.clone()) : null;
 
         /**
          * Question from hacker
@@ -73,6 +73,7 @@ class Ticket {
         /**
          * All the group members, group leader should be the first one!
          * @type {Collection<String, User>} - <ID, User>
+         * Must clone the Map since we edit it.
          */
         this.group = hackers.clone();
 
@@ -83,6 +84,10 @@ class Ticket {
         this.helpers = new Collection();
 
         /**
+         * All the consoles sent out.
+         * GroupLeader -> sent via DM to leader, they can cancel the ticket from there
+         * ticketManager -> sent to the helper channel
+         * ticketRoom -> sent to the ticket room once created for users to leave
          * @type {TicketConsoles}
          */
         this.consoles = {
@@ -169,7 +174,7 @@ class Ticket {
             title: ticketManagerMsgEmbed.title,
             description: ticketManagerMsgEmbed.description,
             channel: this.ticketManager.ticketDispatcherInfo.channel,
-            guild: this.ticketManager.guild,
+            guild: this.ticketManager.parent.guild,
             color: '#fff536'
         });
 
@@ -204,7 +209,7 @@ class Ticket {
             title: 'Ticket was Successful!',
             description: `Your ticket to the ${this.ticketManager.parent.name} group was successful! It is ticket number ${this.id}`,
             channel: await this.group.first().createDM(),
-            guild: this.ticketManager.guild,
+            guild: this.ticketManager.parent.guild,
             features: new Collection([
                 [removeTicketEmoji, {
                     name: 'Remove the ticket',
@@ -278,8 +283,8 @@ class Ticket {
             title: 'Original Question',
             description: `<@${this.group.first().id}> has the question: ${this.question}`,
             channel: this.room.channels.generalText,
-            color: this.ticketManager.botGuild.colors.embedColor,
-            guild: this.ticketManager.guild,
+            color: this.ticketManager.parent.botGuild.colors.embedColor,
+            guild: this.ticketManager.parent.guild,
         });
 
         this.consoles.ticketRoom.addField('Thank you for helping this team.', `<@${helper.id}> best of luck!`);
