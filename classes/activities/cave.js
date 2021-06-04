@@ -1,4 +1,4 @@
-const { Guild, Collection, Role, TextChannel, MessageEmbed, GuildEmoji, ReactionEmoji } = require('discord.js');
+const { Guild, Collection, Role, TextChannel, MessageEmbed, GuildEmoji, ReactionEmoji, CategoryChannel } = require('discord.js');
 const { sendMsgToChannel, addRoleToMember, removeRolToMember } = require('../../discord-services');
 const BotGuildModel = require('../bot-guild');
 const Room = require('../room');
@@ -381,11 +381,26 @@ class Cave extends Activity {
     }
 
     /**
+     * Deletes all the tickets rooms, public channels and private channels.
      * @override
      */
     delete() {
         this.publicRoom.delete();
+        this.ticketManager.removeAllTickets();
         super.delete();
+    }
+
+    /**
+     * Removes private channels and archives the public channels.
+     * It also deletes the ticket rooms.
+     * @override
+     * @param {CategoryChannel} archiveCategory 
+     */
+    archive(archiveCategory) {
+        this.room.delete();
+        this.publicRoom.archive(archiveCategory);
+        this.ticketManager.removeAllTickets();
+        super.archive();
     }
 }
 module.exports = Cave;
