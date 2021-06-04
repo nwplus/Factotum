@@ -1,8 +1,10 @@
 const { Collection, User, Role } = require('discord.js');
-const winston = require("winston");
+const winston = require('winston');
 const discordServices = require('../../discord-services');
-const Console = require('../console');
-const Room = require("../room");
+const Console = require('../consoles/console');
+const Feature = require('../consoles/feature');
+const Room = require('../room');
+const TicketManager = require('./ticket-manager');
 
 class Ticket {
 
@@ -22,26 +24,11 @@ class Ticket {
      */
 
     /**
-     * The possible status of the ticket.
-     * @enum {String}
-     * @static
-     */
-    static STATUS = {
-        /** Ticket is open for someone to take. */
-        new: 'new',
-        /** Ticket has been dealt with and is closed. */
-        closed: 'closed',
-        /** Ticket is being handled by someone. */
-        taken: 'taken',
-    }
-
-    /**
-     *      
      * @param {Collection<String, User>} hackers 
      * @param {String} question 
      * @param {Role} requesterRole
      * @param {Number} ticketNumber
-     * @param {import('./ticket-manager')} ticketManager 
+     * @param {TicketManager} ticketManager 
      */
     constructor(hackers, question, requestedRole, ticketNumber, ticketManager) {
 
@@ -55,7 +42,7 @@ class Ticket {
          * The room this ticket will be solved in.
          * @type {Room}
          */
-        this.room = ticketManager.systemWideTicketInfo.isAdvancedMode ? new Room(ticketManager.guild, ticketManager.botGuild, `Ticket-${ticketNumber}`, undefined, hackers.clone()) : null;
+        this.room = ticketManager.systemWideTicketInfo.isAdvancedMode ? new Room(ticketManager.parent.guild, ticketManager.parent.botGuild, `Ticket-${ticketNumber}`, undefined, hackers.clone()) : null;
 
         /**
          * Question from hacker
@@ -71,6 +58,7 @@ class Ticket {
         /**
          * All the group members, group leader should be the first one!
          * @type {Collection<String, User>} - <ID, User>
+         * Must clone the Map since we edit it.
          */
         this.group = hackers.clone();
 
@@ -81,6 +69,10 @@ class Ticket {
         this.helpers = new Collection();
 
         /**
+         * All the consoles sent out.
+         * GroupLeader -> sent via DM to leader, they can cancel the ticket from there
+         * ticketManager -> sent to the helper channel
+         * ticketRoom -> sent to the ticket room once created for users to leave
          * @type {TicketConsoles}
          */
         this.consoles = {
@@ -101,12 +93,12 @@ class Ticket {
 
         /**
          * The status of this ticket
-         * @type {Ticket.types}
+         * @type {Ticket.STATUS}
          */
         this.status = null;
 
         /**
-         * @type {import('./ticket-manager')}
+         * @type {TicketManager}
          */
         this.ticketManager = ticketManager; 
     }
@@ -167,7 +159,7 @@ class Ticket {
             title: ticketManagerMsgEmbed.title,
             description: ticketManagerMsgEmbed.description,
             channel: this.ticketManager.ticketDispatcherInfo.channel,
-            guild: this.ticketManager.guild,
+            guild: this.ticketManager.parent.guild,
             color: '#fff536'
         });
 
@@ -175,7 +167,7 @@ class Ticket {
             this.consoles.ticketManager.addField(embedField.name, embedField.value, embedField.inline);
         }));
 
-        let joinTicketFeature = Console.newFeature({
+        let joinTicketFeature = Feature.create({
             name: 'Can you help them?',
             description: 'If so, react to this message with the emoji!',
             emoji: this.ticketManager.ticketDispatcherInfo.takeTicketEmoji,
@@ -202,11 +194,11 @@ class Ticket {
             title: 'Ticket was Successful!',
             description: `Your ticket to the ${this.ticketManager.parent.name} group was successful! It is ticket number ${this.id}`,
             channel: await this.group.first().createDM(),
-            guild: this.ticketManager.guild,
+            guild: this.ticketManager.parent.guild,
             features: new Collection([
                 [removeTicketEmoji, {
                     name: 'Remove the ticket',
-                    description: `React to this message if you don't need help any more!`,
+                    description: 'React to this message if you don\'t need help any more!',
                     emojiName: removeTicketEmoji,
                     callback: (user, reaction, stopInteracting) => {
                         // make sure user can only close the ticket if no one has taken the ticket
@@ -251,14 +243,14 @@ class Ticket {
         await this.consoles.ticketManager.addField('This ticket is being handled!', `<@${helper.id}> is helping this team!`);
         await this.consoles.ticketManager.changeColor('#36c3ff');
 
-        let takeTicketFeature = Console.newFeature({
+        let takeTicketFeature = Feature.create({
             name: 'Still want to help?',
-                description: `Click the ${this.ticketManager.ticketDispatcherInfo.joinTicketEmoji.toString()} emoji to join the ticket!`,
-                emoji: this.ticketManager.ticketDispatcherInfo.joinTicketEmoji,
-                callback: (user, reaction, stopInteracting) => {
-                    if (this.status === Ticket.STATUS.taken) this.helperJoinsTicket(user);
-                    stopInteracting();
-                }
+            description: `Click the ${this.ticketManager.ticketDispatcherInfo.joinTicketEmoji.toString()} emoji to join the ticket!`,
+            emoji: this.ticketManager.ticketDispatcherInfo.joinTicketEmoji,
+            callback: (user, reaction, stopInteracting) => {
+                if (this.status === Ticket.STATUS.taken) this.helperJoinsTicket(user);
+                stopInteracting();
+            }
         });
         await this.consoles.ticketManager.addFeature(takeTicketFeature);
 
@@ -276,8 +268,8 @@ class Ticket {
             title: 'Original Question',
             description: `<@${this.group.first().id}> has the question: ${this.question}`,
             channel: this.room.channels.generalText,
-            color: this.ticketManager.botGuild.colors.embedColor,
-            guild: this.ticketManager.guild,
+            color: this.ticketManager.parent.botGuild.colors.embedColor,
+            guild: this.ticketManager.parent.guild,
         });
 
         this.consoles.ticketRoom.addField('Thank you for helping this team.', `<@${helper.id}> best of luck!`);
@@ -351,9 +343,9 @@ class Ticket {
         // assemble message to send to hackers to verify if they still need the ticket
         let msgText = `${this.group.array().map(user => '<@' + user.id + '>').join(' ')} `;
         if (reason === 'inactivity') {
-            msgText += `${this.helpers.array().map(user => '<@' + user.id + '>').join(' ')} Hello! I detected some inactivity on this channel and wanted to check in.\n`
+            msgText += `${this.helpers.array().map(user => '<@' + user.id + '>').join(' ')} Hello! I detected some inactivity on this channel and wanted to check in.\n`;
         } else if (reason === 'mentor') {
-            msgText += 'Hello! Your mentor(s) has/have left the ticket.\n'
+            msgText += 'Hello! Your mentor(s) has/have left the ticket.\n';
         }
 
         let warning = await this.room.channels.generalText.send(`${msgText} If the ticket has been solved, please click the 👋 emoji above 
@@ -424,5 +416,19 @@ class Ticket {
         if (this.consoles?.ticketRoom) this.consoles.ticketRoom.stopConsole();
     }
 }
+
+/**
+ * The possible status of the ticket.
+ * @enum {String}
+ * @static
+ */
+Ticket.STATUS = {
+    /** Ticket is open for someone to take. */
+    new: 'new',
+    /** Ticket has been dealt with and is closed. */
+    closed: 'closed',
+    /** Ticket is being handled by someone. */
+    taken: 'taken',
+};
 
 module.exports = Ticket;

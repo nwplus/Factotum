@@ -3,28 +3,36 @@
   "version": "5.0.0",
   "description": "",
   "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nwplus/Factotum"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test-1": "node app.js test 1",
+    "test-2": "node app.js test 2",
+    "test-3": "node app.js test 3",
+    "test-4": "node app.js test 4",
+    "dev": "node app.js dev"
   },
   "author": "JP Garcia, Maggie Wang, Shu Ting Hu",
   "license": "SEE LICENSE IN ./LICENSE",
   "homepage": "https://github.com/nwplus/Factotum",
   "dependencies": {
-    "advanced-discord.js-prompts": "^1.6.4",
+    "advanced-discord.js-prompts": "^1.7.0",
     "better-docs": "^2.3.2",
     "csv-parser": "^3.0.0",
-    "discord.js": "^12.5.1",
+    "discord.js": "^12.5.3",
     "discord.js-commando": "github:discordjs/commando",
     "dotenv-flow": "^3.2.0",
-    "firebase-admin": "^9.5.0",
+    "firebase-admin": "^9.9.0",
     "fs": "0.0.1-security",
     "get-random-emoji": "^1.0.0",
-    "jsdoc": "^3.6.6",
-    "mongodb": "^3.6.4",
-    "mongoose": "^5.11.19",
+    "jsdoc": "^3.6.7",
+    "mongodb": "^3.6.9",
+    "mongoose": "^5.12.13",
     "winston": "^3.3.3"
   },
   "devDependencies": {
-    "eslint": "^7.21.0"
+    "eslint": "^7.27.0"
   }
 }

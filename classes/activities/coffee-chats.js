@@ -2,7 +2,7 @@ const Activity = require('./activity');
 const { TextChannel, GuildMember, Collection, VoiceChannel } = require('discord.js');
 const winston = require('winston');
 const { sendMsgToChannel } = require('../../discord-services');
-const Console = require('../console');
+const Console = require('../consoles/console');
 const { MemberPrompt, ListPrompt } = require('advanced-discord.js-prompts');
 
 /**
@@ -79,7 +79,7 @@ class CoffeeChats extends Activity {
             isSafe: true
         });
 
-        this.joinActivityConsole();
+        this.sendJoinActivityConsole();
 
         return this;
     }
@@ -134,7 +134,7 @@ class CoffeeChats extends Activity {
      * @private
      * @async
      */
-    async joinActivityConsole() {
+    async sendJoinActivityConsole() {
         // reaction to use
         var emoji = '⛷️';
 
@@ -185,7 +185,7 @@ class CoffeeChats extends Activity {
 
 
     /**
-     * Shuffle users in general voice as groups in firebase
+     * Shuffle users from general voice to all other voice channel. Groups will stay on the same voice channel.
      */
     groupShuffle() {
         let channels = this.room.channels.voiceChannels;

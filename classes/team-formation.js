@@ -4,7 +4,7 @@ const BotGuild = require('../db/mongo/BotGuild');
 const winston = require('winston');
 const Activity = require('./activities/activity');
 const BotGuildModel = require('./bot-guild');
-const Console = require('./console');
+const Console = require('./consoles/console');
 const { StringPrompt } = require('advanced-discord.js-prompts');
 
 /**

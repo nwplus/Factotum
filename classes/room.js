@@ -1,7 +1,7 @@
-const winston = require("winston");
+const winston = require('winston');
 const { GuildCreateChannelOptions, User, Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable, PermissionOverwriteOption } = require('discord.js');
 const BotGuildModel = require('./bot-guild');
-const { deleteChannel } = require("../discord-services");
+const { deleteChannel } = require('../discord-services');
 
 /**
  * @typedef RoomChannels
@@ -27,10 +27,6 @@ const { deleteChannel } = require("../discord-services");
  * or users allowed to see the room.
  */
 class Room {
-
-    static voiceChannelName = '🔊Room-';
-    static mainTextChannelName = '🖌️activity-banter';
-    static mainVoiceChannelName = '🗣️activity-room';
 
     /**
      * @param {Guild} guild - the guild in which the room lives
@@ -68,6 +64,7 @@ class Room {
         this.usersAllowed = usersAllowed;
 
         /**
+         * All the channels this room has!
          * @type {RoomChannels}
          */
         this.channels = {
@@ -123,7 +120,7 @@ class Room {
         else this.channels.generalText = await this.addRoomChannel({
             name: this.name.length < 12 ? `${this.name}-banter` : Room.mainTextChannelName, 
             info: {
-            parent: this.channels.category,
+                parent: this.channels.category,
                 type: 'text',
                 topic: 'A general banter channel to be used to communicate with other members, mentors, or staff. The !ask command is available for questions.',
             }
@@ -141,7 +138,7 @@ class Room {
             }
         });
 
-        winston.loggers.get(this.guild.id).event(`The room ${this.name} was initialized.`, {event: "Room"});
+        winston.loggers.get(this.guild.id).event(`The room ${this.name} was initialized.`, {event: 'Room'});
         return this;
     }
     /**
@@ -190,7 +187,7 @@ class Room {
 
         if (isSafe) this.channels.safeChannels.set(channel.id, channel);
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} had a channel named ${name} added to it of type ${info?.type || 'text'}.`, {event: "Activity"});
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} had a channel named ${name} added to it of type ${info?.type || 'text'}.`, {event: 'Activity'});
 
         return channel;
     }
@@ -210,7 +207,7 @@ class Room {
         this.channels.safeChannels.delete(channelToRemove.id);
 
         deleteChannel(channelToRemove);
-        winston.loggers.get(this.guild.id).event(`The room ${this.name} lost a channel named ${channelToRemove.name}`, { event: "Room" });
+        winston.loggers.get(this.guild.id).event(`The room ${this.name} lost a channel named ${channelToRemove.name}`, { event: 'Room' });
     }
 
     /**
@@ -253,7 +250,7 @@ class Room {
 
         this.botGuild.save();
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was archived!`, {event: "Activity"});
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was archived!`, {event: 'Activity'});
     }
 
     /**
@@ -263,7 +260,7 @@ class Room {
      */
     async lockRoom() {
         // set category private
-        this.rolesAllowed.forEach((role, key) => this.channels.category.updateOverwrite(role, { VIEW_CHANNEL: false }))
+        this.rolesAllowed.forEach((role, key) => this.channels.category.updateOverwrite(role, { VIEW_CHANNEL: false }));
 
         /** @type {TextChannel} */
         this.channels.nonLockedChannel = await this.addRoomChannel({
@@ -317,7 +314,10 @@ class Room {
         if (channel.type === 'text') this.channels.textChannels.set(channel.id, channel);
         else if (channel.type === 'voice') this.channels.voiceChannels.set(channel.id, channel);
     }
-
-
 }
+
+Room.voiceChannelName = '🔊Room-';
+Room.mainTextChannelName = '🖌️activity-banter';
+Room.mainVoiceChannelName = '🗣️activity-room';
+
 module.exports = Room;

@@ -1,7 +1,7 @@
 const { Role, Collection, TextChannel, VoiceChannel, GuildCreateChannelOptions, MessageEmbed, Message } = require('discord.js');
 const winston = require('winston');
 const { randomColor, sendMessageToMember, sendMsgToChannel } = require('../../discord-services');
-const Console = require('../console');
+const Console = require('../consoles/console');
 const Room = require('../room');
 const TicketManager = require('../tickets/ticket-manager');
 const Activity = require('./activity');

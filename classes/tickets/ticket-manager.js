@@ -1,10 +1,12 @@
 const { Collection, GuildEmoji, ReactionEmoji, TextChannel, Guild, Role, User } = require('discord.js');
 const Ticket = require('./ticket');
 const BotGuildModel = require('../bot-guild');
-const Console = require('../console');
+const Console = require('../consoles/console');
+const Feature = require('../consoles/feature');
 const { sendMsgToChannel } = require('../../discord-services');
 const winston = require('winston');
 const { StringPrompt } = require('advanced-discord.js-prompts');
+const Activity = require('../activities/activity');
 
 
 /**
@@ -63,15 +65,13 @@ class TicketManager {
 
     /**
      * @constructor
-     * @param {import('../activities/activity')} parent 
+     * @param {Activity} parent 
      * @param {Object} args
      * @param {TicketCreatorInfo} args.ticketCreatorInfo
      * @param {TicketDispatcherInfo} args.ticketDispatcherInfo
      * @param {SystemWideTicketInfo} args.systemWideTicketInfo
-     * @param {Guild} guild     
-     * @param {BotGuildModel} botGuild
      */
-    constructor(parent, { ticketCreatorInfo, ticketDispatcherInfo, systemWideTicketInfo }, guild, botGuild) {
+    constructor(parent, { ticketCreatorInfo, ticketDispatcherInfo, systemWideTicketInfo }) {
 
         /**
          * The tickets in this ticket system.
@@ -81,12 +81,13 @@ class TicketManager {
 
         /**
          * The number of tickets created.
+         * Must be separate as tickets.length since we use this to assign IDs to tickets.
          */
         this.ticketCount = 0;
 
         /**
          * The parent of this ticket-system. It must be paired with a cave or an activity.
-         * @type {import('../activities/activity')}
+         * @type {Activity}
          */
         this.parent = parent;
 
@@ -138,17 +139,11 @@ class TicketManager {
             multiRoleSelector : null,
         };
 
-        /** @type {BotGuildModel} */
-        this.botGuild = botGuild;
-
-        /** @type {Guild} */
-        this.guild = guild;
-
         this.validateTicketSystemInfo({ ticketCreatorInfo, ticketDispatcherInfo, systemWideTicketInfo });
     }
     /**
      * 
-     * @param {Object} param0 
+     * @param {Object} param0
      * @private
      */
     validateTicketSystemInfo({ ticketCreatorInfo, ticketDispatcherInfo, systemWideTicketInfo }) {
@@ -168,7 +163,7 @@ class TicketManager {
     async sendTicketCreatorConsole(title, description, color) {
         /** @type {Console.Feature[]} */
         let featureList = [
-            Console.newFeature({
+            Feature.create({
                 name: 'General Ticket',
                 description: 'A general ticket aimed to all helpers.',
                 emoji: this.ticketDispatcherInfo.mainHelperInfo.emoji,
@@ -178,7 +173,7 @@ class TicketManager {
 
         let features = new Collection(featureList.map(feature => [feature.emojiName, feature]));
 
-        this.ticketCreatorInfo.console = new Console({ title, description, channel: this.ticketCreatorInfo.channel, features, color, guild: this.guild });
+        this.ticketCreatorInfo.console = new Console({ title, description, channel: this.ticketCreatorInfo.channel, features, color, guild: this.parent.guild });
         await this.ticketCreatorInfo.console.sendConsole();
     }
 
@@ -191,7 +186,7 @@ class TicketManager {
      */
     addTicketType(role, typeName, emoji) {
         this.ticketCreatorInfo.console.addFeature(
-            Console.newFeature({
+            Feature.create({
                 name: `Question about ${typeName}`,
                 description: '---------------------------------',
                 emoji: emoji,
@@ -213,7 +208,7 @@ class TicketManager {
         // check if role has mentors in it
         if (role.members.size <= 0) {
             sendMsgToChannel(channel, user.id, 'There are no mentors available with that role. Please request another role or the general role!', 10);
-            winston.loggers.get(this.botGuild._id).userStats(`The cave ${this.parent.name} received a ticket from user ${user.id} but was canceled due to no mentor having the role ${role.name}.`, { event: 'Ticket Manager' });
+            winston.loggers.get(this.parent.botGuild._id).userStats(`The cave ${this.parent.name} received a ticket from user ${user.id} but was canceled due to no mentor having the role ${role.name}.`, { event: 'Ticket Manager' });
             return;
         }
 
@@ -221,7 +216,7 @@ class TicketManager {
             var promptMsg = await StringPrompt.single({prompt: 'Please send ONE message with: \n* A one liner of your problem ' + 
                                 '\n* Mention your team members using @friendName (example: @John).', channel, userId: user.id, cancelable: true, time: 45});
         } catch (error) {
-            winston.loggers.get(this.botGuild._id).warning(`New ticket was canceled due to error: ${error}`, { event: 'Ticket Manager' });
+            winston.loggers.get(this.parent.botGuild._id).warning(`New ticket was canceled due to error: ${error}`, { event: 'Ticket Manager' });
             return;
         }
 

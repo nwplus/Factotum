@@ -17,10 +17,50 @@ const { StringPrompt } = require('advanced-discord.js-prompts');
  * @module MainApp
  */
 
-const config = {
-    token: process.env.TOKEN,
-    owner: process.env.OWNER,
-};
+
+/**
+ * Returns the config settings depending on the command line args.
+ * Read command line args to know if prod, dev, or test and what server
+ * First arg is one of prod, dev or test
+ * the second is the test server, but the first one must be test
+ * @param {string[]} args 
+ * @returns {Map} config settings
+ */
+function getConfig(args) {
+    if (args.length >= 1) {
+        if (args[0] === 'dev') {
+            // Default dev
+            return JSON.parse(process.env.DEV);
+        } else if (args[0] === 'prod') {
+            // Production
+            if (args[1] === 'yes') {
+                return JSON.parse(process.env.PROD);
+            }
+        } else if (args[0] === 'test') {
+            // Test
+            const testConfig = JSON.parse(process.env.TEST);
+            let server = args[1] ?? 0;
+            if (server === '1') {
+                return testConfig['ONE'];
+            } else if (server === '2') {
+                return testConfig['TWO'];
+            } else if (server === '3') {
+                return testConfig['THREE'];
+            } else if (server === '4') {
+                return testConfig['FOUR'];
+            }
+        }
+    }
+    
+    // exit if no configs are loaded!
+    console.log('No configs were found for given args.');
+    process.exit(0);
+}
+
+const config = getConfig(process.argv.slice(2));
+
+const isLogToConsole = config['consoleLog'];
+
 const bot = new Commando.Client({
     commandPrefix: '!',
     owner: config.owner,
@@ -48,8 +88,6 @@ const customLoggerLevels = {
         silly: 'black',
     }
 };
-
-const isLogToConsole = true;
 
 // the main logger to use for general errors
 const mainLogger = createALogger('main', 'main', true, isLogToConsole);
@@ -82,7 +120,7 @@ bot.registry
  * Runs when the bot finishes the set up and is ready to work.
  */
 bot.once('ready', async () => {
-    mainLogger.warning('The bot has started and is ready to hack!');
+    mainLogger.warning('The bot ' + bot.user.username + ' has started and is ready to hack!');
     
     bot.user.setActivity('Ready to hack!');
 

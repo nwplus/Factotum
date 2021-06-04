@@ -5,8 +5,9 @@ const BotGuildModel = require('../bot-guild');
 const { shuffleArray, sendMsgToChannel } = require('../../discord-services');
 const StampsManager = require('../stamps-manager');
 const Room = require('../room');
-const Console = require('../console');
+const Console = require('../consoles/console');
 const { StringPrompt, RolePrompt, ListPrompt } = require('advanced-discord.js-prompts');
+
 /**
  * @typedef ActivityInfo
  * @property {string} activityName - the name of this activity!

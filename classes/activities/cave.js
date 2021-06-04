@@ -2,7 +2,8 @@ const { Guild, Collection, Role, TextChannel, MessageEmbed, GuildEmoji, Reaction
 const { sendMsgToChannel, addRoleToMember, removeRolToMember } = require('../../discord-services');
 const BotGuildModel = require('../bot-guild');
 const Room = require('../room');
-const Console = require('../console');
+const Console = require('../consoles/console');
+const Feature = require('../consoles/feature');
 const TicketManager = require('../tickets/ticket-manager');
 const Activity = require('./activity');
 const { StringPrompt, NumberPrompt, SpecialPrompt } = require('advanced-discord.js-prompts');
@@ -181,7 +182,7 @@ class Cave extends Activity {
                 },
                 isAdvancedMode: true,
             }
-        }, this.guild, this.botGuild);
+        });
 
         await this.ticketManager.sendTicketCreatorConsole('Get some help from our mentors!', 
             'To submit a ticket to the mentors please react to this message with the appropriate emoji. **If you are unsure, select a general ticket!**');
@@ -190,19 +191,19 @@ class Cave extends Activity {
     addDefaultFeatures() {
         /** @type {Console.Feature[]} */
         let localFeatures = [
-            Console.newFeature({
+            Feature.create({
                 name: 'Add Sub-Role',
                 description: 'Add a new sub-role cave members can select and users can use to ask specific tickets.',
                 emoji: this.caveOptions.emojis.addRoleEmoji,
                 callback: (user, reaction, stopInteracting, console) => this.addSubRoleCallback(console.channel, user.id).then(() => stopInteracting()),
             }),
-            Console.newFeature({
+            Feature.create({
                 name: 'Delete Ticket Channels',
                 description: 'Get the ticket manager to delete ticket rooms to clear up the server.',
                 emoji: this.caveOptions.emojis.deleteChannelsEmoji,
                 callback: (user, reaction, stopInteracting, console) => this.deleteTicketChannelsCallback(console.channel, user.id).then(() => stopInteracting()),
             }),
-            Console.newFeature({
+            Feature.create({
                 name: 'Include/Exclude Tickets',
                 description: 'Include or exclude tickets from the automatic garbage collector.',
                 emoji: this.caveOptions.emojis.excludeFromAutoDeleteEmoji,
@@ -357,7 +358,7 @@ class Cave extends Activity {
 
         // add to subRole selector console
         this.subRoleConsole.addFeature(
-            Console.newFeature({
+            Feature.create({
                 name: `-> If you know ${subRoleName}`,
                 description: '---------------------------------',
                 emoji: emoji,
