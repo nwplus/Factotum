@@ -5,6 +5,10 @@ const { StringPrompt } = require('advanced-discord.js-prompts');
 
 /**
  * Gives admin the ability to change the prefix used in the guild by the bot.
+ * @category Commands
+ * @subcategory Admin-Utility
+ * @extends PermissionCommand
+ * @guildonly
  */
 class ChangePreFix extends PermissionCommand {
     constructor(client) {
