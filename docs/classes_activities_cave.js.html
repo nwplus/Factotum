@@ -1,0 +1,540 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Factotum Documentation classes/activities/cave.js</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="jsdoc-styles.css">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+             
+                <a href="index.html">
+                    <h1 class="navbar-item">Factotum Discord Bot Documentation</h1>
+                </a>
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    API Documentation
+                </a>
+                
+                 
+                    
+                        <a
+                            class="link user-link "
+                            href="https://github.com/nwplus/Factotum"
+                        >
+                            Github
+                        </a>
+                    
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+                <div class="search-wrapper">
+                    <input id="search" type="text" placeholder="Search docs..." class="input">
+                </div>
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-DiscordServices.html">DiscordServices</a></li><li><a href="module-FirebaseParser.html">FirebaseParser</a></li><li><a href="module-FirebaseServices.html">FirebaseServices</a></li><li><a href="module-MainApp.html">MainApp</a></li><li><a href="module-MongoUtil.html">MongoUtil</a></li></ul><h3>Classes</h3><ul><li><a href="Activity.html">Activity</a></li><li><a href="BotGuild.html">BotGuild</a></li><li><a href="Cave.html">Cave</a></li><li><a href="ChangePreFix.html">ChangePreFix</a></li><li><a href="CoffeeChats.html">CoffeeChats</a></li><li><a href="Console.html">Console</a></li><li><a href="Feature.html">Feature</a></li><li><a href="PermissionCommand.html">PermissionCommand</a></li><li><a href="Room.html">Room</a></li><li><a href="StampsManager.html">StampsManager</a></li><li><a href="Team.html">Team</a></li><li><a href="TeamFormation.html">TeamFormation</a></li><li><a href="Ticket.html">Ticket</a></li><li><a href="TicketManager.html">TicketManager</a></li><li><a href="Verification.html">Verification</a></li><li><a href="Workshop.html">Workshop</a></li></ul><h3><a href="global.html">Global</a></h3></div><div class="category"><h2>Commands</h2><h3>Classes / Verification</h3><ul><li><a href="AddMembers.html">AddMembers</a></li><li><a href="Attend.html">Attend</a></li><li><a href="CheckMember.html">CheckMember</a></li><li><a href="ManualVerify.html">ManualVerify</a></li><li><a href="StartAttend.html">StartAttend</a></li><li><a href="StartVerification.html">StartVerification</a></li><li><a href="Verify.html">Verify</a></li></ul><h3>Classes / Hacker-Utility</h3><ul><li><a href="AskQuestion.html">AskQuestion</a></li><li><a href="Report.html">Report</a></li></ul><h3>Classes / Stamps</h3><ul><li><a href="ChangeStampTime.html">ChangeStampTime</a></li><li><a href="PasswordStamp.html">PasswordStamp</a></li><li><a href="Raffle.html">Raffle</a></li></ul><h3>Classes / Admin-Utility</h3><ul><li><a href="ClearChat.html">ClearChat</a></li><li><a href="Pronouns.html">Pronouns</a></li><li><a href="RoleSelector.html">RoleSelector</a></li><li><a href="SelfCareReminders.html">SelfCareReminders</a></li></ul><h3>Classes / Activity</h3><ul><li><a href="DiscordContests.html">DiscordContests</a></li><li><a href="NewActivity.html">NewActivity</a></li><li><a href="NewCoffeeChats.html">NewCoffeeChats</a></li><li><a href="NewWorkshop.html">NewWorkshop</a></li></ul><h3>Classes / Boothing</h3><ul><li><a href="ERoomDirectory.html">ERoomDirectory</a></li></ul><h3>Classes / Essentials</h3><ul><li><a href="Help.html">Help</a></li><li><a href="InitBot.html">InitBot</a></li><li><a href="UnknownCommand.html">UnknownCommand</a></li></ul><h3>Classes / Start-Commands</h3><ul><li><a href="StartChannelCreation.html">StartChannelCreation</a></li><li><a href="StartMentorCave.html">StartMentorCave</a></li><li><a href="StartTeamFormation.html">StartTeamFormation</a></li><li><a href="StartTeamRoulette.html">StartTeamRoulette</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Source</p>
+                    <h1>classes/activities/cave.js</h1>
+                </header>
+                
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const { Guild, Collection, Role, TextChannel, MessageEmbed, GuildEmoji, ReactionEmoji, CategoryChannel } = require('discord.js');
+const { sendMsgToChannel, addRoleToMember, removeRolToMember } = require('../../discord-services');
+const BotGuildModel = require('../bot-guild');
+const Room = require('../room');
+const Console = require('../consoles/console');
+const Feature = require('../consoles/feature');
+const TicketManager = require('../tickets/ticket-manager');
+const Activity = require('./activity');
+const { StringPrompt, NumberPrompt, SpecialPrompt } = require('advanced-discord.js-prompts');
+
+/**
+ * @typedef CaveOptions
+ * @property {String} name - the name of the cave category
+ * @property {String} preEmojis - any pre name emojis
+ * @property {String} preRoleText - the text to add before every role name, not including '-'
+ * @property {String} color - the role color to use for this cave
+ * @property {Role} role - the role associated with this cave
+ * @property {Emojis} emojis - object holding emojis to use in this cave
+ * @property {Times} times - object holding times to use in this cave
+ * @property {Collection&lt;String, Role>} publicRoles - the roles that can request tickets
+ */
+
+/**
+ * @typedef Emojis
+ * @property {GuildEmoji | ReactionEmoji} joinTicketEmoji - emoji for mentors to accept a ticket
+ * @property {GuildEmoji | ReactionEmoji} giveHelpEmoji - emoji for mentors to join an ongoing ticket
+ * @property {GuildEmoji | ReactionEmoji} requestTicketEmoji - emoji for hackers to request a ticket
+ * @property {GuildEmoji | ReactionEmoji} addRoleEmoji - emoji for Admins to add a mentor role
+ * @property {GuildEmoji | ReactionEmoji} deleteChannelsEmoji - emoji for Admins to force delete ticket channels
+ * @property {GuildEmoji | ReactionEmoji} excludeFromAutoDeleteEmoji - emoji for Admins to opt tickets in/out of garbage collector
+ */
+
+/**
+ * @typedef Times
+ * @property {Number} inactivePeriod - number of minutes a ticket channel will be inactive before bot starts to delete it
+ * @property {Number} bufferTime - number of minutes the bot will wait for a response before deleting ticket
+ * @property {Number} reminderTime - number of minutes the bot will wait before reminding mentors of unaccepted tickets
+ */
+
+/**
+ * @typedef SubRole
+ * @property {String} name - the role name
+ * @property {String} id - the role id (snowflake)
+ * @property {Number} activeUsers - number of users with this role
+ */
+
+/**
+ * @typedef CaveChannels
+ * @property {TextChannel} roleSelection
+ */
+
+class Cave extends Activity {
+
+    /**
+     * @constructor
+     * @param {CaveOptions} caveOptions 
+     * @param {BotGuildModel} botGuild 
+     * @param {Guild} guild
+     */
+    constructor(caveOptions, botGuild, guild) {
+        super({
+            activityName: caveOptions.name,
+            guild: guild,
+            roleParticipants: new Collection([[caveOptions.role.id, caveOptions.role]]),
+            botGuild: botGuild,
+        });
+
+        /**
+         * @type {CaveOptions}
+         */
+        this.caveOptions;
+        this.validateCaveOptions(caveOptions);
+
+        /**
+         * The cave sub roles, keys are the emoji name, holds the subRole
+         * @type {Map&lt;String, SubRole>} - &lt;Emoji Name, SubRole>
+         */
+        this.subRoles = new Map();
+
+        /**
+         * @type {TicketManager}
+         */
+        this.ticketManager;
+
+        /**
+          * The channels needed for a cave.
+          * @type {CaveChannels}
+          */
+        this.channels = {};
+
+        /**
+          * The public room for this cave.
+          * @type {Room}
+          */
+        this.publicRoom = new Room(guild, botGuild, `👉🏽👈🏽${caveOptions.name} Help`, caveOptions.publicRoles);
+
+        /**
+         * The console where cave members can get sub roles.
+         * @type {Console}
+         */
+        this.subRoleConsole;
+    }
+
+    /**
+     * Validates and set the cave options.
+     * @param {CaveOptions} caveOptions - the cave options to validate
+     * @param {Discord.Guild} guild - the guild where this cave is happening
+     * @private
+     */
+    validateCaveOptions(caveOptions) {
+        if (typeof caveOptions.name != 'string' &amp;&amp; caveOptions.name.length === 0) throw new Error('caveOptions.name must be a non empty string');
+        if (typeof caveOptions.preEmojis != 'string') throw new Error('The caveOptions.preEmojis must be a string of emojis!');
+        if (typeof caveOptions.preRoleText != 'string' &amp;&amp; caveOptions.preRoleText.length === 0) throw new Error('The caveOptions.preRoleText must be a non empty string!');
+        if (typeof caveOptions.color != 'string' &amp;&amp; caveOptions.color.length === 0) throw new Error('The caveOptions.color must be a non empty string!');
+        if (!(caveOptions.role instanceof Role)) throw new Error('The caveOptions.role must be Role object!');
+        for (const emoji in caveOptions.emojis) {
+            if (!(caveOptions.emojis[emoji] instanceof GuildEmoji) &amp;&amp; !(caveOptions.emojis[emoji] instanceof ReactionEmoji)) throw new Error('The ' + emoji + 'must be a GuildEmoji or ReactionEmoji!');
+        }
+        this.caveOptions = caveOptions;
+    }
+
+    async init() {
+        await super.init();
+
+        this.channels.roleSelection = await this.room.addRoomChannel({
+            name: `📝${this.name}-role-selector`,
+            info: {
+                topic: 'Sign yourself up for specific roles! New roles will be added as requested, only add yourself to one if you feel comfortable responding to questions about the topic.',
+            },
+            isSafe: true,
+        });
+        this.subRoleConsole = new Console({
+            title: 'Choose your sub roles!',
+            description: 'Choose sub roles you are comfortable answering questions for! Remove your reaction to loose the sub role.',
+            channel: this.channels.roleSelection,
+            guild: this.guild,
+        });
+        this.subRoleConsole.sendConsole();
+
+        for (var i = 0; i &lt; 3; i++) {
+            this.room.addRoomChannel({
+                name: `🗣️ Room ${i}`,
+                info: { type: 'voice' },
+            });
+        }
+
+        await this.publicRoom.init();
+
+        this.ticketManager = new TicketManager(this, {
+            ticketCreatorInfo: {
+                channel: await this.publicRoom.addRoomChannel({
+                    name: '🎫request-ticket',
+                    isSafe: true,
+                }),
+            },
+            ticketDispatcherInfo: {
+                channel: await this.room.addRoomChannel({
+                    name: '📨incoming-tickets',
+                    isSafe: true,
+                }),
+                takeTicketEmoji: this.caveOptions.emojis.giveHelpEmoji,
+                joinTicketEmoji: this.caveOptions.emojis.joinTicketEmoji,
+                reminderInfo: {
+                    isEnabled: true,
+                    time: this.caveOptions.times.reminderTime,
+                },
+                mainHelperInfo: {
+                    role: this.caveOptions.role,
+                    emoji: this.caveOptions.emojis.requestTicketEmoji,
+                },
+                embedCreator: (ticket) => new MessageEmbed()
+                    .setTitle(`New Ticket - ${ticket.id}`)
+                    .setDescription(`&lt;@${ticket.group.first().id}> has a question: ${ticket.question}`)
+                    .addField('They are requesting:', `&lt;@&amp;${ticket.requestedRole.id}>`)
+                    .setTimestamp(),
+            },
+            systemWideTicketInfo: {
+                garbageCollectorInfo: {
+                    isEnabled: true,
+                    inactivePeriod: this.caveOptions.times.inactivePeriod,
+                    bufferTime: this.caveOptions.times.bufferTime
+                },
+                isAdvancedMode: true,
+            }
+        });
+
+        await this.ticketManager.sendTicketCreatorConsole('Get some help from our mentors!', 
+            'To submit a ticket to the mentors please react to this message with the appropriate emoji. **If you are unsure, select a general ticket!**');
+    }
+
+    addDefaultFeatures() {
+        /** @type {Console.Feature[]} */
+        let localFeatures = [
+            Feature.create({
+                name: 'Add Sub-Role',
+                description: 'Add a new sub-role cave members can select and users can use to ask specific tickets.',
+                emoji: this.caveOptions.emojis.addRoleEmoji,
+                callback: (user, reaction, stopInteracting, console) => this.addSubRoleCallback(console.channel, user.id).then(() => stopInteracting()),
+            }),
+            Feature.create({
+                name: 'Delete Ticket Channels',
+                description: 'Get the ticket manager to delete ticket rooms to clear up the server.',
+                emoji: this.caveOptions.emojis.deleteChannelsEmoji,
+                callback: (user, reaction, stopInteracting, console) => this.deleteTicketChannelsCallback(console.channel, user.id).then(() => stopInteracting()),
+            }),
+            Feature.create({
+                name: 'Include/Exclude Tickets',
+                description: 'Include or exclude tickets from the automatic garbage collector.',
+                emoji: this.caveOptions.emojis.excludeFromAutoDeleteEmoji,
+                callback: (user, reaction, stopInteracting, console) => this.includeExcludeCallback(console.channel, user.id).then(() => stopInteracting()),
+            }),
+        ];
+
+        localFeatures.forEach(feature => this.adminConsole.addFeature(feature));
+
+        super.addDefaultFeatures();
+    }
+
+    /**
+     * Prompts a user for information to create a new sub role for this cave.
+     * @param {TextChannel} channel 
+     * @param {String} userId 
+     * @returns {Promise&lt;Role>}
+     * @async
+     */
+    async addSubRoleCallback(channel, userId) {
+        let roleNameMsg = await StringPrompt.single({prompt: 'What is the name of the new role?', channel, userId});
+
+        let roleName = roleNameMsg.content;
+
+        let emojis = new Map();
+        this.subRoles.forEach((subRole, emojiName, map) => {
+            emojis.set(emojiName, subRole.name);
+        });
+
+        let reaction = await SpecialPrompt.singleRestrictedReaction({ prompt: 'What emoji do you want to associate with this new role?', channel, userId }, emojis);
+        let emoji = reaction.emoji;
+
+        // search for possible existing role
+        let findRole = this.guild.roles.cache.find(role => role.name.toLowerCase() === `${this.caveOptions.preRoleText}-${roleName}`.toLowerCase());
+        let useOld;
+        if (findRole) useOld = await SpecialPrompt.boolean({ prompt: 'I have found a role with the same name! Would you like to use that one? If not I will create a new one.', channel, userId });
+
+        let role;
+        if (useOld) role = findRole; 
+        else role = await this.guild.roles.create({
+            data: {
+                name: `${this.caveOptions.preRoleText}-${roleName}`,
+                color: this.caveOptions.color,
+            }
+        });
+
+        this.addSubRole(role, emoji);
+
+        try {
+            let addPublic = await SpecialPrompt.boolean({ prompt: 'Do you want me to create a public text channel?', channel, userId });
+            if (addPublic) this.publicRoom.addRoomChannel({ name: roleName });
+        } catch {
+            // do nothing
+        }
+
+        return role;
+    }
+
+    /**
+     * Will prompt the user for more information to delete some, all, or a few tickets.
+     * @param {TextChannel} channel 
+     * @param {String} userId 
+     * @async
+     */
+    async deleteTicketChannelsCallback(channel, userId) {
+        let type = await StringPrompt.restricted({
+            prompt: 'Type "all" if you would like to delete all tickets before x amount of time or type "some" to specify which tickets to remove.', 
+            channel, 
+            userId,
+        }, ['all', 'some']);
+
+        switch (type) {
+            case 'all': {
+                let age = await NumberPrompt.single({prompt: 'Enter how old, in minutes, a ticket has to be to remove. Send 0 if you want to remove all of them. Careful - this cannot be undone!', channel, userId});
+                this.ticketManager.removeTicketsByAge(age);
+                sendMsgToChannel(channel, userId, `All tickets over ${age} have been deleted!`);
+                break;
+            }
+            case('some'): {
+                let subtype = await StringPrompt.restricted({
+                    prompt: 'Would you like to remove all tickets except for some tickets you specify later or would you like to remove just some tickets. Type all or some respectively.',
+                    channel,
+                    userId
+                }, ['all', 'some']);
+
+                switch (subtype) {
+                    case 'all': {
+                        let ticketMentions = await NumberPrompt.multi({
+                            prompt: 'In one message write the numbers of the tickets to not delete! (Separated by spaces, ex 1 2 13).',
+                            channel,
+                            userId
+                        });
+                        this.ticketManager.removeAllTickets(ticketMentions);
+                        break;
+                    }
+                    case 'some': {
+                        let ticketMentions = await NumberPrompt.multi({
+                            prompt: 'In one message type the ticket numbers you would like to remove! (Separated by spaces, ex. 1 23 3).',
+                            channel,
+                            userId,
+                        });
+                        this.ticketManager.removeTicketsById(ticketMentions);
+                        break;
+                    }
+                }
+            }  
+        }
+    }
+
+    /**
+     * Will prompt the user for channel numbers to include or exclude from the garbage collector.
+     * @param {TextChannel} channel 
+     * @param {String} userId 
+     */
+    async includeExcludeCallback(channel, userId) {
+        let type = await StringPrompt.restricted({
+            prompt: 'Would you like to include tickets on the automatic garbage collector or exclude tickets? Respond with include or exclude respectively.',
+            channel,
+            userId,
+        }, ['include', 'exclude']);
+
+        let tickets = await NumberPrompt.multi({
+            prompt: `Type the ticket numbers you would like to ${type} separated by spaces.`,
+            channel, 
+            userId,
+        });
+
+        tickets.forEach((ticketNumber) => {
+            let ticket = this.ticketManager.tickets.get(ticketNumber);
+            ticket?.includeExclude(type === 'exclude' ? true : false);
+        });
+    }
+
+    /**
+     * Adds a subRole.
+     * @param {Role} role - the role to add
+     * @param {GuildEmoji} emoji - the emoji associated to this role
+     * @param {Number} [currentActiveUsers=0] - number of active users with this role
+     * @private
+     */
+    addSubRole(role, emoji, currentActiveUsers = 0) {
+        /** @type {SubRole} */
+        let subRoleName = role.name.substring(this.caveOptions.preRoleText.length + 1);
+        let subRole = {
+            name: subRoleName,
+            id: role.id,
+            activeUsers: currentActiveUsers,
+        };
+
+        // add to list of emojis being used
+        this.subRoles.set(emoji.name, subRole);
+
+        // add to subRole selector console
+        this.subRoleConsole.addFeature(
+            Feature.create({
+                name: `-> If you know ${subRoleName}`,
+                description: '---------------------------------',
+                emoji: emoji,
+                callback: (user, reaction, stopInteracting, console) => {
+                    let member = this.guild.member(user);
+                    addRoleToMember(member, role);
+                    sendMsgToChannel(console.channel, user.id, `You have received the ${subRoleName} role!`, 10);
+                    stopInteracting();
+                },
+                removeCallback: (user, reaction, stopInteracting, console) => {
+                    let member = this.guild.member(user);
+                    removeRolToMember(member, role);
+                    sendMsgToChannel(console.channel, user.id, `You have lost the ${subRoleName} role!`, 10);
+                    stopInteracting();
+                },
+            })
+        );
+
+        this.ticketManager.addTicketType(role, subRole.name, emoji);
+    }
+
+    /**
+     * Deletes all the tickets rooms, public channels and private channels.
+     * @override
+     */
+    delete() {
+        this.publicRoom.delete();
+        this.ticketManager.removeAllTickets();
+        super.delete();
+    }
+
+    /**
+     * Removes private channels and archives the public channels.
+     * It also deletes the ticket rooms.
+     * @override
+     * @param {CategoryChannel} archiveCategory 
+     */
+    archive(archiveCategory) {
+        this.room.delete();
+        this.publicRoom.archive(archiveCategory);
+        this.ticketManager.removeAllTickets();
+        super.archive();
+    }
+}
+module.exports = Cave;</code></pre>
+        </article>
+    </section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+<script src="scripts/search.js"> </script>
+
+</body>
+</html>
