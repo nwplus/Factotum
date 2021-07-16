@@ -1,8 +1,8 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
 const { Message } = require('discord.js');
-const TeamFormation = require('../../classes/team-formation');
-const Activity = require('../../classes/activities/activity');
+const TeamFormation = require('../../classes/Bot/Features/Team_Formation/team-formation');
+const Activity = require('../../classes/Bot/activities/activity');
 const { sendMsgToChannel } = require('../../discord-services');
 const { StringPrompt, SpecialPrompt, RolePrompt } = require('advanced-discord.js-prompts');
 

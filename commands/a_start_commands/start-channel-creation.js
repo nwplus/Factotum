@@ -1,7 +1,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { sendEmbedToMember, replyAndDelete } = require('../../discord-services');
 const { Message, MessageEmbed } = require('discord.js');
-const BotGuildModel = require('../../classes/bot-guild');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { StringPrompt, MessagePrompt } = require('advanced-discord.js-prompts');
 const ChannelPrompt = require('advanced-discord.js-prompts/prompts/channel-prompt');
 

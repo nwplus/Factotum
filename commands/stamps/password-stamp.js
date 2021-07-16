@@ -1,8 +1,8 @@
 const { sendEmbedToMember, sendMessageToMember, deleteMessage } = require('../../discord-services');
 const { MessageEmbed, Message, Snowflake, Collection } = require('discord.js');
 const PermissionCommand = require('../../classes/permission-command');
-const BotGuildModel = require('../../classes/bot-guild');
-const StampsManager = require('../../classes/stamps-manager');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
+const StampsManager = require('../../classes/Bot/Features/Stamps/stamps-manager');
 const { StringPrompt, ChannelPrompt } = require('advanced-discord.js-prompts');
 
 /**

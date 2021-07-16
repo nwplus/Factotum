@@ -1,9 +1,9 @@
 const { Collection, User, Role } = require('discord.js');
 const winston = require('winston');
-const discordServices = require('../../discord-services');
-const Console = require('../consoles/console');
-const Feature = require('../consoles/feature');
-const Room = require('../room');
+const discordServices = require('../../../../discord-services');
+const Console = require('../../../UI/Console/console');
+const Feature = require('../../../UI/Console/feature');
+const Room = require('../../../UI/Room/room');
 const TicketManager = require('./ticket-manager');
 
 class Ticket {

@@ -2,7 +2,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { discordLog } = require('../../discord-services');
 const { MessageEmbed, Message } = require('discord.js');
-const BotGuildModel = require('../../classes/bot-guild');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
 
 /**
  * The clear chat command will clear a channel from at most 100 messages that are at least 2 weeks young.

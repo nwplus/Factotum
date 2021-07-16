@@ -1,10 +1,10 @@
 const { Guild, Collection, Role, TextChannel, MessageEmbed, GuildEmoji, ReactionEmoji, CategoryChannel } = require('discord.js');
-const { sendMsgToChannel, addRoleToMember, removeRolToMember } = require('../../discord-services');
+const { sendMsgToChannel, addRoleToMember, removeRolToMember } = require('../../../discord-services');
 const BotGuildModel = require('../bot-guild');
-const Room = require('../room');
-const Console = require('../consoles/console');
-const Feature = require('../consoles/feature');
-const TicketManager = require('../tickets/ticket-manager');
+const Room = require('../../UI/Room/room');
+const Console = require('../../UI/Console/console');
+const Feature = require('../../UI/Console/feature');
+const TicketManager = require('../Features/Ticket_System/ticket-manager');
 const Activity = require('./activity');
 const { StringPrompt, NumberPrompt, SpecialPrompt } = require('advanced-discord.js-prompts');
 

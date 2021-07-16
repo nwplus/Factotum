@@ -1,7 +1,7 @@
 const winston = require('winston');
 const { GuildCreateChannelOptions, User, Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable, PermissionOverwriteOption } = require('discord.js');
-const BotGuildModel = require('./bot-guild');
-const { deleteChannel } = require('../discord-services');
+const BotGuildModel = require('../../Bot/bot-guild');
+const { deleteChannel } = require('../../../discord-services');
 
 /**
  * @typedef RoomChannels
@@ -224,7 +224,7 @@ class Room {
 
             await deleteChannel(this.channels.category);
         }
-        winston.loggers.get(this.guild.id).event(`The room ${this.name} was deleted!`, {event: "Room"});
+        winston.loggers.get(this.guild.id).event(`The room ${this.name} was deleted!`, {event: 'Room'});
     }
 
     /**

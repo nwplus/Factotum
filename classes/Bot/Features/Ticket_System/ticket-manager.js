@@ -1,12 +1,12 @@
 const { Collection, GuildEmoji, ReactionEmoji, TextChannel, Guild, Role, User } = require('discord.js');
 const Ticket = require('./ticket');
-const BotGuildModel = require('../bot-guild');
-const Console = require('../consoles/console');
-const Feature = require('../consoles/feature');
-const { sendMsgToChannel } = require('../../discord-services');
+const BotGuildModel = require('../../bot-guild');
+const Console = require('../../../UI/Console/console');
+const Feature = require('../../../UI/Console/feature');
+const { sendMsgToChannel } = require('../../../../discord-services');
 const winston = require('winston');
 const { StringPrompt } = require('advanced-discord.js-prompts');
-const Activity = require('../activities/activity');
+const Activity = require('../../activities/activity');
 
 
 /**

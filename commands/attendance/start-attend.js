@@ -1,8 +1,8 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { checkForRole, sendEmbedToMember } = require('../../discord-services');
 const { MessageEmbed, Message } = require('discord.js');
-const Verification = require('../../classes/verification');
-const BotGuildModel = require('../../classes/bot-guild');
+const Verification = require('../../classes/Bot/Features/Verification/verification');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { StringPrompt, SpecialPrompt, ChannelPrompt } = require('advanced-discord.js-prompts');
 
 /**

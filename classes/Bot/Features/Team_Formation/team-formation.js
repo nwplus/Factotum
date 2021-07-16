@@ -1,10 +1,10 @@
 const { GuildEmoji, ReactionEmoji, Role, TextChannel, MessageEmbed, Guild, Collection, User, Message, RoleManager } = require('discord.js');
-const { sendEmbedToMember, addRoleToMember, deleteMessage, sendMessageToMember, removeRolToMember } = require('../discord-services');
-const BotGuild = require('../db/mongo/BotGuild');
+const { sendEmbedToMember, addRoleToMember, deleteMessage, sendMessageToMember, removeRolToMember } = require('../../../../discord-services');
+const BotGuild = require('../../../../db/mongo/BotGuild');
 const winston = require('winston');
-const Activity = require('./activities/activity');
-const BotGuildModel = require('./bot-guild');
-const Console = require('./consoles/console');
+const Activity = require('../../activities/activity');
+const BotGuildModel = require('../../bot-guild');
+const Console = require('../../../UI/Console/console');
 const { StringPrompt } = require('advanced-discord.js-prompts');
 
 /**

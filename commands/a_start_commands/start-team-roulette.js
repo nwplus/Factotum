@@ -1,8 +1,8 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { sendEmbedToMember } = require('../../discord-services');
 const { TextChannel, Snowflake, Message, MessageEmbed, Collection, GuildChannelManager, User } = require('discord.js');
-const Team = require('../../classes/team');
-const BotGuildModel = require('../../classes/bot-guild');
+const Team = require('../../classes/Bot/Features/Team_Roulette/team');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { MemberPrompt, SpecialPrompt, ChannelPrompt } = require('advanced-discord.js-prompts');
 
 /**

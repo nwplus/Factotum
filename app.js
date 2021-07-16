@@ -7,8 +7,8 @@ const winston = require('winston');
 const fs = require('fs');
 const discordServices = require('./discord-services');
 const BotGuild = require('./db/mongo/BotGuild');
-const BotGuildModel = require('./classes/bot-guild');
-const Verification = require('./classes/verification');
+const BotGuildModel = require('./classes/Bot/bot-guild');
+const Verification = require('./classes/Bot/Features/Verification/verification');
 const { StringPrompt } = require('advanced-discord.js-prompts');
 
 /**

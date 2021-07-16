@@ -1,7 +1,7 @@
 const { Collection, TextChannel, Role, MessageEmbed, CategoryChannel, Guild } = require('discord.js');
 const { CommandoClient, CommandoGuild } = require('discord.js-commando');
 const winston = require('winston');
-const discordServices = require('../discord-services');
+const discordServices = require('../../discord-services');
 
 /**
  * @class

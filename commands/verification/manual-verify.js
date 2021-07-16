@@ -3,8 +3,8 @@ const PermissionCommand = require('../../classes/permission-command');
 const { addUserData } = require('../../db/firebase/firebase-services');
 const { sendMsgToChannel, checkForRole, validateEmail } = require('../../discord-services');
 const { Message } = require('discord.js');
-const Verification = require('../../classes/verification');
-const BotGuildModel = require('../../classes/bot-guild');
+const Verification = require('../../classes/Bot/Features/Verification/verification');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
 const winston = require('winston');
 const { StringPrompt, NumberPrompt } = require('advanced-discord.js-prompts');
 

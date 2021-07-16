@@ -2,7 +2,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const { discordLog, checkForRole } = require('../../discord-services');
 const { Message, MessageEmbed, Snowflake } = require('discord.js');
 const { getQuestion } = require('../../db/firebase/firebase-services');
-const BotGuildModel = require('../../classes/bot-guild');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { NumberPrompt, SpecialPrompt, RolePrompt, MemberPrompt } = require('advanced-discord.js-prompts');
 
 /**

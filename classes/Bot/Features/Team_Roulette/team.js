@@ -1,7 +1,5 @@
 const Discord = require('discord.js');
 const winston = require('winston');
-const discordServices = require('../discord-services');
-
 
 /**
  * A Team represents a real life team with members. Teams can merge together, have channels and each team has a unique ID.

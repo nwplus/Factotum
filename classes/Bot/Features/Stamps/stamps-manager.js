@@ -1,10 +1,10 @@
 const { Collection, MessageEmbed, GuildMember } = require('discord.js');
 const winston = require('winston');
-const { addRoleToMember, sendEmbedToMember, replaceRoleToMember, sendMessageToMember } = require('../discord-services');
-const BotGuildModel = require('./bot-guild');
-const Activity = require('./activities/activity');
+const { addRoleToMember, sendEmbedToMember, replaceRoleToMember, sendMessageToMember } = require('../../../../discord-services');
+const BotGuildModel = require('../../bot-guild');
+const Activity = require('../../activities/activity');
 
-/**
+/** 
  * @class
  * 
  */

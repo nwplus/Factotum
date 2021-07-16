@@ -1,5 +1,5 @@
 const { Collection, Message, TextChannel, MessageEmbed, DMChannel, MessageReaction, User, ReactionCollectorOptions, ReactionCollector, Guild, GuildEmoji, ReactionEmoji } = require('discord.js');
-const { randomColor } = require('../../discord-services');
+const { randomColor } = require('../../../discord-services');
 const getEmoji = require('get-random-emoji');
 const Feature = require('./feature');
 
@@ -38,11 +38,6 @@ class Console {
         this.description = description;
 
         /**
-         * @type {Collection<String, Feature>} - <Emoji Name, Button Info>
-         */
-        this.features = new Collection();
-
-        /**
          * The fields this console has, not including feature fields.
          * <Field Name, Field Description>
          * @type {Collection<String, String>}
@@ -55,17 +50,21 @@ class Console {
         this.color = color;
 
         /**
+         * @type {Collection<String, Feature>} - <Emoji Name, Button Info>
+         */
+        this.features = new Collection();
+
+        /**
+         * @type {ReactionCollector}
+         */
+        this.collector;
+
+        /**
          * The collector options.
          * @type {ReactionCollectorOptions}
          */
         this.collectorOptions = options;
         this.collectorOptions.dispose = true;
-
-        /**
-         * The message holding the console.
-         * @type {Message}
-         */
-        this.message;
 
         /**
          * Users the console is interacting with;
@@ -74,9 +73,10 @@ class Console {
         this.interacting = new Collection();
 
         /**
-         * @type {ReactionCollector}
+         * The message holding the console.
+         * @type {Message}
          */
-        this.collector;
+        this.message;
 
         /**
          * The channel this console lives in.
@@ -170,7 +170,7 @@ class Console {
     }
     
     /**
-     * Removes a feature from this console. TODO remove from embed too!
+     * Removes a feature from this console.
      * @param {String | Feature} identifier - feature name, feature emojiName or feature
      */
     removeFeature(identifier) {

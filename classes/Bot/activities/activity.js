@@ -1,11 +1,11 @@
 const { Guild, Collection, Role, CategoryChannel, TextChannel, MessageEmbed, GuildMember, PermissionOverwriteOption } = require('discord.js');
 const winston = require('winston');
-const BotGuild = require('../../db/mongo/BotGuild');
+const BotGuild = require('../../../db/mongo/BotGuild');
 const BotGuildModel = require('../bot-guild');
-const { shuffleArray, sendMsgToChannel } = require('../../discord-services');
-const StampsManager = require('../stamps-manager');
-const Room = require('../room');
-const Console = require('../consoles/console');
+const { shuffleArray, sendMsgToChannel } = require('../../../discord-services');
+const StampsManager = require('../Features/Stamps/stamps-manager');
+const Room = require('../../UI/Room/room');
+const Console = require('../../UI/Console/console');
 const { StringPrompt, RolePrompt, ListPrompt } = require('advanced-discord.js-prompts');
 
 /**

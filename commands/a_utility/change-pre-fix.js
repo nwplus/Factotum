@@ -1,6 +1,6 @@
 const { Message } = require('discord.js');
 const PermissionCommand = require('../../classes/permission-command');
-const BotGuildModel = require('../../classes/bot-guild');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { StringPrompt } = require('advanced-discord.js-prompts');
 
 /**

@@ -2,9 +2,9 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { randomColor } = require('../../discord-services');
 const { Message, Collection } = require('discord.js');
-const Cave = require('../../classes/activities/cave');
+const Cave = require('../../classes/Bot/activities/cave');
 const winston = require('winston');
-const BotGuildModel = require('../../classes/bot-guild');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { NumberPrompt, SpecialPrompt, RolePrompt } = require('advanced-discord.js-prompts');
 
 /**
