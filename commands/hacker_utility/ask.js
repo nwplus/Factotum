@@ -2,7 +2,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { checkForRole, sendMessageToMember, } = require('../../discord-services');
 const { MessageEmbed, Collection, Message, } = require('discord.js');
-const BotGuildModel = require('../../classes/bot-guild');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
 
 /**
  * The ask command tries to imitate a thread like functionality from slack. Users can ask questions, and then other 

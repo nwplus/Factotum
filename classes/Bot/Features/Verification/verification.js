@@ -1,10 +1,10 @@
 const { GuildMember, Guild } = require('discord.js');
-const discordServices = require('../discord-services');
-const firebaseServices = require('../db/firebase/firebase-services');
-const BotGuildModel = require('./bot-guild');
+const discordServices = require('../../../../discord-services');
+const firebaseServices = require('../../../../db/firebase/firebase-services');
+const BotGuildModel = require('../../bot-guild');
 const winston = require('winston');
 
-/**
+/** 
  * @class Verification
  */
 class Verification {

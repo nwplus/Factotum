@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 const { Command, CommandoMessage, CommandoClientOptions, CommandInfo } = require('discord.js-commando');
 const BotGuild = require('../db/mongo/BotGuild');
-const BotGuildModel = require('./bot-guild');
+const BotGuildModel = require('./Bot/bot-guild');
 const discordServices = require('../discord-services');
 const winston = require('winston');
 
@@ -16,8 +16,8 @@ class PermissionCommand extends Command {
     /**
      * Our custom command information for validation
      * @typedef {Object} CommandPermissionInfo
-     * @property {string} role - the role this command can be run by
-     * @property {string} channel - the channel ID where this command can be run
+     * @property {string} role - the role this command can be run by, one of FLAGS
+     * @property {string} channel - the channel where this command can be run, one of FLAGS
      * @property {string} roleMessage - the message to be sent for an incorrect role
      * @property {string} channelMessage - the message to be sent for an incorrect channel
      * @property {Boolean} dmOnly - true if this command can only be used on a DM

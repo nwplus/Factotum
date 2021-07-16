@@ -1,8 +1,8 @@
 const { replyAndDelete } = require('../../discord-services');
 const { Message } = require('discord.js');
-const Activity = require('../../classes/activities/activity');
+const Activity = require('../../classes/Bot/activities/activity');
 const PermissionCommand = require('../../classes/permission-command');
-const CoffeeChats = require('../../classes/activities/coffee-chats');
+const CoffeeChats = require('../../classes/Bot/activities/coffee-chats');
 
 /**
  * Creates a new coffee chats activity.

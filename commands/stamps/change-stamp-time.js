@@ -1,7 +1,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { replyAndDelete } = require('../../discord-services');
 const { Message } = require('discord.js');
-const BotGuildModel = require('../../classes/bot-guild');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
 
 /**
  * Change the time users get to react to get a stamp from activity stamp distributions. It defaults to 60 seconds.

@@ -1,9 +1,9 @@
 const { replyAndDelete } = require('../../discord-services');
 const { Message, Collection } = require('discord.js');
-const BotGuildModel = require('../../classes/bot-guild');
-const Workshop = require('../../classes/activities/workshop');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
+const Workshop = require('../../classes/Bot/activities/workshop');
 const PermissionCommand = require('../../classes/permission-command');
-const Activity = require('../../classes/activities/activity');
+const Activity = require('../../classes/Bot/activities/activity');
 const { SpecialPrompt, RolePrompt } = require('advanced-discord.js-prompts');
 
 /**

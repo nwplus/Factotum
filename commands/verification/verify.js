@@ -1,8 +1,8 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { sendEmbedToMember, sendMessageToMember, checkForRole, validateEmail } = require('../../discord-services');
 const { Message } = require('discord.js');
-const Verification = require('../../classes/verification');
-const BotGuildModel = require('../../classes/bot-guild');
+const Verification = require('../../classes/Bot/Features/Verification/verification');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
 
 /**
  * Will verify the user running the command, needs the user's email and guild ID. Can only 

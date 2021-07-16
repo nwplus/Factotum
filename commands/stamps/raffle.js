@@ -1,6 +1,6 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { Message, MessageEmbed } = require('discord.js');
-const BotGuildModel = require('../../classes/bot-guild');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
 
 /**
  * Picks x amount of winners from the stamp contest. The more stamps a user has, the more chances they have of winning.

@@ -1,7 +1,7 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
 const firebaseServices = require('../../db/firebase/firebase-services');
-const BotGuildModel = require('../../classes/bot-guild');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { Message } = require('discord.js');
 
 /**

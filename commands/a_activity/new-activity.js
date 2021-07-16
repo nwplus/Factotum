@@ -1,6 +1,6 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { Message } = require('discord.js');
-const Activity = require('../../classes/activities/activity');
+const Activity = require('../../classes/Bot/activities/activity');
 
 /**
  * Creates a new activity and prompts the user for any information.

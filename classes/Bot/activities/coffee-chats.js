@@ -1,8 +1,8 @@
 const Activity = require('./activity');
 const { TextChannel, GuildMember, Collection, VoiceChannel } = require('discord.js');
 const winston = require('winston');
-const { sendMsgToChannel } = require('../../discord-services');
-const Console = require('../consoles/console');
+const { sendMsgToChannel } = require('../../../discord-services');
+const Console = require('../../UI/Console/console');
 const { MemberPrompt, ListPrompt } = require('advanced-discord.js-prompts');
 
 /**

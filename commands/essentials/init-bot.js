@@ -3,7 +3,7 @@ const { Message, TextChannel, Snowflake, Guild, ColorResolvable, Role, } = requi
 const { sendMsgToChannel, addRoleToMember, } = require('../../discord-services');
 const BotGuild = require('../../db/mongo/BotGuild');
 const winston = require('winston');
-const Console = require('../../classes/consoles/console');
+const Console = require('../../classes/UI/Console/console');
 const { MessagePrompt, StringPrompt, NumberPrompt, SpecialPrompt, RolePrompt, ChannelPrompt } = require('advanced-discord.js-prompts');
 
 /**
