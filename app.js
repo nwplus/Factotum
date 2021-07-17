@@ -122,7 +122,7 @@ bot.registry
 bot.once('ready', async () => {
     mainLogger.warning('The bot ' + bot.user.username + ' has started and is ready to hack!');
     
-    bot.user.setActivity('Ready to hack!');
+    bot.user.setActivity('nwplus.github.io/Factotum');
 
     // initialize firebase
     const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
