@@ -1,7 +1,7 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { discordLog } = require('../../discord-services');
 const { Message } = require('discord.js');
-const BotGuildModel = require('../../classes/bot-guild');
+const BotGuildModel = require('../../classes/Bot/bot-guild');
 
 /**
  * The !set-bot-activity will set the bot's activity.
