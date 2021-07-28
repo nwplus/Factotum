@@ -99,13 +99,13 @@ class Console {
             .setTitle(this.title)
             .setDescription(this.description);
         
-        this.features.forEach(feature => embed.addField(feature.getFieldName(), feature.getFieldValue()));
+        this.features.forEach(feature => embed.addField(feature.getFieldName(this.channel?.guild?.emojis), feature.getFieldValue()));
         this.fields.forEach((description, name) => embed.addField(name, description));
 
         this.message = await this.channel.send(messageText ,embed);
 
         this.features.forEach(feature => {
-            this.message.react(feature.emojiName).catch(reason => {
+            this.message.react(feature.emojiName).catch((reason) => {
                 // the emoji is probably custom we need to find it!
                 let emoji = this.message.guild.emojis.cache.find(guildEmoji => guildEmoji.name === feature.emojiName);
                 this.message.react(emoji);
@@ -151,6 +151,10 @@ class Console {
      * @async
      */
     async addFeature(feature) {
+        if (!(feature instanceof Feature)) {
+            throw Error(`The given feature is not a Feature object! Given object: ${feature}`);
+        }
+
         // if the channel is a DM channel, we can't use custom emojis, so if the emoji is a custom emoji, its an ID,
         // we will grab a random emoji and use that instead
         if (this.channel.type === 'dm' && !isNaN(parseInt(feature.emojiName))) {
@@ -160,7 +164,7 @@ class Console {
         this.features.set(feature.emojiName, feature);
 
         if (this.message) {
-            await this.message.edit(this.message.embeds[0].addField(feature.getFieldName(), feature.getFieldValue()));
+            await this.message.edit(this.message.embeds[0].addField(feature.getFieldName(this.channel?.guild?.emojis), feature.getFieldValue()));
             this.message.react(feature.emojiName).catch(reason => {
                 // the emoji is probably custom we need to find it!
                 let emoji = this.message.guild.emojis.cache.find(guildEmoji => guildEmoji.name === feature.emojiName);

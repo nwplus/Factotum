@@ -39,13 +39,13 @@ class Feature {
      * @returns {Feature}
      */
     static create({name, description, emoji, callback, removeCallback}) {
-        return {
+        return new Feature({
             name,
+            emojiName: (typeof emoji === 'string') ? emoji : emoji.id || emoji.name,
             description,
-            emojiName: typeof emoji === 'string' ? emoji : emoji.id || emoji.name,
             callback,
             removeCallback,
-        };
+        });
     }
 
     /**
@@ -89,11 +89,15 @@ class Feature {
     /**
      * Returns a string with the emoji and the feature name:
      * <emoji> - Feature 1
-     * @param {GuildEmojiManager} guildEmojiManager
+     * @param {GuildEmojiManager} [guildEmojiManager] not needed if console is DM
      * @returns {String} 
      */
     getFieldName(guildEmojiManager) {
-        let emoji = guildEmojiManager.resolve(this.emojiName);
+        let emoji;
+
+        if (guildEmojiManager != undefined) {
+            emoji = guildEmojiManager.resolve(this.emojiName);
+        }
 
         return `${emoji ? emoji.toString() : this.emojiName} - ${this.name}`;
     }
