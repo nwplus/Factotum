@@ -1,9 +1,11 @@
 // Discord.js commando requirements
 const PermissionCommand = require('../../classes/permission-command');
 const { checkForRole, addRoleToMember, removeRolToMember } = require('../../discord-services');
-const { MessageEmbed, Message, Role, Collection } = require('discord.js');
+const { Message, Role, Collection } = require('discord.js');
 const BotGuildModel = require('../../classes/Bot/bot-guild');
-const { MessagePrompt, SpecialPrompt } = require('advanced-discord.js-prompts');
+const { SpecialPrompt, RolePrompt, StringPrompt } = require('advanced-discord.js-prompts');
+const Console = require('../../classes/UI/Console/console');
+const Feature = require('../../classes/UI/Console/feature');
 
 /**
  * Make a message embed (console) available on the channel for users to react and un-react for roles. Staff can dynamically add 
@@ -50,69 +52,73 @@ class RoleSelector extends PermissionCommand {
          */
         let transfers = new Collection();
 
-        const cardEmbed = new MessageEmbed().setColor(botGuild.colors.embedColor)
-            .setTitle('Role Selector!')
-            .setDescription('React to the specified emoji to get the role, un-react to remove the role.');
+        let addTransferFeature = new Feature({
+            name: 'Add a Role!',
+            emojiName: newTransferEmoji,
+            description: 'Add a new emoji to this transfer console! Only staff can select this option!',
+            callback: async (user, reaction, stopInteracting, console) => {
+                let channel = console.channel;
+                // staff add new transfer
+                if (checkForRole(message.guild.member(user), botGuild.roleIDs.staffRole)) {
+                    
+                    try {
+                        var role = await RolePrompt.single({
+                            prompt: 'What role do you want to add?',
+                            channel: channel,
+                            userId: user.id
+                        });
 
-        let cardMsg = await message.channel.send(cardEmbed);
-        cardMsg.react(newTransferEmoji);
+                        var title = await StringPrompt.single({
+                            prompt: 'What is the transfer title?',
+                            channel: channel,
+                            userId: user.id
+                        });
 
-        let filter = (reaction, user) => !user.bot && (transfers.has(reaction.emoji.name) || reaction.emoji.name === newTransferEmoji);
-        let reactionCollector = cardMsg.createReactionCollector(filter, {dispose: true});
+                        var description = await StringPrompt.single({
+                            prompt: 'What is the transfer description?',
+                            channel: channel,
+                            userId: user.id
+                        });
 
-        // add role or a transfer depending on the emoji
-        reactionCollector.on('collect', async (reaction, user) => {
-            // admin add new transfer
-            if (reaction.emoji.name === newTransferEmoji && checkForRole(message.guild.member(user), botGuild.roleIDs.staffRole)) {
-                
-                try {
-                    var newTransferMsg = await MessagePrompt.prompt({
-                        prompt: 'What new transfer do you want to add? Your response should have (in this order, not including <>): @role <transfer name> - <transfer description>',
-                        channel: message.channel, 
-                        userId: user.id
+                    } catch (error) {
+                        stopInteracting(user);
+                        return;
+                    }
+                    
+                    let emoji = await SpecialPrompt.singleEmoji({prompt: 'What emoji to you want to use for this transfer?', channel: message.channel, userId: message.author.id});
+                    
+                    // new feature will add the emoji transfer to the embed
+                    let newFeature = Feature.create({
+                        name: title,
+                        description: description,
+                        emoji: emoji,
+                        callback: (user, reaction, stopInteracting, console) => {
+                            addRoleToMember(console.channel.guild.member(user), role);
+                            stopInteracting(user);
+                            console.channel.send('<@' + user.id + '> You have been given the role: ' + role.name).then(msg => msg.delete({timeout: 4000}));
+                        },
+                        removeCallback: (user, reaction, stopInteracting, console) => {
+                            removeRolToMember(console.channel.guild.member(user), role);
+                            stopInteracting(user);
+                            console.channel.send('<@' + user.id + '> You have lost the role: ' + role.name).then(msg => msg.delete({timeout: 4000}));
+                        }
                     });
-                } catch (error) {
-                    reaction.users.remove(user.id);
-                    return;
+                    console.addFeature(newFeature);
                 }
                 
-                // grab the role, name and description from the prompt message
-                let role = newTransferMsg.mentions.roles.first();
-                let firstStop = newTransferMsg.cleanContent.indexOf('-');
-                let name = newTransferMsg.cleanContent.substring(0, firstStop);
-                let description = newTransferMsg.cleanContent.substring(firstStop + 1);
-
-                let emoji = await SpecialPrompt.singleEmoji({prompt: 'What emoji to you want to use for this transfer?', channel: message.channel, userId: message.author.id});
-
-                transfers.set(emoji.name, {
-                    name: name,
-                    description: description,
-                    role: role,
-                });
-
-                // edit original embed with transfer information and react with new role
-                reaction.message.edit(reaction.message.embeds[0].addField(name + ' -> ' + emoji.toString(), description));
-                reaction.message.react(emoji);
-                
-                reaction.users.remove(user.id);
-            }
-
-            // user add role
-            if (transfers.has(reaction.emoji.name)) {
-                let role = transfers.get(reaction.emoji.name).role;
-                addRoleToMember(message.guild.member(user), role);
-                message.channel.send('<@' + user.id + '> You have been given the role: ' + role.name).then(msg => msg.delete({timeout: 4000}));
-            }
+                reaction.users.remove(user);
+                stopInteracting(user);
+            },
         });
 
-        // remove the role from the user if the emoji is a transfer emoji
-        reactionCollector.on('remove', (reaction, user) => {
-            if (transfers.has(reaction.emoji.name)) {
-                let role = transfers.get(reaction.emoji.name).role;
-                removeRolToMember(message.guild.member(user), role);
-                message.channel.send('<@' + user.id + '> You have lost the role: ' + role.name).then(msg => msg.delete({timeout: 4000}));
-            }
+        let console = new Console({
+            title: 'Role Selector!',
+            description: 'React to the specified emoji to get the role, un-react to remove the role.',
+            channel: message.channel,
         });
+        console.addFeature(addTransferFeature);
+
+        await console.sendConsole();
     }
 }
 module.exports = RoleSelector;
