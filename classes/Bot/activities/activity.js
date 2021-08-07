@@ -52,10 +52,12 @@ class Activity {
      */
     static async promptForRoleParticipants(channel, userId, isStaffAuto = false) {
         let allowedRoles = new Collection();
-        
+
         try {
-            allowedRoles = await RolePrompt.multi({ prompt: `What roles${isStaffAuto ? ', aside from Staff,' : ''} will be allowed to view this activity? (Type "cancel" if none)`,
-                channel, userId, cancelable: true });
+            allowedRoles = await RolePrompt.multi({
+                prompt: `What roles${isStaffAuto ? ', aside from Staff,' : ''} will be allowed to view this activity? (Type "cancel" if none)`,
+                channel, userId, cancelable: true
+            });
         } catch (error) {
             // nothing given is an empty collection viewable to admins only
         }
@@ -64,7 +66,7 @@ class Activity {
         if (isStaffAuto) {
             let staffRoleId = (await BotGuild.findById(channel.guild.id)).roleIDs.staffRole;
             allowedRoles.set(staffRoleId, channel.guild.roles.resolve(staffRoleId));
-        } 
+        }
 
         return allowedRoles;
     }
@@ -74,7 +76,7 @@ class Activity {
      * @constructor
      * @param {ActivityInfo} ActivityInfo 
      */
-    constructor({activityName, guild, roleParticipants, botGuild}) {
+    constructor({ activityName, guild, roleParticipants, botGuild }) {
         /**
          * The name of this activity.
          * @type {string}
@@ -110,7 +112,7 @@ class Activity {
          */
         this.botGuild = botGuild;
 
-        winston.loggers.get(guild.id).event(`An activity named ${this.name} was created.`, {data: {permissions: roleParticipants}});
+        winston.loggers.get(guild.id).event(`An activity named ${this.name} was created.`, { data: { permissions: roleParticipants } });
     }
 
 
@@ -126,7 +128,7 @@ class Activity {
 
         await this.adminConsole.sendConsole();
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was initialized.`, {event: 'Activity'});
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was initialized.`, { event: 'Activity' });
         return this;
     }
 
@@ -150,10 +152,10 @@ class Activity {
                 callback: (user, reaction, stopInteracting, console) => this.removeChannel(console.channel, user.id).then(() => stopInteracting()),
             },
             {
-                name: 'Delete', 
+                name: 'Delete',
                 description: 'Delete this activity and its channels.',
                 emoji: '⛔',
-                callback: (user, reaction, stopInteracting, console) => this.delete(),
+                callback: (user, reaction, stopInteracting, console) => this.delete(console.channel, user.id),
             },
             {
                 name: 'Archive',
@@ -222,15 +224,15 @@ class Activity {
                 emojiName: '🔊'
             },
             {
-                name: 'text', 
+                name: 'text',
                 description: 'A text channel',
                 emojiName: '✍️',
             }
         ]);
         // channel name
-        let name = await StringPrompt.single({ prompt: 'What is the name of the channel?', channel, userId});
+        let name = await StringPrompt.single({ prompt: 'What is the name of the channel?', channel, userId });
 
-        return await this.room.addRoomChannel({name, info: { type: option.name}});
+        return await this.room.addRoomChannel({ name, info: { type: option.name } });
     }
 
     /**
@@ -268,7 +270,7 @@ class Activity {
 
         this.adminConsole.delete();
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was archived!`, {event: 'Activity'});
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was archived!`, { event: 'Activity' });
     }
 
     /**
@@ -280,7 +282,7 @@ class Activity {
 
         this.adminConsole.delete();
 
-        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was deleted!`, {event: 'Activity'});
+        winston.loggers.get(this.guild.id).event(`The activity ${this.name} was deleted!`, { event: 'Activity' });
     }
 
     /**
@@ -300,7 +302,7 @@ class Activity {
             channel.members.forEach(member => member.voice.setChannel(mainChannel));
         });
 
-        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channels called backs to channel ${mainChannel.name}.`, {event: 'Activity'});
+        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channels called backs to channel ${mainChannel.name}.`, { event: 'Activity' });
     }
 
     /**
@@ -324,7 +326,7 @@ class Activity {
 
         let members = mainChannel.members;
         if (filter) members = members.filter(member => filter(member));
-        
+
         let memberList = members.array();
         shuffleArray(memberList);
 
@@ -341,7 +343,7 @@ class Activity {
             }
         });
 
-        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channel members shuffled around!`, {event: 'Activity'});
+        winston.loggers.get(this.guild.id).event(`Activity named ${this.name} had its voice channel members shuffled around!`, { event: 'Activity' });
     }
 
     /**
@@ -371,7 +373,7 @@ class Activity {
             sendMsgToChannel(channel, userId, 'The stamp system is not enabled in this server!', 10);
             return;
         }
-        
+
         // The users already seen by this stamp distribution.
         let seenUsers = new Collection();
 
@@ -390,7 +392,7 @@ class Activity {
             }, this.room.channels.textChannels.array());
             promptMsg = await stampChannel.send(promptEmbed);
         }
-        
+
         promptMsg.react('👍');
 
         // reaction collector, time is needed in milliseconds, we have it in seconds
@@ -408,7 +410,7 @@ class Activity {
 
         // edit the message to closed when the collector ends
         collector.on('end', () => {
-            winston.loggers.get(this.guild.id).event(`Activity named ${this.name} stamp distribution has stopped.`, {event: 'Activity'});
+            winston.loggers.get(this.guild.id).event(`Activity named ${this.name} stamp distribution has stopped.`, { event: 'Activity' });
             if (!promptMsg.deleted) {
                 promptMsg.edit(promptEmbed.setTitle('Time\'s up! No more responses are being collected. Thanks for participating in ' + this.name + '!'));
             }
@@ -424,7 +426,7 @@ class Activity {
 
         let rulesChannel = await this.room.lockRoom();
 
-        let rules = await StringPrompt.single({ prompt: 'What are the activity rules?', channel, userId});
+        let rules = await StringPrompt.single({ prompt: 'What are the activity rules?', channel, userId });
 
         let joinEmoji = '🚗';
 
@@ -438,7 +440,7 @@ class Activity {
 
         collector.on('collect', (reaction, user) => {
             this.room.giveUserAccess(user);
-            rulesChannel.updateOverwrite(user.id, { VIEW_CHANNEL: false});
+            rulesChannel.updateOverwrite(user.id, { VIEW_CHANNEL: false });
         });
     }
 }

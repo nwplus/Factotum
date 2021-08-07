@@ -184,7 +184,7 @@ class Cave extends Activity {
             }
         });
 
-        await this.ticketManager.sendTicketCreatorConsole('Get some help from our mentors!', 
+        await this.ticketManager.sendTicketCreatorConsole('Get some help from our mentors!',
             'To submit a ticket to the mentors please react to this message with the appropriate emoji. **If you are unsure, select a general ticket!**');
     }
 
@@ -224,7 +224,7 @@ class Cave extends Activity {
      * @async
      */
     async addSubRoleCallback(channel, userId) {
-        let roleNameMsg = await StringPrompt.single({prompt: 'What is the name of the new role?', channel, userId});
+        let roleNameMsg = await StringPrompt.single({ prompt: 'What is the name of the new role?', channel, userId });
 
         let roleName = roleNameMsg.content;
 
@@ -242,7 +242,7 @@ class Cave extends Activity {
         if (findRole) useOld = await SpecialPrompt.boolean({ prompt: 'I have found a role with the same name! Would you like to use that one? If not I will create a new one.', channel, userId });
 
         let role;
-        if (useOld) role = findRole; 
+        if (useOld) role = findRole;
         else role = await this.guild.roles.create({
             data: {
                 name: `${this.caveOptions.preRoleText}-${roleName}`,
@@ -270,19 +270,19 @@ class Cave extends Activity {
      */
     async deleteTicketChannelsCallback(channel, userId) {
         let type = await StringPrompt.restricted({
-            prompt: 'Type "all" if you would like to delete all tickets before x amount of time or type "some" to specify which tickets to remove.', 
-            channel, 
+            prompt: 'Type "all" if you would like to delete all tickets before x amount of time or type "some" to specify which tickets to remove.',
+            channel,
             userId,
         }, ['all', 'some']);
 
         switch (type) {
             case 'all': {
-                let age = await NumberPrompt.single({prompt: 'Enter how old, in minutes, a ticket has to be to remove. Send 0 if you want to remove all of them. Careful - this cannot be undone!', channel, userId});
+                let age = await NumberPrompt.single({ prompt: 'Enter how old, in minutes, a ticket has to be to remove. Send 0 if you want to remove all of them. Careful - this cannot be undone!', channel, userId });
                 this.ticketManager.removeTicketsByAge(age);
                 sendMsgToChannel(channel, userId, `All tickets over ${age} have been deleted!`);
                 break;
             }
-            case('some'): {
+            case ('some'): {
                 let subtype = await StringPrompt.restricted({
                     prompt: 'Would you like to remove all tickets except for some tickets you specify later or would you like to remove just some tickets. Type all or some respectively.',
                     channel,
@@ -309,7 +309,7 @@ class Cave extends Activity {
                         break;
                     }
                 }
-            }  
+            }
         }
     }
 
@@ -327,7 +327,7 @@ class Cave extends Activity {
 
         let tickets = await NumberPrompt.multi({
             prompt: `Type the ticket numbers you would like to ${type} separated by spaces.`,
-            channel, 
+            channel,
             userId,
         });
 
@@ -380,11 +380,28 @@ class Cave extends Activity {
         this.ticketManager.addTicketType(role, subRole.name, emoji);
     }
 
+    /** 
+     * Prompts user if they want to delete sub-roles
+     * @param {Channel} channel 
+     * @param {Integer} userId 
+     */
+    async deleteSubRoles(channel, userId) {
+        if (this.subRoles.size > 0) {
+            let ans = await SpecialPrompt.boolean({ prompt: 'Do you want to delete all the sub-roles?', channel, userId });
+            if (ans) {
+                this.subRoles.forEach((subRole) => {
+                    let role = this.guild.roles.cache.find(role => role.id === subRole.id);
+                    role.delete();
+                })
+            }
+        }
+    }
     /**
      * Deletes all the tickets rooms, public channels and private channels.
      * @override
      */
-    delete() {
+    delete(channel, userId) {
+        this.deleteSubRoles(channel, userId);
         this.publicRoom.delete();
         this.ticketManager.removeAllTickets();
         super.delete();
