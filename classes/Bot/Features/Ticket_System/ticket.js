@@ -196,19 +196,18 @@ class Ticket {
             channel: await this.group.first().createDM(),
             guild: this.ticketManager.parent.guild,
             features: new Collection([
-                [removeTicketEmoji, {
+                [removeTicketEmoji, Feature.create({
                     name: 'Remove the ticket',
                     description: 'React to this message if you don\'t need help any more!',
-                    emojiName: removeTicketEmoji,
+                    emoji: removeTicketEmoji,
                     callback: (user, reaction, stopInteracting) => {
                         // make sure user can only close the ticket if no one has taken the ticket
                         if (this.status === Ticket.STATUS.new) this.setStatus(Ticket.STATUS.closed, 'group leader closed the ticket');
                     },
-                }]
+                })]
             ]),
             options: { max: 1 }
         });
-
         this.consoles.groupLeader.sendConsole();
     }
 
@@ -273,31 +272,33 @@ class Ticket {
         });
 
         this.consoles.ticketRoom.addField('Thank you for helping this team.', `<@${helper.id}> best of luck!`);
-        this.consoles.ticketRoom.addFeature({
-            name: 'When done:',
-            description: `React to this message with ${leaveTicketEmoji} to lose access to these channels!`,
-            emojiName: leaveTicketEmoji,
-            callback: (user, reaction, stopInteracting) => {
-                // delete the mentor or the group member that is leaving the ticket
-                this.helpers.delete(user.id);
-                this.group.delete(user.id);
+        this.consoles.ticketRoom.addFeature(
+            Feature.create({
+                name: 'When done:',
+                description: `React to this message with ${leaveTicketEmoji} to lose access to these channels!`,
+                emoji: leaveTicketEmoji,
+                callback: (user, reaction, stopInteracting) => {
+                    // delete the mentor or the group member that is leaving the ticket
+                    this.helpers.delete(user.id);
+                    this.group.delete(user.id);
 
-                this.room.removeUserAccess(user);
+                    this.room.removeUserAccess(user);
 
-                // if all hackers are gone, delete ticket channels
-                if (this.group.size === 0) {
-                    this.setStatus(Ticket.STATUS.closed, 'no users on the ticket remaining');
+                    // if all hackers are gone, delete ticket channels
+                    if (this.group.size === 0) {
+                        this.setStatus(Ticket.STATUS.closed, 'no users on the ticket remaining');
+                    }
+
+                    // tell hackers all mentors are gone and ask to delete the ticket if this has not been done already 
+                    else if (this.helpers.size === 0 && !this.garbageCollectorInfo.mentorDeletionSequence && !this.garbageCollectorInfo.exclude) {
+                        this.garbageCollectorInfo.mentorDeletionSequence = true;
+                        this.askToDelete('mentor');
+                    }
+
+                    stopInteracting();
                 }
-
-                // tell hackers all mentors are gone and ask to delete the ticket if this has not been done already 
-                else if (this.helpers.size === 0 && !this.garbageCollectorInfo.mentorDeletionSequence && !this.garbageCollectorInfo.exclude) {
-                    this.garbageCollectorInfo.mentorDeletionSequence = true;
-                    this.askToDelete('mentor');
-                }
-
-                stopInteracting();
-            }
-        });
+            })
+        );
 
         this.consoles.ticketRoom.sendConsole();
 
