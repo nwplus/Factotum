@@ -365,7 +365,8 @@ class Ticket {
                 await this.room.channels.generalText.send('You have indicated that you need more time. I\'ll check in with you later!');
 
                 // set an interval to ask again later
-                this.garbageCollectorInfo.noHelperInterval = setInterval(() => this.askToDelete(reason), this.ticketManager.systemWideTicketInfo.garbageCollectorInfo.inactivePeriod * 60 * 1000);
+                //this.garbageCollectorInfo.noHelperInterval = setInterval(() => this.askToDelete(reason), this.ticketManager.systemWideTicketInfo.garbageCollectorInfo.inactivePeriod * 60 * 1000);
+                this.startChannelActivityListener();
             }
         });
     }
@@ -384,6 +385,8 @@ class Ticket {
                 await this.askToDelete('inactivity');
                 
                 // start listening again for inactivity in case they ask for more time
+                //this.startChannelActivityListener(); 
+            } else {
                 this.startChannelActivityListener(); 
             }
         });

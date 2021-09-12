@@ -5,7 +5,7 @@ const Console = require('../../../UI/Console/console');
 const Feature = require('../../../UI/Console/feature');
 const { sendMsgToChannel } = require('../../../../discord-services');
 const winston = require('winston');
-const { StringPrompt } = require('advanced-discord.js-prompts');
+const { StringPrompt, MessagePrompt } = require('advanced-discord.js-prompts');
 const Activity = require('../../activities/activity');
 
 
@@ -213,7 +213,7 @@ class TicketManager {
         }
 
         try {
-            var promptMsg = await StringPrompt.single({prompt: 'Please send ONE message with: \n* A one liner of your problem ' + 
+            var promptMsg = await MessagePrompt.prompt({prompt: 'Please send ONE message with: \n* A one liner of your problem ' + 
                                 '\n* Mention your team members using @friendName (example: @John).', channel, userId: user.id, cancelable: true, time: 45});
         } catch (error) {
             winston.loggers.get(this.parent.botGuild._id).warning(`New ticket was canceled due to error: ${error}`, { event: 'Ticket Manager' });
