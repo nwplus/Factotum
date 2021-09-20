@@ -126,7 +126,9 @@ class InitBot extends Command {
             // ask for guest role
             var guestRole = await this.askOrCreate('guest', channel, userId, guild, '#969C9F');
 
-            let infoMsg = await sendMsgToChannel(channel, userId, 'I need to know what types to verify when a user tries to verify. Please follow the instructions, it will let you add as many types as you wish.');
+            let infoMsg = await sendMsgToChannel(channel, userId, `I need to know what types to verify when a user tries to verify. \
+            Please follow the instructions, it will let you add as many types as you wish. The ${memberRole.name} role will be added to all users who validate correctly! \
+            You will have to create the new roles yourself! Do this before adding them as a verification type.`);
 
             let types = await this.getVerificationTypes(channel, userId);
             infoMsg.delete();
