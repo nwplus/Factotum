@@ -1,5 +1,5 @@
 const { Command, CommandoGuild } = require('discord.js-commando');
-const { Message, TextChannel, Snowflake, Guild, ColorResolvable, Role, } = require('discord.js');
+const { Message, TextChannel, Snowflake, Guild, ColorResolvable, Role, Permissions } = require('discord.js');
 const { sendMsgToChannel, addRoleToMember, } = require('../../discord-services');
 const BotGuild = require('../../db/mongo/BotGuild');
 const winston = require('winston');
@@ -42,14 +42,14 @@ class InitBot extends Command {
 
         // make sure the user had manage server permission
         if (!message.member.hasPermission('MANAGE_GUILD')) {
-            message.reply('Only admins can use this command!').then(msg => msg.delete({timeout: 5000}));
+            message.reply('Only admins can use this command!').then(msg => msg.delete({ timeout: 5000 }));
         }
 
         if (botGuild?.isSetUpComplete) {
             sendMsgToChannel(channel, userId, 'This guild is already set up!!', 30);
             return;
         }
-        
+
         let initialMsg = await sendMsgToChannel(channel, userId, `This is the Factotum Bot Initialization procedure.
             First, I will ask two short questions.
             Then, we will move over to another channel and continue the initialization process.
@@ -63,7 +63,7 @@ class InitBot extends Command {
         addRoleToMember(message.member, adminRole);
 
         // create the admin channel room
-        let {adminConsoleChannel, adminLog} = await BotGuild.createAdminChannels(guild, adminRole, everyoneRole);
+        let { adminConsoleChannel, adminLog } = await BotGuild.createAdminChannels(guild, adminRole, everyoneRole);
         await sendMsgToChannel(channel, userId, 'The admin channels have been created successfully! <#' + adminConsoleChannel.id + '>. Lets jump over there and continue yes?!', 10);
 
         initialMsg.delete();
@@ -96,7 +96,7 @@ class InitBot extends Command {
         adminConsole.addField('The member role:', `<@&${memberRole.id}>`);
 
         // bot support channel prompt
-        let botSupportChannel = await ChannelPrompt.single({prompt: 'What channel can the bot use to contact users when DMs are not available?', channel, userId, cancelable: false});
+        let botSupportChannel = await ChannelPrompt.single({ prompt: 'What channel can the bot use to contact users when DMs are not available?', channel, userId, cancelable: false });
         adminConsole.addField('Channel used to contact Users with DM issues', `<#${botSupportChannel.id}>`);
 
         botGuild.readyUp(this.client, {
@@ -112,11 +112,11 @@ class InitBot extends Command {
                 botSupportChannel: botSupportChannel.id,
             }
         });
-        
+
         // ask if verification will be used
         var isVerification;
         try {
-            isVerification = await SpecialPrompt.boolean({prompt: 'Will you be using the verification service?', channel, userId, cancelable: true});
+            isVerification = await SpecialPrompt.boolean({ prompt: 'Will you be using the verification service?', channel, userId, cancelable: true });
         } catch (error) {
             winston.loggers.get(guild.id).warning(`Handled an error when setting up verification, and thus was not set up. Error was ${error.name}`, { event: 'InitBot Command', data: error });
             isVerification = false;
@@ -144,7 +144,7 @@ class InitBot extends Command {
         if (isVerification) {
             var isAttendance;
             try {
-                isAttendance = await SpecialPrompt.boolean({prompt: 'Will you be using the attendance service?', channel, userId});
+                isAttendance = await SpecialPrompt.boolean({ prompt: 'Will you be using the attendance service?', channel, userId });
             } catch (error) {
                 winston.loggers.get(guild.id).warning(`Handled an error when setting up verification, and thus was not set up. Error was ${error.name}`, { event: 'InitBot Command', data: error });
                 isAttendance = false;
@@ -167,7 +167,7 @@ class InitBot extends Command {
 
         // ask if the announcements will be used
         try {
-            if (await SpecialPrompt.boolean({prompt: 'Have firebase announcements been set up code-side? If not say no, or the bot will fail!', channel, userId})) {
+            if (await SpecialPrompt.boolean({ prompt: 'Have firebase announcements been set up code-side? If not say no, or the bot will fail!', channel, userId })) {
                 let announcementChannel = await ChannelPrompt.single('What channel should announcements be sent to? If you don\'t have it, create it and come back, do not cancel.');
                 await botGuild.setUpAnnouncements(this.client, announcementChannel.id);
 
@@ -186,15 +186,15 @@ class InitBot extends Command {
         // ask if the stamps will be used
         var isStamps;
         try {
-            isStamps = await SpecialPrompt.boolean({prompt: 'Will you be using the stamp service?', channel, userId});
+            isStamps = await SpecialPrompt.boolean({ prompt: 'Will you be using the stamp service?', channel, userId });
         } catch {
-            isStamps = false;   
+            isStamps = false;
         }
         if (isStamps) {
             var numberOfStamps = 0;
             try {
-                numberOfStamps = await NumberPrompt.single({prompt: 'How many stamps do you want?', channel, userId, cancelable: true});
-            } catch (error) {/** Do nothing */}
+                numberOfStamps = await NumberPrompt.single({ prompt: 'How many stamps do you want?', channel, userId, cancelable: true });
+            } catch (error) {/** Do nothing */ }
 
             await botGuild.setUpStamps(this.client, numberOfStamps);
             guild.setGroupEnabled('stamps', true);
@@ -210,15 +210,15 @@ class InitBot extends Command {
         // ask if the user will use the report functionality
         var isReport;
         try {
-            isReport = await SpecialPrompt.boolean({prompt: 'Will you be using the report functionality?', channel, userId});
+            isReport = await SpecialPrompt.boolean({ prompt: 'Will you be using the report functionality?', channel, userId });
         } catch {
             isReport = false;
         }
         if (isReport) {
             var incomingReportChannel;
             try {
-                incomingReportChannel = await ChannelPrompt.single({prompt: 'What channel should prompts be sent to? We recommend this channel be accessible to your staff.', channel, userId});
-            } catch {/** Do nothing */}
+                incomingReportChannel = await ChannelPrompt.single({ prompt: 'What channel should prompts be sent to? We recommend this channel be accessible to your staff.', channel, userId });
+            } catch {/** Do nothing */ }
 
             // Send report to report channel or admin log if none given!
             let channelId = incomingReportChannel ? incomingReportChannel.id : adminLog.id;
@@ -235,7 +235,7 @@ class InitBot extends Command {
         // ask if the user wants to use the experimental !ask command
         var isAsk;
         try {
-            isAsk = await SpecialPrompt.boolean({prompt: 'Do you want to let users use the experimental !ask command?', channel, userId});
+            isAsk = await SpecialPrompt.boolean({ prompt: 'Do you want to let users use the experimental !ask command?', channel, userId });
         } catch {
             isAsk = false;
         }
@@ -269,9 +269,11 @@ class InitBot extends Command {
      * @async
      */
     async getVerificationTypes(channel, userId) {
-        let typeMsg = await MessagePrompt.prompt({ prompt: `Please tell me the type and mention the role for a verification option. 
-            For example: hacker @hacker . Make sure you add nothing more to the message!`, channel, userId });
-        let type = typeMsg.content.replace(/<(@&?|#)[a-z0-9]*>/ , ''); // clean out any snowflakes
+        let typeMsg = await MessagePrompt.prompt({
+            prompt: `Please tell me the type and mention the role for a verification option. 
+            For example: hacker @hacker . Make sure you add nothing more to the message!`, channel, userId
+        });
+        let type = typeMsg.content.replace(/<(@&?|#)[a-z0-9]*>/, ''); // clean out any snowflakes
         type = type.toLowerCase().trim();
         let role = typeMsg.mentions.roles.first();
 
@@ -300,16 +302,26 @@ class InitBot extends Command {
      */
     async askOrCreate(roleName, channel, userId, guild, color) {
         try {
-            let hasRole = await SpecialPrompt.boolean({prompt: 'Have you created the ' + roleName + ' role? You can go ahead and create it if you wish, or let me do the hard work.', channel, userId});
+            let hasRole = await SpecialPrompt.boolean({ prompt: 'Have you created the ' + roleName + ' role? You can go ahead and create it if you wish, or let me do the hard work.', channel, userId });
             if (hasRole) {
-                return await RolePrompt.single({prompt: 'What is the ' + roleName + ' role?', channel, userId});
+                return await RolePrompt.single({ prompt: 'What is the ' + roleName + ' role?', channel, userId });
             } else {
-                return await guild.roles.create({
-                    data: {
-                        name: await StringPrompt.single({prompt: 'What name would you like the ' + roleName + ' role to have?', channel, userId}),
-                        color: color,
-                    }
-                });
+                if (roleName === 'admin') {
+                    return await guild.roles.create({
+                        data: {
+                            name: await StringPrompt.single({ prompt: 'What name would you like the ' + roleName + ' role to have?', channel, userId }),
+                            color: color,
+                            permissions: Permissions.FLAGS.ADMINISTRATOR,
+                        }
+                    });
+                } else {
+                    return await guild.roles.create({
+                        data: {
+                            name: await StringPrompt.single({ prompt: 'What name would you like the ' + roleName + ' role to have?', channel, userId }),
+                            color: color,
+                        }
+                    });
+                }
             }
         } catch (error) {
             sendMsgToChannel(channel, userId, 'You need to complete this prompt please try again!', 5);
