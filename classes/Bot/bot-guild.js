@@ -137,23 +137,6 @@ class BotGuild {
         memberRole.setMentionable(false);
         memberRole.setPermissions(memberRole.permissions.add(BotGuild.memberPermissions));
 
-        // change the everyone role permissions
-        guild.roles.everyone.setPermissions(0); // no permissions for anything like the guest role
-
-        // make sure admin channels are only for admins
-        let adminCategory = guild.channels.resolve(this.channelIDs.adminConsole).parent
-        adminCategory.overwritePermissions([
-            {
-                id: adminRole.id,
-                allow: 'VIEW_CHANNEL'
-            },
-            {
-                id: this.roleIDs.everyoneRole,
-                deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'CONNECT']
-            }
-        ]);
-        adminCategory.children.forEach(channel => channel.lockPermissions());
-
         // create the archive category
         this.channelIDs.archiveCategory = (await this.createArchiveCategory(guild)).id;
 
@@ -230,6 +213,8 @@ class BotGuild {
             parent: adminCategory,
         });
 
+        adminCategory.children.forEach(channel => channel.lockPermissions());
+
         winston.loggers.get(guild.id).event(`The botGuild has run the create admin channels function.`, {event: "Bot Guild"});
 
         return {adminConsoleChannel: adminConsoleChannel, adminLog: adminLogChannel};
@@ -268,6 +253,9 @@ class BotGuild {
         guestRole.setMentionable(false);
         guestRole.setPermissions(0);
         this.verification.guestRoleID = guestRoleId;
+
+        // change the everyone role permissions
+        guild.roles.everyone.setPermissions(0); // no permissions for anything like the guest role
 
         if (verificationChannels) {
             this.verification.welcomeChannelID = verificationChannels.welcomeChannelID;
