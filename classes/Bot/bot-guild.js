@@ -137,6 +137,10 @@ class BotGuild {
         memberRole.setMentionable(false);
         memberRole.setPermissions(memberRole.permissions.add(BotGuild.memberPermissions));
 
+        // change the everyone role permissions, we do this so that we can lock rooms. For users to see the server when 
+        // verification is off, they need to get the member role when greeted by the bot!
+        guild.roles.everyone.setPermissions(0); // no permissions for anything like the guest role
+
         // create the archive category
         this.channelIDs.archiveCategory = (await this.createArchiveCategory(guild)).id;
 
@@ -253,9 +257,6 @@ class BotGuild {
         guestRole.setMentionable(false);
         guestRole.setPermissions(0);
         this.verification.guestRoleID = guestRoleId;
-
-        // change the everyone role permissions
-        guild.roles.everyone.setPermissions(0); // no permissions for anything like the guest role
 
         if (verificationChannels) {
             this.verification.welcomeChannelID = verificationChannels.welcomeChannelID;
