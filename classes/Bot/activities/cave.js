@@ -224,9 +224,7 @@ class Cave extends Activity {
      * @async
      */
     async addSubRoleCallback(channel, userId) {
-        let roleNameMsg = await StringPrompt.single({ prompt: 'What is the name of the new role?', channel, userId });
-
-        let roleName = roleNameMsg.content;
+        let roleName = await StringPrompt.single({ prompt: 'What is the name of the new role?', channel, userId });
 
         let emojis = new Map();
         this.subRoles.forEach((subRole, emojiName, map) => {
@@ -392,7 +390,7 @@ class Cave extends Activity {
                 this.subRoles.forEach((subRole) => {
                     let role = this.guild.roles.cache.find(role => role.id === subRole.id);
                     role.delete();
-                })
+                });
             }
         }
     }
