@@ -296,7 +296,7 @@ class InitBot extends Command {
         if (role.id === guestRole.id || role.id === memberRole.id) {
             sendMsgToChannel(channel, userId, 'Guest and member roles cannot be used for verification. ' +
                 'Please try again.', 30);
-            await this.getValidVerificationTypes(channel, userId, guestRole, memberRole);
+            return await this.getValidVerificationTypes(channel, userId, guestRole, memberRole);
         }
         return {type, role};
     }
