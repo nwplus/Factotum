@@ -4,6 +4,7 @@ const winston = require('winston');
 const { sendMsgToChannel } = require('../../../discord-services');
 const Console = require('../../UI/Console/console');
 const { MemberPrompt, ListPrompt } = require('advanced-discord.js-prompts');
+const Feature = require('../../UI/Console/feature');
 
 /**
  * A CoffeeChat is a special activity where teams get shuffled around voice channels to talk with other teams or members like mentors. 
@@ -123,7 +124,7 @@ class CoffeeChats extends Activity {
             }
         ];
 
-        localFeatures.forEach(feature => this.adminConsole.addFeature(feature));
+        localFeatures.forEach(feature => this.adminConsole.addFeature(Feature.create(feature)));
 
         super.addDefaultFeatures();
     }
@@ -145,7 +146,7 @@ class CoffeeChats extends Activity {
             guild: this.guild,
         });
 
-        joinActivityConsole.addFeature({
+        joinActivityConsole.addFeature(Feature.create({
             name: 'Join the activity!',
             description: `React to this message with ${emoji} and follow my instructions!`,
             emojiName: emoji,
@@ -174,7 +175,7 @@ class CoffeeChats extends Activity {
 
                 stopInteracting();
             }
-        });
+        }));
 
         joinActivityConsole.sendConsole();
     }

@@ -6,6 +6,7 @@ const Room = require('../../UI/Room/room');
 const TicketManager = require('../Features/Ticket_System/ticket-manager');
 const Activity = require('./activity');
 const { StringPrompt, SpecialPrompt, ListPrompt } = require('advanced-discord.js-prompts');
+const Feature = require('../../UI/Console/feature');
 
 
 /**
@@ -176,7 +177,7 @@ class Workshop extends Activity {
             callback: (user, reaction, stopInteracting, console) => this.sendPoll(pollInfo.type).then(() => stopInteracting()),
         }));
 
-        localFeatures.forEach(feature => this.adminConsole.addFeature(feature));
+        localFeatures.forEach(feature => this.adminConsole.addFeature(Feature.create(feature)));
 
         super.addDefaultFeatures();
     }
@@ -243,13 +244,13 @@ class Workshop extends Activity {
             channel: this.TAConsole,
             guild: this.guild,
         });
-        this.polls.forEach((pollInfo) => TAPollingConsole.addFeature({
+        this.polls.forEach((pollInfo) => TAPollingConsole.addFeature(Feature.create({
             name: pollInfo.title,
             description: `Asks the question: ${pollInfo.title} - ${pollInfo.question}`,
             emojiName: pollInfo.emojiName,
             callback: (user, reaction, stopInteracting, console) => this.sendPoll(pollInfo.type).then(() => stopInteracting()),
-        }));
-        TAPollingConsole.addFeature({
+        })));
+        TAPollingConsole.addFeature(Feature.create({
             name: 'Stamp Distribution',
             description: 'Activate a stamp distribution on the activity\'s text channel',
             emojiName: '📇',
@@ -257,7 +258,7 @@ class Workshop extends Activity {
                 this.distributeStamp(this.room.channels.generalText);
                 stopInteracting();
             }
-        });
+        }));
         TAPollingConsole.sendConsole();
 
         if (this.isLowTechSolution) {

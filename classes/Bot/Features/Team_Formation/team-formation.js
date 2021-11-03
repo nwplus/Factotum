@@ -6,6 +6,7 @@ const Activity = require('../../activities/activity');
 const BotGuildModel = require('../../bot-guild');
 const Console = require('../../../UI/Console/console');
 const { StringPrompt } = require('advanced-discord.js-prompts');
+const Feature = require('../../../UI/Console/feature');
 
 /**
  * @class TeamFormation
@@ -267,7 +268,7 @@ class TeamFormation extends Activity {
 
         await console.addField('Format:', isTeam ? this.teamInfo.form || TeamFormation.defaultTeamForm : this.prospectInfo.form || TeamFormation.defaultProspectForm);
 
-        await console.addFeature({
+        await console.addFeature(Feature.create({
             name: 'Send completed form',
             description: 'React to this emoji, wait for my prompt, and send the finished form.',
             emojiName: '🇩',
@@ -295,7 +296,7 @@ class TeamFormation extends Activity {
                 addRoleToMember(this.guild.member(user), isTeam ? this.teamInfo.role : this.prospectInfo.role);
 
                 // add remove post feature
-                await console.addFeature({
+                await console.addFeature(Feature.create({
                     name: 'Done with team formation!',
                     description: 'React with this emoji if you are done with team formation.',
                     emojiName: '⛔',
@@ -312,13 +313,13 @@ class TeamFormation extends Activity {
 
                         console.delete();
                     }
-                });
+                }));
 
                 console.removeFeature('🇩');
 
                 stopInteracting();
             }
-        });
+        }));
 
         console.sendConsole();
     }
