@@ -266,7 +266,7 @@ class Console {
                 title: json['title'],
                 description: json['description'],
                 channel: guild.channels.resolve(json['channelId']),
-                features: new Collection(Feature.create(json['features'])),
+                features: new Collection(json['features'].forEach(feature => Feature.create(feature))), //TODO: test
                 color: json['color'],
                 options: JSON.parse(json['collectorOptions']),
                 fields: new Collection(json['fields']),

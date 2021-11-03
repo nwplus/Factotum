@@ -367,7 +367,7 @@ async function greetNewMember(member, botGuild) {
         .addField('Want to learn more about what I can do?', 'Use the !help command anywhere and I will send you a message!')
         .setColor(botGuild.colors.embedColor);
 
-    if (botGuild.verification.isEnabled) embed.addField('Gain more access by verifying yourself!', 'React to this message with ' + verifyEmoji + ' and follow my instructions!');
+    if (botGuild.verification.isEnabled) embed.addField('**VERIFY YOUR EMAIL** to get more access!', 'React to this message with ' + verifyEmoji + ' and follow my instructions!');
     
     let msg = await member.send(embed);
 
