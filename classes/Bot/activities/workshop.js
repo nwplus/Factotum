@@ -173,7 +173,7 @@ class Workshop extends Activity {
         this.polls.forEach((pollInfo) => localFeatures.push({
             name: pollInfo.title,
             description: `Asks the question: ${pollInfo.title} - ${pollInfo.question}`,
-            emojiName: pollInfo.emojiName,
+            emoji: pollInfo.emojiName,
             callback: (user, reaction, stopInteracting, console) => this.sendPoll(pollInfo.type).then(() => stopInteracting()),
         }));
 
@@ -247,13 +247,13 @@ class Workshop extends Activity {
         this.polls.forEach((pollInfo) => TAPollingConsole.addFeature(Feature.create({
             name: pollInfo.title,
             description: `Asks the question: ${pollInfo.title} - ${pollInfo.question}`,
-            emojiName: pollInfo.emojiName,
+            emoji: pollInfo.emojiName,
             callback: (user, reaction, stopInteracting, console) => this.sendPoll(pollInfo.type).then(() => stopInteracting()),
         })));
         TAPollingConsole.addFeature(Feature.create({
             name: 'Stamp Distribution',
             description: 'Activate a stamp distribution on the activity\'s text channel',
-            emojiName: '📇',
+            emoji: '📇',
             callback: (user, reaction, stopInteracting, console) => {
                 this.distributeStamp(this.room.channels.generalText);
                 stopInteracting();

@@ -95,7 +95,7 @@ class CoffeeChats extends Activity {
             {
                 name: 'Team Shuffle',
                 description: 'Shuffle all the teams from the main voice channel to the other channels.',
-                emojiName: '👨‍👩‍👧‍👦',
+                emoji: '👨‍👩‍👧‍👦',
                 callback: (user, reaction, stopInteracting, console) => {
                     this.groupShuffle();
                     sendMsgToChannel(console.channel, user.id, 'The teams have been shuffled!');
@@ -105,7 +105,7 @@ class CoffeeChats extends Activity {
             {
                 name: 'Reset Teams',
                 description: 'Remove all the signed up teams.',
-                emojiName: '🗜️',
+                emoji: '🗜️',
                 callback: (user, reaction, stopInteracting, console) => {
                     this.resetTeams();
                     sendMsgToChannel(console.channel, user.id, 'The teams have been deleted so new teams can join!');
@@ -115,7 +115,7 @@ class CoffeeChats extends Activity {
             {
                 name: 'Add Team Slot',
                 description: 'Adds a team slot and a voice channel for them.',
-                emojiName: '☝️',
+                emoji: '☝️',
                 callback: (user, reaction, stopInteracting, console) => {
                     this.addTeamSlot();
                     sendMsgToChannel(console.channel, user.id, 'A new team slot has been added!');
@@ -149,7 +149,7 @@ class CoffeeChats extends Activity {
         joinActivityConsole.addFeature(Feature.create({
             name: 'Join the activity!',
             description: `React to this message with ${emoji} and follow my instructions!`,
-            emojiName: emoji,
+            emoji: emoji,
             callback: async (user, reaction, stopInteracting, console) => {
                 // check to make sure there are spots left
                 if (this.teams.size > this.numOfTeams) {

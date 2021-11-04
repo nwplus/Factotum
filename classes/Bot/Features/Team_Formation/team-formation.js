@@ -271,7 +271,7 @@ class TeamFormation extends Activity {
         await console.addFeature(Feature.create({
             name: 'Send completed form',
             description: 'React to this emoji, wait for my prompt, and send the finished form.',
-            emojiName: '🇩',
+            emoji: '🇩',
             callback: async (user, reaction, stopInteracting, console) => {
                 // gather and send the form from the user
                 try {
@@ -299,7 +299,7 @@ class TeamFormation extends Activity {
                 await console.addFeature(Feature.create({
                     name: 'Done with team formation!',
                     description: 'React with this emoji if you are done with team formation.',
-                    emojiName: '⛔',
+                    emoji: '⛔',
                     callback: (user, reaction, stopInteracting, console) => {
                         // remove message sent to channel
                         deleteMessage(catalogueMsg);

@@ -54,7 +54,7 @@ class RoleSelector extends PermissionCommand {
 
         let addTransferFeature = Feature.create({
             name: 'Add a Role!',
-            emojiName: newTransferEmoji,
+            emoji: newTransferEmoji,
             description: 'Add a new emoji to this transfer console! Only staff can select this option!',
             callback: async (user, reaction, stopInteracting, console) => {
                 let channel = console.channel;
