@@ -46,10 +46,8 @@ class ERoomDirectory extends PermissionCommand {
 
         try {
             var sponsorName = await StringPrompt.single({prompt: 'What is the room name?', channel, userId, cancelable: true});
-            sponsorName = sponsorName.content;
 
             var link = await StringPrompt.single({prompt: 'What is the room link? We will add no words to it! (ex. <Room Name> is Currently Open).', channel, userId, cancelable: true});
-            link = link.content;
 
             //ask user for role and save its id in the role variable
             var role = (await RolePrompt.single({prompt: 'What role will get pinged when the rooms open?', channel, userId})).id;

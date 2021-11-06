@@ -51,10 +51,7 @@ class StartAttend extends PermissionCommand {
                 channel = await ChannelPrompt.single({prompt: 'Please mention the channel to be used for the !attend command. ', channel: message.channel, userId: message.author.id, cancelable: true});
             } else {
                 //ask user for category to create new attend channel under
-                let categoryReply = await StringPrompt.single({prompt: 'What category do you want the new attend channel under? ', channel: message.channel, userId: message.author.id, cancelable: true});
-                
-                var categoryName = categoryReply.content;
-
+                var categoryName = await StringPrompt.single({prompt: 'What category do you want the new attend channel under? ', channel: message.channel, userId: message.author.id, cancelable: true});
 
                 let category = message.guild.channels.cache.find(c => c.type == 'category' && c.name.toLowerCase() == categoryName.toLowerCase());
                 if (!category) {

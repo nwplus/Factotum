@@ -334,14 +334,14 @@ class TeamFormation extends Activity {
      */
     async gatherForm(user, isTeam) {
         
-        var formMsg = await StringPrompt.single({
+        var formContent = await StringPrompt.single({
             prompt: 'Please send me your completed form, if you do not follow the form your post will be deleted!', 
             channel: user.dmChannel, userId: user.id, time: 30, cancelable: true,
         });
 
         const embed = new MessageEmbed()
                 .setTitle('Information about them can be found below:')
-                .setDescription(formMsg.content + '\nDM me to talk -> <@' + user.id + '>')
+                .setDescription(formContent + '\nDM me to talk -> <@' + user.id + '>')
                 .setColor(isTeam ? this.teamInfo.role.hexColor : this.prospectInfo.role.hexColor);
 
         let channel = isTeam ? this.channels.teamCatalogue : this.channels.prospectCatalogue;

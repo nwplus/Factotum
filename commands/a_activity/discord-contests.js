@@ -184,7 +184,7 @@ class DiscordContests extends PermissionCommand {
                     const collector = message.channel.createMessageCollector(filter, { time: timeInterval * 0.75 });
 
                     collector.on('collect', m => {
-                        if (!needAllAnswers) {
+                        if (!needAllAnswers) { 
                             // for questions that have numbers as answers, the answer has to match at least one of the correct answers exactly
                             if (!isNaN(answers[0])) {
                                 if (answers.some(correctAnswer => m.content === correctAnswer)) {
