@@ -42,7 +42,9 @@ class Ticket {
          * The room this ticket will be solved in.
          * @type {Room}
          */
-        this.room = ticketManager.systemWideTicketInfo.isAdvancedMode ? new Room(ticketManager.parent.guild, ticketManager.parent.botGuild, `Ticket-${ticketNumber}`, undefined, hackers.clone()) : null;
+        this.room = ticketManager.systemWideTicketInfo.isAdvancedMode ? 
+            new Room(ticketManager.parent.guild, ticketManager.parent.botGuild, `Ticket-${ticketNumber}`, new Collection(), hackers.clone()) : 
+            null;
 
         /**
          * Question from hacker

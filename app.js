@@ -10,6 +10,8 @@ const BotGuild = require('./db/mongo/BotGuild');
 const BotGuildModel = require('./classes/Bot/bot-guild');
 const Verification = require('./classes/Bot/Features/Verification/verification');
 const { StringPrompt } = require('advanced-discord.js-prompts');
+const Sentry = require('@sentry/node');
+const Tracing = require('@sentry/tracing');
 
 /**
  * The Main App module houses the bot events, process events, and initializes
@@ -60,6 +62,17 @@ function getConfig(args) {
 const config = getConfig(process.argv.slice(2));
 
 const isLogToConsole = config['consoleLog'];
+
+if (config['sentryLog']) {
+    Sentry.init({
+        dsn: 'https://19b2c93c05234d1683cb6f5938f8cf1b@o955295.ingest.sentry.io/6062151',
+      
+        // Set tracesSampleRate to 1.0 to capture 100%
+        // of transactions for performance monitoring.
+        // We recommend adjusting this value in production
+        tracesSampleRate: 1.0,
+    });
+}
 
 const bot = new Commando.Client({
     commandPrefix: '!',
@@ -277,6 +290,10 @@ process.on('uncaughtException', (error) => {
         '\nline number: ' + error.lineNumber +
         '\nstack: ' + error.stack
     );
+
+    if (config['sentryLog']) {
+        Sentry.captureException(error);
+    }
 });
 
 /**
@@ -290,6 +307,10 @@ process.on('unhandledRejection', (error, promise) => {
         '\nline number: ' + error.lineNumber +
         '\nstack: ' + error.stack
     );
+
+    if (config['sentryLog']) {
+        Sentry.captureException(error);
+    }
 });
 
 /**
@@ -297,6 +318,9 @@ process.on('unhandledRejection', (error, promise) => {
  */
 process.on('exit', () => {
     mainLogger.warning('Node is exiting!');
+    if (config['sentryLog']) {
+        Sentry.captureMessage('Node is exiting!');
+    }
 });
 
 /**
