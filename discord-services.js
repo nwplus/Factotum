@@ -1,6 +1,7 @@
 const { GuildMember, TextChannel, Message, User, MessageEmbed, RoleResolvable, Guild } = require('discord.js');
 const winston = require('winston');
 const BotGuild = require('./db/mongo/BotGuild');
+const firebaseServices = require('./db/firebase/firebase-services');
 
 /**
  * The discord services module has useful discord related functions.
@@ -271,3 +272,30 @@ function shuffleArray(array) {
     }
 }
 module.exports.shuffleArray = shuffleArray;
+
+/**
+     * asks user an opt-in question in DM
+     * @param {GuildMember} member 
+     * @param {BotGuild} botGuild 
+     * @param {String} title - title for embed 
+     * @param {String} description - description for embed
+     * @param {String} thankYouMessage - followup after user reacts
+     * @param {String} email - user's email
+     */
+async function askBoolQuestion(member, botGuild, title, description, thankYouMessage, email) {
+    const message = await sendEmbedToMember(member, {
+        title,
+        description,
+        color: botGuild.colors.specialDMEmbedColor,
+    });
+    await message.react('👍');
+    const filter = (reaction, user) => {
+        return reaction.emoji.name === '👍' && user.id != message.author.id;
+    }
+    const collector = message.createReactionCollector(filter, { max: 1 });
+    collector.on('collect', async (reaction, user) => {
+        sendMessageToMember(member, thankYouMessage, false);
+        await firebaseServices.saveToFirebase(member.guild.id, 'codex', email);
+    });
+}
+module.exports.askBoolQuestion = askBoolQuestion;

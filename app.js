@@ -398,6 +398,7 @@ async function greetNewMember(member, botGuild) {
     // if verification is on then give guest role and let user verify
     if (botGuild.verification.isEnabled) {
         discordServices.addRoleToMember(member, botGuild.verification.guestRoleID);
+        let askedAboutCodex = false;
 
         msg.react(verifyEmoji);
         let verifyCollector = msg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === verifyEmoji);
@@ -415,6 +416,19 @@ async function greetNewMember(member, botGuild) {
 
             try {
                 await Verification.verify(member, email, member.guild, botGuild);
+                if (!askedAboutCodex && await firebaseServices.checkCodexActive(member.guild.id)) { 
+                    try {
+                        discordServices.askBoolQuestion(member,botGuild, 'One more thing!', 
+                        'Would you to receive free [Codex beta](https://openai.com/blog/openai-codex/) access, courtesy of our sponsor OpenAI (first come first served, while supplies last)? If so, please react with a 👍',
+                        'Thanks for indicating your interest, you have been added to the list! Keep an eye on your email.', email);
+                        askedAboutCodex = true;
+                    } catch (error) {
+                        discordServices.sendEmbedToMember(member, {
+                            title: 'Oops, something went wrong',
+                            description: 'Please contact an nwPlus member'
+                        }, false);
+                    }
+                }
             } catch (error) {
                 discordServices.sendEmbedToMember(member, {
                     title: 'Verification Error',
@@ -422,6 +436,7 @@ async function greetNewMember(member, botGuild) {
                 }, true);
             }
         });
+        
     }
     // if verification is off, then just give member role
     else {

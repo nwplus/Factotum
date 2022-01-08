@@ -287,3 +287,36 @@ async function attend(id, guildId) {
     }
 }
 module.exports.attend = attend;
+
+/**
+ * check if codex is set to active (very hacky atm, it's just a document in the "codex" collection with a boolean 
+ * field called "active")
+ * @param {String} guildId 
+ * @returns boolean of whether codex is set to active
+ */
+
+async function checkCodexActive(guildId) {
+    var ref = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('codex').doc('active');
+    var activeRef = await ref.get();
+    const data = activeRef.data();
+    return data.active;
+}
+module.exports.checkCodexActive = checkCodexActive;
+
+/**
+ * stores email to firebase collection
+ * @param {String} guildId 
+ * @param {String} collection - name of collection to store email in
+ * @param {String} email - user's email
+ */
+
+async function saveToFirebase(guildId, collection, email) {
+    var ref = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection(collection).doc(email.toLowerCase());
+    /** @type {FirebaseUser} */
+    let data = {
+        email: email.toLowerCase()
+    };
+
+    await ref.set(data);
+}
+module.exports.saveToFirebase = saveToFirebase;
