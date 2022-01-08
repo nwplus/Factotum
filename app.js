@@ -416,11 +416,12 @@ async function greetNewMember(member, botGuild) {
 
             try {
                 await Verification.verify(member, email, member.guild, botGuild);
-                if (!askedAboutCodex && await firebaseServices.checkCodexActive(member.guild.id)) { 
+                if (!askedAboutCodex && await firebaseServices.checkCodexActive(member.guild.id)
+                    && discordServices.checkForRole(member, botGuild.verification.verificationRoles.get('hacker'))) { 
                     try {
                         discordServices.askBoolQuestion(member,botGuild, 'One more thing!', 
-                        'Would you to receive free [Codex beta](https://openai.com/blog/openai-codex/) access, courtesy of our sponsor OpenAI (first come first served, while supplies last)? If so, please react with a 👍',
-                        'Thanks for indicating your interest, you have been added to the list! Keep an eye on your email.', email);
+                        'Would you like to receive free [Codex beta](https://openai.com/blog/openai-codex/) access, courtesy of our sponsor OpenAI (first come first served, while supplies last)? If so, please react with a 👍',
+                        'Thanks for indicating your interest, you have been added to the list! If you are selected to receive an API key, you will get an email.', email);
                         askedAboutCodex = true;
                     } catch (error) {
                         discordServices.sendEmbedToMember(member, {
