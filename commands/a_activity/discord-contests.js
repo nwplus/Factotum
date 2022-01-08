@@ -112,8 +112,8 @@ class DiscordContests extends PermissionCommand {
                 } else if (reaction.emoji.name === '⏯️') {
                     //if it is currently paused, restart the interval and send the next question immediately
                     if (paused) {
-                        sendQuestion();
-                        interval = setInterval(sendQuestion, timeInterval);
+                        sendQuestion(this.botGuild);
+                        interval = setInterval(sendQuestion, timeInterval, this.botGuild);
                         paused = false;
                         message.channel.send('<@' + user.id + '> Discord contest has been un-paused!').then(msg => msg.delete({timeout: 10000}));
                     }
@@ -125,7 +125,7 @@ class DiscordContests extends PermissionCommand {
         if (startNow) {
             sendQuestion(this.botGuild);
         }
-        interval = setInterval(sendQuestion, timeInterval);
+        interval = setInterval(sendQuestion, timeInterval, this.botGuild);
 
         /**
          * sendQuestion is the function that picks and sends the next question, then picks the winner by matching participants' messages
