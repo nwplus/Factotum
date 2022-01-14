@@ -420,7 +420,13 @@ async function greetNewMember(member, botGuild) {
                     && discordServices.checkForRole(member, botGuild.verification.verificationRoles.get('hacker'))) { 
                     try {
                         discordServices.askBoolQuestion(member,botGuild, 'One more thing!', 
-                        'Would you like to receive free [Codex beta](https://openai.com/blog/openai-codex/) access, courtesy of our sponsor OpenAI (first come first served, while supplies last)? If so, please react with a 👍',
+                        'Would you like to receive free [Codex beta](https://openai.com/blog/openai-codex/) access, courtesy of our sponsor OpenAI (first come first served, while supplies last)?\n\n' + 
+                        
+                         'Open AI is giving out prizes to the best 2 projects using Codex or GPT-3:\n' +
+                            '- 1st place: $120 worth of credits(2 million words in GPT-3 DaVinci)\n' +
+                            '- 2nd place: $60 worth of credits (1 million words in GPT-3 DaVinci)\n\n' +
+                        
+                         'If you would like a Codex code, please react with a 👍',
                         'Thanks for indicating your interest, you have been added to the list! If you are selected to receive an API key, you will get an email.', email);
                         askedAboutCodex = true;
                     } catch (error) {
@@ -467,7 +473,7 @@ async function fixDMIssue(error, member, botGuild) {
             collector.on('collect', (reaction, user) => {
                 reaction.users.remove(user.id);
                 try {
-                    greetNewMember(member);
+                    greetNewMember(member, botGuild);
                     collector.stop();
                     msg.delete();
                     logger.userStats(`A user with id ${member.id} was able to fix the DM issue and was greeted!`);

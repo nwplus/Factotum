@@ -1,9 +1,10 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { discordLog, checkForRole } = require('../../discord-services');
 const { Message, MessageEmbed, Snowflake } = require('discord.js');
-const { getQuestion } = require('../../db/firebase/firebase-services');
+const { getQuestion, lookupById } = require('../../db/firebase/firebase-services');
 const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { NumberPrompt, SpecialPrompt, RolePrompt, MemberPrompt } = require('advanced-discord.js-prompts');
+const fs = require('fs');
 
 /**
  * The DiscordContests class handles all functions related to Discord contests. It will ask questions in set intervals and pick winners
@@ -138,7 +139,7 @@ class DiscordContests extends PermissionCommand {
             
             //sends results to Staff after all questions have been asked and stops looping
             if (data === null) {
-                discordLog(message.guild, '<@&' + botGuild.roleIDs.staffRole + '> Discord contests have ended for guild ' + message.guild.id + ' ! Winners are: <@' + winners.join('> <@') + '>');
+                discordLog(message.guild, '<@&' + botGuild.roleIDs.staffRole + '> Discord contests have ended!');
                 clearInterval(interval);
                 return;
             }
@@ -170,6 +171,7 @@ class DiscordContests extends PermissionCommand {
                                 winners.push(member.id);
                                 message.channel.send('Congrats <@' + member.id + '> for the best answer to the previous question!');
                                 emojiCollector.stop();
+                                recordWinner(member);
                             }).catch( () => {
                                 msg.channel.send('<@' + user.id + '> You have canceled the prompt, you can select a winner again at any time.').then(msg => msg.delete({timeout: 8000}));
                             });
@@ -180,7 +182,7 @@ class DiscordContests extends PermissionCommand {
                     });
                 } else {
                     //automatically mark answers
-                    const filter = m => !m.author.bot;
+                    const filter = m => !m.author.bot && (botGuild.verification.isEnabled ? checkForRole(m.member, botGuild.verification.verificationRoles.get('hacker')) : checkForRole(m.member, botGuild.roleIDs.member));
                     const collector = message.channel.createMessageCollector(filter, { time: timeInterval * 0.75 });
 
                     collector.on('collect', m => {
@@ -191,12 +193,14 @@ class DiscordContests extends PermissionCommand {
                                     message.channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(' or ') + '.');
                                     winners.push(m.author.id);
                                     collector.stop();
+                                    recordWinner(m.member);
                                 }
                             } else if (answers.some(correctAnswer => m.content.toLowerCase().includes(correctAnswer.toLowerCase()))) {
                                 //for most questions, an answer that contains at least once item of the answer array is correct
                                 message.channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(' or ') + '.');
                                 winners.push(m.author.id);
                                 collector.stop();
+                                recordWinner(m.member);
                             }
                         } else {
                             //check if all answers in answer array are in the message
@@ -204,6 +208,7 @@ class DiscordContests extends PermissionCommand {
                                 message.channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(', ') + '.');
                                 winners.push(m.author.id);
                                 collector.stop();
+                                recordWinner(m.member);
                             }
                         }
                     });
@@ -213,6 +218,15 @@ class DiscordContests extends PermissionCommand {
                     });
                 }
             });
+        }
+
+        async function recordWinner(member) {
+            try {
+                let email = await lookupById(member.guild.id, member.id)
+                member.guild.channels.cache.get(botGuild.channelIDs.adminLog)?.send(`Discord contest winner: ${member.id} - ${email}`);
+            } catch (error) {
+                console.log (error);
+            }
         }
     }
 }

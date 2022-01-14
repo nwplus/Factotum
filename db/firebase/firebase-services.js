@@ -320,3 +320,18 @@ async function saveToFirebase(guildId, collection, email) {
     await ref.set(data);
 }
 module.exports.saveToFirebase = saveToFirebase;
+
+async function lookupById(guildId, memberId) {
+    var userRef = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').where('discordId', '==', memberId).limit(1);
+    var user = (await userRef.get()).docs[0];
+    if (user) {
+        /** @type {FirebaseUser} */
+        var data = user.data();
+
+        return data.email;
+    } else {
+        return undefined;
+    }
+    
+}
+module.exports.lookupById = lookupById;
