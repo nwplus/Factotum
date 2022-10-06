@@ -1,6 +1,6 @@
 require('dotenv-flow').config();
 const mongoUtil = require('./db/mongo/mongoUtil');
-const Commando = require('discord.js-commando');
+// const Commando = require('discord.js-commando');
 const Discord = require('discord.js');
 const firebaseServices = require('./db/firebase/firebase-services');
 const winston = require('winston');
@@ -12,6 +12,7 @@ const Verification = require('./classes/Bot/Features/Verification/verification')
 const { StringPrompt } = require('advanced-discord.js-prompts');
 const Sentry = require('@sentry/node');
 const Tracing = require('@sentry/tracing');
+const { LogLevel, SapphireClient } = require('@sapphire/framework')
 
 /**
  * The Main App module houses the bot events, process events, and initializes
@@ -74,9 +75,24 @@ if (config['sentryLog']) {
     });
 }
 
-const bot = new Commando.Client({
-    commandPrefix: '!',
-    owner: config.owner,
+const bot = new SapphireClient({
+    defaultPrefix: '!',
+	caseInsensitiveCommands: true,
+	logger: {
+		level: LogLevel.Debug
+	},
+	shards: 'auto',
+	intents: [
+		'GUILDS',
+		'GUILD_MEMBERS',
+		'GUILD_BANS',
+		'GUILD_EMOJIS_AND_STICKERS',
+		'GUILD_VOICE_STATES',
+		'GUILD_MESSAGES',
+		'GUILD_MESSAGE_REACTIONS',
+		'DIRECT_MESSAGES',
+		'DIRECT_MESSAGE_REACTIONS'
+	],
 });
 
 const customLoggerLevels = {
@@ -110,24 +126,24 @@ winston.addColors(customLoggerLevels.colors);
 /**
  * Register all the commands except for help and unknown since we have our own.
  */
-bot.registry
-    .registerDefaultTypes()
-    .registerGroup('a_boothing', 'boothing group for admins')
-    .registerGroup('a_activity', 'activity group for admins')
-    .registerGroup('a_start_commands', 'advanced admin commands')
-    .registerGroup('a_utility', 'utility commands for admins')
-    .registerGroup('hacker_utility', 'utility commands for users')
-    .registerGroup('verification', 'verification commands')
-    .registerGroup('attendance', 'attendance commands')
-    .registerGroup('stamps', 'stamp related commands')
-    .registerGroup('utility', 'utility commands')
-    .registerGroup('essentials', 'essential commands for any guild', true)
-    .registerDefaultGroups()
-    .registerDefaultCommands({
-        unknownCommand: false,
-        help: false,
-    })
-    .registerCommandsIn(__dirname + '/commands');
+// bot.registry
+//     .registerDefaultTypes()
+//     .registerGroup('a_boothing', 'boothing group for admins')
+//     .registerGroup('a_activity', 'activity group for admins')
+//     .registerGroup('a_start_commands', 'advanced admin commands')
+//     .registerGroup('a_utility', 'utility commands for admins')
+//     .registerGroup('hacker_utility', 'utility commands for users')
+//     .registerGroup('verification', 'verification commands')
+//     .registerGroup('attendance', 'attendance commands')
+//     .registerGroup('stamps', 'stamp related commands')
+//     .registerGroup('utility', 'utility commands')
+//     .registerGroup('essentials', 'essential commands for any guild', true)
+//     .registerDefaultGroups()
+//     .registerDefaultCommands({
+//         unknownCommand: false,
+//         help: false,
+//     })
+//     .registerCommandsIn(__dirname + '/commands');
 
 /**
  * Runs when the bot finishes the set up and is ready to work.
@@ -158,9 +174,9 @@ bot.once('ready', async () => {
             mainLogger.verbose(`Created a new botGuild for the guild ${guild.id} - ${guild.name} on bot ready.`, { event: 'Ready Event' });
         } else {
             // set all non guarded commands to not enabled for the guild
-            bot.registry.groups.forEach((group, key, map) => {
-                if (!group.guarded) guild.setGroupEnabled(group, false);
-            });
+            // bot.registry.groups.forEach((group, key, map) => {
+            //     if (!group.guarded) guild.setGroupEnabled(group, false);
+            // });
 
             await botGuild.setCommandStatus(bot);
 
@@ -174,7 +190,7 @@ bot.once('ready', async () => {
 /**
  * Runs when the bot is added to a guild.
  */
-bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
+bot.on('guildCreate', /** @param {sapphireClient.Guild} guild */(guild) => {
     mainLogger.warning(`The bot was added to a new guild: ${guild.id} - ${guild.name}.`, { event: 'Guild Create Event' });
 
     newGuild(guild);
@@ -186,14 +202,14 @@ bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
 
 /**
  * Will set up a new guild.
- * @param {Commando.CommandoGuild} guild
+ * @param {sapphireClient.Guild} guild
  * @private
  */
 function newGuild(guild) {
     // set all non guarded commands to not enabled for the new guild
-    bot.registry.groups.forEach((group, key, map) => {
-        if (!group.guarded) guild.setGroupEnabled(group, false);
-    });
+    // bot.registry.groups.forEach((group, key, map) => {
+    //     if (!group.guarded) guild.setGroupEnabled(group, false);
+    // });
     // create a botGuild object for this new guild.
     BotGuild.create({
         _id: guild.id,

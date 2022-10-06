@@ -146,7 +146,7 @@ function removeRolToMember(member, removeRole) {
         // try one more time
         member.roles.remove(removeRole).catch(error => {
             // now send error to admins
-            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not loose the role ' + member.guild.roles.cache.get(removeRole).id + ', please help me!');
+            discordLog(member.guild, '@everyone The member <@' + member.user.id + '> did not lose the role ' + member.guild.roles.cache.get(removeRole).id + ', please help me!');
             winston.loggers.get(member.guild.id).error(`Could not remove the member with id ${member.id} the role ${role.name} with id ${role.id}. The following error ocurred: ${error.name} - ${error.message}.`);
         });
     });
