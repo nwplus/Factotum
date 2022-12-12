@@ -69,32 +69,32 @@ class Pronouns extends Command {
         reactionCollector.on('collect', async (reaction, user) => {
             if (reaction.emoji.name === emojis[0]) {
                 const member = interaction.guild.members.cache.get(user.id)
-                member.roles.add(sheRole);
+                await member.roles.add(sheRole);
             } if (reaction.emoji.name === emojis[1]) {
                 const member = interaction.guild.members.cache.get(user.id)
-                member.roles.add(heRole);
+                await member.roles.add(heRole);
             } if (reaction.emoji.name === emojis[2]) {
                 const member = interaction.guild.members.cache.get(user.id)
-                member.roles.add(theyRole);
+                await member.roles.add(theyRole);
             } if (reaction.emoji.name === emojis[3]) {
                 const member = interaction.guild.members.cache.get(user.id)
-                member.roles.add(otherRole);
+                await member.roles.add(otherRole);
             }
         });
 
         reactionCollector.on('remove', async (reaction, user) => {
             if (reaction.emoji.name === emojis[0]) {
                 const member = interaction.guild.members.cache.get(user.id)
-                member.roles.remove(sheRole);
+                await member.roles.remove(sheRole);
             } if (reaction.emoji.name === emojis[1]) {
                 const member = interaction.guild.members.cache.get(user.id)
-                member.roles.remove(heRole);
+                await member.roles.remove(heRole);
             } if (reaction.emoji.name === emojis[2]) {
                 const member = interaction.guild.members.cache.get(user.id)
-                member.roles.remove(theyRole);
+                await member.roles.remove(theyRole);
             } if (reaction.emoji.name === emojis[3]) {
                 const member = interaction.guild.members.cache.get(user.id)
-                member.roles.remove(otherRole);
+                await member.roles.remove(otherRole);
             }
         });
 

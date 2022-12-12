@@ -1,5 +1,6 @@
 const { Collection, TextChannel, Role, MessageEmbed, CategoryChannel, Guild } = require('discord.js');
-const { CommandoClient, CommandoGuild } = require('discord.js-commando');
+// const { CommandoClient, CommandoGuild } = require('discord.js-commando');
+const {SapphireClient} = require('@sapphire/framework')
 const winston = require('winston');
 const discordServices = require('../../discord-services');
 
@@ -102,7 +103,7 @@ class BotGuild {
     /**
      * Will set the minimum required information for the bot to work on this guild.
      * @param {BotGuildInfo} botGuildInfo 
-     * @param {CommandoClient} client
+     * @param {SapphireClient} client
      * @returns {Promise<BotGuild>}
      * @async
      */
@@ -238,7 +239,7 @@ class BotGuild {
 
     /**
      * Will set up the verification process.
-     * @param {CommandoClient} client 
+     * @param {SapphireClient} client 
      * @param {String} guestRoleId
      * @param {TypeInfo[]} types
      * @param {VerificationChannels} [verificationChannels]
@@ -246,7 +247,7 @@ class BotGuild {
      * @async
      */
     async setUpVerification(client, guestRoleId, types, verificationChannels = null) {
-        /** @type {CommandoGuild} */
+        /** @type {SapphireClient.Guild} */
         let guild = await client.guilds.fetch(this._id);
 
         try {
@@ -321,7 +322,7 @@ class BotGuild {
 
     /**
      * Sets up the attendance functionality.
-     * @param {CommandoClient} client 
+     * @param {SapphireClient} client 
      * @param {String} attendeeRoleID
      * @returns {Promise<BotGuild>}
      * @async
@@ -329,7 +330,7 @@ class BotGuild {
     async setUpAttendance(client, attendeeRoleID) {
         this.attendance.attendeeRoleID = attendeeRoleID;
         this.attendance.isEnabled = true;
-        /** @type {CommandoGuild} */
+        /** @type {SapphireClient.Guild} */
         let guild = await client.guilds.fetch(this._id);
         guild.setCommandEnabled('start-attend', true);
         guild.setCommandEnabled('attend', true);
@@ -340,12 +341,12 @@ class BotGuild {
 
     /**
      * Will set up the firebase announcements.
-     * @param {CommandoClient} client 
+     * @param {SapphireClient} client 
      * @param {String} announcementChannelID
      * @async
      */
     async setUpAnnouncements(client, announcementChannelID) {
-        /** @type {CommandoGuild} */
+        /** @type {SapphireClient.Guild} */
         let guild = await client.guilds.fetch(this._id);
         
         let announcementChannel = guild.channels.resolve(announcementChannelID);
@@ -381,7 +382,7 @@ class BotGuild {
     /**
      * Creates the stamps roles and adds them to this BotGuild. If stamps roles are given 
      * then no roles are created!
-     * @param {CommandoClient} client 
+     * @param {SapphireClient} client 
      * @param {Number} [stampAmount] - amount of stamps to create
      * @param {Number} [stampCollectionTime] - time given to users to send password to get stamp
      * @param {String[]} [stampRoleIDs] - current stamp roles to use
@@ -414,7 +415,7 @@ class BotGuild {
         this.stamps.stampCollectionTime = stampCollectionTime;
         this.stamps.isEnabled = true;
 
-        this.setCommandStatus(client);
+        // this.setCommandStatus(client);
 
         return this;
     }
@@ -432,13 +433,13 @@ class BotGuild {
 
     /**
      * Enables the report commands and sends the reports to the given channel.
-     * @param {CommandoClient} client 
+     * @param {SapphireClient} client 
      * @param {String} incomingReportChannelID 
      * @returns {Promise<BotGuild>}
      * @async
      */
     async setUpReport(client, incomingReportChannelID) {
-        /** @type {CommandoGuild} */
+        /** @type {SapphireClient.Guild} */
         let guild = await client.guilds.fetch(this._id);
 
         this.report.isEnabled = true;
@@ -452,10 +453,10 @@ class BotGuild {
 
     /**
      * Will enable the ask command.
-     * @param {CommandoClient} client 
+     * @param {SapphireClient} client 
      */
     async setUpAsk(client) {
-        /** @type {CommandoGuild} */
+        /** @type {SapphireClient.Guild} */
         let guild = await client.guilds.fetch(this._id);
         this.ask.isEnabled = true;
         guild.setCommandEnabled('ask', true);
@@ -464,25 +465,25 @@ class BotGuild {
 
     /**
      * Will enable and disable the appropriate commands by looking at what is enabled in the botGuild.
-     * @param {CommandoClient} client
+     * @param {SapphireClient} client
      * @async 
      */
     async setCommandStatus(client) {
-        /** @type {CommandoGuild} */
+        /** @type {SapphireClient.Guild} */
         let guild = await client.guilds.fetch(this._id);
 
-        guild.setGroupEnabled('verification', this.verification.isEnabled);
-        guild.setGroupEnabled('attendance', this.attendance.isEnabled);
+        // guild.setGroupEnabled('verification', this.verification.isEnabled);
+        // guild.setGroupEnabled('attendance', this.attendance.isEnabled);
 
-        guild.setGroupEnabled('stamps', this.stamps.isEnabled);
+        // guild.setGroupEnabled('stamps', this.stamps.isEnabled);
 
-        guild.setCommandEnabled('report', this.report.isEnabled);
-        guild.setCommandEnabled('ask', this.ask.isEnabled);
-        guild.setGroupEnabled('hacker_utility', this.ask.isEnabled || this.report.isEnabled);
+        // guild.setCommandEnabled('report', this.report.isEnabled);
+        // guild.setCommandEnabled('ask', this.ask.isEnabled);
+        // guild.setGroupEnabled('hacker_utility', this.ask.isEnabled || this.report.isEnabled);
         
-        client.registry.groups.forEach((group, key, map) => {
-            if (group.id.startsWith('a_')) guild.setGroupEnabled(group, this.isSetUpComplete);
-        });
+        // client.registry.groups.forEach((group, key, map) => {
+        //     if (group.id.startsWith('a_')) guild.setGroupEnabled(group, this.isSetUpComplete);
+        // });
 
         winston.loggers.get(guild.id).verbose(`Set the command status of guild ${guild.name} with id ${guild.id}`);
     }

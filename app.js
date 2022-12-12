@@ -244,21 +244,21 @@ bot.on('commandError', (command, error, message) => {
 /**
  * Runs when a message is sent in any server the bot is running in.
  */
-bot.on('message', async message => {
-    if (message?.guild) {
-        let botGuild = await BotGuild.findById(message.guild.id);
+// bot.on('message', async message => {
+//     if (message?.guild) {
+//         let botGuild = await BotGuild.findById(message.guild.id);
 
-        // Deletes all messages to any channel in the black list with the specified timeout
-        // this is to make sure that if the message is for the bot, it is able to get it
-        // bot and staff messages are not deleted
-        if (botGuild.blackList.has(message.channel.id)) {
-            if (!message.author.bot && !discordServices.checkForRole(message.member, botGuild.roleIDs.staffRole)) {
-                winston.loggers.get(message.guild.id).verbose(`Deleting message from user ${message.author.id} due to being in the blacklisted channel ${message.channel.name}.`);
-                (new Promise(res => setTimeout(res, botGuild.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
-            }
-        }
-    }
-});
+//         // Deletes all messages to any channel in the black list with the specified timeout
+//         // this is to make sure that if the message is for the bot, it is able to get it
+//         // bot and staff messages are not deleted
+//         if (botGuild.blackList.has(message.channel.id)) {
+//             if (!message.author.bot && !discordServices.checkForRole(message.member, botGuild.roleIDs.staffRole)) {
+//                 winston.loggers.get(message.guild.id).verbose(`Deleting message from user ${message.author.id} due to being in the blacklisted channel ${message.channel.name}.`);
+//                 (new Promise(res => setTimeout(res, botGuild.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
+//             }
+//         }
+//     }
+// });
 
 /**
  * Runs when a new member joins a guild the bot is running in.
