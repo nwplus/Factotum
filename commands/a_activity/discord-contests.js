@@ -1,11 +1,9 @@
 const { Command } = require('@sapphire/framework');
 const { discordLog, checkForRole } = require('../../discord-services');
-const { Message, MessageEmbed, Snowflake, MessageActionRow, MessageButton, ButtonStyle } = require('discord.js');
+const { Message, MessageEmbed, Snowflake, MessageActionRow, MessageButton } = require('discord.js');
 const { getQuestion, lookupById } = require('../../db/firebase/firebase-services');
 const BotGuild = require('../../db/mongo/BotGuild')
 const BotGuildModel = require('../../classes/Bot/bot-guild');
-const { NumberPrompt, SpecialPrompt, RolePrompt, MemberPrompt } = require('advanced-discord.js-prompts');
-// const fs = require('fs');
 
 /**
  * The DiscordContests class handles all functions related to Discord contests. It will ask questions in set intervals and pick winners
@@ -119,13 +117,13 @@ class DiscordContests extends Command {
                 clearInterval(interval);
                 paused = true;
                 await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Discord contest paused by <@' + i.user.id + '>!')
-                await i.reply('<@' + i.user.id + '> Discord contest has been paused!');
+                await i.reply({ content: 'Discord contest has been paused!', ephemeral: true });
             } else if (paused && i.customId == 'play') {
                 await sendQuestion(this.botGuild);
                 interval = setInterval(sendQuestion, timeInterval, this.botGuild);
                 paused = false;
                 await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Discord contest restarted by <@' + i.user.id + '>!');
-                await i.reply('<@' + i.user.id + '> Discord contest has been un-paused!');
+                await i.reply({ content: 'Discord contest has been un-paused!', ephemeral: true });
             } else {
                 await i.reply({ content: `Wrong button or wrong permissions!`, ephemeral: true });
             }
