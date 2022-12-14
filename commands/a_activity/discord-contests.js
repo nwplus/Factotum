@@ -70,7 +70,7 @@ class DiscordContests extends Command {
         var roleId = interaction.options.getRole('notify');
 
         if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
-            return this.error({ message: 'You do not have permissions to run this command!' })
+            return this.error({ message: 'You do not have permissions to run this command!', ephemeral: true })
         }
         // try {
         //     let num = await NumberPrompt.single({prompt: 'What is the time interval between questions in minutes (integer only)? ', channel, userId, cancelable: true});
@@ -111,26 +111,23 @@ class DiscordContests extends Command {
                     .setStyle('PRIMARY'),
             );
 
-        await adminConsole.send({ content: 'Discord contests started by <@' + userId + '>', components: [row] });
+        const controlPanel = await adminConsole.send({ content: 'Discord contests started by <@' + userId + '>', components: [row] });
         const filter = i => !i.user.bot && (guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) || guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole));
-        const collector = adminConsole.createMessageComponentCollector(filter);
+        const collector = controlPanel.createMessageComponentCollector(filter);
         collector.on('collect', async i => {
-            console.log('collector')
             if (interval != null && !paused && i.customId == 'pause') {
-                console.log('pause')
                 clearInterval(interval);
                 paused = true;
                 await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Discord contest paused by <@' + i.user.id + '>!')
                 await i.reply('<@' + i.user.id + '> Discord contest has been paused!');
             } else if (paused && i.customId == 'play') {
-                console.log('play')
-                sendQuestion(this.botGuild);
+                await sendQuestion(this.botGuild);
                 interval = setInterval(sendQuestion, timeInterval, this.botGuild);
                 paused = false;
                 await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Discord contest restarted by <@' + i.user.id + '>!');
                 await i.reply('<@' + i.user.id + '> Discord contest has been un-paused!');
             } else {
-                await i.reply({ content: `Wrong button`, ephemeral: true });
+                await i.reply({ content: `Wrong button or wrong permissions!`, ephemeral: true });
             }
         });
 
@@ -159,7 +156,7 @@ class DiscordContests extends Command {
 
         //starts the interval, and sends the first question immediately if startNow is true
         if (startNow) {
-            sendQuestion(this.botGuild);
+            await sendQuestion(this.botGuild);
         }
         interval = setInterval(sendQuestion, timeInterval, this.botGuild);
 
@@ -185,53 +182,71 @@ class DiscordContests extends Command {
 
             const qEmbed = new MessageEmbed()
                 .setTitle('A new Discord Contest Question:')
-                .setDescription(question + '\n' + ((answers.length === 0) ? 'Staff: click the 👑 emoji to announce a winner!' :
-                    'Exact answers only!'));
+                .setDescription(question);
+
+                
+            const row = new MessageActionRow()
+            .addComponents(
+                new MessageButton()
+                    .setCustomId('winner')
+                    .setLabel('Select winner')
+                    .setStyle('PRIMARY'),
+            );
 
 
-            channel.send({ content: '<@&' + roleId + '>' + ((answers.length === 0) ? (' - <@&' + botGuild.roleIDs.staffRole + '> Need manual review!') : ''), embeds: [qEmbed] }).then((msg) => {
+            channel.send({ content: '<@&' + roleId + '>', embeds: [qEmbed] }).then(async (msg) => {
                 if (answers.length === 0) {
-                    msg.react('👑');
+                    //send message to console
+                    const questionMsg = await adminConsole.send({ content: '<@&' + botGuild.roleIDs.staffRole + '>' + 'need manual review!', embeds: [qEmbed], components: [row] })
 
-                    const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '👑') && checkForRole(guild.members.cache.get(user), botGuild.roleIDs.staffRole);
-                    const emojiCollector = msg.createReactionCollector(emojiFilter);
+                    const filter = i => !i.user.bot && i.customId === 'winner' && (guild.members.cache.get(userId).roles.cache.has(botGuild.roleIDs.staffRole) || guild.members.cache.get(userId).roles.cache.has(botGuild.roleIDs.adminRole));
+                    const collector = await questionMsg.createMessageComponentCollector({ filter });
+                    
+                    collector.on('collect', async i => {
+                        const winnerRequest = await i.reply({ content: '<@' + i.user.id + '> Mention the winner in your next message!', fetchReply: true});
 
-                    emojiCollector.on('collect', (reaction, user) => {
-                        //once someone from Staff hits the crown emoji, tell them to mention the winner in a message in the channel
-                        reaction.users.remove(user.id);
-
-                        MemberPrompt.single({ prompt: 'Pick a winner for the previous question by mentioning them in your next message in this channel!', channel: channel, userId: user.id, cancelable: true })
-                            .then(member => {
-                                winners.push(member.id);
-                                channel.send('Congrats <@' + member.id + '> for the best answer to the previous question!');
-                                emojiCollector.stop();
-                                recordWinner(member);
-                            }).catch(() => {
-                                msg.channel.send('<@' + user.id + '> You have canceled the prompt, you can select a winner again at any time.').then(msg => msg.delete({ timeout: 8000 }));
-                            });
-                    });
-
-                    emojiCollector.on('end', () => {
-                        channel.send('Answers are no longer being accepted. Stay tuned for the next question!');
+                        const winnerFilter = message => message.user.id === i.user.id;
+                        const winnerCollector = adminConsole.createMessageCollector({ winnerFilter, max: 1 });
+                        winnerCollector.on('collect', async m => {
+                            if (m.mentions.members.size > 0) {
+                                const member = await m.mentions.members.first();
+                                const memberId = await member.user.id;
+                                await m.delete();
+                                await i.editReply('<@' + memberId + '> has been recorded!');
+                                row.components[0].setDisabled(true)
+                                // row.components[0].setDisabled(); 
+                                await channel.send('Congrats <@' + memberId + '> for the best answer to the last question!');
+                                winners.push(memberId);
+                                collector.stop();
+                                // await recordWinner(memberId);
+                            } else {
+                                await m.delete();
+                                // await winnerRequest.deleteReply();
+                                let errorMsg = await i.editReply({ content: 'Message does not include a user mention!' });
+                                setTimeout(function() {
+                                    errorMsg.delete();
+                                }, 5000);
+                            }
+                        })
                     });
                 } else {
                     //automatically mark answers
                     const filter = m => !m.author.bot && (botGuild.verification.isEnabled ? checkForRole(m.member, botGuild.verification.verificationRoles.get('hacker')) : checkForRole(m.member, botGuild.roleIDs.member));
                     const collector = channel.createMessageCollector({ filter, time: timeInterval * 0.75 });
 
-                    collector.on('collect', m => {
+                    collector.on('collect', async m => {
                         if (!needAllAnswers) {
                             // for questions that have numbers as answers, the answer has to match at least one of the correct answers exactly
                             if (!isNaN(answers[0])) {
                                 if (answers.some(correctAnswer => m.content === correctAnswer)) {
-                                    channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(' or ') + '.');
+                                    await channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(' or ') + '.');
                                     winners.push(m.author.id);
                                     collector.stop();
                                     recordWinner(m.member);
                                 }
                             } else if (answers.some(correctAnswer => m.content.toLowerCase().includes(correctAnswer.toLowerCase()))) {
                                 //for most questions, an answer that contains at least once item of the answer array is correct
-                                channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(' or ') + '.');
+                                await channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(' or ') + '.');
                                 winners.push(m.author.id);
                                 collector.stop();
                                 recordWinner(m.member);
@@ -239,7 +254,7 @@ class DiscordContests extends Command {
                         } else {
                             //check if all answers in answer array are in the message
                             if (answers.every((answer) => m.content.toLowerCase().includes(answer.toLowerCase()))) {
-                                channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(', ') + '.');
+                                await channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(', ') + '.');
                                 winners.push(m.author.id);
                                 collector.stop();
                                 recordWinner(m.member);
@@ -247,8 +262,8 @@ class DiscordContests extends Command {
                         }
                     });
 
-                    collector.on('end', () => {
-                        channel.send('Answers are no longer being accepted. Stay tuned for the next question!');
+                    collector.on('end', async () => {
+                        await channel.send('Answers are no longer being accepted. Stay tuned for the next question!');
                     });
                 }
             });
@@ -257,7 +272,7 @@ class DiscordContests extends Command {
         async function recordWinner(member) {
             try {
                 let email = await lookupById(guild.id, member.id)
-               discordLog(`Discord contest winner: ${member.id} - ${email}`);
+                discordLog(`Discord contest winner: ${member.id} - ${email}`);
             } catch (error) {
                 console.log(error);
             }
