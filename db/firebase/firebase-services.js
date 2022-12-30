@@ -335,3 +335,32 @@ async function lookupById(guildId, memberId) {
     
 }
 module.exports.lookupById = lookupById;
+
+async function saveToLeaderboard(guildId, memberId) {
+    var userRef = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('questionsLeaderboard').doc(memberId);
+    var user = await userRef.get();
+    if (user.exists) {
+        // var data = user.data();
+        var data = user.data();
+        data.points++;
+        await userRef.update(data);
+    } else {
+        let data = {
+            memberId: memberId,
+            points: 1
+        };
+        await userRef.set(data);
+    }
+}
+module.exports.saveToLeaderboard = saveToLeaderboard;
+
+async function retrieveLeaderboard(guildId) {
+    var snapshot = (await apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('questionsLeaderboard').get()).docs;
+    let winners = [];
+    snapshot.forEach(doc => {
+        winners.push(doc.data());
+    })
+    winners.sort((a,b) => parseFloat(b.points) - parseFloat(a.points));
+    return winners;
+}
+module.exports.retrieveLeaderboard = retrieveLeaderboard;
