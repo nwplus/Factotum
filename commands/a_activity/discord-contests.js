@@ -1,7 +1,7 @@
 const { Command } = require('@sapphire/framework');
 const { discordLog, checkForRole } = require('../../discord-services');
 const { Message, MessageEmbed, Snowflake, MessageActionRow, MessageButton } = require('discord.js');
-const { getQuestion, lookupById } = require('../../db/firebase/firebase-services');
+const { getQuestion, lookupById, saveToLeaderboard, retrieveLeaderboard } = require('../../db/firebase/firebase-services');
 const BotGuild = require('../../db/mongo/BotGuild')
 const BotGuildModel = require('../../classes/Bot/bot-guild');
 
@@ -107,27 +107,14 @@ class DiscordContests extends Command {
                     .setCustomId('pause')
                     .setLabel('Pause')
                     .setStyle('PRIMARY'),
+            )
+            .addComponents(
+                new MessageButton()
+                    .setCustomId('refresh')
+                    .setLabel('Refresh leaderboard')
+                    .setStyle('PRIMARY'),
             );
 
-        const controlPanel = await adminConsole.send({ content: 'Discord contests started by <@' + userId + '>', components: [row] });
-        const filter = i => !i.user.bot && (guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) || guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole));
-        const collector = controlPanel.createMessageComponentCollector(filter);
-        collector.on('collect', async i => {
-            if (interval != null && !paused && i.customId == 'pause') {
-                clearInterval(interval);
-                paused = true;
-                await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Discord contest paused by <@' + i.user.id + '>!')
-                await i.reply({ content: 'Discord contest has been paused!', ephemeral: true });
-            } else if (paused && i.customId == 'play') {
-                await sendQuestion(this.botGuild);
-                interval = setInterval(sendQuestion, timeInterval, this.botGuild);
-                paused = false;
-                await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Discord contest restarted by <@' + i.user.id + '>!');
-                await i.reply({ content: 'Discord contest has been un-paused!', ephemeral: true });
-            } else {
-                await i.reply({ content: `Wrong button or wrong permissions!`, ephemeral: true });
-            }
-        });
 
         // const playFilter = i => i.customId == 'play' && !i.user.bot && (guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) || guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole));
         // const playCollector = adminConsole.createMessageComponentCollector(playFilter);
@@ -147,9 +134,33 @@ class DiscordContests extends Command {
             .setTitle(string)
             .setDescription('Note: Short-answer questions are non-case sensitive but any extra or missing symbols will be considered incorrect.');
 
+        const leaderboard = new MessageEmbed()
+            .setTitle('Leaderboard')
+            
+        let pinnedMessage = await channel.send({ content: '<@&' + roleId + '>', embeds: [startEmbed, leaderboard] });
+        pinnedMessage.pin();
 
-        channel.send({ content: '<@&' + roleId + '>', embeds: [startEmbed] }).then((msg) => {
-            msg.pin();
+        const controlPanel = await adminConsole.send({ content: 'Discord contests started by <@' + userId + '>', components: [row] });
+        const filter = i => !i.user.bot && (guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) || guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole));
+        const collector = controlPanel.createMessageComponentCollector(filter);
+        collector.on('collect', async i => {
+            if (i.customId == 'refresh') {
+                await i.reply({ content: 'Leaderboard refreshed!', ephemeral: true })
+                await updateLeaderboard(null);
+            } else if (interval != null && !paused && i.customId == 'pause') {
+                clearInterval(interval);
+                paused = true;
+                await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Discord contest paused by <@' + i.user.id + '>!')
+                await i.reply({ content: 'Discord contest has been paused!', ephemeral: true });
+            } else if (paused && i.customId == 'play') {
+                await sendQuestion(this.botGuild);
+                interval = setInterval(sendQuestion, timeInterval, this.botGuild);
+                paused = false;
+                await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Discord contest restarted by <@' + i.user.id + '>!');
+                await i.reply({ content: 'Discord contest has been un-paused!', ephemeral: true });
+            } else {
+                await i.reply({ content: `Wrong button or wrong permissions!`, ephemeral: true });
+            }
         });
 
         //starts the interval, and sends the first question immediately if startNow is true
@@ -157,6 +168,24 @@ class DiscordContests extends Command {
             await sendQuestion(this.botGuild);
         }
         interval = setInterval(sendQuestion, timeInterval, this.botGuild);
+
+        async function updateLeaderboard(memberId) {
+            if (memberId) {
+                await saveToLeaderboard(guild.id, memberId);
+            }
+            const winnersList = await retrieveLeaderboard(guild.id);
+            var leaderboardString = '';
+            winnersList.forEach(winner => {
+                leaderboardString += '<@' + winner.memberId + '>: ';
+                if (winner.points > 1) {
+                    leaderboardString += winner.points + ' points\n';
+                } else if (winner.points == 1) {
+                    leaderboardString += '1 point\n';
+                }
+            });
+            const newLeaderboard = new MessageEmbed(leaderboard).setDescription(leaderboardString);
+            pinnedMessage.edit({ embeds: [startEmbed, newLeaderboard] });
+        }
 
         /**
          * sendQuestion is the function that picks and sends the next question, then picks the winner by matching participants' messages
@@ -182,14 +211,14 @@ class DiscordContests extends Command {
                 .setTitle('A new Discord Contest Question:')
                 .setDescription(question);
 
-                
+
             const row = new MessageActionRow()
-            .addComponents(
-                new MessageButton()
-                    .setCustomId('winner')
-                    .setLabel('Select winner')
-                    .setStyle('PRIMARY'),
-            );
+                .addComponents(
+                    new MessageButton()
+                        .setCustomId('winner')
+                        .setLabel('Select winner')
+                        .setStyle('PRIMARY'),
+                );
 
 
             channel.send({ content: '<@&' + roleId + '>', embeds: [qEmbed] }).then(async (msg) => {
@@ -199,9 +228,9 @@ class DiscordContests extends Command {
 
                     const filter = i => !i.user.bot && i.customId === 'winner' && (guild.members.cache.get(userId).roles.cache.has(botGuild.roleIDs.staffRole) || guild.members.cache.get(userId).roles.cache.has(botGuild.roleIDs.adminRole));
                     const collector = await questionMsg.createMessageComponentCollector({ filter });
-                    
+
                     collector.on('collect', async i => {
-                        const winnerRequest = await i.reply({ content: '<@' + i.user.id + '> Mention the winner in your next message!', fetchReply: true});
+                        const winnerRequest = await i.reply({ content: '<@' + i.user.id + '> Mention the winner in your next message!', fetchReply: true });
 
                         const winnerFilter = message => message.user.id === i.user.id;
                         const winnerCollector = adminConsole.createMessageCollector({ winnerFilter, max: 1 });
@@ -214,14 +243,15 @@ class DiscordContests extends Command {
                                 row.components[0].setDisabled(true)
                                 // row.components[0].setDisabled(); 
                                 await channel.send('Congrats <@' + memberId + '> for the best answer to the last question!');
-                                winners.push(memberId);
+                                // winners.push(memberId);
+                                await updateLeaderboard(memberId);
                                 collector.stop();
                                 // await recordWinner(memberId);
                             } else {
                                 await m.delete();
                                 // await winnerRequest.deleteReply();
                                 let errorMsg = await i.editReply({ content: 'Message does not include a user mention!' });
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     errorMsg.delete();
                                 }, 5000);
                             }
@@ -238,14 +268,16 @@ class DiscordContests extends Command {
                             if (!isNaN(answers[0])) {
                                 if (answers.some(correctAnswer => m.content === correctAnswer)) {
                                     await channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(' or ') + '.');
-                                    winners.push(m.author.id);
+                                    // winners.push(m.author.id);
+                                    await updateLeaderboard(m.author.id);
                                     collector.stop();
                                     recordWinner(m.member);
                                 }
                             } else if (answers.some(correctAnswer => m.content.toLowerCase().includes(correctAnswer.toLowerCase()))) {
                                 //for most questions, an answer that contains at least once item of the answer array is correct
                                 await channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(' or ') + '.');
-                                winners.push(m.author.id);
+                                // winners.push(m.author.id);
+                                await updateLeaderboard(m.author.id);
                                 collector.stop();
                                 recordWinner(m.member);
                             }
@@ -253,7 +285,8 @@ class DiscordContests extends Command {
                             //check if all answers in answer array are in the message
                             if (answers.every((answer) => m.content.toLowerCase().includes(answer.toLowerCase()))) {
                                 await channel.send('Congrats <@' + m.author.id + '> for getting the correct answer! The answer key is ' + answers.join(', ') + '.');
-                                winners.push(m.author.id);
+                                // winners.push(m.author.id);
+                                await updateLeaderboard(m.author.id);
                                 collector.stop();
                                 recordWinner(m.member);
                             }
