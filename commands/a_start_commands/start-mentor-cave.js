@@ -6,6 +6,8 @@ const BotGuild = require('../../db/mongo/BotGuild')
 const winston = require('winston');
 const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { NumberPrompt, SpecialPrompt, RolePrompt } = require('advanced-discord.js-prompts');
+const { MessageActionRow } = require('discord.js');
+const { MessageSelectMenu, Modal, TextInputComponent } = require('discord.js');
 
 /**
  * The start mentor cave command creates a cave for mentors. To know what a cave is look at [cave]{@link Cave} class.
@@ -58,6 +60,7 @@ class StartMentorCave extends Command {
             let guild = interaction.guild;
             this.botGuild = await BotGuild.findById(guild.id);
             let adminConsole = guild.channels.resolve(this.botGuild.channelIDs.adminConsole);
+            this.ticketCount = 0;
 
             const additionalMentorRole = interaction.options.getRole('additional_mentor_role');
             console.log(additionalMentorRole);
@@ -73,19 +76,19 @@ class StartMentorCave extends Command {
             interaction.reply({ content: 'Mentor cave activated!', ephemeral: true })
 
             // create channels
-            let overwrites = 
-            [{
-                id: this.botGuild.roleIDs.everyoneRole,
-                deny: ['VIEW_CHANNEL'],
-            },
-            {
-                id: this.botGuild.roleIDs.mentorRole,
-                allow: ['VIEW_CHANNEL'],
-            },
-            {
-                id: this.botGuild.roleIDs.staffRole,
-                allow: ['VIEW_CHANNEL'],
-            }]
+            let overwrites =
+                [{
+                    id: this.botGuild.roleIDs.everyoneRole,
+                    deny: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: this.botGuild.roleIDs.mentorRole,
+                    allow: ['VIEW_CHANNEL'],
+                },
+                {
+                    id: this.botGuild.roleIDs.staffRole,
+                    allow: ['VIEW_CHANNEL'],
+                }]
 
             if (additionalMentorRole) {
                 overwrites.push({
@@ -135,7 +138,7 @@ class StartMentorCave extends Command {
             emojisMap.set(noSqlEmoji, 'NoSQL');
             emojisMap.set(javaEmoji, 'Java');
             emojisMap.set(cEmoji, 'C/C++');
-            emojisMap.set(cSharpEmoji,'C#');
+            emojisMap.set(cSharpEmoji, 'C#');
             emojisMap.set(reduxEmoji, 'Redux');
             emojisMap.set(figmaEmoji, 'Figma');
             emojisMap.set(unityEmoji, 'Unity');
@@ -158,7 +161,7 @@ class StartMentorCave extends Command {
 
             var fields = [];
             for (let [key, value] of emojisMap) {
-                fields.push({name: key, value: value});
+                fields.push({ name: key, value: value });
             }
 
             const roleSelection = new MessageEmbed()
@@ -166,7 +169,7 @@ class StartMentorCave extends Command {
                 .setDescription('Note: You will be notified every time a hacker creates a ticket in one of your selected categories!')
                 .addFields(fields)
 
-            const roleSelectionMsg = await mentorRoleSelectionChannel.send({ embeds: [roleSelection]});
+            const roleSelectionMsg = await mentorRoleSelectionChannel.send({ embeds: [roleSelection] });
             for (let key of emojisMap.keys()) {
                 roleSelectionMsg.react(key);
             }
@@ -190,7 +193,7 @@ class StartMentorCave extends Command {
                 }
             })
 
-            await channel.guild.channels.create('mentors-general',
+            channel.guild.channels.create('mentors-general',
                 {
                     type: "GUILD_TEXT",
                     topic: 'Private chat between all mentors and organizers',
@@ -198,7 +201,7 @@ class StartMentorCave extends Command {
                 }
             );
 
-            await channel.guild.channels.create('incoming-tickets',
+            const incomingTicketChannel = await channel.guild.channels.create('incoming-tickets',
                 {
                     type: "GUILD_TEXT",
                     topic: 'Tickets from hackers will come in here!',
@@ -206,6 +209,97 @@ class StartMentorCave extends Command {
                 }
             );
 
+            const mentorHelpCategory = await channel.guild.channels.create('Mentor-help',
+                {
+                    type: "GUILD_CATEGORY",
+                    permissionOverwrites: [
+                        {
+                            id: this.botGuild.roleIDs.everyoneRole,
+                            deny: ['VIEW_CHANNEL'],
+                        },
+                        {
+                            id: this.botGuild.roleIDs.memberRole,
+                            allow: ['VIEW_CHANNEL'],
+                        },
+                    ]
+                }
+            );
+
+            channel.guild.channels.create('quick-questions',
+                {
+                    type: "GUILD_TEXT",
+                    topic: 'ask questions for mentors here!',
+                    parent: mentorHelpCategory
+                }
+            );
+
+            const requestTicketChannel = await channel.guild.channels.create('request-ticket',
+                {
+                    type: "GUILD_TEXT",
+                    topic: 'request 1-on-1 help from mentors here!',
+                    parent: mentorHelpCategory
+                }
+            );
+
+            const requestTicketEmbed = new MessageEmbed()
+                .setTitle('Need 1:1 mentor help?')
+                .setDescription('Select a technology you need help with and follow the instructions!')
+
+            var options = [];
+            for (let value of emojisMap.values()) {
+                options.push({ label: value, value: value });
+            }
+            // options.push({ label: 'None of the above', value: 'None of the above'})
+
+            const selectMenuRow = new MessageActionRow()
+                .addComponents(
+                    new MessageSelectMenu()
+                        .setCustomId('ticketType')
+                        .addOptions(options)
+                )
+
+            const requestTicketConsole = await requestTicketChannel.send({ embeds: [requestTicketEmbed], components: [selectMenuRow] });
+
+            const selectMenuFilter = i => !i.user.bot && guild.members.cache.get(userId).roles.cache.has(publicRole);
+            const selectMenuCollector = requestTicketConsole.createMessageComponentCollector(selectMenuFilter);
+            selectMenuCollector.on('collect', async i => {
+                if (i.customId === 'ticketType') {
+                    requestTicketConsole.edit({ embeds: [requestTicketEmbed], components: [selectMenuRow] });
+                    const modal = new Modal()
+                        .setCustomId('ticketSubmitModal')
+                        .setTitle('Request a ticket for ' + i.values[0])
+                        .addComponents([
+                            new MessageActionRow().addComponents(
+                                new TextInputComponent()
+                                    .setCustomId('ticketDescription')
+                                    .setLabel('Brief description of your problem')
+                                    .setMaxLength(300)
+                                    .setStyle('PARAGRAPH')
+                                    .setPlaceholder('Describe your problem here')
+                                    .setRequired(true),
+                            ),
+                        ]);
+                    await i.showModal(modal);
+
+                    const submitted = await i.awaitModalSubmit({ time: 300000, filter: j => j.user.id === i.user.id })
+                        .catch(error => {
+                            submitted.reply({ content: 'Something went wrong or the modal timed out!', ephemeral: true })
+                        });
+
+                    if (submitted) {
+                        const role = guild.roles.cache.find(role => role.name.toLowerCase() === `M-${i.values[0]}`.toLowerCase());
+                        const description = submitted.fields.getTextInputValue('ticketDescription');
+                        const ticketEmbed = new MessageEmbed()
+                            .setTitle('Ticket #' + this.ticketCount)
+                            .setDescription(description + '\nRequested by: <@' + i.user.id + '>')
+                        this.ticketCount++;
+                        const ticketMsg = await incomingTicketChannel.send({ content: '<@&' + role.id + '>', embeds: [ticketEmbed] })
+                        submitted.reply({ content: 'Your ticket has been submitted!', ephemeral: true })
+                        // TODO: allow deletion
+                    }
+
+                }
+            })
 
             // eslint-disable-next-line no-inner-declarations
             // async function checkForDuplicateEmojis(prompt) {
