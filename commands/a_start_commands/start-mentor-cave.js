@@ -355,23 +355,47 @@ class StartMentorCave extends Command {
                                     .setStyle('PRIMARY'),
                             );
 
-                        const ticketMsg = await incomingTicketChannel.send({ content: '<@&' + role + '>', embeds: [newTicketEmbed], components: [ticketAcceptanceRow] })
+                        const ticketMsg = await incomingTicketChannel.send({ content: '<@&' + role + '>', embeds: [newTicketEmbed], components: [ticketAcceptanceRow] });
                         submitted.reply({ content: 'Your ticket has been submitted!', ephemeral: true })
-                        // TODO: allow deletion
-                        // TODO: notify mentors of unaccepted tickets
+                        const ticketReminder = setTimeout(() => {
+                            ticketMsg.reply('<@&' + role + '> ticket ' + ticketNumber + ' still needs help!');
+                        }, reminderTime * 60000)
+
+                        const confirmationEmbed = new MessageEmbed()
+                            .setTitle('Your ticket is number ' + ticketNumber)
+                            .setDescription(description)
+                        const deleteTicketRow = new MessageActionRow()
+                            .addComponents(
+                                new MessageButton()
+                                    .setCustomId('deleteTicket')
+                                    .setLabel('Delete ticket')
+                                    .setStyle('DANGER'),
+                            )
+                        const ticketReceipt = await submitted.user.send({ embeds: [confirmationEmbed], content: 'You will be noified when a mentor accepts your ticket!', components: [deleteTicketRow]});
+                        const deleteTicketCollector = ticketReceipt.createMessageComponentCollector({ max: 1 });
+                        deleteTicketCollector.on('collect', async deleteInteraction => {
+                            await ticketMsg.edit({embeds: [ticketMsg.embeds[0].setColor('#FFCCCB').addFields([{ name: 'Ticket closed', value: 'Deleted by hacker'}])], components: []});
+                            clearTimeout(ticketReminder);
+                            deleteInteraction.reply('Ticket deleted!');
+                            ticketReceipt.edit({ components: [] })
+                        })
 
                         const ticketAcceptFilter = i => !i.user.bot && i.isButton();
                         const ticketAcceptanceCollector = ticketMsg.createMessageComponentCollector(ticketAcceptFilter);
                         ticketAcceptanceCollector.on('collect', async acceptInteraction => {
                             const inProgressTicketEmbed = ticketMsg.embeds[0].setColor('#0096FF').addFields([{ name: 'Helped by:', value: '<@' + acceptInteraction.user.id + '>' }]);
                             if (acceptInteraction.customId === 'acceptIrl' || acceptInteraction.customId === 'acceptOnline') {
-                                ticketMsg.edit({ content: '<@&' + role.id + '>', embeds: [inProgressTicketEmbed], components: [] });
+                                await ticketReceipt.edit({ components: [] })
+                                clearTimeout(ticketReminder);
+                                ticketMsg.edit({ embeds: [inProgressTicketEmbed], components: [] });
                             }
                             if (acceptInteraction.customId === 'acceptIrl') {
                                 // TODO: mark as complete?
+                                submitted.user.send('Your ticket number ' + ticketNumber + ' has been accepted by a mentor! They will be making their way to you shortly.');
                                 acceptInteraction.reply({ content: 'Thanks for accepting their ticket! Please head to their stated location. If you need to contact them, you can click on their username above to DM them!', ephemeral: true })
                             }
                             if (acceptInteraction.customId === 'acceptOnline') {
+                                submitted.user.send('Your ticket number ' + ticketNumber + ' has been accepted by a mentor! You should have gotten a ping from a new private channel. You can talk to your mentor there!');
                                 acceptInteraction.reply({ content: 'Thanks for accepting their ticket! You should get a ping from a private channel for this ticket! You can help them there.', ephemeral: true })
                                 let ticketChannelOverwrites =
                                     [{
@@ -436,13 +460,13 @@ class StartMentorCave extends Command {
                                             .then(() => {
                                                 const awaitMessageFilter = i => i.user.id === ticketInteraction.user.id
                                                 ticketInteraction.channel.awaitMessages({ awaitMessageFilter, max: 1, time: 60000, errors: ['time'] })
-                                                    .then(collected => {
+                                                    .then(async collected => {
                                                         if (collected.first().mentions.members.size === 0) {
-                                                            ticketInteraction.followUp({ content: 'You have not mentioned any users! Click the button again to try again.' });
+                                                            await ticketInteraction.followUp({ content: 'You have not mentioned any users! Click the button again to try again.' });
                                                         } else {
                                                             var newMembersArray = [];
-                                                            collected.first().mentions.members.forEach(member => {
-                                                                ticketCategory.permissionOverwrites.edit(member.id, { VIEW_CHANNEL: true });
+                                                            collected.first().mentions.members.forEach(async member => {
+                                                                await ticketCategory.permissionOverwrites.edit(member.id, { VIEW_CHANNEL: true });
                                                                 newMembersArray.push(member.id);
                                                             })
                                                             ticketInteraction.channel.send('<@' + newMembersArray.join('><@') + '> Welcome to the channel! You have been invited to join the discussion for this ticket. Check the pinned message for more details.')
