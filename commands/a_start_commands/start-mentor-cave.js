@@ -6,7 +6,7 @@ const BotGuild = require('../../db/mongo/BotGuild')
 const winston = require('winston');
 const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { NumberPrompt, SpecialPrompt, RolePrompt } = require('advanced-discord.js-prompts');
-const { MessageActionRow } = require('discord.js');
+const { MessageActionRow, MessageButton } = require('discord.js');
 const { MessageSelectMenu, Modal, TextInputComponent } = require('discord.js');
 
 /**
@@ -104,6 +104,19 @@ class StartMentorCave extends Command {
                 }
             );
 
+            // await channel.guild.channels.create('mentors-announcements',
+            //     {
+            //         type: "GUILD_TEXT",
+            //         parent: mentorCategory,
+            //         permissionOverwrites: [
+            //             {
+            //                 id: this.botGuild.roleIDs.mentorRole,
+            //                 deny: ['SEND_MESSAGES'],
+            //             }
+            //         ]
+            //     }
+            // )
+
             const mentorRoleSelectionChannel = await channel.guild.channels.create('mentors-role-selection',
                 {
                     type: "GUILD_TEXT",
@@ -161,7 +174,7 @@ class StartMentorCave extends Command {
 
             var fields = [];
             for (let [key, value] of emojisMap) {
-                fields.push({ name: key, value: value });
+                fields.push({ name: key + ' --> ' + value, value: '\u200b' });
             }
 
             const roleSelection = new MessageEmbed()
@@ -174,8 +187,8 @@ class StartMentorCave extends Command {
                 roleSelectionMsg.react(key);
             }
 
-            const roleFilter = i => !i.user.bot;
-            const collector = roleSelectionMsg.createReactionCollector({ roleFilter, dispose: true });
+            const notBotFilter = i => !i.user.bot;
+            const collector = roleSelectionMsg.createReactionCollector({ roleFilter: notBotFilter, dispose: true });
             collector.on('collect', async (reaction, user) => {
                 if (emojisMap.has(reaction.emoji.name)) {
                     const value = emojisMap.get(reaction.emoji.name);
@@ -193,13 +206,13 @@ class StartMentorCave extends Command {
                 }
             })
 
-            channel.guild.channels.create('mentors-general',
-                {
-                    type: "GUILD_TEXT",
-                    topic: 'Private chat between all mentors and organizers',
-                    parent: mentorCategory
-                }
-            );
+            // channel.guild.channels.create('mentors-general',
+            //     {
+            //         type: "GUILD_TEXT",
+            //         topic: 'Private chat between all mentors and organizers',
+            //         parent: mentorCategory
+            //     }
+            // );
 
             const incomingTicketChannel = await channel.guild.channels.create('incoming-tickets',
                 {
@@ -225,19 +238,29 @@ class StartMentorCave extends Command {
                 }
             );
 
-            channel.guild.channels.create('quick-questions',
-                {
-                    type: "GUILD_TEXT",
-                    topic: 'ask questions for mentors here!',
-                    parent: mentorHelpCategory
-                }
-            );
+            // channel.guild.channels.create('quick-questions',
+            //     {
+            //         type: "GUILD_TEXT",
+            //         topic: 'ask questions for mentors here!',
+            //         parent: mentorHelpCategory
+            //     }
+            // );
 
             const requestTicketChannel = await channel.guild.channels.create('request-ticket',
                 {
                     type: "GUILD_TEXT",
                     topic: 'request 1-on-1 help from mentors here!',
-                    parent: mentorHelpCategory
+                    parent: mentorHelpCategory,
+                    permissionOverwrites: [
+                        {
+                            id: this.botGuild.roleIDs.memberRole,
+                            deny: ['VIEW_CHANNEL']
+                        },
+                        {
+                            id: publicRole,
+                            allow: ['VIEW_CHANNEL']
+                        }
+                    ]
                 }
             );
 
@@ -278,24 +301,166 @@ class StartMentorCave extends Command {
                                     .setPlaceholder('Describe your problem here')
                                     .setRequired(true),
                             ),
+                            new MessageActionRow().addComponents(
+                                new TextInputComponent()
+                                    .setCustomId('helpFormat')
+                                    .setLabel('Receive help in-person, online, or either?')
+                                    .setMaxLength(300)
+                                    .setPlaceholder('If you select in-person or either, please describe where you are located.')
+                                    .setStyle('PARAGRAPH')
+                                    .setRequired(true),
+                            ),
                         ]);
                     await i.showModal(modal);
 
                     const submitted = await i.awaitModalSubmit({ time: 300000, filter: j => j.user.id === i.user.id })
                         .catch(error => {
-                            submitted.reply({ content: 'Something went wrong or the modal timed out!', ephemeral: true })
+                            console.error(error)
                         });
 
                     if (submitted) {
                         const role = guild.roles.cache.find(role => role.name.toLowerCase() === `M-${i.values[0]}`.toLowerCase());
                         const description = submitted.fields.getTextInputValue('ticketDescription');
-                        const ticketEmbed = new MessageEmbed()
-                            .setTitle('Ticket #' + this.ticketCount)
-                            .setDescription(description + '\nRequested by: <@' + i.user.id + '>')
+                        const helpFormat = submitted.fields.getTextInputValue('helpFormat')
+                        const ticketNumber = this.ticketCount;
                         this.ticketCount++;
-                        const ticketMsg = await incomingTicketChannel.send({ content: '<@&' + role.id + '>', embeds: [ticketEmbed] })
+                        const ticketEmbed = new MessageEmbed()
+                            .setTitle('Ticket #' + ticketNumber)
+                            .setColor('#F7CB73')
+                            .addFields([
+                                {
+                                    name: 'Problem description',
+                                    value: description
+                                },
+                                {
+                                    name: 'Requested by:',
+                                    value: '<@' + submitted.user.id + '>'
+                                },
+                                {
+                                    name: 'How would you like to be helped?',
+                                    value: helpFormat
+                                }
+                            ])
+                        const ticketAcceptanceRow = new MessageActionRow()
+                            .addComponents(
+                                new MessageButton()
+                                    .setCustomId('acceptIrl')
+                                    .setLabel('Accept ticket (in-person)')
+                                    .setStyle('PRIMARY'),
+                            )
+                            .addComponents(
+                                new MessageButton()
+                                    .setCustomId('acceptOnline')
+                                    .setLabel('Accept ticket (online)')
+                                    .setStyle('PRIMARY'),
+                            );
+
+                        const ticketMsg = await incomingTicketChannel.send({ content: '<@&' + role.id + '>', embeds: [ticketEmbed], components: [ticketAcceptanceRow] })
                         submitted.reply({ content: 'Your ticket has been submitted!', ephemeral: true })
                         // TODO: allow deletion
+
+                        const ticketAcceptFilter = i => !i.user.bot && i.isButton();
+                        const ticketAcceptanceCollector = ticketMsg.createMessageComponentCollector(ticketAcceptFilter);
+                        ticketAcceptanceCollector.on('collect', async acceptInteraction => {
+                            if (acceptInteraction.customId === 'acceptIrl' || acceptInteraction.customId === 'acceptOnline') {
+                                ticketMsg.edit({ content: '<@&' + role.id + '>', embeds: [new MessageEmbed(ticketEmbed).setColor('#00ab66').addFields([{ name: 'Helped by:', value: '<@' + acceptInteraction.user.id + '>' }])], components: [] });
+                            }
+                            if (acceptInteraction.customId === 'acceptIrl') {
+                                acceptInteraction.reply({ content: 'Thanks for accepting their ticket! Please head to their stated location. If you need to contact them, you can click on their username above to DM them!', ephemeral: true })
+                            }
+                            if (acceptInteraction.customId === 'acceptOnline') {
+                                acceptInteraction.reply({ content: 'Thanks for accepting their ticket! You should get a ping from a private channel for this ticket! You can help them there.', ephemeral: true })
+                                let ticketChannelOverwrites =
+                                    [{
+                                        id: this.botGuild.roleIDs.everyoneRole,
+                                        deny: ['VIEW_CHANNEL'],
+                                    },
+                                    {
+                                        id: acceptInteraction.user.id,
+                                        allow: ['VIEW_CHANNEL'],
+                                    },
+                                    {
+                                        id: submitted.user.id,
+                                        allow: ['VIEW_CHANNEL'],
+                                    }]
+
+                                let ticketCategory = await channel.guild.channels.create('Ticket-#' + ticketNumber,
+                                    {
+                                        type: "GUILD_CATEGORY",
+                                        permissionOverwrites: ticketChannelOverwrites
+                                    }
+                                );
+
+                                const ticketText = await channel.guild.channels.create('ticket-' + ticketNumber,
+                                    {
+                                        type: "GUILD_TEXT",
+                                        parent: ticketCategory
+                                    }
+                                );
+
+                                const ticketVoice = await channel.guild.channels.create('ticket-' + ticketNumber + '-voice',
+                                    {
+                                        type: "GUILD_VOICE",
+                                        parent: ticketCategory
+                                    }
+                                );
+
+                                const ticketChannelEmbed = new MessageEmbed()
+                                    .setColor(this.botGuild.colors.embedColor)
+                                    .setTitle('Ticket description')
+                                    .setDescription(submitted.fields.getTextInputValue('ticketDescription'))
+
+                                const ticketChannelButtons = new MessageActionRow()
+                                    .addComponents(
+                                        new MessageButton()
+                                            .setCustomId('addMembers')
+                                            .setLabel('Add Members to Channels')
+                                            .setStyle('PRIMARY'),
+                                    )
+                                    .addComponents(
+                                        new MessageButton()
+                                            .setCustomId('leaveTicket')
+                                            .setLabel('Leave')
+                                            .setStyle('DANGER'),
+                                    );
+                                const ticketChannelInfoMsg = await ticketText.send({ content: `<@${acceptInteraction.user.id}><@${submitted.user.id}> These are your very own private channels! It is only visible to the admins of the server and any other users (i.e. teammates) you add to this channel with the button labeled "Add Members to Channels" below ⬇️. Feel free to discuss anything in this channel or the attached voice channel. **Please click the "leave" button below when you are done to leave these channels**\n\n**Note: these channels may be deleted if they appear to be inactive for a significant period of time, even if not everyone has left**`, embeds: [ticketChannelEmbed], components: [ticketChannelButtons] });
+                                ticketChannelInfoMsg.pin();
+
+                                const ticketChannelCollector = ticketChannelInfoMsg.createMessageComponentCollector(notBotFilter);
+                                ticketChannelCollector.on('collect', async ticketInteraction => {
+                                    if (ticketInteraction.customId === 'addMembers') {
+                                        ticketInteraction.reply({ content: 'Tag the users you would like to add to the channel! (You can mention them by typing @ and then paste in their username with the tag)', ephemeral: true, fetchReply: true })
+                                            .then(() => {
+                                                const awaitMessageFilter = i => i.user.id === ticketInteraction.user.id
+                                                ticketInteraction.channel.awaitMessages({ awaitMessageFilter, max: 1, time: 60000, errors: ['time'] })
+                                                    .then(collected => {
+                                                        if (collected.first().mentions.members.size === 0) {
+                                                            ticketInteraction.followUp({ content: 'You have not mentioned any users! Click the button again to try again.' });
+                                                        } else {
+                                                            var newMembersArray = [];
+                                                            collected.first().mentions.members.forEach(member => {
+                                                                ticketCategory.permissionOverwrites.edit(member.id, { VIEW_CHANNEL: true });
+                                                                newMembersArray.push(member.id);
+                                                            })
+                                                            ticketInteraction.channel.send('<@' + newMembersArray.join('><@') + '> Welcome to the channel! You have been invited to join the discussion for this ticket. Check the pinned message for more details.')
+                                                        }
+                                                    })
+                                                    .catch(collected => {
+                                                        ticketInteraction.followUp({ content: 'Timed out. Click the button again to try again.', ephemeral: true})
+                                                    })
+                                            })
+                                    } else if (ticketInteraction.customId === 'leaveTicket') {
+                                        await ticketCategory.permissionOverwrites.edit(ticketInteraction.user.id, { VIEW_CHANNEL: false });
+                                        ticketInteraction.reply({ content: 'Successfully left the channel!', ephemeral: true })
+                                        if (ticketCategory.members.filter(member => !member.roles.cache.has(this.botGuild.roleIDs.adminRole) && !member.user.bot).size === 0) {
+                                            ticketText.delete();
+                                            ticketVoice.delete();
+                                            ticketCategory.delete();
+                                        }
+                                    }
+                                })
+                            }
+                        });
                     }
 
                 }
