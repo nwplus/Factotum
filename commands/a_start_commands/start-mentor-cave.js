@@ -63,7 +63,6 @@ class StartMentorCave extends Command {
             this.ticketCount = 0;
 
             const additionalMentorRole = interaction.options.getRole('additional_mentor_role');
-            console.log(additionalMentorRole);
             const publicRole = interaction.options.getRole('request_ticket_role');
             const inactivePeriod = interaction.options.getInteger('inactivity_time');
             const bufferTime = inactivePeriod / 2;
@@ -74,6 +73,7 @@ class StartMentorCave extends Command {
             }
 
             interaction.reply({ content: 'Mentor cave activated!', ephemeral: true })
+            //TODO: send console to admin console
 
             // create channels
             let overwrites =
@@ -272,7 +272,7 @@ class StartMentorCave extends Command {
             for (let value of emojisMap.values()) {
                 options.push({ label: value, value: value });
             }
-            // options.push({ label: 'None of the above', value: 'None of the above'})
+            options.push({ label: 'None of the above', value: 'None of the above' })
 
             const selectMenuRow = new MessageActionRow()
                 .addComponents(
@@ -290,7 +290,7 @@ class StartMentorCave extends Command {
                     requestTicketConsole.edit({ embeds: [requestTicketEmbed], components: [selectMenuRow] });
                     const modal = new Modal()
                         .setCustomId('ticketSubmitModal')
-                        .setTitle('Request a ticket for ' + i.values[0])
+                        .setTitle(i.values[0] === 'None of the above' ? 'Request a general mentor ticket' : 'Request a ticket for ' + i.values[0])
                         .addComponents([
                             new MessageActionRow().addComponents(
                                 new TextInputComponent()
@@ -319,14 +319,14 @@ class StartMentorCave extends Command {
                         });
 
                     if (submitted) {
-                        const role = guild.roles.cache.find(role => role.name.toLowerCase() === `M-${i.values[0]}`.toLowerCase());
+                        const role = i.values[0] === 'None of the above' ? this.botGuild.roleIDs.mentorRole : guild.roles.cache.find(role => role.name.toLowerCase() === `M-${i.values[0]}`.toLowerCase()).id;
                         const description = submitted.fields.getTextInputValue('ticketDescription');
                         const helpFormat = submitted.fields.getTextInputValue('helpFormat')
                         const ticketNumber = this.ticketCount;
                         this.ticketCount++;
-                        const ticketEmbed = new MessageEmbed()
+                        const newTicketEmbed = new MessageEmbed()
                             .setTitle('Ticket #' + ticketNumber)
-                            .setColor('#F7CB73')
+                            .setColor('#d3d3d3')
                             .addFields([
                                 {
                                     name: 'Problem description',
@@ -355,17 +355,20 @@ class StartMentorCave extends Command {
                                     .setStyle('PRIMARY'),
                             );
 
-                        const ticketMsg = await incomingTicketChannel.send({ content: '<@&' + role.id + '>', embeds: [ticketEmbed], components: [ticketAcceptanceRow] })
+                        const ticketMsg = await incomingTicketChannel.send({ content: '<@&' + role + '>', embeds: [newTicketEmbed], components: [ticketAcceptanceRow] })
                         submitted.reply({ content: 'Your ticket has been submitted!', ephemeral: true })
                         // TODO: allow deletion
+                        // TODO: notify mentors of unaccepted tickets
 
                         const ticketAcceptFilter = i => !i.user.bot && i.isButton();
                         const ticketAcceptanceCollector = ticketMsg.createMessageComponentCollector(ticketAcceptFilter);
                         ticketAcceptanceCollector.on('collect', async acceptInteraction => {
+                            const inProgressTicketEmbed = ticketMsg.embeds[0].setColor('#0096FF').addFields([{ name: 'Helped by:', value: '<@' + acceptInteraction.user.id + '>' }]);
                             if (acceptInteraction.customId === 'acceptIrl' || acceptInteraction.customId === 'acceptOnline') {
-                                ticketMsg.edit({ content: '<@&' + role.id + '>', embeds: [new MessageEmbed(ticketEmbed).setColor('#00ab66').addFields([{ name: 'Helped by:', value: '<@' + acceptInteraction.user.id + '>' }])], components: [] });
+                                ticketMsg.edit({ content: '<@&' + role.id + '>', embeds: [inProgressTicketEmbed], components: [] });
                             }
                             if (acceptInteraction.customId === 'acceptIrl') {
+                                // TODO: mark as complete?
                                 acceptInteraction.reply({ content: 'Thanks for accepting their ticket! Please head to their stated location. If you need to contact them, you can click on their username above to DM them!', ephemeral: true })
                             }
                             if (acceptInteraction.customId === 'acceptOnline') {
@@ -423,7 +426,7 @@ class StartMentorCave extends Command {
                                             .setLabel('Leave')
                                             .setStyle('DANGER'),
                                     );
-                                const ticketChannelInfoMsg = await ticketText.send({ content: `<@${acceptInteraction.user.id}><@${submitted.user.id}> These are your very own private channels! It is only visible to the admins of the server and any other users (i.e. teammates) you add to this channel with the button labeled "Add Members to Channels" below ⬇️. Feel free to discuss anything in this channel or the attached voice channel. **Please click the "leave" button below when you are done to leave these channels**\n\n**Note: these channels may be deleted if they appear to be inactive for a significant period of time, even if not everyone has left**`, embeds: [ticketChannelEmbed], components: [ticketChannelButtons] });
+                                const ticketChannelInfoMsg = await ticketText.send({ content: `<@${acceptInteraction.user.id}><@${submitted.user.id}> These are your very own private channels! It is only visible to the admins of the server and any other users (i.e. teammates) you add to this channel with the button labeled "Add Members to Channels" below ⬇️. Feel free to discuss anything in this channel or the attached voice channel. **Please click the "Leave" button below when you are done to leave these channels**\n\n**Note: these channels may be deleted if they appear to be inactive for a significant period of time, even if not everyone has left**`, embeds: [ticketChannelEmbed], components: [ticketChannelButtons] });
                                 ticketChannelInfoMsg.pin();
 
                                 const ticketChannelCollector = ticketChannelInfoMsg.createMessageComponentCollector(notBotFilter);
@@ -446,60 +449,81 @@ class StartMentorCave extends Command {
                                                         }
                                                     })
                                                     .catch(collected => {
-                                                        ticketInteraction.followUp({ content: 'Timed out. Click the button again to try again.', ephemeral: true})
+                                                        ticketInteraction.followUp({ content: 'Timed out. Click the button again to try again.', ephemeral: true })
                                                     })
                                             })
                                     } else if (ticketInteraction.customId === 'leaveTicket') {
                                         await ticketCategory.permissionOverwrites.edit(ticketInteraction.user.id, { VIEW_CHANNEL: false });
                                         ticketInteraction.reply({ content: 'Successfully left the channel!', ephemeral: true })
                                         if (ticketCategory.members.filter(member => !member.roles.cache.has(this.botGuild.roleIDs.adminRole) && !member.user.bot).size === 0) {
-                                            ticketText.delete();
-                                            ticketVoice.delete();
-                                            ticketCategory.delete();
+                                            const leftTicketEmbed = ticketMsg.embeds[0].setColor('#90EE90').addFields([{ name: 'Ticket closed', value: 'Everyone has left the ticket' }]);
+                                            await this.deleteTicketChannels(ticketText, ticketVoice, ticketCategory, ticketMsg, leftTicketEmbed);
                                         }
                                     }
-                                })
+                                });
+                                this.startChannelActivityListener(ticketText, ticketVoice, ticketCategory, ticketMsg, inactivePeriod, bufferTime);
                             }
                         });
                     }
 
                 }
             })
-
-            // eslint-disable-next-line no-inner-declarations
-            // async function checkForDuplicateEmojis(prompt) {
-            //     let reaction = await SpecialPrompt.singleRestrictedReaction({prompt, channel, userId}, emojis);
-            //     var emoji = reaction.emoji;
-            //     emojis.set(emoji.name, emoji);
-            //     return emoji;
-            // }
-
-            // let cave = new Cave({
-            //     name: 'Mentor',
-            //     preEmojis: '🧑🏽🎓',
-            //     preRoleText: 'M',
-            //     color: 'ORANGE',
-            //     role: mentorRole,
-            //     emojis: {
-            //         joinTicketEmoji: '🧑🏽',
-            //         giveHelpEmoji: '🧑🏽',
-            //         requestTicketEmoji: '🧑🏽',
-            //         addRoleEmoji: '🧑🏽',
-            //         deleteChannelsEmoji: '🧑🏽',
-            //         excludeFromAutoDeleteEmoji: '🧑🏽',
-            //     },
-            //     times: {
-            //         inactivePeriod,
-            //         bufferTime,
-            //         reminderTime,
-            //     },
-            //     publicRoles: publicRole,
-            // }, botGuild, interaction.guild);
-
-            // await cave.init();
-
         } catch (error) {
             // winston.loggers.get(interaction.guild.id).warning(`An error was found but it was handled by not setting up the mentor cave. Error: ${error}`, { event: 'StartMentorCave Command' });
+        }
+    }
+
+    async deleteTicketChannels(ticketText, ticketVoice, ticketCategory, ticketMsg, embed) {
+        await ticketMsg.edit({ embeds: [embed] });
+        ticketText.delete();
+        ticketVoice.delete();
+        ticketCategory.delete();
+    }
+
+    async startChannelActivityListener(ticketText, ticketVoice, ticketCategory, ticketMsg, inactivePeriod, bufferTime) {
+        // message collector that stops when there are no messages for inactivePeriod minutes
+        if (ticketText.parentId && ticketVoice.parentId) {
+            const activityListener = ticketText.createMessageCollector({ filter: m => !m.author.bot, idle: inactivePeriod * 60 * 1000 });
+            activityListener.on('end', async collected => {
+                if (!ticketText.parentId || !ticketVoice.parentId) return;
+                if (collected.size === 0 && ticketVoice.members.size === 0 && ticketMsg.embeds[0].color != '#90EE90') {
+                    const remainingMembers = await ticketCategory.members.filter(member => !member.roles.cache.has(this.botGuild.roleIDs.adminRole) && !member.user.bot).map(member => member.id);
+                    const msgText = '<@' + remainingMembers.join('><@') + '> Hello! I detected some inactivity in this channel. If you are done and would like to leave this ticket, please go to the pinned message and click the "Leave" button. If you would like to keep this channel a little longer, please click the button below.\n**If no action is taken in the next ' + bufferTime + ' minutes, the channels for this ticket will be deleted automatically.**';
+                    const row = new MessageActionRow()
+                        .addComponents(
+                            new MessageButton()
+                                .setCustomId('keepChannels')
+                                .setLabel('Keep Channels')
+                                .setStyle('PRIMARY'),
+                        )
+                    const warning = await ticketText.send({ content: msgText, components: [row] });
+
+                    warning.awaitMessageComponent({ filter: i => !i.user.bot, time: bufferTime * 60 * 1000 })
+                        .then(interaction => {
+                            interaction.reply('You have indicated that you need more time. I\'ll check in with you later!');
+                            const disabledButtonRow = new MessageActionRow()
+                                .addComponents(
+                                    new MessageButton()
+                                        .setCustomId('keepChannels')
+                                        .setLabel('Keep Channels')
+                                        .setDisabled(true)
+                                        .setStyle('PRIMARY'),
+                                )
+                            warning.edit({ components: [disabledButtonRow] })
+                            this.startChannelActivityListener(ticketText, ticketVoice, ticketCategory, ticketMsg, inactivePeriod, bufferTime);
+                        })
+                        .catch(error => {
+                            if (!ticketText.parentId || !ticketVoice.parentId || ticketMsg.embeds[0].color == '#90EE90') return;
+                            if (ticketVoice.members.size === 0) {
+                                this.deleteTicketChannels(ticketText, ticketVoice, ticketCategory, ticketMsg, ticketMsg.embeds[0].setColor('#90EE90').addFields([{ name: 'Ticket closed', value: 'Deleted due to inactivity' }]));
+                            } else {
+                                this.startChannelActivityListener(ticketText, ticketVoice, ticketCategory, ticketMsg, inactivePeriod, bufferTime);
+                            }
+                        });
+                } else {
+                    this.startChannelActivityListener(ticketText, ticketVoice, ticketCategory, ticketMsg, inactivePeriod, bufferTime);
+                }
+            });
         }
     }
 }
