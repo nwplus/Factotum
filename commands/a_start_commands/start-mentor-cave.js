@@ -73,7 +73,6 @@ class StartMentorCave extends Command {
             }
 
             interaction.reply({ content: 'Mentor cave activated!', ephemeral: true })
-            //TODO: send console to admin console
 
             // create channels
             let overwrites =
@@ -104,18 +103,18 @@ class StartMentorCave extends Command {
                 }
             );
 
-            // await channel.guild.channels.create('mentors-announcements',
-            //     {
-            //         type: "GUILD_TEXT",
-            //         parent: mentorCategory,
-            //         permissionOverwrites: [
-            //             {
-            //                 id: this.botGuild.roleIDs.mentorRole,
-            //                 deny: ['SEND_MESSAGES'],
-            //             }
-            //         ]
-            //     }
-            // )
+            await channel.guild.channels.create('mentors-announcements',
+                {
+                    type: "GUILD_TEXT",
+                    parent: mentorCategory,
+                    permissionOverwrites: [
+                        {
+                            id: this.botGuild.roleIDs.mentorRole,
+                            deny: ['SEND_MESSAGES'],
+                        }
+                    ]
+                }
+            )
 
             const mentorRoleSelectionChannel = await channel.guild.channels.create('mentors-role-selection',
                 {
@@ -206,13 +205,13 @@ class StartMentorCave extends Command {
                 }
             })
 
-            // channel.guild.channels.create('mentors-general',
-            //     {
-            //         type: "GUILD_TEXT",
-            //         topic: 'Private chat between all mentors and organizers',
-            //         parent: mentorCategory
-            //     }
-            // );
+            channel.guild.channels.create('mentors-general',
+                {
+                    type: "GUILD_TEXT",
+                    topic: 'Private chat between all mentors and organizers',
+                    parent: mentorCategory
+                }
+            );
 
             const incomingTicketChannel = await channel.guild.channels.create('incoming-tickets',
                 {
@@ -238,13 +237,13 @@ class StartMentorCave extends Command {
                 }
             );
 
-            // channel.guild.channels.create('quick-questions',
-            //     {
-            //         type: "GUILD_TEXT",
-            //         topic: 'ask questions for mentors here!',
-            //         parent: mentorHelpCategory
-            //     }
-            // );
+            channel.guild.channels.create('quick-questions',
+                {
+                    type: "GUILD_TEXT",
+                    topic: 'ask questions for mentors here!',
+                    parent: mentorHelpCategory
+                }
+            );
 
             const requestTicketChannel = await channel.guild.channels.create('request-ticket',
                 {
@@ -315,7 +314,6 @@ class StartMentorCave extends Command {
 
                     const submitted = await i.awaitModalSubmit({ time: 300000, filter: j => j.user.id === i.user.id })
                         .catch(error => {
-                            console.error(error)
                         });
 
                     if (submitted) {
@@ -371,10 +369,10 @@ class StartMentorCave extends Command {
                                     .setLabel('Delete ticket')
                                     .setStyle('DANGER'),
                             )
-                        const ticketReceipt = await submitted.user.send({ embeds: [confirmationEmbed], content: 'You will be noified when a mentor accepts your ticket!', components: [deleteTicketRow]});
-                        const deleteTicketCollector = ticketReceipt.createMessageComponentCollector({ max: 1 });
+                        const ticketReceipt = await submitted.user.send({ embeds: [confirmationEmbed], content: 'You will be noified when a mentor accepts your ticket!', components: [deleteTicketRow] });
+                        const deleteTicketCollector = ticketReceipt.createMessageComponentCollector({ filter: i => !i.user.bot, max: 1 });
                         deleteTicketCollector.on('collect', async deleteInteraction => {
-                            await ticketMsg.edit({embeds: [ticketMsg.embeds[0].setColor('#FFCCCB').addFields([{ name: 'Ticket closed', value: 'Deleted by hacker'}])], components: []});
+                            await ticketMsg.edit({ embeds: [ticketMsg.embeds[0].setColor('#FFCCCB').addFields([{ name: 'Ticket closed', value: 'Deleted by hacker' }])], components: [] });
                             clearTimeout(ticketReminder);
                             deleteInteraction.reply('Ticket deleted!');
                             ticketReceipt.edit({ components: [] })
@@ -492,6 +490,52 @@ class StartMentorCave extends Command {
 
                 }
             })
+
+            // const adminEmbed = new MessageEmbed()
+            //     .setTitle('Mentor Cave Console')
+            //     .setColor(this.botGuild.colors.embedColor)
+
+            // const adminRow = new MessageActionRow()
+            //     .addComponents(
+            //         new MessageButton()
+            //             .setCustomId('addRole')
+            //             .setLabel('Add Mentor Role')
+            //             .setStyle('PRIMARY'),
+            //     )
+            //     .addComponents(
+            //         new MessageButton()
+            //             .setCustomId('deleteCave')
+            //             .setLabel('Delete Cave')
+            //             .setStyle('DANGER'),
+            //     );
+
+            // const adminControls = await adminConsole.send({ embeds: [adminEmbed], components: [adminRow] });
+            // const adminCollector = adminControls.createMessageComponentCollector({ filter: i => !i.user.bot && i.member.roles.cache.has(this.botGuild.roleIDs.adminRole) });
+            // adminCollector.on('collect', adminInteraction => {
+            //     if (adminInteraction.customId === 'addRole') {
+            //         adminInteraction.reply({ content: `<@${adminInteraction.user.id}> name of role to add?`, fetchReply: true })
+            //             .then(() => {
+            //                 adminConsole.awaitMessages({ filter: i => i.user.id === adminInteraction.user.id, max: 1, time: 30000, errors: ['time'] })
+            //                     .then(async collected => {
+            //                         emojisMap.set()
+            //                         const findRole = guild.roles.cache.find(role => role.name.toLowerCase() === `M-${value}`.toLowerCase());
+            //                         if (!findRole) {
+            //                             await guild.roles.create(
+            //                                 {
+            //                                     name: `M-${value}`,
+            //                                     color: mentorRoleColour,
+            //                                 }
+            //                             );
+            //                         }
+
+
+            //                     })
+            //             })
+
+            //     } else if (adminInteraction.customId === 'deleteCave') {
+
+            //     }
+            // })
         } catch (error) {
             // winston.loggers.get(interaction.guild.id).warning(`An error was found but it was handled by not setting up the mentor cave. Error: ${error}`, { event: 'StartMentorCave Command' });
         }
