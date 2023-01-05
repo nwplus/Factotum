@@ -1,66 +1,73 @@
-const PermissionCommand = require('../../classes/permission-command');
-const { sendEmbedToMember } = require('../../discord-services');
-const { Message, MessageEmbed } = require('discord.js');
-const Verification = require('../../classes/Bot/Features/Verification/verification');
+const { Command } = require('@sapphire/framework');
+const BotGuild = require('../../db/mongo/BotGuild')
 const BotGuildModel = require('../../classes/Bot/bot-guild');
-const { StringPrompt } = require('advanced-discord.js-prompts');
+const { Message, MessageEmbed, Modal, MessageActionRow, MessageButton, TextInputComponent } = require('discord.js');
 
-/**
- * Sends an embed with reaction collector for users to re-verify
- * via DMs with the bot from inside the server.
- * @category Commands
- * @subcategory Verification
- * @extends PermissionCommand
- * @guildonly
- */
-class StartVerification extends PermissionCommand {
-    constructor(client) {
-        super(client, {
-            name: 'start-verification',
-            group: 'verification',
-            memberName: 'welcome channel verification activation',
-            description: 'send another dm for verification',
-            guildOnly: true,
-        },
-        {
-            role: PermissionCommand.FLAGS.STAFF_ROLE,
-            roleMessage: 'Hey there, the !manual-verify command is only for staff!',
+class StartVerification extends Command {
+    constructor(context, options) {
+        super(context, {
+            ...options,
+            description: 'Start verification prompt in landing channel.'
         });
+    }
+
+    registerApplicationCommands(registry) {
+        registry.registerChatInputCommand((builder) =>
+            builder
+                .setName(this.name)
+                .setDescription(this.description)
+        )
     }
 
     /**
      * @param {BotGuildModel} botGuild
      * @param {Message} message 
      */
-    async runCommand(botGuild, message) {
-        var embed = new MessageEmbed()
-            .setTitle('If the bot does not respond when you click on the clover emoji in your DM, react to this message with any emoji to verify!');
-        let embedMsg = await message.channel.send(embed);
-        embedMsg.react('🍀');
+    async chatInputRun(interaction) {
+        this.botGuild = await BotGuild.findById(interaction.guild.id);
 
-        const verifyCollector = embedMsg.createReactionCollector((reaction, user) => !user.bot);
-        verifyCollector.on('collect', async (reaction, user) => {
-            let member = message.guild.members.cache.get(user.id);
+        const embed = new MessageEmbed()
+            .setTitle(`Please click the button below to check-in to the ${interaction.guild.name} server! Make sure you know which email you used to apply to nwHacks!`)
+            .setDescription('If you have not already, make sure to enable emojis and embeds/link previews in your personal Discord settings! If you have any issues, please find an organizer!')
 
-            try {
-                var email = await StringPrompt.single({prompt: `Thanks for joining ${message.guild.name}! What email did you get accepted with? Please send it now!`, channel: (await member.user.createDM()), userId: member.id, time: 45});
-            } catch (error) {
-                sendEmbedToMember(member, {
-                    title: 'Verification Error',
-                    description: 'Email was not provided, please try again by reacting to the emoji again.!'
-                }, true);
-                return;
+        const row = new MessageActionRow()
+            .addComponents(
+                new MessageButton()
+                    .setCustomId('verify')
+                    .setLabel('Check-in')
+                    .setStyle('PRIMARY'),
+            )
+        interaction.reply({ content: 'Verification started!', ephemeral: true });
+        const msg = await interaction.channel.send({ embeds: [embed], components: [row] });
+
+        const checkInCollector = msg.createMessageComponentCollector({ filter: i => !i.user.bot && interaction.guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.verification.guestRoleID) })
+        checkInCollector.on('collect', async i => {
+            const modal = new Modal()
+                .setCustomId('verifyModal')
+                .setTitle('Check-in to gain access to the server!')
+                .addComponents([
+                    new MessageActionRow().addComponents(
+                        new TextInputComponent()
+                            .setCustomId('email')
+                            .setLabel('Enter the email that you applied with!')
+                            .setMinLength(3)
+                            .setMaxLength(320)
+                            .setStyle('SHORT')
+                            .setPlaceholder('Email Address')
+                            .setRequired(true),
+                    ),
+                ]);
+            await i.showModal(modal);
+
+            const submitted = await i.awaitModalSubmit({ time: 300000, filter: j => j.user.id === i.user.id })
+                .catch(error => {
+                });
+
+            if (submitted) {
+                const email = submitted.fields.getTextInputValue('email');
+                // TODO: check firebase for email and assign corresponding roles
             }
-
-            try {
-                await Verification.verify(member, email, member.guild, botGuild);
-            } catch (error) {
-                sendEmbedToMember(member, {
-                    title: 'Verification Error',
-                    description: 'Email provided is not valid! Please try again by reacting to the emoji again.'
-                }, true);
-            }
-        });
+        })
     }
 }
 module.exports = StartVerification;
