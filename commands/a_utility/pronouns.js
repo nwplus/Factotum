@@ -57,6 +57,7 @@ class Pronouns extends Command {
 
         let messageEmbed = await interaction.channel.send({embeds: [embed]});
         emojis.forEach(emoji => messageEmbed.react(emoji));
+        interaction.reply({content: 'Pronouns selector started!', ephemeral: true})
 
         let filter = (reaction, user) => {
             return user.bot != true && emojis.includes(reaction.emoji.name);

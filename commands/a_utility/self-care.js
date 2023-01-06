@@ -81,7 +81,9 @@ class SelfCareReminders extends Command {
             .setColor(this.botGuild.colors.embedColor)
             .setTitle('To encourage healthy hackathon habits, we will be sending hourly self-care reminders!')
 
-        roleId ? interaction.reply({ content: '<@&' + roleId + '>', embeds: [startEmbed] }) : interaction.reply({ embeds: [startEmbed] })
+        interaction.reply({ content: 'Self-care reminders started!', ephemeral: true });
+
+        roleId ? interaction.channel.send({ content: '<@&' + roleId + '>', embeds: [startEmbed] }) : interaction.channel.send({ embeds: [startEmbed] })
 
         const controlPanel = await adminConsole.send({ content: 'Self care reminders started by <@' + userId + '>', components: [row] });
         const filter = i => !i.user.bot && (guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) || guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole));

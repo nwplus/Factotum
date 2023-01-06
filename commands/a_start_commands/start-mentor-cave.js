@@ -1,6 +1,6 @@
 const { Command } = require('@sapphire/framework');
 const { Interaction, MessageEmbed } = require('discord.js');
-const { randomColor } = require('../../discord-services');
+const { randomColor, discordLog } = require('../../discord-services');
 const { Message, Collection } = require('discord.js');
 const BotGuild = require('../../db/mongo/BotGuild')
 const winston = require('winston');
@@ -103,16 +103,19 @@ class StartMentorCave extends Command {
                 }
             );
 
+            let announcementsOverwrites = overwrites;
+            announcementsOverwrites.push(
+                {
+                    id: this.botGuild.roleIDs.mentorRole,
+                    deny: ['SEND_MESSAGES'],
+                    allow: ['VIEW_CHANNEL']
+                });
+
             await channel.guild.channels.create('mentors-announcements',
                 {
                     type: "GUILD_TEXT",
                     parent: mentorCategory,
-                    permissionOverwrites: [
-                        {
-                            id: this.botGuild.roleIDs.mentorRole,
-                            deny: ['SEND_MESSAGES'],
-                        }
-                    ]
+                    permissionOverwrites: announcementsOverwrites
                 }
             )
 
@@ -226,12 +229,8 @@ class StartMentorCave extends Command {
                     type: "GUILD_CATEGORY",
                     permissionOverwrites: [
                         {
-                            id: this.botGuild.roleIDs.everyoneRole,
+                            id: this.botGuild.verification.guestRoleID,
                             deny: ['VIEW_CHANNEL'],
-                        },
-                        {
-                            id: this.botGuild.roleIDs.memberRole,
-                            allow: ['VIEW_CHANNEL'],
                         },
                     ]
                 }
@@ -252,12 +251,16 @@ class StartMentorCave extends Command {
                     parent: mentorHelpCategory,
                     permissionOverwrites: [
                         {
-                            id: this.botGuild.roleIDs.memberRole,
-                            deny: ['VIEW_CHANNEL']
-                        },
-                        {
                             id: publicRole,
                             allow: ['VIEW_CHANNEL']
+                        },
+                        {
+                            id: this.botGuild.roleIDs.staffRole,
+                            allow: ['VIEW_CHANNEL']
+                        },
+                        {
+                            id: this.botGuild.roleIDs.everyoneRole,
+                            deny: ['VIEW_CHANNEL']
                         }
                     ]
                 }
@@ -302,11 +305,20 @@ class StartMentorCave extends Command {
                             ),
                             new MessageActionRow().addComponents(
                                 new TextInputComponent()
-                                    .setCustomId('helpFormat')
-                                    .setLabel('Receive help in-person, online, or either?')
+                                    .setCustomId('location')
+                                    .setLabel('Where would you like to meet your mentor?')
+                                    .setPlaceholder('Help your mentor find you!')
                                     .setMaxLength(300)
-                                    .setPlaceholder('If you select in-person or either, please describe where you are located.')
                                     .setStyle('PARAGRAPH')
+                                    .setRequired(true),
+                            ),
+                            new MessageActionRow().addComponents(
+                                new TextInputComponent()
+                                    .setCustomId('helpFormat')
+                                    .setLabel('Would you be OK with an online mentor?')
+                                    .setMaxLength(20)
+                                    .setPlaceholder('Enter yes or no')
+                                    .setStyle('SHORT')
                                     .setRequired(true),
                             ),
                         ]);
@@ -319,6 +331,7 @@ class StartMentorCave extends Command {
                     if (submitted) {
                         const role = i.values[0] === 'None of the above' ? this.botGuild.roleIDs.mentorRole : guild.roles.cache.find(role => role.name.toLowerCase() === `M-${i.values[0]}`.toLowerCase()).id;
                         const description = submitted.fields.getTextInputValue('ticketDescription');
+                        const location = submitted.fields.getTextInputValue('location');
                         const helpFormat = submitted.fields.getTextInputValue('helpFormat')
                         const ticketNumber = this.ticketCount;
                         this.ticketCount++;
@@ -335,7 +348,11 @@ class StartMentorCave extends Command {
                                     value: '<@' + submitted.user.id + '>'
                                 },
                                 {
-                                    name: 'How would you like to be helped?',
+                                    name: 'Location',
+                                    value: location
+                                },
+                                {
+                                    name: 'OK with being helped online?',
                                     value: helpFormat
                                 }
                             ])
@@ -349,7 +366,7 @@ class StartMentorCave extends Command {
                             .addComponents(
                                 new MessageButton()
                                     .setCustomId('acceptOnline')
-                                    .setLabel('Accept ticket (online)')
+                                    .setLabel('Accept ticket (online) - Only use if hackers are OK with it!')
                                     .setStyle('PRIMARY'),
                             );
 
@@ -463,8 +480,8 @@ class StartMentorCave extends Command {
                                                             await ticketInteraction.followUp({ content: 'You have not mentioned any users! Click the button again to try again.' });
                                                         } else {
                                                             var newMembersArray = [];
-                                                            collected.first().mentions.members.forEach(async member => {
-                                                                await ticketCategory.permissionOverwrites.edit(member.id, { VIEW_CHANNEL: true });
+                                                            collected.first().mentions.members.forEach(member => {
+                                                                ticketCategory.permissionOverwrites.edit(member.id, { VIEW_CHANNEL: true });
                                                                 newMembersArray.push(member.id);
                                                             })
                                                             ticketInteraction.channel.send('<@' + newMembersArray.join('><@') + '> Welcome to the channel! You have been invited to join the discussion for this ticket. Check the pinned message for more details.')
@@ -491,51 +508,84 @@ class StartMentorCave extends Command {
                 }
             })
 
-            // const adminEmbed = new MessageEmbed()
-            //     .setTitle('Mentor Cave Console')
-            //     .setColor(this.botGuild.colors.embedColor)
+            const adminEmbed = new MessageEmbed()
+                .setTitle('Mentor Cave Console')
+                .setColor(this.botGuild.colors.embedColor)
 
-            // const adminRow = new MessageActionRow()
-            //     .addComponents(
-            //         new MessageButton()
-            //             .setCustomId('addRole')
-            //             .setLabel('Add Mentor Role')
-            //             .setStyle('PRIMARY'),
-            //     )
-            //     .addComponents(
-            //         new MessageButton()
-            //             .setCustomId('deleteCave')
-            //             .setLabel('Delete Cave')
-            //             .setStyle('DANGER'),
-            //     );
+            const adminRow = new MessageActionRow()
+                .addComponents(
+                    new MessageButton()
+                        .setCustomId('addRole')
+                        .setLabel('Add Mentor Role')
+                        .setStyle('PRIMARY'),
+                )
+                // .addComponents(
+                //     new MessageButton()
+                //         .setCustomId('deleteCave')
+                //         .setLabel('Delete Cave')
+                //         .setStyle('DANGER'),
+                // );
 
-            // const adminControls = await adminConsole.send({ embeds: [adminEmbed], components: [adminRow] });
-            // const adminCollector = adminControls.createMessageComponentCollector({ filter: i => !i.user.bot && i.member.roles.cache.has(this.botGuild.roleIDs.adminRole) });
-            // adminCollector.on('collect', adminInteraction => {
-            //     if (adminInteraction.customId === 'addRole') {
-            //         adminInteraction.reply({ content: `<@${adminInteraction.user.id}> name of role to add?`, fetchReply: true })
-            //             .then(() => {
-            //                 adminConsole.awaitMessages({ filter: i => i.user.id === adminInteraction.user.id, max: 1, time: 30000, errors: ['time'] })
-            //                     .then(async collected => {
-            //                         emojisMap.set()
-            //                         const findRole = guild.roles.cache.find(role => role.name.toLowerCase() === `M-${value}`.toLowerCase());
-            //                         if (!findRole) {
-            //                             await guild.roles.create(
-            //                                 {
-            //                                     name: `M-${value}`,
-            //                                     color: mentorRoleColour,
-            //                                 }
-            //                             );
-            //                         }
+            const adminControls = await adminConsole.send({ embeds: [adminEmbed], components: [adminRow] });
+            const adminCollector = adminControls.createMessageComponentCollector({ filter: i => !i.user.bot && i.member.roles.cache.has(this.botGuild.roleIDs.adminRole) });
+            adminCollector.on('collect', async adminInteraction => {
+                if (adminInteraction.customId === 'addRole') {
+                    const askForRoleName = await adminInteraction.reply({ content: `<@${adminInteraction.user.id}> name of role to add? Type "cancel" to cancel this operation.`, fetchReply: true })
+                    const roleNameCollector = adminConsole.createMessageCollector({ filter: m => m.author.id === adminInteraction.user.id, max: 1 })
+                    let roleName;
+                    roleNameCollector.on('collect', async collected => {
+                        if (collected.content.toLowerCase() != 'cancel') {
+                            roleName = collected.content.replace(/\s+/g, '-').toLowerCase();
+                            const roleExists = guild.roles.cache.filter(role => {
+                                role.name === `M-${roleName}`;
+                            }).size != 0;
+                            if (!roleExists) {
+                                await guild.roles.create(
+                                    {
+                                        name: `M-${roleName}`,
+                                        color: mentorRoleColour,
+                                    }
+                                );
+                            }
+
+                            const askForEmoji = await adminConsole.send(`<@${adminInteraction.user.id}> React to this message with the emoji for the role!`);
+                            const emojiCollector = askForEmoji.createReactionCollector({ filter: (reaction, user) => user.id === adminInteraction.user.id });
+                            emojiCollector.on('collect', collected => {
+                                if (emojisMap.has(collected.emoji.name)) {
+                                    adminConsole.send(`<@${adminInteraction.user.id}> Emoji is already used in another role. Please react again.`).then(msg => {
+                                        setTimeout(() => msg.delete(), 5000)
+                                    })
+                                } else {
+                                    emojiCollector.stop();
+                                    emojisMap.set(collected.emoji.name, roleName);
+                                    roleSelectionMsg.edit({ embeds: [new MessageEmbed(roleSelection).addFields([{ name: collected.emoji.name + ' --> ' + roleName, value: '\u200b' }])] });
+                                    roleSelectionMsg.react(collected.emoji.name);
+
+                                    const oldOptions = selectMenuRow.components[0].options;
+                                    const newOptions = oldOptions;
+                                    newOptions.splice(-1, 0, { label: roleName, value: roleName });
+                                    var newSelectMenuRow = new MessageActionRow()
+                                        .addComponents(
+                                            new MessageSelectMenu()
+                                                .setCustomId('ticketType')
+                                                .addOptions(newOptions)
+                                        )
+                                    requestTicketConsole.edit({ components: [newSelectMenuRow] });
+                                    askForEmoji.delete();
+                                }
+                            })
+                        }
+                        askForRoleName.delete();
+                        collected.delete();
+
+                    });
 
 
-            //                     })
-            //             })
+                } 
+                // else if (adminInteraction.customId === 'deleteCave') {
 
-            //     } else if (adminInteraction.customId === 'deleteCave') {
-
-            //     }
-            // })
+                // }
+            })
         } catch (error) {
             // winston.loggers.get(interaction.guild.id).warning(`An error was found but it was handled by not setting up the mentor cave. Error: ${error}`, { event: 'StartMentorCave Command' });
         }

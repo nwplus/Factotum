@@ -132,13 +132,27 @@ class DiscordContests extends Command {
         const startEmbed = new MessageEmbed()
             .setColor(this.botGuild.colors.embedColor)
             .setTitle(string)
-            .setDescription('Note: Short-answer questions are non-case sensitive but any extra or missing symbols will be considered incorrect.');
+            .setDescription('Note: Short-answer questions are non-case sensitive but any extra or missing symbols will be considered incorrect.')
+            .addFields([{name: 'Click the 🍀 emoji below to be notified when a new question drops!', value: 'You can un-react to stop.'}])
 
         const leaderboard = new MessageEmbed()
             .setTitle('Leaderboard')
             
         let pinnedMessage = await channel.send({ content: '<@&' + roleId + '>', embeds: [startEmbed, leaderboard] });
         pinnedMessage.pin();
+        pinnedMessage.react('🍀');
+
+        const roleSelectionCollector = pinnedMessage.createReactionCollector({ filter: (reaction, user) => !user.bot, dispose: true});
+        roleSelectionCollector.on('collect', (reaction, user) => {
+            if (reaction.emoji.name === '🍀') {
+                guild.members.cache.get(user.id).roles.add(roleId);
+            }
+        });
+        roleSelectionCollector.on('remove', (reaction, user) => {
+            if (reaction.emoji.name === '🍀') {
+                guild.members.cache.get(user.id).roles.remove(roleId);
+            }
+        })
 
         const controlPanel = await adminConsole.send({ content: 'Discord contests started by <@' + userId + '>', components: [row] });
         const filter = i => !i.user.bot && (guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) || guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole));
@@ -239,6 +253,7 @@ class DiscordContests extends Command {
                                 const member = await m.mentions.members.first();
                                 const memberId = await member.user.id;
                                 await m.delete();
+                                await questionMsg.delete();
                                 await i.editReply('<@' + memberId + '> has been recorded!');
                                 row.components[0].setDisabled(true)
                                 // row.components[0].setDisabled(); 
