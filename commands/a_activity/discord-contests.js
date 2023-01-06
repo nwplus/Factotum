@@ -155,8 +155,8 @@ class DiscordContests extends Command {
         })
 
         const controlPanel = await adminConsole.send({ content: 'Discord contests started by <@' + userId + '>', components: [row] });
-        const filter = i => !i.user.bot && (guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) || guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole));
-        const collector = controlPanel.createMessageComponentCollector(filter);
+        const filter = i => !i.user.bot && (guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.roleIDs.staffRole) || guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.roleIDs.adminRole));
+        const collector = controlPanel.createMessageComponentCollector({filter});
         collector.on('collect', async i => {
             if (i.customId == 'refresh') {
                 await i.reply({ content: 'Leaderboard refreshed!', ephemeral: true })
@@ -240,14 +240,14 @@ class DiscordContests extends Command {
                     //send message to console
                     const questionMsg = await adminConsole.send({ content: '<@&' + botGuild.roleIDs.staffRole + '>' + 'need manual review!', embeds: [qEmbed], components: [row] })
 
-                    const filter = i => !i.user.bot && i.customId === 'winner' && (guild.members.cache.get(userId).roles.cache.has(botGuild.roleIDs.staffRole) || guild.members.cache.get(userId).roles.cache.has(botGuild.roleIDs.adminRole));
+                    const filter = i => !i.user.bot && i.customId === 'winner' && (guild.members.cache.get(i.user.id).roles.cache.has(botGuild.roleIDs.staffRole) || guild.members.cache.get(i.user.id).roles.cache.has(botGuild.roleIDs.adminRole));
                     const collector = await questionMsg.createMessageComponentCollector({ filter });
 
                     collector.on('collect', async i => {
                         const winnerRequest = await i.reply({ content: '<@' + i.user.id + '> Mention the winner in your next message!', fetchReply: true });
 
                         const winnerFilter = message => message.user.id === i.user.id;
-                        const winnerCollector = adminConsole.createMessageCollector({ winnerFilter, max: 1 });
+                        const winnerCollector = adminConsole.createMessageCollector({ filter: winnerFilter, max: 1 });
                         winnerCollector.on('collect', async m => {
                             if (m.mentions.members.size > 0) {
                                 const member = await m.mentions.members.first();

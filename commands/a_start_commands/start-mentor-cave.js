@@ -190,7 +190,7 @@ class StartMentorCave extends Command {
             }
 
             const notBotFilter = i => !i.user.bot;
-            const collector = roleSelectionMsg.createReactionCollector({ roleFilter: notBotFilter, dispose: true });
+            const collector = roleSelectionMsg.createReactionCollector({ filter: (reaction, user) => !user.bot, dispose: true });
             collector.on('collect', async (reaction, user) => {
                 if (emojisMap.has(reaction.emoji.name)) {
                     const value = emojisMap.get(reaction.emoji.name);
@@ -252,7 +252,8 @@ class StartMentorCave extends Command {
                     permissionOverwrites: [
                         {
                             id: publicRole,
-                            allow: ['VIEW_CHANNEL']
+                            allow: ['VIEW_CHANNEL'],
+                            deny: ['SEND_MESSAGES']
                         },
                         {
                             id: this.botGuild.roleIDs.staffRole,
@@ -285,8 +286,8 @@ class StartMentorCave extends Command {
 
             const requestTicketConsole = await requestTicketChannel.send({ embeds: [requestTicketEmbed], components: [selectMenuRow] });
 
-            const selectMenuFilter = i => !i.user.bot && guild.members.cache.get(userId).roles.cache.has(publicRole);
-            const selectMenuCollector = requestTicketConsole.createMessageComponentCollector(selectMenuFilter);
+            const selectMenuFilter = i => !i.user.bot && guild.members.cache.get(i.user.id).roles.cache.has(publicRole.id);
+            const selectMenuCollector = requestTicketConsole.createMessageComponentCollector({filter: selectMenuFilter});
             selectMenuCollector.on('collect', async i => {
                 if (i.customId === 'ticketType') {
                     requestTicketConsole.edit({ embeds: [requestTicketEmbed], components: [selectMenuRow] });
@@ -386,7 +387,7 @@ class StartMentorCave extends Command {
                                     .setLabel('Delete ticket')
                                     .setStyle('DANGER'),
                             )
-                        const ticketReceipt = await submitted.user.send({ embeds: [confirmationEmbed], content: 'You will be noified when a mentor accepts your ticket!', components: [deleteTicketRow] });
+                        const ticketReceipt = await submitted.user.send({ embeds: [confirmationEmbed], content: 'You will be notified when a mentor accepts your ticket!', components: [deleteTicketRow] });
                         const deleteTicketCollector = ticketReceipt.createMessageComponentCollector({ filter: i => !i.user.bot, max: 1 });
                         deleteTicketCollector.on('collect', async deleteInteraction => {
                             await ticketMsg.edit({ embeds: [ticketMsg.embeds[0].setColor('#FFCCCB').addFields([{ name: 'Ticket closed', value: 'Deleted by hacker' }])], components: [] });
@@ -396,7 +397,7 @@ class StartMentorCave extends Command {
                         })
 
                         const ticketAcceptFilter = i => !i.user.bot && i.isButton();
-                        const ticketAcceptanceCollector = ticketMsg.createMessageComponentCollector(ticketAcceptFilter);
+                        const ticketAcceptanceCollector = ticketMsg.createMessageComponentCollector({ filter: ticketAcceptFilter });
                         ticketAcceptanceCollector.on('collect', async acceptInteraction => {
                             const inProgressTicketEmbed = ticketMsg.embeds[0].setColor('#0096FF').addFields([{ name: 'Helped by:', value: '<@' + acceptInteraction.user.id + '>' }]);
                             if (acceptInteraction.customId === 'acceptIrl' || acceptInteraction.customId === 'acceptOnline') {
@@ -468,7 +469,7 @@ class StartMentorCave extends Command {
                                 const ticketChannelInfoMsg = await ticketText.send({ content: `<@${acceptInteraction.user.id}><@${submitted.user.id}> These are your very own private channels! It is only visible to the admins of the server and any other users (i.e. teammates) you add to this channel with the button labeled "Add Members to Channels" below ⬇️. Feel free to discuss anything in this channel or the attached voice channel. **Please click the "Leave" button below when you are done to leave these channels**\n\n**Note: these channels may be deleted if they appear to be inactive for a significant period of time, even if not everyone has left**`, embeds: [ticketChannelEmbed], components: [ticketChannelButtons] });
                                 ticketChannelInfoMsg.pin();
 
-                                const ticketChannelCollector = ticketChannelInfoMsg.createMessageComponentCollector(notBotFilter);
+                                const ticketChannelCollector = ticketChannelInfoMsg.createMessageComponentCollector({ filter: notBotFilter });
                                 ticketChannelCollector.on('collect', async ticketInteraction => {
                                     if (ticketInteraction.customId === 'addMembers') {
                                         ticketInteraction.reply({ content: 'Tag the users you would like to add to the channel! (You can mention them by typing @ and then paste in their username with the tag)', ephemeral: true, fetchReply: true })
@@ -491,13 +492,15 @@ class StartMentorCave extends Command {
                                                         ticketInteraction.followUp({ content: 'Timed out. Click the button again to try again.', ephemeral: true })
                                                     })
                                             })
-                                    } else if (ticketInteraction.customId === 'leaveTicket') {
+                                    } else if (ticketInteraction.customId === 'leaveTicket' && guild.members.cache.get(ticketInteraction.user.id).roles.cache.has(this.botGuild.roleIDs.adminRole) ) {
                                         await ticketCategory.permissionOverwrites.edit(ticketInteraction.user.id, { VIEW_CHANNEL: false });
                                         ticketInteraction.reply({ content: 'Successfully left the channel!', ephemeral: true })
                                         if (ticketCategory.members.filter(member => !member.roles.cache.has(this.botGuild.roleIDs.adminRole) && !member.user.bot).size === 0) {
                                             const leftTicketEmbed = ticketMsg.embeds[0].setColor('#90EE90').addFields([{ name: 'Ticket closed', value: 'Everyone has left the ticket' }]);
                                             await this.deleteTicketChannels(ticketText, ticketVoice, ticketCategory, ticketMsg, leftTicketEmbed);
                                         }
+                                    } else {
+                                        ticketInteraction.reply({ content: 'You are an admin, you cannot leave this channel!', ephemeral: true });
                                     }
                                 });
                                 this.startChannelActivityListener(ticketText, ticketVoice, ticketCategory, ticketMsg, inactivePeriod, bufferTime);
@@ -519,12 +522,12 @@ class StartMentorCave extends Command {
                         .setLabel('Add Mentor Role')
                         .setStyle('PRIMARY'),
                 )
-                // .addComponents(
-                //     new MessageButton()
-                //         .setCustomId('deleteCave')
-                //         .setLabel('Delete Cave')
-                //         .setStyle('DANGER'),
-                // );
+                .addComponents(
+                    new MessageButton()
+                        .setCustomId('deleteCave')
+                        .setLabel('Delete Cave')
+                        .setStyle('DANGER'),
+                );
 
             const adminControls = await adminConsole.send({ embeds: [adminEmbed], components: [adminRow] });
             const adminCollector = adminControls.createMessageComponentCollector({ filter: i => !i.user.bot && i.member.roles.cache.has(this.botGuild.roleIDs.adminRole) });
@@ -582,9 +585,13 @@ class StartMentorCave extends Command {
 
 
                 } 
-                // else if (adminInteraction.customId === 'deleteCave') {
-
-                // }
+                else if (adminInteraction.customId === 'deleteCave') {
+                    mentorCategory.delete();
+                    mentorHelpCategory.delete();
+                    mentorRoleSelectionChannel.delete();
+                    incomingTicketChannel.delete();
+                    requestTicketChannel.delete();
+                }
             })
         } catch (error) {
             // winston.loggers.get(interaction.guild.id).warning(`An error was found but it was handled by not setting up the mentor cave. Error: ${error}`, { event: 'StartMentorCave Command' });
