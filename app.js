@@ -265,19 +265,20 @@ bot.on('commandError', (command, error, message) => {
  */
 bot.on('guildMemberAdd', async member => {
     let botGuild = await BotGuild.findById(member.guild.id);
+    member.roles.add(botGuild.verification.guestRoleID);
 
     // if the guild where the user joined is complete then greet and verify.
     // also checks to make sure it does not greet bots
-    if (botGuild.isSetUpComplete && !member.user.bot) {
-        try {
-            winston.loggers.get(member.guild.id).userStats('A new user joined the guild and is getting greeted!');
-            await greetNewMember(member, botGuild);
-        } catch (error) {
-            await fixDMIssue(error, member, botGuild);
-        }
-    } else {
-        winston.loggers.get(member.guild.id).warning('A new user joined the guild but was not greeted because the bot is not set up!');
-    }
+    // if (botGuild.isSetUpComplete && !member.user.bot) {
+    //     try {
+    //         winston.loggers.get(member.guild.id).userStats('A new user joined the guild and is getting greeted!');
+    //         await greetNewMember(member, botGuild);
+    //     } catch (error) {
+    //         await fixDMIssue(error, member, botGuild);
+    //     }
+    // } else {
+    //     winston.loggers.get(member.guild.id).warning('A new user joined the guild but was not greeted because the bot is not set up!');
+    // }
 });
 
 bot.on('commandRun', (command, promise, message, args) => {
