@@ -230,7 +230,7 @@ module.exports.addUserData = addUserData;
  * @throws Error if the email provided was not found.
  */
 async function verify(email, id, guildId) {
-    let emailLowerCase = email.toLowerCase();
+    let emailLowerCase = email.trim().toLowerCase();
     var userRef = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').where('email', '==', emailLowerCase).limit(1);
     var user = (await userRef.get()).docs[0];
     if (user) {
