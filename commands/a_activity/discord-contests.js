@@ -246,7 +246,7 @@ class DiscordContests extends Command {
                     collector.on('collect', async i => {
                         const winnerRequest = await i.reply({ content: '<@' + i.user.id + '> Mention the winner in your next message!', fetchReply: true });
 
-                        const winnerFilter = message => message.user.id === i.user.id;
+                        const winnerFilter = message => message.user.id === i.user.id; // error?
                         const winnerCollector = adminConsole.createMessageCollector({ filter: winnerFilter, max: 1 });
                         winnerCollector.on('collect', async m => {
                             if (m.mentions.members.size > 0) {
