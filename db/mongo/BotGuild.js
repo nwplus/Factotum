@@ -20,6 +20,9 @@ const BotGuildSchema = new Schema({
         everyoneRole: {
             type: String,
         },
+        mentorRole: {
+            type: String,
+        }
     },
 
     channelIDs: {

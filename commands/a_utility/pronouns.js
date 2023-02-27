@@ -1,7 +1,5 @@
-// Discord.js commando requirements
-const PermissionCommand = require('../../classes/permission-command');
-const { addRoleToMember, removeRolToMember, sendMsgToChannel } = require('../../discord-services');
-const { Message, MessageEmbed } = require('discord.js');
+const { Command } = require('@sapphire/framework');
+const { Interaction, MessageEmbed } = require('discord.js');
 
 /**
  * The pronouns command sends a role reaction console for users to select a pronoun role out of 4 options:
@@ -12,36 +10,37 @@ const { Message, MessageEmbed } = require('discord.js');
  * The roles must be already created on the server for this to work.
  * @category Commands
  * @subcategory Admin-Utility
- * @extends PermissionCommand
+ * @extends Command
  */
-class Pronouns extends PermissionCommand {
-    constructor(client) {
-        super(client, {
-            name: 'pronouns',
-            group: 'a_utility',
-            memberName: 'pronoun role',
-            description: 'Set up pronouns reaction role message.',
-            guildOnly: true,
-        },
-        {
-            roleID: PermissionCommand.FLAGS.STAFF_ROLE,
-            roleMessage: 'Hey there, the command !pronouns is only available to staff!',
+class Pronouns extends Command {
+    constructor(context, options) {
+        super(context, {
+          ...options,
+          description: 'Start pronoun selector.'
         });
+    }
+
+    registerApplicationCommands(registry) {
+        registry.registerChatInputCommand((builder) =>
+          builder
+            .setName(this.name)
+            .setDescription(this.description)
+        )
     }
 
     /**
      * 
-     * @param {Message} message - the command message
+     * @param {Interaction} interaction
      */
-    async runCommand(botGuild, message) {
-        const sheRole = message.guild.roles.cache.find(role => role.name === 'she/her');
-        const heRole = message.guild.roles.cache.find(role => role.name === 'he/him');
-        const theyRole = message.guild.roles.cache.find(role => role.name === 'they/them');
-        const otherRole = message.guild.roles.cache.find(role => role.name === 'other pronouns');
+     async chatInputRun(interaction) {
+        const sheRole = interaction.guild.roles.cache.find(role => role.name === 'she/her');
+        const heRole = interaction.guild.roles.cache.find(role => role.name === 'he/him');
+        const theyRole = interaction.guild.roles.cache.find(role => role.name === 'they/them');
+        const otherRole = interaction.guild.roles.cache.find(role => role.name === 'other pronouns');
 
         // check to make sure all 4 roles are available
         if (!sheRole || !heRole || !theyRole || !otherRole) {
-            sendMsgToChannel(message.channel, message.author.id, 'Could not find all four roles! Make sure the role names are exactly like stated on the documentation.', 20);
+            interaction.reply('Could not find all four roles! Make sure the role names are exactly like stated on the documentation.');
             return;
         }
 
@@ -56,34 +55,47 @@ class Pronouns extends PermissionCommand {
                 + `${emojis[2]} they/them\n`
                 + `${emojis[3]} other pronouns\n`);
 
-        let messageEmbed = await message.channel.send(embed);
+        let messageEmbed = await interaction.channel.send({embeds: [embed]});
         emojis.forEach(emoji => messageEmbed.react(emoji));
+        interaction.reply({content: 'Pronouns selector started!', ephemeral: true})
+
+        let filter = (reaction, user) => {
+            return user.bot != true && emojis.includes(reaction.emoji.name);
+        }
 
         // create collector
-        const reactionCollector = messageEmbed.createReactionCollector((reaction, user) => user.bot != true && emojis.includes(reaction.emoji.name), {dispose: true});
+        const reactionCollector = messageEmbed.createReactionCollector({filter, dispose: true});
 
         // on emoji reaction
         reactionCollector.on('collect', async (reaction, user) => {
             if (reaction.emoji.name === emojis[0]) {
-                addRoleToMember(message.guild.member(user), sheRole);
+                const member = interaction.guild.members.cache.get(user.id)
+                await member.roles.add(sheRole);
             } if (reaction.emoji.name === emojis[1]) {
-                addRoleToMember(message.guild.member(user), heRole);
+                const member = interaction.guild.members.cache.get(user.id)
+                await member.roles.add(heRole);
             } if (reaction.emoji.name === emojis[2]) {
-                addRoleToMember(message.guild.member(user), theyRole);
+                const member = interaction.guild.members.cache.get(user.id)
+                await member.roles.add(theyRole);
             } if (reaction.emoji.name === emojis[3]) {
-                addRoleToMember(message.guild.member(user), otherRole);
+                const member = interaction.guild.members.cache.get(user.id)
+                await member.roles.add(otherRole);
             }
         });
 
         reactionCollector.on('remove', async (reaction, user) => {
             if (reaction.emoji.name === emojis[0]) {
-                removeRolToMember(message.guild.member(user), sheRole);
+                const member = interaction.guild.members.cache.get(user.id)
+                await member.roles.remove(sheRole);
             } if (reaction.emoji.name === emojis[1]) {
-                removeRolToMember(message.guild.member(user), heRole);
+                const member = interaction.guild.members.cache.get(user.id)
+                await member.roles.remove(heRole);
             } if (reaction.emoji.name === emojis[2]) {
-                removeRolToMember(message.guild.member(user), theyRole);
+                const member = interaction.guild.members.cache.get(user.id)
+                await member.roles.remove(theyRole);
             } if (reaction.emoji.name === emojis[3]) {
-                removeRolToMember(message.guild.member(user), otherRole);
+                const member = interaction.guild.members.cache.get(user.id)
+                await member.roles.remove(otherRole);
             }
         });
 

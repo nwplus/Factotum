@@ -1,6 +1,6 @@
 require('dotenv-flow').config();
 const mongoUtil = require('./db/mongo/mongoUtil');
-const Commando = require('discord.js-commando');
+// const Commando = require('discord.js-commando');
 const Discord = require('discord.js');
 const firebaseServices = require('./db/firebase/firebase-services');
 const winston = require('winston');
@@ -12,6 +12,7 @@ const Verification = require('./classes/Bot/Features/Verification/verification')
 const { StringPrompt } = require('advanced-discord.js-prompts');
 const Sentry = require('@sentry/node');
 const Tracing = require('@sentry/tracing');
+const { LogLevel, SapphireClient } = require('@sapphire/framework')
 
 /**
  * The Main App module houses the bot events, process events, and initializes
@@ -74,9 +75,24 @@ if (config['sentryLog']) {
     });
 }
 
-const bot = new Commando.Client({
-    commandPrefix: '!',
-    owner: config.owner,
+const bot = new SapphireClient({
+    defaultPrefix: '!',
+	caseInsensitiveCommands: true,
+	logger: {
+		level: LogLevel.Debug
+	},
+	shards: 'auto',
+	intents: [
+		'GUILDS',
+		'GUILD_MEMBERS',
+		'GUILD_BANS',
+		'GUILD_EMOJIS_AND_STICKERS',
+		'GUILD_VOICE_STATES',
+		'GUILD_MESSAGES',
+		'GUILD_MESSAGE_REACTIONS',
+		'DIRECT_MESSAGES',
+		'DIRECT_MESSAGE_REACTIONS'
+	],
 });
 
 const customLoggerLevels = {
@@ -110,24 +126,24 @@ winston.addColors(customLoggerLevels.colors);
 /**
  * Register all the commands except for help and unknown since we have our own.
  */
-bot.registry
-    .registerDefaultTypes()
-    .registerGroup('a_boothing', 'boothing group for admins')
-    .registerGroup('a_activity', 'activity group for admins')
-    .registerGroup('a_start_commands', 'advanced admin commands')
-    .registerGroup('a_utility', 'utility commands for admins')
-    .registerGroup('hacker_utility', 'utility commands for users')
-    .registerGroup('verification', 'verification commands')
-    .registerGroup('attendance', 'attendance commands')
-    .registerGroup('stamps', 'stamp related commands')
-    .registerGroup('utility', 'utility commands')
-    .registerGroup('essentials', 'essential commands for any guild', true)
-    .registerDefaultGroups()
-    .registerDefaultCommands({
-        unknownCommand: false,
-        help: false,
-    })
-    .registerCommandsIn(__dirname + '/commands');
+// bot.registry
+//     .registerDefaultTypes()
+//     .registerGroup('a_boothing', 'boothing group for admins')
+//     .registerGroup('a_activity', 'activity group for admins')
+//     .registerGroup('a_start_commands', 'advanced admin commands')
+//     .registerGroup('a_utility', 'utility commands for admins')
+//     .registerGroup('hacker_utility', 'utility commands for users')
+//     .registerGroup('verification', 'verification commands')
+//     .registerGroup('attendance', 'attendance commands')
+//     .registerGroup('stamps', 'stamp related commands')
+//     .registerGroup('utility', 'utility commands')
+//     .registerGroup('essentials', 'essential commands for any guild', true)
+//     .registerDefaultGroups()
+//     .registerDefaultCommands({
+//         unknownCommand: false,
+//         help: false,
+//     })
+//     .registerCommandsIn(__dirname + '/commands');
 
 /**
  * Runs when the bot finishes the set up and is ready to work.
@@ -158,9 +174,9 @@ bot.once('ready', async () => {
             mainLogger.verbose(`Created a new botGuild for the guild ${guild.id} - ${guild.name} on bot ready.`, { event: 'Ready Event' });
         } else {
             // set all non guarded commands to not enabled for the guild
-            bot.registry.groups.forEach((group, key, map) => {
-                if (!group.guarded) guild.setGroupEnabled(group, false);
-            });
+            // bot.registry.groups.forEach((group, key, map) => {
+            //     if (!group.guarded) guild.setGroupEnabled(group, false);
+            // });
 
             await botGuild.setCommandStatus(bot);
 
@@ -174,7 +190,7 @@ bot.once('ready', async () => {
 /**
  * Runs when the bot is added to a guild.
  */
-bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
+bot.on('guildCreate', /** @param {sapphireClient.Guild} guild */(guild) => {
     mainLogger.warning(`The bot was added to a new guild: ${guild.id} - ${guild.name}.`, { event: 'Guild Create Event' });
 
     newGuild(guild);
@@ -186,14 +202,14 @@ bot.on('guildCreate', /** @param {Commando.CommandoGuild} guild */(guild) => {
 
 /**
  * Will set up a new guild.
- * @param {Commando.CommandoGuild} guild
+ * @param {sapphireClient.Guild} guild
  * @private
  */
 function newGuild(guild) {
     // set all non guarded commands to not enabled for the new guild
-    bot.registry.groups.forEach((group, key, map) => {
-        if (!group.guarded) guild.setGroupEnabled(group, false);
-    });
+    // bot.registry.groups.forEach((group, key, map) => {
+    //     if (!group.guarded) guild.setGroupEnabled(group, false);
+    // });
     // create a botGuild object for this new guild.
     BotGuild.create({
         _id: guild.id,
@@ -228,40 +244,41 @@ bot.on('commandError', (command, error, message) => {
 /**
  * Runs when a message is sent in any server the bot is running in.
  */
-bot.on('message', async message => {
-    if (message?.guild) {
-        let botGuild = await BotGuild.findById(message.guild.id);
+// bot.on('message', async message => {
+//     if (message?.guild) {
+//         let botGuild = await BotGuild.findById(message.guild.id);
 
-        // Deletes all messages to any channel in the black list with the specified timeout
-        // this is to make sure that if the message is for the bot, it is able to get it
-        // bot and staff messages are not deleted
-        if (botGuild.blackList.has(message.channel.id)) {
-            if (!message.author.bot && !discordServices.checkForRole(message.member, botGuild.roleIDs.staffRole)) {
-                winston.loggers.get(message.guild.id).verbose(`Deleting message from user ${message.author.id} due to being in the blacklisted channel ${message.channel.name}.`);
-                (new Promise(res => setTimeout(res, botGuild.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
-            }
-        }
-    }
-});
+//         // Deletes all messages to any channel in the black list with the specified timeout
+//         // this is to make sure that if the message is for the bot, it is able to get it
+//         // bot and staff messages are not deleted
+//         if (botGuild.blackList.has(message.channel.id)) {
+//             if (!message.author.bot && !discordServices.checkForRole(message.member, botGuild.roleIDs.staffRole)) {
+//                 winston.loggers.get(message.guild.id).verbose(`Deleting message from user ${message.author.id} due to being in the blacklisted channel ${message.channel.name}.`);
+//                 (new Promise(res => setTimeout(res, botGuild.blackList.get(message.channel.id)))).then(() => discordServices.deleteMessage(message));
+//             }
+//         }
+//     }
+// });
 
 /**
  * Runs when a new member joins a guild the bot is running in.
  */
 bot.on('guildMemberAdd', async member => {
     let botGuild = await BotGuild.findById(member.guild.id);
+    member.roles.add(botGuild.verification.guestRoleID);
 
     // if the guild where the user joined is complete then greet and verify.
     // also checks to make sure it does not greet bots
-    if (botGuild.isSetUpComplete && !member.user.bot) {
-        try {
-            winston.loggers.get(member.guild.id).userStats('A new user joined the guild and is getting greeted!');
-            await greetNewMember(member, botGuild);
-        } catch (error) {
-            await fixDMIssue(error, member, botGuild);
-        }
-    } else {
-        winston.loggers.get(member.guild.id).warning('A new user joined the guild but was not greeted because the bot is not set up!');
-    }
+    // if (botGuild.isSetUpComplete && !member.user.bot) {
+    //     try {
+    //         winston.loggers.get(member.guild.id).userStats('A new user joined the guild and is getting greeted!');
+    //         await greetNewMember(member, botGuild);
+    //     } catch (error) {
+    //         await fixDMIssue(error, member, botGuild);
+    //     }
+    // } else {
+    //     winston.loggers.get(member.guild.id).warning('A new user joined the guild but was not greeted because the bot is not set up!');
+    // }
 });
 
 bot.on('commandRun', (command, promise, message, args) => {
