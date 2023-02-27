@@ -345,11 +345,7 @@ class StartMentorCave extends Command {
                                     value: description
                                 },
                                 {
-                                    name: 'Requested by:',
-                                    value: '<@' + submitted.user.id + '>'
-                                },
-                                {
-                                    name: 'Location',
+                                    name: 'Where to meet',
                                     value: location
                                 },
                                 {
@@ -371,7 +367,7 @@ class StartMentorCave extends Command {
                                     .setStyle('PRIMARY'),
                             );
 
-                        const ticketMsg = await incomingTicketChannel.send({ content: '<@&' + role + '>', embeds: [newTicketEmbed], components: [ticketAcceptanceRow] });
+                        const ticketMsg = await incomingTicketChannel.send({ content: '<@&' + role + '>, requested by <@' + submitted.user.id + '>', embeds: [newTicketEmbed], components: [ticketAcceptanceRow] });
                         submitted.reply({ content: 'Your ticket has been submitted!', ephemeral: true })
                         const ticketReminder = setTimeout(() => {
                             ticketMsg.reply('<@&' + role + '> ticket ' + ticketNumber + ' still needs help!');
@@ -522,12 +518,12 @@ class StartMentorCave extends Command {
                         .setLabel('Add Mentor Role')
                         .setStyle('PRIMARY'),
                 )
-                .addComponents(
-                    new MessageButton()
-                        .setCustomId('deleteCave')
-                        .setLabel('Delete Cave')
-                        .setStyle('DANGER'),
-                );
+                // .addComponents(
+                //     new MessageButton()
+                //         .setCustomId('deleteCave')
+                //         .setLabel('Delete Cave')
+                //         .setStyle('DANGER'),
+                // );
 
             const adminControls = await adminConsole.send({ embeds: [adminEmbed], components: [adminRow] });
             const adminCollector = adminControls.createMessageComponentCollector({ filter: i => !i.user.bot && i.member.roles.cache.has(this.botGuild.roleIDs.adminRole) });
@@ -585,13 +581,13 @@ class StartMentorCave extends Command {
 
 
                 } 
-                else if (adminInteraction.customId === 'deleteCave') {
-                    mentorCategory.delete();
-                    mentorHelpCategory.delete();
-                    mentorRoleSelectionChannel.delete();
-                    incomingTicketChannel.delete();
-                    requestTicketChannel.delete();
-                }
+                // else if (adminInteraction.customId === 'deleteCave') {
+                //     mentorCategory.delete();
+                //     mentorHelpCategory.delete();
+                //     mentorRoleSelectionChannel.delete();
+                //     incomingTicketChannel.delete();
+                //     requestTicketChannel.delete();
+                // }
             })
         } catch (error) {
             // winston.loggers.get(interaction.guild.id).warning(`An error was found but it was handled by not setting up the mentor cave. Error: ${error}`, { event: 'StartMentorCave Command' });
