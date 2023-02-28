@@ -32,6 +32,9 @@ const BotGuildSchema = new Schema({
         adminLog: {
             type: String,
         },
+        botSpamChannel: {
+            type: String,
+        },
         botSupportChannel: {
             type: String,
         },

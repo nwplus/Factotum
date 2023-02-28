@@ -13,6 +13,7 @@ interface BotGuild extends Document {
         staffRole: String,
         adminRole: String,
         everyoneRole: String,
+        mentorRole: String
     },
 
     channelIDs: {
@@ -20,6 +21,7 @@ interface BotGuild extends Document {
         adminLog: String,
         botSupportChannel: String,
         archiveCategory: String,
+        botSpamChannel: String,
     },
 
     verification: {
