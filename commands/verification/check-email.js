@@ -26,6 +26,11 @@ class CheckEmail extends Command {
         this.botGuild = await BotGuild.findById(interaction.guild.id);
         const guild = interaction.guild;
         const email = interaction.options.getString('email');
+
+        if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
+            return this.error({ message: 'You do not have permissions to run this command!', ephemeral: true })
+        }
+        
         let botSpamChannel = guild.channels.resolve(this.botGuild.channelIDs.botSpamChannel);
         const userData = await checkEmail(email, guild.id);       
         interaction.reply({content: 'Visit <#' + this.botGuild.channelIDs.botSpamChannel + '> for the results', ephemeral: true});
