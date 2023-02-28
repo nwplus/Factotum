@@ -30,11 +30,11 @@ class GetEmails extends Command {
 
         const email = await lookupById(guild.id, interaction.targetUser.id)
         if (email) {
-            interaction.reply('Visit <#' + this.botGuild.channelIDs.botSpamChannel + '> for the results');
+            interaction.reply({ content: 'Visit <#' + this.botGuild.channelIDs.botSpamChannel + '> for the results', ephemeral: true });
             botSpamChannel.send('<@' + interaction.targetUser.id + '>\'s email is: ' + email);
             return;
         } else {
-            interaction.reply('Visit <#' + this.botGuild.channelIDs.botSpamChannel + '> for the results');
+            interaction.reply({ content: 'Visit <#' + this.botGuild.channelIDs.botSpamChannel + '> for the results', ephemeral: true });
             botSpamChannel.send('<@' + interaction.targetUser.id + '>\'s email is not in our database!');
             return;
         }

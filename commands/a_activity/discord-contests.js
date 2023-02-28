@@ -58,7 +58,7 @@ class DiscordContests extends Command {
         // this.botGuild = this.botGuild;
         let guild = interaction.guild;
         this.botGuild = await BotGuild.findById(guild.id);
-        let adminConsole = guild.channels.resolve(this.botGuild.channelIDs.adminConsole);
+        let botSpamChannel = guild.channels.resolve(this.botGuild.channelIDs.botSpamChannel);
 
         var interval;
 
@@ -154,7 +154,7 @@ class DiscordContests extends Command {
             }
         })
 
-        const controlPanel = await adminConsole.send({ content: 'Discord contests started by <@' + userId + '>', components: [row] });
+        const controlPanel = await botSpamChannel.send({ content: 'Discord contests started by <@' + userId + '>', components: [row] });
         const filter = i => !i.user.bot && (guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.roleIDs.staffRole) || guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.roleIDs.adminRole));
         const collector = controlPanel.createMessageComponentCollector({filter});
         collector.on('collect', async i => {
@@ -238,7 +238,7 @@ class DiscordContests extends Command {
             channel.send({ content: '<@&' + roleId + '>', embeds: [qEmbed] }).then(async (msg) => {
                 if (answers.length === 0) {
                     //send message to console
-                    const questionMsg = await adminConsole.send({ content: '<@&' + botGuild.roleIDs.staffRole + '>' + 'need manual review!', embeds: [qEmbed], components: [row] })
+                    const questionMsg = await botSpamChannel.send({ content: '<@&' + botGuild.roleIDs.staffRole + '>' + 'need manual review!', embeds: [qEmbed], components: [row] })
 
                     const filter = i => !i.user.bot && i.customId === 'winner' && (guild.members.cache.get(i.user.id).roles.cache.has(botGuild.roleIDs.staffRole) || guild.members.cache.get(i.user.id).roles.cache.has(botGuild.roleIDs.adminRole));
                     const collector = await questionMsg.createMessageComponentCollector({ filter });
@@ -247,7 +247,7 @@ class DiscordContests extends Command {
                         const winnerRequest = await i.reply({ content: '<@' + i.user.id + '> Mention the winner in your next message!', fetchReply: true });
 
                         const winnerFilter = message => message.user.id === i.user.id; // error?
-                        const winnerCollector = adminConsole.createMessageCollector({ filter: winnerFilter, max: 1 });
+                        const winnerCollector = botSpamChannel.createMessageCollector({ filter: winnerFilter, max: 1 });
                         winnerCollector.on('collect', async m => {
                             if (m.mentions.members.size > 0) {
                                 const member = await m.mentions.members.first();

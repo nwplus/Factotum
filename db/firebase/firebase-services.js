@@ -105,23 +105,28 @@ module.exports.getReminder = getReminder;
  * @returns {Promise<Array<Member>>} - array of members with similar emails to parameter email
  */
 async function checkEmail(email, guildId) {
-    const snapshot = (await apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').get()).docs; // retrieve snapshot as an array of documents in the Firestore
-    var foundEmails = [];
-    snapshot.forEach(memberDoc => {
+    const cleanEmail = email.trim().toLowerCase();
+    const docRef = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').doc(cleanEmail); 
+    const doc = await docRef.get();
+    return doc.data();
+    // var foundEmails = [];
+    // snapshot.forEach(memberDoc => {
         // compare each member's email with the given email
-        if (memberDoc.get('email') != null) {
-            let compare = memberDoc.get('email');
+        // if (memberDoc.get('email') != null) {
+            // let compare = memberDoc.get('email');
             // if the member's emails is similar to the given email, retrieve and add the email, verification status, and member type of
             // the member as an object to the array
-            if (compareEmails(email.split('@')[0], compare.split('@')[0])) {
-                foundEmails.push({
-                    email: compare,
-                    types: memberDoc.get('types').map(type => type.type),
-                });
-            }
-        }
-    });
-    return foundEmails;
+            // if (compareEmails(email.split('@')[0], compare.split('@')[0])) {
+            //     foundEmails.push({
+            //         email: compare,
+            //         types: memberDoc.get('types').map(type => type.type),
+            //     });
+            // }
+            
+        // }
+
+    // });
+    // return foundEmails;
 }
 module.exports.checkEmail = checkEmail;
 
