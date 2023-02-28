@@ -80,7 +80,7 @@ async function getReminder(guildId) {
     //if there reminder unsent, change its status to asked
     if (reminder != undefined) {
         reminder.ref.update({
-            'sent' : true,
+            'sent': true,
         });
         return reminder.data();
     }
@@ -197,26 +197,34 @@ module.exports.checkName = checkName;
  * @param {String} [lastName=''] - users last name
  * @async
  */
-async function addUserData(email, types, guildId, member = {}, firstName = '', lastName = '') {
-    var newDocument = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').doc(email.toLowerCase());
+async function addUserData(email, type, guildId, overwrite) {
+    const cleanEmail = email.trim().toLowerCase();
+    var documentRef = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').doc(cleanEmail);
+    const doc = await documentRef.get();
 
-    /** @type {FirebaseUser} */
-    let data = {
-        email: email.toLowerCase(),
-        discordId: member?.id || null,
-        types: types.map((type, index, array) => {
-            /** @type {UserType} */
-            let userType = {
-                type: type,
+    if (doc.exists && !overwrite) {
+        var types = await doc.data().types;
+        var containsType = false;
+        types.forEach(existingType => {
+            if (existingType.type === type) {
+                containsType = true;
+                return;
+            }
+        });
+        if (!containsType) {
+            types.push({ type: type, isVerified: false })
+        }
+        await documentRef.update({ types: types });
+    } else {
+        let data = {
+            email: cleanEmail,
+            types: [{
                 isVerified: false,
-            };
-            return userType;
-        }),
-        firstName: firstName,
-        lastName: lastName,
-    };
-
-    await newDocument.set(data);
+                type: type
+            }]
+        };
+        await documentRef.set(data);
+    }
 }
 module.exports.addUserData = addUserData;
 
@@ -332,7 +340,7 @@ async function lookupById(guildId, memberId) {
     } else {
         return undefined;
     }
-    
+
 }
 module.exports.lookupById = lookupById;
 
@@ -360,7 +368,7 @@ async function retrieveLeaderboard(guildId) {
     snapshot.forEach(doc => {
         winners.push(doc.data());
     })
-    winners.sort((a,b) => parseFloat(b.points) - parseFloat(a.points));
+    winners.sort((a, b) => parseFloat(b.points) - parseFloat(a.points));
     return winners;
 }
 module.exports.retrieveLeaderboard = retrieveLeaderboard;
