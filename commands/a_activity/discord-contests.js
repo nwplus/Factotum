@@ -2,7 +2,7 @@ const { Command } = require('@sapphire/framework');
 const { discordLog, checkForRole } = require('../../discord-services');
 const { Message, MessageEmbed, Snowflake, MessageActionRow, MessageButton } = require('discord.js');
 const { getQuestion, lookupById, saveToLeaderboard, retrieveLeaderboard } = require('../../db/firebase/firebase-services');
-const BotGuild = require('../../db/mongo/BotGuild')
+const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../../classes/Bot/bot-guild');
 
 /**
@@ -41,7 +41,7 @@ class DiscordContests extends Command {
                     option.setName('start_question_now')
                         .setDescription('True to start first question now, false to start it after one interval')
                         .setRequired(false))
-        )
+        );
     }
 
     /**
@@ -68,7 +68,8 @@ class DiscordContests extends Command {
         var roleId = interaction.options.getRole('notify');
 
         if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
-            return this.error({ message: 'You do not have permissions to run this command!', ephemeral: true })
+            interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
+            return;
         }
         // try {
         //     let num = await NumberPrompt.single({prompt: 'What is the time interval between questions in minutes (integer only)? ', channel, userId, cancelable: true});
@@ -93,7 +94,7 @@ class DiscordContests extends Command {
          */
         const winners = [];
 
-        var string = 'Discord contests starting soon! Answer questions for a chance to win prizes!'
+        var string = 'Discord contests starting soon! Answer questions for a chance to win prizes!';
 
         const row = new MessageActionRow()
             .addComponents(
@@ -133,10 +134,10 @@ class DiscordContests extends Command {
             .setColor(this.botGuild.colors.embedColor)
             .setTitle(string)
             .setDescription('Note: Short-answer questions are non-case sensitive but any extra or missing symbols will be considered incorrect.')
-            .addFields([{name: 'Click the 🍀 emoji below to be notified when a new question drops!', value: 'You can un-react to stop.'}])
+            .addFields([{name: 'Click the 🍀 emoji below to be notified when a new question drops!', value: 'You can un-react to stop.'}]);
 
         const leaderboard = new MessageEmbed()
-            .setTitle('Leaderboard')
+            .setTitle('Leaderboard');
             
         let pinnedMessage = await channel.send({ content: '<@&' + roleId + '>', embeds: [startEmbed, leaderboard] });
         pinnedMessage.pin();
@@ -152,19 +153,19 @@ class DiscordContests extends Command {
             if (reaction.emoji.name === '🍀') {
                 guild.members.cache.get(user.id).roles.remove(roleId);
             }
-        })
+        });
 
         const controlPanel = await botSpamChannel.send({ content: 'Discord contests started by <@' + userId + '>', components: [row] });
         const filter = i => !i.user.bot && (guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.roleIDs.staffRole) || guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.roleIDs.adminRole));
         const collector = controlPanel.createMessageComponentCollector({filter});
         collector.on('collect', async i => {
             if (i.customId == 'refresh') {
-                await i.reply({ content: 'Leaderboard refreshed!', ephemeral: true })
+                await i.reply({ content: 'Leaderboard refreshed!', ephemeral: true });
                 await updateLeaderboard(null);
             } else if (interval != null && !paused && i.customId == 'pause') {
                 clearInterval(interval);
                 paused = true;
-                await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Discord contest paused by <@' + i.user.id + '>!')
+                await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Discord contest paused by <@' + i.user.id + '>!');
                 await i.reply({ content: 'Discord contest has been paused!', ephemeral: true });
             } else if (paused && i.customId == 'play') {
                 await sendQuestion(this.botGuild);
@@ -173,7 +174,7 @@ class DiscordContests extends Command {
                 await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Discord contest restarted by <@' + i.user.id + '>!');
                 await i.reply({ content: 'Discord contest has been un-paused!', ephemeral: true });
             } else {
-                await i.reply({ content: `Wrong button or wrong permissions!`, ephemeral: true });
+                await i.reply({ content: 'Wrong button or wrong permissions!', ephemeral: true });
             }
         });
 
@@ -238,7 +239,7 @@ class DiscordContests extends Command {
             channel.send({ content: '<@&' + roleId + '>', embeds: [qEmbed] }).then(async (msg) => {
                 if (answers.length === 0) {
                     //send message to console
-                    const questionMsg = await botSpamChannel.send({ content: '<@&' + botGuild.roleIDs.staffRole + '>' + 'need manual review!', embeds: [qEmbed], components: [row] })
+                    const questionMsg = await botSpamChannel.send({ content: '<@&' + botGuild.roleIDs.staffRole + '>' + 'need manual review!', embeds: [qEmbed], components: [row] });
 
                     const filter = i => !i.user.bot && i.customId === 'winner' && (guild.members.cache.get(i.user.id).roles.cache.has(botGuild.roleIDs.staffRole) || guild.members.cache.get(i.user.id).roles.cache.has(botGuild.roleIDs.adminRole));
                     const collector = await questionMsg.createMessageComponentCollector({ filter });
@@ -246,7 +247,7 @@ class DiscordContests extends Command {
                     collector.on('collect', async i => {
                         const winnerRequest = await i.reply({ content: '<@' + i.user.id + '> Mention the winner in your next message!', fetchReply: true });
 
-                        const winnerFilter = message => message.user.id === i.user.id; // error?
+                        const winnerFilter = message => message.author.id === i.user.id; // error?
                         const winnerCollector = botSpamChannel.createMessageCollector({ filter: winnerFilter, max: 1 });
                         winnerCollector.on('collect', async m => {
                             if (m.mentions.members.size > 0) {
@@ -255,7 +256,7 @@ class DiscordContests extends Command {
                                 await m.delete();
                                 await questionMsg.delete();
                                 await i.editReply('<@' + memberId + '> has been recorded!');
-                                row.components[0].setDisabled(true)
+                                row.components[0].setDisabled(true);
                                 // row.components[0].setDisabled(); 
                                 await channel.send('Congrats <@' + memberId + '> for the best answer to the last question!');
                                 // winners.push(memberId);
@@ -270,7 +271,7 @@ class DiscordContests extends Command {
                                     errorMsg.delete();
                                 }, 5000);
                             }
-                        })
+                        });
                     });
                 } else {
                     //automatically mark answers
@@ -317,7 +318,7 @@ class DiscordContests extends Command {
 
         async function recordWinner(member) {
             try {
-                let email = await lookupById(guild.id, member.id)
+                let email = await lookupById(guild.id, member.id);
                 discordLog(`Discord contest winner: ${member.id} - ${email}`);
             } catch (error) {
                 console.log(error);
