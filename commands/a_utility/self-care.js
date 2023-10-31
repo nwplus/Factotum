@@ -39,7 +39,10 @@ class SelfCareReminders extends Command {
                     option.setName('start_reminder_now')
                         .setDescription('True to start first reminder now, false to start it after one interval')
                         .setRequired(false))
-        );
+        ),
+        {
+            idHints: 1052699103143927859
+        };
     }
 
     async chatInputRun(interaction) {

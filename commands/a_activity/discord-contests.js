@@ -41,7 +41,10 @@ class DiscordContests extends Command {
                     option.setName('start_question_now')
                         .setDescription('True to start first question now, false to start it after one interval')
                         .setRequired(false))
-        );
+        ),
+        {
+            idHints: 1051737343729610812
+        };
     }
 
     /**

@@ -18,7 +18,10 @@ class StartVerification extends Command {
             builder
                 .setName(this.name)
                 .setDescription(this.description)
-        );
+        ),
+        {
+            idHints: 1060545714133938309
+        };
     }
 
     /**

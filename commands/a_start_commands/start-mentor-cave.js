@@ -45,7 +45,10 @@ class StartMentorCave extends Command {
                     option.setName('additional_mentor_role')
                         .setDescription('Tag up to one additional role **aside from mentors and staff** that is allowed to help with tickets')
                         .setRequired(false))
-        );
+        ),
+        {
+            idHints: 1051737344937566229
+        };
     }
 
     /**
