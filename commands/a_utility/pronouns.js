@@ -15,24 +15,24 @@ const { Interaction, MessageEmbed } = require('discord.js');
 class Pronouns extends Command {
     constructor(context, options) {
         super(context, {
-          ...options,
-          description: 'Start pronoun selector.'
+            ...options,
+            description: 'Start pronoun selector.'
         });
     }
 
     registerApplicationCommands(registry) {
         registry.registerChatInputCommand((builder) =>
-          builder
-            .setName(this.name)
-            .setDescription(this.description)
-        )
+            builder
+                .setName(this.name)
+                .setDescription(this.description)
+        );
     }
 
     /**
      * 
      * @param {Interaction} interaction
      */
-     async chatInputRun(interaction) {
+    async chatInputRun(interaction) {
         const sheRole = interaction.guild.roles.cache.find(role => role.name === 'she/her');
         const heRole = interaction.guild.roles.cache.find(role => role.name === 'he/him');
         const theyRole = interaction.guild.roles.cache.find(role => role.name === 'they/them');
@@ -57,11 +57,11 @@ class Pronouns extends Command {
 
         let messageEmbed = await interaction.channel.send({embeds: [embed]});
         emojis.forEach(emoji => messageEmbed.react(emoji));
-        interaction.reply({content: 'Pronouns selector started!', ephemeral: true})
+        interaction.reply({content: 'Pronouns selector started!', ephemeral: true});
 
         let filter = (reaction, user) => {
             return user.bot != true && emojis.includes(reaction.emoji.name);
-        }
+        };
 
         // create collector
         const reactionCollector = messageEmbed.createReactionCollector({filter, dispose: true});
@@ -69,32 +69,32 @@ class Pronouns extends Command {
         // on emoji reaction
         reactionCollector.on('collect', async (reaction, user) => {
             if (reaction.emoji.name === emojis[0]) {
-                const member = interaction.guild.members.cache.get(user.id)
+                const member = interaction.guild.members.cache.get(user.id);
                 await member.roles.add(sheRole);
             } if (reaction.emoji.name === emojis[1]) {
-                const member = interaction.guild.members.cache.get(user.id)
+                const member = interaction.guild.members.cache.get(user.id);
                 await member.roles.add(heRole);
             } if (reaction.emoji.name === emojis[2]) {
-                const member = interaction.guild.members.cache.get(user.id)
+                const member = interaction.guild.members.cache.get(user.id);
                 await member.roles.add(theyRole);
             } if (reaction.emoji.name === emojis[3]) {
-                const member = interaction.guild.members.cache.get(user.id)
+                const member = interaction.guild.members.cache.get(user.id);
                 await member.roles.add(otherRole);
             }
         });
 
         reactionCollector.on('remove', async (reaction, user) => {
             if (reaction.emoji.name === emojis[0]) {
-                const member = interaction.guild.members.cache.get(user.id)
+                const member = interaction.guild.members.cache.get(user.id);
                 await member.roles.remove(sheRole);
             } if (reaction.emoji.name === emojis[1]) {
-                const member = interaction.guild.members.cache.get(user.id)
+                const member = interaction.guild.members.cache.get(user.id);
                 await member.roles.remove(heRole);
             } if (reaction.emoji.name === emojis[2]) {
-                const member = interaction.guild.members.cache.get(user.id)
+                const member = interaction.guild.members.cache.get(user.id);
                 await member.roles.remove(theyRole);
             } if (reaction.emoji.name === emojis[3]) {
-                const member = interaction.guild.members.cache.get(user.id)
+                const member = interaction.guild.members.cache.get(user.id);
                 await member.roles.remove(otherRole);
             }
         });
