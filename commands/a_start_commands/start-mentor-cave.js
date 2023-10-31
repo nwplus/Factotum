@@ -60,7 +60,6 @@ class StartMentorCave extends Command {
             let guild = interaction.guild;
             this.botGuild = await BotGuild.findById(guild.id);
             let adminConsole = guild.channels.resolve(this.botGuild.channelIDs.adminConsole);
-            let adminLog = guild.channels.resolve(this.botGuild.channelIDs.adminLog);
             this.ticketCount = 0;
 
             const additionalMentorRole = interaction.options.getRole('additional_mentor_role');
@@ -70,11 +69,12 @@ class StartMentorCave extends Command {
             const reminderTime = interaction.options.getInteger('unanswered_ticket_time');
 
             if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
-                return this.error({ message: 'You do not have permissions to run this command!', ephemeral: true });
+                await interaction.reply({ message: 'You do not have permissions to run this command!', ephemeral: true });
+                return;
             }
 
             interaction.reply({ content: 'Mentor cave activated!', ephemeral: true });
-            adminLog.send('Mentor cave started by <@' + userId + '>');
+            discordLog('Mentor cave started by <@' + userId + '>');
 
             // create channels
             let overwrites =
@@ -294,7 +294,8 @@ class StartMentorCave extends Command {
                 if (i.customId === 'ticketType') {
                     requestTicketConsole.edit({ embeds: [requestTicketEmbed], components: [selectMenuRow] });
                     // if (!guild.members.cache.get(i.user.id).roles.cache.has(publicRole.id)) {
-                    //     return this.error({ message: 'You do not have permissions to request tickets!', ephemeral: true });
+                    //     await i.reply({ message: 'You do not have permissions to request tickets!', ephemeral: true });
+                    //     return
                     // }
                     const modal = new Modal()
                         .setCustomId('ticketSubmitModal')
@@ -587,7 +588,7 @@ class StartMentorCave extends Command {
 
                 } else if (adminInteraction.customId === 'deleteCave') {
                     adminInteraction.reply({ content: 'Mentor cave deleted!', ephemeral: true });
-                    adminLog.send('Mentor cave deleted by <@' + adminInteraction.user.id + '>');
+                    discordLog('Mentor cave deleted by <@' + adminInteraction.user.id + '>');
                     // unknown channel error
                     await mentorCategory.delete();
                     await mentorHelpCategory.delete();
