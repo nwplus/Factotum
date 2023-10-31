@@ -3,7 +3,7 @@ const PermissionCommand = require('../../classes/permission-command');
 const { discordLog } = require('../../discord-services');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const { getReminder } = require('../../db/firebase/firebase-services');
-const BotGuild = require('../../db/mongo/BotGuild')
+const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { NumberPrompt, SpecialPrompt, RolePrompt } = require('advanced-discord.js-prompts');
 
@@ -39,7 +39,7 @@ class SelfCareReminders extends Command {
                     option.setName('start_reminder_now')
                         .setDescription('True to start first reminder now, false to start it after one interval')
                         .setRequired(false))
-        )
+        );
     }
 
     async chatInputRun(interaction) {
@@ -57,7 +57,8 @@ class SelfCareReminders extends Command {
         var roleId = interaction.options.getRole('notify');
 
         if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
-            return this.error({ message: 'You do not have permissions to run this command!', ephemeral: true })
+            interaction.reply({ message: 'You do not have permissions to run this command!', ephemeral: true });
+            return;
         }
 
         // keeps track of whether it has been paused
@@ -79,11 +80,11 @@ class SelfCareReminders extends Command {
 
         const startEmbed = new MessageEmbed()
             .setColor(this.botGuild.colors.embedColor)
-            .setTitle('To encourage healthy hackathon habits, we will be sending hourly self-care reminders!')
+            .setTitle('To encourage healthy hackathon habits, we will be sending hourly self-care reminders!');
 
         interaction.reply({ content: 'Self-care reminders started!', ephemeral: true });
 
-        roleId ? interaction.channel.send({ content: '<@&' + roleId + '>', embeds: [startEmbed] }) : interaction.channel.send({ embeds: [startEmbed] })
+        roleId ? interaction.channel.send({ content: '<@&' + roleId + '>', embeds: [startEmbed] }) : interaction.channel.send({ embeds: [startEmbed] });
 
         const controlPanel = await adminConsole.send({ content: 'Self care reminders started by <@' + userId + '>', components: [row] });
         const filter = i => !i.user.bot && (guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.roleIDs.staffRole) || guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.roleIDs.adminRole));
@@ -92,7 +93,7 @@ class SelfCareReminders extends Command {
             if (interval != null && !paused && i.customId == 'pause') {
                 clearInterval(interval);
                 paused = true;
-                await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Self care reminders paused by <@' + i.user.id + '>!')
+                await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Self care reminders paused by <@' + i.user.id + '>!');
                 await i.reply({ content: 'Self care reminders has been paused!', ephemeral: true });
             } else if (paused && i.customId == 'play') {
                 await sendReminder(this.botGuild);
@@ -101,7 +102,7 @@ class SelfCareReminders extends Command {
                 await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Self care reminders restarted by <@' + i.user.id + '>!');
                 await i.reply({ content: 'Self care reminders has been un-paused!', ephemeral: true });
             } else {
-                await i.reply({ content: `Wrong button or wrong permissions!`, ephemeral: true });
+                await i.reply({ content: 'Wrong button or wrong permissions!', ephemeral: true });
             }
         });
 
