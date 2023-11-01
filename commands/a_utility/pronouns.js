@@ -1,5 +1,6 @@
 const { Command } = require('@sapphire/framework');
-const { Interaction, MessageEmbed } = require('discord.js');
+const { Interaction, MessageEmbed, PermissionFlagsBits } = require('discord.js');
+const BotGuild = require('../../db/mongo/BotGuild');
 
 /**
  * The pronouns command sends a role reaction console for users to select a pronoun role out of 4 options:
@@ -36,6 +37,13 @@ class Pronouns extends Command {
      * @param {Interaction} interaction
      */
     async chatInputRun(interaction) {
+        const guild = interaction.guild;
+        this.botGuild = await BotGuild.findById(guild.id);
+        const userId = interaction.user.id;
+        if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
+            interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
+            return;
+        }
         const sheRole = interaction.guild.roles.cache.find(role => role.name === 'she/her');
         const heRole = interaction.guild.roles.cache.find(role => role.name === 'he/him');
         const theyRole = interaction.guild.roles.cache.find(role => role.name === 'they/them');

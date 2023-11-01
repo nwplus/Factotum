@@ -14,7 +14,7 @@ class BotGuild {
      * Staff role permissions.
      * @type {String[]}
      */
-    static staffPermissions = ['VIEW_CHANNEL', 'MANAGE_EMOJIS', 'CHANGE_NICKNAME', 'MANAGE_NICKNAMES', 
+    static staffPermissions = ['VIEW_CHANNEL', 'CHANGE_NICKNAME', 'MANAGE_NICKNAMES', 
     'KICK_MEMBERS', 'BAN_MEMBERS', 'SEND_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES', 'ADD_REACTIONS', 'USE_EXTERNAL_EMOJIS', 'MANAGE_MESSAGES', 
     'READ_MESSAGE_HISTORY', 'CONNECT', 'STREAM', 'SPEAK', 'PRIORITY_SPEAKER', 'USE_VAD', 'MUTE_MEMBERS', 'DEAFEN_MEMBERS', 'MOVE_MEMBERS'];
 
@@ -88,34 +88,19 @@ class BotGuild {
      */
 
     /**
-     * Validate the information.
-     * @param {BotGuildInfo} botGuildInfo - the information to validate
-     * @throws Error if the botGuildInfo is incomplete
-     */
-    validateBotGuildInfo(botGuildInfo) {
-        if (typeof botGuildInfo != 'object') throw new Error('The bot guild information is required!');
-        if (!botGuildInfo?.roleIDs || !botGuildInfo?.roleIDs?.adminRole || !botGuildInfo?.roleIDs?.everyoneRole
-            || !botGuildInfo?.roleIDs?.memberRole || !botGuildInfo?.roleIDs?.staffRole) throw new Error('All the role IDs are required!');
-        if (!botGuildInfo?.channelIDs || !botGuildInfo?.channelIDs?.adminConsole || !botGuildInfo?.channelIDs?.adminLog
-            || !botGuildInfo?.channelIDs?.botSupportChannel) throw new Error('All the channel IDs are required!');
-    }
-
-    /**
      * Will set the minimum required information for the bot to work on this guild.
      * @param {BotGuildInfo} botGuildInfo 
      * @param {SapphireClient} client
      * @returns {Promise<BotGuild>}
      * @async
      */
-    async readyUp(client, botGuildInfo) {
-        this.validateBotGuildInfo(botGuildInfo);
-
+    async readyUp(guild, botGuildInfo) {
         this.roleIDs = botGuildInfo.roleIDs;
         this.channelIDs = botGuildInfo.channelIDs;
+        this.embedColor = botGuildInfo.embedColor;
 
-        let guild = await client.guilds.fetch(this._id);
-
-        let adminRole = await guild.roles.fetch(this.roleIDs.adminRole);
+        this.verification = botGuildInfo.verification;
+        let adminRole = await guild.roles.resolve(this.roleIDs.adminRole);
         // try giving the admins administrator perms
         try {
             if (!adminRole.permissions.has('ADMINISTRATOR')) 
@@ -128,101 +113,30 @@ class BotGuild {
         }
 
         // staff role set up
-        let staffRole = await guild.roles.fetch(this.roleIDs.staffRole);
+        let staffRole = await guild.roles.resolve(this.roleIDs.staffRole);
         staffRole.setMentionable(true);
         staffRole.setHoist(true);
         staffRole.setPermissions(staffRole.permissions.add(BotGuild.staffPermissions));
 
         // regular member role setup
-        let memberRole = await guild.roles.fetch(this.roleIDs.memberRole);
-        memberRole.setMentionable(false);
+        let memberRole = await guild.roles.resolve(this.roleIDs.memberRole);
+        memberRole.setMentionable(true);
         memberRole.setPermissions(memberRole.permissions.add(BotGuild.memberPermissions));
+
+        // mentor role setup
+        let mentorRole = await guild.roles.resolve(this.roleIDs.mentorRole);
+        mentorRole.setMentionable(true);
+        mentorRole.setPermissions(mentorRole.permissions.add(BotGuild.memberPermissions));
 
         // change the everyone role permissions, we do this so that we can lock rooms. For users to see the server when 
         // verification is off, they need to get the member role when greeted by the bot!
-        guild.roles.everyone.setPermissions(0); // no permissions for anything like the guest role
-
-        // create the archive category
-        this.channelIDs.archiveCategory = (await this.createArchiveCategory(guild)).id;
+        // guild.roles.everyone.setPermissions(0); // no permissions for anything like the guest role
 
         this.isSetUpComplete = true;
 
         winston.loggers.get(this._id).event(`The botGuild has run the ready up function.`, {event: "Bot Guild"});
 
         return this;
-    }
-
-    /**
-     * Creates the archive category.
-     * @returns {Promise<CategoryChannel>}
-     * @param {Guild} guild
-     * @private
-     * @async
-     */
-    async createArchiveCategory(guild) {
-        let overwrites = [
-            {
-                id: this.roleIDs.everyoneRole,
-                deny: ['VIEW_CHANNEL']
-            },
-            {
-                id: this.roleIDs.memberRole,
-                allow: ['VIEW_CHANNEL'],
-            },
-            {
-                id: this.roleIDs.staffRole,
-                allow: ['VIEW_CHANNEL'],
-            }
-        ];
-
-        // position is used to create archive at the very bottom!
-        var position = (guild.channels.cache.filter(channel => channel.type === 'category')).size;
-        return await guild.channels.create('💼archive', {
-            type: 'category', 
-            position: position + 1,
-            permissionOverwrites: overwrites,
-        });
-    }
-
-    /**
-     * Will create the admin channels with the correct roles.
-     * @param {Guild} guild 
-     * @param {Role} adminRole 
-     * @param {Role} everyoneRole 
-     * @returns {Promise<{TextChannel, TextChannel}>} - {Admin Console, Admin Log Channel}
-     * @static
-     * @async
-     */
-    static async createAdminChannels(guild, adminRole, everyoneRole) {
-        let adminCategory = await guild.channels.create('Admins', {
-            type: 'category',
-            permissionOverwrites: [
-                {
-                    id: adminRole.id,
-                    allow: 'VIEW_CHANNEL'
-                },
-                {
-                    id: everyoneRole.id,
-                    deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'CONNECT']
-                }
-            ]
-        });
-
-        let adminConsoleChannel = await guild.channels.create('console', {
-            type: 'text',
-            parent: adminCategory,
-        });
-
-        let adminLogChannel = await guild.channels.create('logs', {
-            type: 'text',
-            parent: adminCategory,
-        });
-
-        adminCategory.children.forEach(channel => channel.lockPermissions());
-
-        winston.loggers.get(guild.id).event(`The botGuild has run the create admin channels function.`, {event: "Bot Guild"});
-
-        return {adminConsoleChannel: adminConsoleChannel, adminLog: adminLogChannel};
     }
 
     /**
@@ -246,137 +160,26 @@ class BotGuild {
      * @return {Promise<BotGuild>}
      * @async
      */
-    async setUpVerification(client, guestRoleId, types, verificationChannels = null) {
-        /** @type {SapphireClient.Guild} */
-        let guild = await client.guilds.fetch(this._id);
-
-        try {
-            var guestRole = await guild.roles.fetch(guestRoleId);
-        } catch (error) {
-            throw new Error('The given guest role ID is not valid for this guild!');
-        }
-        guestRole.setMentionable(false);
-        guestRole.setPermissions(0);
+    async setUpVerification(guild, guestRoleId, types, welcomeSupportChannel) {
+        // guestRole.setMentionable(false);
+        // guestRole.setPermissions(0);
         this.verification.guestRoleID = guestRoleId;
 
-        if (verificationChannels) {
-            this.verification.welcomeChannelID = verificationChannels.welcomeChannelID;
-            this.verification.welcomeSupportChannelID = verificationChannels.welcomeChannelSupportID;
-
-            /** @type {TextChannel} */
-            var welcomeChannel = guild.channels.resolve(this.verification.welcomeChannelID);
-            await welcomeChannel.bulkDelete(100, true);
-        } else {
-            let welcomeCategory = await guild.channels.create('Welcome', {
-                type: 'category',
-                permissionOverwrites: [
-                    {
-                        id: this.roleIDs.everyoneRole,
-                        allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
-                    },
-                    {
-                        id: this.roleIDs.memberRole,
-                        deny: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY']
-                    },
-                ],
-            });
-    
-            var welcomeChannel = await guild.channels.create('welcome', {
-                type: 'text',
-                parent: welcomeCategory,
-            });
-    
-            // update welcome channel to not send messages
-            welcomeChannel.updateOverwrite(this.roleIDs.everyoneRole, {
-                SEND_MESSAGES: false,
-            });
-    
-            let welcomeChannelSupport = await guild.channels.create('welcome-support', {
-                type: 'text',
-                parent: welcomeCategory,
-            });
-
-            this.verification.welcomeChannelID = welcomeChannel.id;
-            this.verification.welcomeSupportChannelID = welcomeChannelSupport.id;
-        }
+        this.verification.welcomeSupportChannelID = welcomeSupportChannel;
 
         // add the types to the type map.
-        types.forEach((type, index, list) => {
-            this.verification.verificationRoles.set(type.type.toLowerCase(), type.roleId);
+        types.forEach(async (type, index, list) => {
+            try {
+                await guild.roles.resolve(type.roleId);
+                this.verification.verificationRoles.set(type.name.toLowerCase(), type.roleId);
+            } catch (error) {
+                throw new Error('The given verification role ID is not valid for this guild!');
+            }
         });
-
-        const embed = new MessageEmbed().setTitle('Welcome to the ' + guild.name + ' Discord server!')
-            .setDescription('In order to verify that you have registered for ' + guild.name + ', please respond to the bot (me) via DM!')
-            .addField('Do you need assistance?', 'Head over to the welcome-support channel and ping the admins!')
-            .setColor(this.colors.embedColor);
-        welcomeChannel.send(embed).then(msg => msg.pin());
-
         
         this.verification.isEnabled = true;
-        guild.setCommandEnabled('verify', true);
-
-        winston.loggers.get(this._id).event(`The botGuild has set up the verification system. Verification channels ${verificationChannels === null ? 'were created' : 'were given'}. 
-            Guest role id: ${guestRoleId}. The types used are: ${types.join()}`, {event: "Bot Guild"});
+        // guild.setCommandEnabled('verify', true);
         return this;
-    }
-
-    /**
-     * Sets up the attendance functionality.
-     * @param {SapphireClient} client 
-     * @param {String} attendeeRoleID
-     * @returns {Promise<BotGuild>}
-     * @async
-     */
-    async setUpAttendance(client, attendeeRoleID) {
-        this.attendance.attendeeRoleID = attendeeRoleID;
-        this.attendance.isEnabled = true;
-        /** @type {SapphireClient.Guild} */
-        let guild = await client.guilds.fetch(this._id);
-        guild.setCommandEnabled('start-attend', true);
-        guild.setCommandEnabled('attend', true);
-
-        winston.loggers.get(this._id).event(`The botGuild has set up the attendance functionality. Attendee role id is ${attendeeRoleID}`, {event: "Bot Guild"});
-        return this;
-    }
-
-    /**
-     * Will set up the firebase announcements.
-     * @param {SapphireClient} client 
-     * @param {String} announcementChannelID
-     * @async
-     */
-    async setUpAnnouncements(client, announcementChannelID) {
-        /** @type {SapphireClient.Guild} */
-        let guild = await client.guilds.fetch(this._id);
-        
-        let announcementChannel = guild.channels.resolve(announcementChannelID);
-        if (!announcementChannel) throw new Error('The announcement channel ID is not valid for this guild!');
-
-        this.announcement.isEnabled = true;
-        this.announcement.announcementChannelID = announcementChannelID;
-
-        winston.loggers.get(this._id).event(`The botGuild has set up the announcement functionality with the channel ID ${announcementChannelID}`, {event: "Bot Guild"});
-
-        // TODO Firebase setup 
-        // start query listener for announcements
-        // nwFirebase.firestore().collection('Hackathons').doc('nwHacks2021').collection('Announcements').onSnapshot(querySnapshot => {
-        //     // exit if we are at the initial state
-        //     if (isInitState) {
-        //         isInitState = false;
-        //         return;
-        //     }
-
-        //     querySnapshot.docChanges().forEach(change => {
-        //         if (change.type === 'added') {
-        //             const embed = new Discord.MessageEmbed()
-        //                 .setColor(botGuild.colors.announcementEmbedColor)
-        //                 .setTitle('Announcement')
-        //                 .setDescription(change.doc.data()['content']);
-
-        //             announcementChannel.send('<@&' + discordServices.roleIDs.attendeeRole + '>', { embed: embed });
-        //         }
-        //     });
-        // });
     }
 
     /**
@@ -389,36 +192,36 @@ class BotGuild {
      * @returns {Promise<BotGuild>}
      * @async
      */
-    async setUpStamps(client, stampAmount = 0, stampCollectionTime = 60, stampRoleIDs = []) {
-        let guild = await client.guilds.fetch(this._id);
+    // async setUpStamps(client, stampAmount = 0, stampCollectionTime = 60, stampRoleIDs = []) {
+    //     let guild = await client.guilds.resolve(this._id);
 
-        if (stampRoleIDs.length > 0) {
-            stampRoleIDs.forEach((ID, index, array) => {
-                this.addStamp(ID, index);
-            });
-            winston.loggers.get(this._id).event(`The botGuild has set up the stamp functionality. The stamp roles were given. Stamp collection time is set at ${stampCollectionTime}.` [{stampIds: stampRoleIDs}]);
-        } else {
-            for (let i = 0; i < stampAmount; i++) {
-                let role = await guild.roles.create({
-                    data: {
-                        name: 'Stamp Role #' + i,
-                        hoist: true,
-                        color: discordServices.randomColor(),
-                    }
-                });
+    //     if (stampRoleIDs.length > 0) {
+    //         stampRoleIDs.forEach((ID, index, array) => {
+    //             this.addStamp(ID, index);
+    //         });
+    //         winston.loggers.get(this._id).event(`The botGuild has set up the stamp functionality. The stamp roles were given. Stamp collection time is set at ${stampCollectionTime}.` [{stampIds: stampRoleIDs}]);
+    //     } else {
+    //         for (let i = 0; i < stampAmount; i++) {
+    //             let role = await guild.roles.create({
+    //                 data: {
+    //                     name: 'Stamp Role #' + i,
+    //                     hoist: true,
+    //                     color: discordServices.randomColor(),
+    //                 }
+    //             });
 
-                this.addStamp(role.id, i);
-            }
-            winston.loggers.get(this._id).event(`The botGuild has set up the stamp functionality. Stamps were created by me, I created ${stampAmount} stamps. Stamp collection time is set at ${stampCollectionTime}.`, {event: "Bot Guild"});
-        }
+    //             this.addStamp(role.id, i);
+    //         }
+    //         winston.loggers.get(this._id).event(`The botGuild has set up the stamp functionality. Stamps were created by me, I created ${stampAmount} stamps. Stamp collection time is set at ${stampCollectionTime}.`, {event: "Bot Guild"});
+    //     }
 
-        this.stamps.stampCollectionTime = stampCollectionTime;
-        this.stamps.isEnabled = true;
+    //     this.stamps.stampCollectionTime = stampCollectionTime;
+    //     this.stamps.isEnabled = true;
 
-        // this.setCommandStatus(client);
+    //     // this.setCommandStatus(client);
 
-        return this;
-    }
+    //     return this;
+    // }
 
     /**
      * Adds a stamp to the stamp collection. Does not save the mongoose document!
@@ -432,45 +235,13 @@ class BotGuild {
     }
 
     /**
-     * Enables the report commands and sends the reports to the given channel.
-     * @param {SapphireClient} client 
-     * @param {String} incomingReportChannelID 
-     * @returns {Promise<BotGuild>}
-     * @async
-     */
-    async setUpReport(client, incomingReportChannelID) {
-        /** @type {SapphireClient.Guild} */
-        let guild = await client.guilds.fetch(this._id);
-
-        this.report.isEnabled = true;
-        this.report.incomingReportChannelID = incomingReportChannelID;
-
-        guild.setCommandEnabled('report', true);
-
-        winston.loggers.get(this._id).event(`The botGuild has set up the report functionality. It will send reports to the channel id ${incomingReportChannelID}`, {event: "Bot Guild"});
-        return this;
-    }
-
-    /**
-     * Will enable the ask command.
-     * @param {SapphireClient} client 
-     */
-    async setUpAsk(client) {
-        /** @type {SapphireClient.Guild} */
-        let guild = await client.guilds.fetch(this._id);
-        this.ask.isEnabled = true;
-        guild.setCommandEnabled('ask', true);
-        winston.loggers.get(this._id).event(`The botGuild has enabled the ask command!`, {event: "Bot Guild"});
-    }
-
-    /**
      * Will enable and disable the appropriate commands by looking at what is enabled in the botGuild.
      * @param {SapphireClient} client
      * @async 
      */
     async setCommandStatus(client) {
         /** @type {SapphireClient.Guild} */
-        let guild = await client.guilds.fetch(this._id);
+        let guild = await client.guilds.resolve(this._id);
 
         // guild.setGroupEnabled('verification', this.verification.isEnabled);
         // guild.setGroupEnabled('attendance', this.attendance.isEnabled);

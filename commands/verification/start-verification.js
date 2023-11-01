@@ -30,6 +30,16 @@ class StartVerification extends Command {
      */
     async chatInputRun(interaction) {
         this.botGuild = await BotGuild.findById(interaction.guild.id);
+        const guild = interaction.guild;
+        const userId = interaction.user.id;
+        if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
+            interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
+            return;
+        }
+        if (!this.botGuild.verification.isEnabled) {
+            await interaction.reply({ content: 'Verification has not been enabled!', ephemeral: true});
+            return;
+        }
 
         const embed = new MessageEmbed()
             .setTitle(`Please click the button below to check-in to the ${interaction.guild.name} server! Make sure you know which email you used to apply to ${interaction.guild.name}!`);
@@ -42,7 +52,7 @@ class StartVerification extends Command {
                     .setStyle('PRIMARY'),
             );
         interaction.reply({ content: 'Verification started!', ephemeral: true });
-        const msg = await interaction.channel.send({ content: 'If you have not already, make sure to enable emojis and embeds/link previews in your personal Discord settings! If you have any issues, please find an organizer!', embeds: [embed], components: [row] });
+        const msg = await interaction.channel.send({ content: 'If you have not already, make sure to enable DMs, emojis, and embeds/link previews in your personal Discord settings! If you have any issues, please find an organizer!', embeds: [embed], components: [row] });
 
         const checkInCollector = msg.createMessageComponentCollector({ filter: i => !i.user.bot});
         checkInCollector.on('collect', async i => {
@@ -92,7 +102,14 @@ class StartVerification extends Command {
                 types.forEach(type => {
                     if (this.botGuild.verification.verificationRoles.has(type)) {
                         const member = interaction.guild.members.cache.get(submitted.user.id);
-                        let roleId = this.botGuild.verification.verificationRoles.get(type);
+                        let roleId;
+                        if (type === 'staff') {
+                            roleId = this.botGuild.roleIDs.staffRole;
+                        } else if (type === 'mentor') {
+                            roleId = this.botGuild.roleIDs.mentorRole;
+                        } else {
+                            roleId = this.botGuild.verification.verificationRoles.get(type);
+                        }
                         member.roles.add(roleId);
                         if (correctTypes.length === 0) member.roles.remove(this.botGuild.verification.guestRoleID);
                         correctTypes.push(type);

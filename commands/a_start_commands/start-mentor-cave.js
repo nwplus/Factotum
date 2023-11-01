@@ -68,7 +68,7 @@ class StartMentorCave extends Command {
             // const additionalMentorRole = interaction.options.getRole('additional_mentor_role');
             const publicRole = interaction.options.getRole('request_ticket_role');
             const inactivePeriod = interaction.options.getInteger('inactivity_time');
-            const bufferTime = inactivePeriod / 2;
+            // const bufferTime = inactivePeriod / 2;
             const reminderTime = interaction.options.getInteger('unanswered_ticket_time');
 
             if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
