@@ -41,10 +41,10 @@ class StartMentorCave extends Command {
                     option.setName('request_ticket_role')
                         .setDescription('Tag the role that is allowed to request tickets')
                         .setRequired(true))
-                .addRoleOption(option =>
-                    option.setName('additional_mentor_role')
-                        .setDescription('Tag up to one additional role **aside from mentors and staff** that is allowed to help with tickets')
-                        .setRequired(false))
+                // .addRoleOption(option =>
+                //     option.setName('additional_mentor_role')
+                //         .setDescription('Tag up to one additional role **aside from mentors and staff** that is allowed to help with tickets')
+                //         .setRequired(false))
         ),
         {
             idHints: 1051737344937566229
@@ -65,72 +65,75 @@ class StartMentorCave extends Command {
             let adminConsole = guild.channels.resolve(this.botGuild.channelIDs.adminConsole);
             this.ticketCount = 0;
 
-            const additionalMentorRole = interaction.options.getRole('additional_mentor_role');
+            // const additionalMentorRole = interaction.options.getRole('additional_mentor_role');
             const publicRole = interaction.options.getRole('request_ticket_role');
             const inactivePeriod = interaction.options.getInteger('inactivity_time');
             const bufferTime = inactivePeriod / 2;
             const reminderTime = interaction.options.getInteger('unanswered_ticket_time');
 
             if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
-                await interaction.reply({ message: 'You do not have permissions to run this command!', ephemeral: true });
+                await interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
                 return;
             }
 
             interaction.reply({ content: 'Mentor cave activated!', ephemeral: true });
-            discordLog('Mentor cave started by <@' + userId + '>');
+            discordLog(guild, 'Mentor cave started by <@' + userId + '>');
 
-            // create channels
-            let overwrites =
-                [{
-                    id: this.botGuild.roleIDs.everyoneRole,
-                    deny: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: this.botGuild.roleIDs.mentorRole,
-                    allow: ['VIEW_CHANNEL'],
-                },
-                {
-                    id: this.botGuild.roleIDs.staffRole,
-                    allow: ['VIEW_CHANNEL'],
-                }];
+            // these are all old code that create channels rather than using existing channels
+            // let overwrites =
+            //     [{
+            //         id: this.botGuild.roleIDs.everyoneRole,
+            //         deny: ['VIEW_CHANNEL'],
+            //     },
+            //     {
+            //         id: this.botGuild.roleIDs.mentorRole,
+            //         allow: ['VIEW_CHANNEL'],
+            //     },
+            //     {
+            //         id: this.botGuild.roleIDs.staffRole,
+            //         allow: ['VIEW_CHANNEL'],
+            //     }];
 
-            if (additionalMentorRole) {
-                overwrites.push({
-                    id: additionalMentorRole,
-                    allow: ['VIEW_CHANNEL']
-                });
-            }
+            // if (additionalMentorRole) {
+            //     overwrites.push({
+            //         id: additionalMentorRole,
+            //         allow: ['VIEW_CHANNEL']
+            //     });
+            // }
 
-            let mentorCategory = await channel.guild.channels.create('Mentors',
-                {
-                    type: 'GUILD_CATEGORY',
-                    permissionOverwrites: overwrites
-                }
-            );
+            // let mentorCategory = await channel.guild.channels.create('Mentors',
+            //     {
+            //         type: 'GUILD_CATEGORY',
+            //         permissionOverwrites: overwrites
+            //     }
+            // );
 
-            let announcementsOverwrites = overwrites;
-            announcementsOverwrites.push(
-                {
-                    id: this.botGuild.roleIDs.mentorRole,
-                    deny: ['SEND_MESSAGES'],
-                    allow: ['VIEW_CHANNEL']
-                });
+            // let announcementsOverwrites = overwrites;
+            // announcementsOverwrites.push(
+            //     {
+            //         id: this.botGuild.roleIDs.mentorRole,
+            //         deny: ['SEND_MESSAGES'],
+            //         allow: ['VIEW_CHANNEL']
+            //     });
 
-            await channel.guild.channels.create('mentors-announcements',
-                {
-                    type: 'GUILD_TEXT',
-                    parent: mentorCategory,
-                    permissionOverwrites: announcementsOverwrites
-                }
-            );
+            // await channel.guild.channels.create('mentors-announcements',
+            //     {
+            //         type: 'GUILD_TEXT',
+            //         parent: mentorCategory,
+            //         permissionOverwrites: announcementsOverwrites
+            //     }
+            // );
 
-            const mentorRoleSelectionChannel = await channel.guild.channels.create('mentors-role-selection',
-                {
-                    type: 'GUILD_TEXT',
-                    topic: 'Sign yourself up for specific roles! New roles will be added as requested, only add yourself to one if you feel comfortable responding to questions about the topic.',
-                    parent: mentorCategory
-                }
-            );
+            // const mentorRoleSelectionChannel = await channel.guild.channels.create('mentors-role-selection',
+            //     {
+            //         type: 'GUILD_TEXT',
+            //         topic: 'Sign yourself up for specific roles! New roles will be added as requested, only add yourself to one if you feel comfortable responding to questions about the topic.',
+            //         parent: mentorCategory
+            //     }
+            // );
+            const mentorRoleSelectionChannel = guild.channels.resolve(this.botGuild.channelIDs.mentorRoleSelectionChannel);
+            const incomingTicketChannel = guild.channels.resolve(this.botGuild.channelIDs.incomingTicketChannel);
+            const requestTicketChannel = guild.channels.resolve(this.botGuild.channelIDs.requestTicketChannel);
 
             //TODO: allow staff to add more roles
             const htmlCssEmoji = '💻';
@@ -213,64 +216,64 @@ class StartMentorCave extends Command {
                 }
             });
 
-            channel.guild.channels.create('mentors-general',
-                {
-                    type: 'GUILD_TEXT',
-                    topic: 'Private chat between all mentors and organizers',
-                    parent: mentorCategory
-                }
-            );
+            // channel.guild.channels.create('mentors-general',
+            //     {
+            //         type: 'GUILD_TEXT',
+            //         topic: 'Private chat between all mentors and organizers',
+            //         parent: mentorCategory
+            //     }
+            // );
 
-            const incomingTicketChannel = await channel.guild.channels.create('incoming-tickets',
-                {
-                    type: 'GUILD_TEXT',
-                    topic: 'Tickets from hackers will come in here!',
-                    parent: mentorCategory
-                }
-            );
+            // const incomingTicketChannel = await channel.guild.channels.create('incoming-tickets',
+            //     {
+            //         type: 'GUILD_TEXT',
+            //         topic: 'Tickets from hackers will come in here!',
+            //         parent: mentorCategory
+            //     }
+            // );
 
-            const mentorHelpCategory = await channel.guild.channels.create('Mentor-help',
-                {
-                    type: 'GUILD_CATEGORY',
-                    permissionOverwrites: [
-                        {
-                            id: this.botGuild.verification.guestRoleID,
-                            deny: ['VIEW_CHANNEL'],
-                        },
-                    ]
-                }
-            );
+            // const mentorHelpCategory = await channel.guild.channels.create('Mentor-help',
+            //     {
+            //         type: 'GUILD_CATEGORY',
+            //         permissionOverwrites: [
+            //             {
+            //                 id: this.botGuild.verification.guestRoleID,
+            //                 deny: ['VIEW_CHANNEL'],
+            //             },
+            //         ]
+            //     }
+            // );
 
-            channel.guild.channels.create('quick-questions',
-                {
-                    type: 'GUILD_TEXT',
-                    topic: 'ask questions for mentors here!',
-                    parent: mentorHelpCategory
-                }
-            );
+            // channel.guild.channels.create('quick-questions',
+            //     {
+            //         type: 'GUILD_TEXT',
+            //         topic: 'ask questions for mentors here!',
+            //         parent: mentorHelpCategory
+            //     }
+            // );
 
-            const requestTicketChannel = await channel.guild.channels.create('request-ticket',
-                {
-                    type: 'GUILD_TEXT',
-                    topic: 'request 1-on-1 help from mentors here!',
-                    parent: mentorHelpCategory,
-                    permissionOverwrites: [
-                        {
-                            id: publicRole,
-                            allow: ['VIEW_CHANNEL'],
-                            deny: ['SEND_MESSAGES']
-                        },
-                        {
-                            id: this.botGuild.roleIDs.staffRole,
-                            allow: ['VIEW_CHANNEL']
-                        },
-                        {
-                            id: this.botGuild.roleIDs.everyoneRole,
-                            deny: ['VIEW_CHANNEL']
-                        }
-                    ]
-                }
-            );
+            // const requestTicketChannel = await channel.guild.channels.create('request-ticket',
+            //     {
+            //         type: 'GUILD_TEXT',
+            //         topic: 'request 1-on-1 help from mentors here!',
+            //         parent: mentorHelpCategory,
+            //         permissionOverwrites: [
+            //             {
+            //                 id: publicRole,
+            //                 allow: ['VIEW_CHANNEL'],
+            //                 deny: ['SEND_MESSAGES']
+            //             },
+            //             {
+            //                 id: this.botGuild.roleIDs.staffRole,
+            //                 allow: ['VIEW_CHANNEL']
+            //             },
+            //             {
+            //                 id: this.botGuild.roleIDs.everyoneRole,
+            //                 deny: ['VIEW_CHANNEL']
+            //             }
+            //         ]
+            //     }
+            // );
 
             const requestTicketEmbed = new MessageEmbed()
                 .setTitle('Need 1:1 mentor help?')
@@ -296,10 +299,10 @@ class StartMentorCave extends Command {
             selectMenuCollector.on('collect', async i => {
                 if (i.customId === 'ticketType') {
                     requestTicketConsole.edit({ embeds: [requestTicketEmbed], components: [selectMenuRow] });
-                    // if (!guild.members.cache.get(i.user.id).roles.cache.has(publicRole.id)) {
-                    //     await i.reply({ message: 'You do not have permissions to request tickets!', ephemeral: true });
-                    //     return
-                    // }
+                    if (!guild.members.cache.get(i.user.id).roles.cache.has(publicRole.id)) {
+                        await i.reply({ content: 'You do not have permissions to request tickets!', ephemeral: true });
+                        return;
+                    }
                     const modal = new Modal()
                         .setCustomId('ticketSubmitModal')
                         .setTitle(i.values[0] === 'None of the above' ? 'Request a general mentor ticket' : 'Request a ticket for ' + i.values[0])
@@ -321,16 +324,7 @@ class StartMentorCave extends Command {
                                     .setMaxLength(300)
                                     .setStyle('PARAGRAPH')
                                     .setRequired(true),
-                            ),
-                            new MessageActionRow().addComponents(
-                                new TextInputComponent()
-                                    .setCustomId('helpFormat')
-                                    .setLabel('Would you be OK with an online mentor?')
-                                    .setMaxLength(20)
-                                    .setPlaceholder('Enter yes or no')
-                                    .setStyle('SHORT')
-                                    .setRequired(true),
-                            ),
+                            )
                         ]);
                     await i.showModal(modal);
 
@@ -526,12 +520,6 @@ class StartMentorCave extends Command {
                         .setCustomId('addRole')
                         .setLabel('Add Mentor Role')
                         .setStyle('PRIMARY'),
-                )
-                .addComponents(
-                    new MessageButton()
-                        .setCustomId('deleteCave')
-                        .setLabel('Delete Cave')
-                        .setStyle('DANGER'),
                 );
 
             const adminControls = await adminConsole.send({ embeds: [adminEmbed], components: [adminRow] });
@@ -587,18 +575,6 @@ class StartMentorCave extends Command {
                         collected.delete();
 
                     });
-
-
-                } else if (adminInteraction.customId === 'deleteCave') {
-                    adminInteraction.reply({ content: 'Mentor cave deleted!', ephemeral: true });
-                    discordLog('Mentor cave deleted by <@' + adminInteraction.user.id + '>');
-                    // unknown channel error
-                    await mentorCategory.delete();
-                    await mentorHelpCategory.delete();
-                    await mentorRoleSelectionChannel.delete();
-                    await incomingTicketChannel.delete();
-                    await requestTicketChannel.delete();
-                    await adminControls.delete();
                 }
             });
         } catch (error) {

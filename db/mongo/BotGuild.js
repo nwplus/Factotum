@@ -41,6 +41,15 @@ const BotGuildSchema = new Schema({
         archiveCategory: {
             type: String,
         },
+        incomingTicketsChannel: {
+            type: String,
+        },
+        mentorRoleSelectionChannel: {
+            type: String,
+        },
+        requestTicketChannel: {
+            type: String,
+        }
     },
 
     verification: {

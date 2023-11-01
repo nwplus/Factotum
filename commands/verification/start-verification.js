@@ -97,7 +97,7 @@ class StartVerification extends Command {
                         if (correctTypes.length === 0) member.roles.remove(this.botGuild.verification.guestRoleID);
                         correctTypes.push(type);
                     } else {
-                        discordLog(`VERIFY WARNING: <@${submitted.user.id}> was of type ${type} but I could not find that type!`);
+                        discordLog(interaction.guild, `VERIFY WARNING: <@${submitted.user.id}> was of type ${type} but I could not find that type!`);
                     }
                 });
 

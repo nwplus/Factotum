@@ -322,7 +322,7 @@ class DiscordContests extends Command {
         async function recordWinner(member) {
             try {
                 let email = await lookupById(guild.id, member.id);
-                discordLog(`Discord contest winner: ${member.id} - ${email}`);
+                discordLog(guild, `Discord contest winner: ${member.id} - ${email}`);
             } catch (error) {
                 console.log(error);
             }

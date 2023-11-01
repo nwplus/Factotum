@@ -22,6 +22,9 @@ interface BotGuild extends Document {
         botSupportChannel: String,
         archiveCategory: String,
         botSpamChannel: String,
+        incomingTicketsChannel: String,
+        mentorRoleSelectionChannel: String,
+        requestTicketChannel: String
     },
 
     verification: {

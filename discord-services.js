@@ -175,7 +175,7 @@ module.exports.replaceRoleToMember = replaceRoleToMember;
 async function discordLog(guild, message) {
     let botGuild = await BotGuild.findById(guild.id);
     if (botGuild?.channelIDs?.adminLog) {
-        guild.channels.cache.get(botGuild.channelIDs.adminLog)?.send(message);
+        guild.channels.resolve(botGuild.channelIDs.adminLog)?.send(message);
         winston.loggers.get(guild.id).silly(`The following was logged to discord: ${message}`);
     }
     else winston.loggers.get(guild.id).error('I was not able to log something to discord!! I could not find the botGuild or the adminLog channel!');
@@ -292,7 +292,7 @@ async function askBoolQuestion(member, botGuild, title, description, thankYouMes
     await message.react('👍');
     const filter = (reaction, user) => {
         return reaction.emoji.name === '👍' && user.id != message.author.id;
-    }
+    };
     const collector = message.createReactionCollector(filter, { max: 1 });
     collector.on('collect', async (reaction, user) => {
         sendMessageToMember(member, thankYouMessage, false);
