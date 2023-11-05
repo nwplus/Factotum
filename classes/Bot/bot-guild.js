@@ -99,7 +99,6 @@ class BotGuild {
         this.channelIDs = botGuildInfo.channelIDs;
         this.embedColor = botGuildInfo.embedColor;
 
-        this.verification = botGuildInfo.verification;
         let adminRole = await guild.roles.resolve(this.roleIDs.adminRole);
         // try giving the admins administrator perms
         try {
@@ -166,7 +165,6 @@ class BotGuild {
         this.verification.guestRoleID = guestRoleId;
 
         this.verification.welcomeSupportChannelID = welcomeSupportChannel;
-
         // add the types to the type map.
         types.forEach(async (type, index, list) => {
             try {

@@ -131,19 +131,17 @@ class InitBot extends Command {
             isEnabled: useVerification
         };
         if (useVerification) {
-            guest = interaction.options.getRole('guest');
-            welcomeSupportChannel = interaction.options.getChannel('welcome_support_channel');
+            guest = interaction.options.getRole('guest').id;
+            welcomeSupportChannel = interaction.options.getChannel('welcome_support_channel').id;
             verificationRoles = interaction.options.getAttachment('verification_roles');
-            console.log(verificationRoles.url);
+            // if ()
             try {
                 const response = await fetch(verificationRoles.url);
-                console.log('response' + response);
                 let res = await response.json();
-                console.log(res);
-                // botGuild.setUpVerification(guild, guest, res, welcomeSupportChannel);
+                await botGuild.setUpVerification(guild, guest, res, welcomeSupportChannel);
             } catch (error) {
                 console.error('error: ' + error);
-                interaction.reply({ content: error, ephemeral: true});
+                interaction.reply({ content: 'An error occurred with the file upload or verification roles upload!', ephemeral: true});
             }
         }
         // const useStamps = interaction.options.getBoolean('use_stamps');
@@ -159,7 +157,7 @@ class InitBot extends Command {
         //     firstStampRole = interaction.options.getInteger('0th_stamp_role');
         //     botGuild.setUpStamps(this.client, numberOfStamps, stampTime, firstStampRole);
         // }
-        const embedColor = interaction.options.getString('embed_colour');
+        const embedColor = interaction.options.getString('embed_colour') || '#26fff4';
 
         // ask the user to move our role up the list
         await interaction.reply({content: 'Before we move on, could you please move my role up the role list as high as possible, this will give me the ability to assign roles!', ephemeral: true});
@@ -179,7 +177,6 @@ class InitBot extends Command {
                 adminConsole: adminConsole.id
             }
         });
-
         await botGuild.save();
         // botGuild.setCommandStatus(this.client);
 

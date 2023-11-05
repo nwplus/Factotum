@@ -65,6 +65,8 @@ interface BotGuild extends Document {
      */
     async readyUp(client, botGuildInfo);
 
+    setUpVerification(guild, guestRoleId, types, welcomeSupportChannel);
+
     /**
      * Staff role permissions.
      * @static

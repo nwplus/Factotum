@@ -100,7 +100,7 @@ class StartVerification extends Command {
 
                 var correctTypes = [];
                 types.forEach(type => {
-                    if (this.botGuild.verification.verificationRoles.has(type)) {
+                    if (this.botGuild.verification.verificationRoles.has(type) || type === 'staff' || type === 'mentor') {
                         const member = interaction.guild.members.cache.get(submitted.user.id);
                         let roleId;
                         if (type === 'staff') {
@@ -111,7 +111,10 @@ class StartVerification extends Command {
                             roleId = this.botGuild.verification.verificationRoles.get(type);
                         }
                         member.roles.add(roleId);
-                        if (correctTypes.length === 0) member.roles.remove(this.botGuild.verification.guestRoleID);
+                        if (correctTypes.length === 0) {
+                            member.roles.remove(this.botGuild.verification.guestRoleID);
+                            member.roles.add(this.botGuild.roleIDs.memberRole);
+                        }
                         correctTypes.push(type);
                     } else {
                         discordLog(interaction.guild, `VERIFY WARNING: <@${submitted.user.id}> was of type ${type} but I could not find that type!`);

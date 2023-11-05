@@ -61,7 +61,9 @@ class DiscordContests extends Command {
         // this.botGuild = this.botGuild;
         let guild = interaction.guild;
         this.botGuild = await BotGuild.findById(guild.id);
-        let botSpamChannel = guild.channels.resolve(this.botGuild.channelIDs.botSpamChannel);
+        // let botSpamChannel = guild.channels.resolve(this.botGuild.channelIDs.botSpamChannel);
+        let adminLog = guild.channels.resolve(this.botGuild.channelIDs.adminLog);
+        let adminConsole = guild.channels.resolve(this.botGuild.channelIDs.adminConsole);
 
         var interval;
 
@@ -72,6 +74,11 @@ class DiscordContests extends Command {
 
         if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
             interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
+            return;
+        }
+
+        if (Object.values(this.botGuild.roleIDs).includes(roleId) || Object.values(this.botGuild.verification.verificationRoles).includes(roleId)) {
+            interaction.reply({ content: 'This role cannot be used! Please pick a role that is specifically for Discord Contest notifications!', ephemeral: true });
             return;
         }
         // try {
@@ -134,7 +141,7 @@ class DiscordContests extends Command {
         // });
 
         const startEmbed = new MessageEmbed()
-            .setColor(this.botGuild.colors.embedColor)
+            .setColor(this.botGuild.embedColor)
             .setTitle(string)
             .setDescription('Note: Short-answer questions are non-case sensitive but any extra or missing symbols will be considered incorrect.')
             .addFields([{name: 'Click the 🍀 emoji below to be notified when a new question drops!', value: 'You can un-react to stop.'}]);
@@ -158,7 +165,9 @@ class DiscordContests extends Command {
             }
         });
 
-        const controlPanel = await botSpamChannel.send({ content: 'Discord contests started by <@' + userId + '>', components: [row] });
+        interaction.reply({ content: 'Discord contest has been started!', ephemeral: true });
+        const controlPanel = await adminConsole.send({ content: 'Discord contests control panel. Status: Active', components: [row] });
+        adminLog.send('Discord contests started by <@' + userId + '>');
         const filter = i => !i.user.bot && (guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.roleIDs.staffRole) || guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.roleIDs.adminRole));
         const collector = controlPanel.createMessageComponentCollector({filter});
         collector.on('collect', async i => {
@@ -168,14 +177,14 @@ class DiscordContests extends Command {
             } else if (interval != null && !paused && i.customId == 'pause') {
                 clearInterval(interval);
                 paused = true;
-                await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Discord contest paused by <@' + i.user.id + '>!');
-                await i.reply({ content: 'Discord contest has been paused!', ephemeral: true });
+                await i.reply({ content: 'Discord contests has been paused!', ephemeral: true });
+                await controlPanel.edit({ content: 'Discord contests control panel. Status: Paused'});
             } else if (paused && i.customId == 'play') {
                 await sendQuestion(this.botGuild);
                 interval = setInterval(sendQuestion, timeInterval, this.botGuild);
                 paused = false;
-                await guild.channels.resolve(this.botGuild.channelIDs.adminLog).send('Discord contest restarted by <@' + i.user.id + '>!');
-                await i.reply({ content: 'Discord contest has been un-paused!', ephemeral: true });
+                await i.reply({ content: 'Discord contests has been un-paused!', ephemeral: true });
+                await controlPanel.edit({ content: 'Discord contests control panel. Status: Active'});
             } else {
                 await i.reply({ content: 'Wrong button or wrong permissions!', ephemeral: true });
             }
@@ -242,7 +251,7 @@ class DiscordContests extends Command {
             channel.send({ content: '<@&' + roleId + '>', embeds: [qEmbed] }).then(async (msg) => {
                 if (answers.length === 0) {
                     //send message to console
-                    const questionMsg = await botSpamChannel.send({ content: '<@&' + botGuild.roleIDs.staffRole + '>' + 'need manual review!', embeds: [qEmbed], components: [row] });
+                    const questionMsg = await adminConsole.send({ content: '<@&' + botGuild.roleIDs.staffRole + '>' + 'need manual review!', embeds: [qEmbed], components: [row] });
 
                     const filter = i => !i.user.bot && i.customId === 'winner' && (guild.members.cache.get(i.user.id).roles.cache.has(botGuild.roleIDs.staffRole) || guild.members.cache.get(i.user.id).roles.cache.has(botGuild.roleIDs.adminRole));
                     const collector = await questionMsg.createMessageComponentCollector({ filter });
@@ -251,7 +260,7 @@ class DiscordContests extends Command {
                         const winnerRequest = await i.reply({ content: '<@' + i.user.id + '> Mention the winner in your next message!', fetchReply: true });
 
                         const winnerFilter = message => message.author.id === i.user.id; // error?
-                        const winnerCollector = botSpamChannel.createMessageCollector({ filter: winnerFilter, max: 1 });
+                        const winnerCollector = await adminConsole.createMessageCollector({ filter: winnerFilter, max: 1 });
                         winnerCollector.on('collect', async m => {
                             if (m.mentions.members.size > 0) {
                                 const member = await m.mentions.members.first();
@@ -322,7 +331,7 @@ class DiscordContests extends Command {
         async function recordWinner(member) {
             try {
                 let email = await lookupById(guild.id, member.id);
-                discordLog(guild, `Discord contest winner: ${member.id} - ${email}`);
+                discordLog(guild, `Discord contest winner: <@${member.id}> - ${email}`);
             } catch (error) {
                 console.log(error);
             }
