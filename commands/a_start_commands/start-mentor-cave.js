@@ -41,10 +41,18 @@ class StartMentorCave extends Command {
                     option.setName('request_ticket_role')
                         .setDescription('Tag the role that is allowed to request tickets')
                         .setRequired(true))
-                // .addRoleOption(option =>
-                //     option.setName('additional_mentor_role')
-                //         .setDescription('Tag up to one additional role **aside from mentors and staff** that is allowed to help with tickets')
-                //         .setRequired(false))
+                .addChannelOption(option =>
+                    option.setName('mentor_role_selection_channel')
+                        .setDescription('Tag the channel where mentors can select their specialties')
+                        .setRequired(false))
+                .addChannelOption(option =>
+                    option.setName('incoming_tickets_channel')
+                        .setDescription('Tag the channel where mentor tickets will be sent')
+                        .setRequired(false))
+                .addChannelOption(option =>
+                    option.setName('request_ticket_channel')
+                        .setDescription('Tag the channel where hackers can request tickets')
+                        .setRequired(false))
         ),
         {
             idHints: 1051737344937566229
@@ -62,7 +70,13 @@ class StartMentorCave extends Command {
             let userId = interaction.user.id;
             let guild = interaction.guild;
             this.botGuild = await BotGuild.findById(guild.id);
-            let adminConsole = guild.channels.resolve(this.botGuild.channelIDs.adminConsole);
+
+            if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
+                await interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
+                return;
+            }
+
+            let adminConsole = await guild.channels.resolve(this.botGuild.channelIDs.adminConsole);
             this.ticketCount = 0;
 
             // const additionalMentorRole = interaction.options.getRole('additional_mentor_role');
@@ -70,13 +84,25 @@ class StartMentorCave extends Command {
             const inactivePeriod = interaction.options.getInteger('inactivity_time');
             // const bufferTime = inactivePeriod / 2;
             const reminderTime = interaction.options.getInteger('unanswered_ticket_time');
-
-            if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
-                await interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
+            const mentorRoleSelectionChannel = interaction.options.getChannel('mentor_role_selection_channel') ?? await guild.channels.resolve(this.botGuild.mentorTickets.mentorRoleSelectionChannel);
+            const incomingTicketsChannel = interaction.options.getChannel('incoming_tickets_channel') ?? await guild.channels.resolve(this.botGuild.mentorTickets.incomingTicketsChannel);
+            const requestTicketChannel = interaction.options.getChannel('request_ticket_channel') ?? await guild.channels.resolve(this.botGuild.mentorTickets.requestTicketChannel);
+            if (!mentorRoleSelectionChannel || !incomingTicketsChannel || !requestTicketChannel) {
+                await interaction.reply({ content: 'Please enter all 3 channels!', ephemeral: true });
                 return;
             }
 
-            interaction.reply({ content: 'Mentor cave activated!', ephemeral: true });
+            if (mentorRoleSelectionChannel != this.botGuild.mentorTickets.mentorRoleSelectionChannel || incomingTicketsChannel != this.botGuild.mentorTickets.incomingTicketsChannel || requestTicketChannel != this.botGuild.mentorTickets.requestTicketChannel) {
+                await interaction.deferReply();
+                this.botGuild.mentorTickets.mentorRoleSelectionChannel = mentorRoleSelectionChannel.id;
+                this.botGuild.mentorTickets.incomingTicketsChannel = incomingTicketsChannel.id;
+                this.botGuild.mentorTickets.requestTicketChannel = requestTicketChannel.id;
+                await this.botGuild.save();
+                await interaction.editReply({ content: 'Mentor cave activated!', ephemeral: true });
+            } else {
+                await interaction.reply({ content: 'Mentor cave activated!', ephemeral: true });
+            }
+
             discordLog(guild, 'Mentor cave started by <@' + userId + '>');
 
             // these are all old code that create channels rather than using existing channels
@@ -131,9 +157,6 @@ class StartMentorCave extends Command {
             //         parent: mentorCategory
             //     }
             // );
-            const mentorRoleSelectionChannel = guild.channels.resolve(this.botGuild.channelIDs.mentorRoleSelectionChannel);
-            const incomingTicketsChannel = guild.channels.resolve(this.botGuild.channelIDs.incomingTicketsChannel);
-            const requestTicketChannel = guild.channels.resolve(this.botGuild.channelIDs.requestTicketChannel);
 
             //TODO: allow staff to add more roles
             const htmlCssEmoji = '💻';
@@ -197,7 +220,6 @@ class StartMentorCave extends Command {
                 roleSelectionMsg.react(key);
             }
 
-            const notBotFilter = i => !i.user.bot;
             const collector = roleSelectionMsg.createReactionCollector({ filter: (reaction, user) => !user.bot, dispose: true });
             collector.on('collect', async (reaction, user) => {
                 if (emojisMap.has(reaction.emoji.name)) {

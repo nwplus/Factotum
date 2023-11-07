@@ -19,9 +19,11 @@ interface BotGuild extends Document {
     channelIDs: {
         adminConsole: String,
         adminLog: String,
-        botSupportChannel: String,
-        archiveCategory: String,
         botSpamChannel: String,
+    },
+
+    mentorTickets: {
+        // ticketNumber: Number,
         incomingTicketsChannel: String,
         mentorRoleSelectionChannel: String,
         requestTicketChannel: String

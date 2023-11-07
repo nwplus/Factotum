@@ -56,15 +56,15 @@ class InitBot extends Command {
                         .setRequired(true))
                 .addRoleOption(option =>
                     option.setName('guest')
-                        .setDescription('Mention the guest role **if verification is on**')
+                        .setDescription('Mention the guest role.')
                         .setRequired(true))
                 .addChannelOption(option =>
                     option.setName('welcome_support_channel')
-                        .setDescription('Mention the channel for verification issues (must be viewable to guests) **if verification is on**!')
+                        .setDescription('Mention the channel for verification issues (must be viewable to guests)!')
                         .setRequired(true))
                 .addAttachmentOption(option =>
                     option.setName('verification_roles')
-                        .setDescription('File: array of objects! Each role string in the participants\' database and corresponding role ID **if verification is on**.')
+                        .setDescription('File: array of objects! Each role string in the participants\' database and corresponding role ID.')
                         .setRequired(true))
                 // .addBooleanOption(option => 
                 //     option.setName('use_stamps')

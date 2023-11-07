@@ -34,7 +34,13 @@ const BotGuildSchema = new Schema({
         },
         botSpamChannel: {
             type: String,
-        },
+        }
+    },
+
+    mentorTickets: {
+        // ticketNumber: {
+        //     type: Number,
+        // },
         incomingTicketsChannel: {
             type: String,
         },
