@@ -88,7 +88,7 @@ class InitBot extends Command {
                         .setRequired(false))
         ),
         {
-            idHints: 1051737348502728764
+            idHints: '1051737348502728764'
         };
     }
 

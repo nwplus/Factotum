@@ -41,7 +41,7 @@ class SelfCareReminders extends Command {
                         .setRequired(false))
         ),
         {
-            idHints: 1052699103143927859
+            idHints: '1052699103143927859'
         };
     }
 
