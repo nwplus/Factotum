@@ -86,10 +86,9 @@ class InitBot extends Command {
                     option.setName('embed_colour')
                         .setDescription('Hex code of embed colour')
                         .setRequired(false))
-                .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         ),
         {
-            idHints: 1051737348502728764
+            idHints: '1051737348502728764'
         };
     }
 

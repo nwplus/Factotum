@@ -43,7 +43,7 @@ class DiscordContests extends Command {
                         .setRequired(false))
         ),
         {
-            idHints: 1051737343729610812
+            idHints: '1051737343729610812'
         };
     }
 

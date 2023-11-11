@@ -20,7 +20,7 @@ class StartVerification extends Command {
                 .setDescription(this.description)
         ),
         {
-            idHints: 1060545714133938309
+            idHints: '1060545714133938309'
         };
     }
 

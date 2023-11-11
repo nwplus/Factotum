@@ -55,7 +55,7 @@ class StartMentorCave extends Command {
                         .setRequired(false))
         ),
         {
-            idHints: 1051737344937566229
+            idHints: '1051737344937566229'
         };
     }
 

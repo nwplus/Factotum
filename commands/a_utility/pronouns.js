@@ -28,7 +28,7 @@ class Pronouns extends Command {
                 .setDescription(this.description)
         ),
         {
-            idHints: 1051737347441569813
+            idHints: '1051737347441569813'
         };
     }
 
