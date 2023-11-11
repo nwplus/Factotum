@@ -55,6 +55,11 @@ class StartVerification extends Command {
         const msg = await interaction.channel.send({ content: 'If you have not already, make sure to enable DMs, emojis, and embeds/link previews in your personal Discord settings! If you have any issues, please find an organizer!', embeds: [embed], components: [row] });
 
         const checkInCollector = msg.createMessageComponentCollector({ filter: i => !i.user.bot});
+
+        // console.log(this.botGuild.verification.guestRoleID)
+        // console.log(this.botGuild.verification)
+
+
         checkInCollector.on('collect', async i => {
             if (!interaction.guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.verification.guestRoleID)) {
                 await i.reply({ content: 'You are not eligible to be checked in! If you don\'t have correct access to the server, please contact an organizer.', ephemeral: true});
