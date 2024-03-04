@@ -174,6 +174,7 @@ class StartMentorCave extends Command {
             const rustEmoji = '⚙️';
             const awsEmoji = '🙂';
             const ideationEmoji = '💡';
+            const pitchingEmoji = '🎤';
 
             let emojisMap = new Map();
             emojisMap.set(htmlCssEmoji, 'HTML/CSS');
@@ -190,7 +191,8 @@ class StartMentorCave extends Command {
             emojisMap.set(unityEmoji, 'Unity');
             emojisMap.set(rustEmoji, 'Rust');
             emojisMap.set(awsEmoji, 'AWS');
-            emojisMap.set(ideationEmoji, 'Ideation/Pitching');
+            emojisMap.set(ideationEmoji, 'Ideation');
+            emojisMap.set(pitchingEmoji, 'Pitching');
 
             const mentorRoleColour = guild.roles.cache.find(role => role.id === this.botGuild.roleIDs.mentorRole).hexColor;
             for (let value of emojisMap.values()) {
