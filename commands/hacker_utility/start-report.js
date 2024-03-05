@@ -149,8 +149,8 @@ class StartReport extends Command {
                             .setCustomId('issueMessage')
                             .setLabel('Reason for report:')
                             .setMinLength(3)
-                            .setMaxLength(320)
-                            .setStyle('SHORT')
+                            .setMaxLength(1000)
+                            .setStyle(2)
                             .setPlaceholder('Type your issue here...')
                             .setRequired(true),
                     ),
