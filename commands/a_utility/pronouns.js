@@ -7,8 +7,6 @@ const BotGuild = require('../../db/mongo/BotGuild');
  * * she/her
  * * he/him
  * * they/them
- * * she/they
- * * he/they
  * * other pronouns
  * The roles must be already created on the server for this to work.
  * @category Commands
@@ -49,28 +47,24 @@ class Pronouns extends Command {
         const sheRole = interaction.guild.roles.cache.find(role => role.name === 'she/her');
         const heRole = interaction.guild.roles.cache.find(role => role.name === 'he/him');
         const theyRole = interaction.guild.roles.cache.find(role => role.name === 'they/them');
-        const sheTheyRole = interaction.guild.roles.cache.find(role => role.name === 'she/they');
-        const heTheyRole = interaction.guild.roles.cache.find(role => role.name === 'he/they');
         const otherRole = interaction.guild.roles.cache.find(role => role.name === 'other pronouns');
 
         // check to make sure all 4 roles are available
-        if (!sheRole || !heRole || !theyRole || !sheTheyRole || !heTheyRole || !otherRole) {
+        if (!sheRole || !heRole || !theyRole || !otherRole) {
             interaction.reply('Could not find all four roles! Make sure the role names are exactly like stated on the documentation.');
             return;
         }
 
-        var emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'];
+        var emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'];
 
         let embed = new MessageEmbed()
             .setColor('#0DEFE1')
-            .setTitle('Set your pronouns by reacting to one of the emojis!')
+            .setTitle('Set your pronouns by reacting to one or more of the emojis!')
             .setDescription(
                 `${emojis[0]} she/her\n`
                 + `${emojis[1]} he/him\n`
                 + `${emojis[2]} they/them\n`
-                + `${emojis[3]} she/they\n`
-                + `${emojis[4]} he/they\n`
-                + `${emojis[5]} other pronouns\n`);
+                + `${emojis[3]} other pronouns\n`);
 
         let messageEmbed = await interaction.channel.send({embeds: [embed]});
         emojis.forEach(emoji => messageEmbed.react(emoji));
@@ -96,12 +90,6 @@ class Pronouns extends Command {
                 await member.roles.add(theyRole);
             } if (reaction.emoji.name === emojis[3]) {
                 const member = interaction.guild.members.cache.get(user.id);
-                await member.roles.add(sheTheyRole);
-            } if (reaction.emoji.name === emojis[4]) {
-                const member = interaction.guild.members.cache.get(user.id);
-                await member.roles.add(heTheyRole);
-            } if (reaction.emoji.name === emojis[5]) {
-                const member = interaction.guild.members.cache.get(user.id);
                 await member.roles.add(otherRole);
             }
         });
@@ -117,12 +105,6 @@ class Pronouns extends Command {
                 const member = interaction.guild.members.cache.get(user.id);
                 await member.roles.remove(theyRole);
             } if (reaction.emoji.name === emojis[3]) {
-                const member = interaction.guild.members.cache.get(user.id);
-                await member.roles.remove(sheTheyRole);
-            } if (reaction.emoji.name === emojis[4]) {
-                const member = interaction.guild.members.cache.get(user.id);
-                await member.roles.remove(heTheyRole);
-            } if (reaction.emoji.name === emojis[5]) {
                 const member = interaction.guild.members.cache.get(user.id);
                 await member.roles.remove(otherRole);
             }
