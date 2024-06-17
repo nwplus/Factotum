@@ -12,7 +12,7 @@ const Verification = require('./classes/Bot/Features/Verification/verification')
 const { StringPrompt } = require('advanced-discord.js-prompts');
 const Sentry = require('@sentry/node');
 const Tracing = require('@sentry/tracing');
-const { LogLevel, SapphireClient } = require('@sapphire/framework')
+const { LogLevel, SapphireClient } = require('@sapphire/framework');
 
 /**
  * The Main App module houses the bot events, process events, and initializes
@@ -26,32 +26,27 @@ const { LogLevel, SapphireClient } = require('@sapphire/framework')
  * Read command line args to know if prod, dev, or test and what server
  * First arg is one of prod, dev or test
  * the second is the test server, but the first one must be test
- * @param {string[]} args 
  * @returns {Map} config settings
  */
-function getConfig(args) {
-    if (args.length >= 1) {
-        if (args[0] === 'dev') {
-            // Default dev
-            return JSON.parse(process.env.DEV);
-        } else if (args[0] === 'prod') {
-            // Production
-            if (args[1] === 'yes') {
-                return JSON.parse(process.env.PROD);
-            }
-        } else if (args[0] === 'test') {
-            // Test
-            const testConfig = JSON.parse(process.env.TEST);
-            let server = args[1] ?? 0;
-            if (server === '1') {
-                return testConfig['ONE'];
-            } else if (server === '2') {
-                return testConfig['TWO'];
-            } else if (server === '3') {
-                return testConfig['THREE'];
-            } else if (server === '4') {
-                return testConfig['FOUR'];
-            }
+function getConfig() {
+    if (process.env.NODE_ENV === 'DEV') {
+        // Default dev
+        return JSON.parse(process.env.DEV);
+    } else if (process.env.NODE_ENV === 'PROD') {
+        // Production
+        return JSON.parse(process.env.PROD);
+    } else if (process.env.NODE_ENV === 'TEST') {
+        // Test
+        const testConfig = JSON.parse(process.env.TEST);
+        let server = process.env.SERVER;
+        if (server === '1') {
+            return testConfig['ONE'];
+        } else if (server === '2') {
+            return testConfig['TWO'];
+        } else if (server === '3') {
+            return testConfig['THREE'];
+        } else if (server === '4') {
+            return testConfig['FOUR'];
         }
     }
     
@@ -60,7 +55,7 @@ function getConfig(args) {
     process.exit(0);
 }
 
-const config = getConfig(process.argv.slice(2));
+const config = getConfig();
 
 const isLogToConsole = config['consoleLog'];
 
@@ -77,22 +72,22 @@ if (config['sentryLog']) {
 
 const bot = new SapphireClient({
     defaultPrefix: '!',
-	caseInsensitiveCommands: true,
-	logger: {
-		level: LogLevel.Debug
-	},
-	shards: 'auto',
-	intents: [
-		'GUILDS',
-		'GUILD_MEMBERS',
-		'GUILD_BANS',
-		'GUILD_EMOJIS_AND_STICKERS',
-		'GUILD_VOICE_STATES',
-		'GUILD_MESSAGES',
-		'GUILD_MESSAGE_REACTIONS',
-		'DIRECT_MESSAGES',
-		'DIRECT_MESSAGE_REACTIONS'
-	],
+    caseInsensitiveCommands: true,
+    logger: {
+        level: LogLevel.Debug
+    },
+    shards: 'auto',
+    intents: [
+        'GUILDS',
+        'GUILD_MEMBERS',
+        'GUILD_BANS',
+        'GUILD_EMOJIS_AND_STICKERS',
+        'GUILD_VOICE_STATES',
+        'GUILD_MESSAGES',
+        'GUILD_MESSAGE_REACTIONS',
+        'DIRECT_MESSAGES',
+        'DIRECT_MESSAGE_REACTIONS'
+    ],
 });
 
 const customLoggerLevels = {
@@ -437,14 +432,14 @@ async function greetNewMember(member, botGuild) {
                     && discordServices.checkForRole(member, botGuild.verification.verificationRoles.get('hacker'))) { 
                     try {
                         discordServices.askBoolQuestion(member,botGuild, 'One more thing!', 
-                        'Would you like to receive free [Codex beta](https://openai.com/blog/openai-codex/) access, courtesy of our sponsor OpenAI (first come first served, while supplies last)?\n\n' + 
+                            'Would you like to receive free [Codex beta](https://openai.com/blog/openai-codex/) access, courtesy of our sponsor OpenAI (first come first served, while supplies last)?\n\n' + 
                         
                          'Open AI is giving out prizes to the best 2 projects using Codex or GPT-3:\n' +
                             '- 1st place: $120 worth of credits(2 million words in GPT-3 DaVinci)\n' +
                             '- 2nd place: $60 worth of credits (1 million words in GPT-3 DaVinci)\n\n' +
                         
                          'If you would like a Codex code, please react with a 👍',
-                        'Thanks for indicating your interest, you have been added to the list! If you are selected to receive an API key, you will get an email.', email);
+                            'Thanks for indicating your interest, you have been added to the list! If you are selected to receive an API key, you will get an email.', email);
                         askedAboutCodex = true;
                     } catch (error) {
                         discordServices.sendEmbedToMember(member, {

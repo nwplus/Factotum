@@ -8,11 +8,11 @@
     "url": "https://github.com/nwplus/Factotum"
   },
   "scripts": {
-    "test-1": "node app.js test 1",
-    "test-2": "node app.js test 2",
-    "test-3": "node app.js test 3",
-    "test-4": "node app.js test 4",
-    "dev": "node app.js dev",
+    "test-1": "NODE_ENV=TEST SERVER=1 node app.js",
+    "test-2": "NODE_ENV=TEST SERVER=2 node app.js",
+    "test-3": "NODE_ENV=TEST SERVER=3 node app.js",
+    "test-4": "NODE_ENV=TEST SERVER=4 node app.js",
+    "dev": "NODE_ENV=DEV node app.js",
     "docs": "jsdoc -c jsdoc-conf.json -r ."
   },
   "author": "JP Garcia, Maggie Wang, Shu Ting Hu",
