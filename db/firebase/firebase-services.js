@@ -111,19 +111,19 @@ async function checkEmail(email, guildId) {
     return doc.data();
     // var foundEmails = [];
     // snapshot.forEach(memberDoc => {
-        // compare each member's email with the given email
-        // if (memberDoc.get('email') != null) {
-            // let compare = memberDoc.get('email');
-            // if the member's emails is similar to the given email, retrieve and add the email, verification status, and member type of
-            // the member as an object to the array
-            // if (compareEmails(email.split('@')[0], compare.split('@')[0])) {
-            //     foundEmails.push({
-            //         email: compare,
-            //         types: memberDoc.get('types').map(type => type.type),
-            //     });
-            // }
+    // compare each member's email with the given email
+    // if (memberDoc.get('email') != null) {
+    // let compare = memberDoc.get('email');
+    // if the member's emails is similar to the given email, retrieve and add the email, verification status, and member type of
+    // the member as an object to the array
+    // if (compareEmails(email.split('@')[0], compare.split('@')[0])) {
+    //     foundEmails.push({
+    //         email: compare,
+    //         types: memberDoc.get('types').map(type => type.type),
+    //     });
+    // }
             
-        // }
+    // }
 
     // });
     // return foundEmails;
@@ -217,7 +217,7 @@ async function addUserData(email, type, guildId, overwrite) {
             }
         });
         if (!containsType) {
-            types.push({ type: type, isVerified: false })
+            types.push({ type: type, isVerified: false });
         }
         await documentRef.update({ types: types });
     } else {
@@ -372,7 +372,7 @@ async function retrieveLeaderboard(guildId) {
     let winners = [];
     snapshot.forEach(doc => {
         winners.push(doc.data());
-    })
+    });
     winners.sort((a, b) => parseFloat(b.points) - parseFloat(a.points));
     return winners;
 }
