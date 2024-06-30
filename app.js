@@ -1,5 +1,4 @@
 require('dotenv-flow').config();
-const mongoUtil = require('./db/mongo/mongoUtil');
 const firebaseUtil = require('./db/firebase/firebaseUtil');
 // const Commando = require('discord.js-commando');
 const Discord = require('discord.js');
@@ -7,7 +6,6 @@ const firebaseServices = require('./db/firebase/firebase-services');
 const winston = require('winston');
 const fs = require('fs');
 const discordServices = require('./discord-services');
-const BotGuild = require('./db/mongo/BotGuild');
 const BotGuildModel = require('./classes/Bot/bot-guild');
 const Verification = require('./classes/Bot/Features/Verification/verification');
 const { StringPrompt } = require('advanced-discord.js-prompts');
@@ -160,10 +158,6 @@ bot.once('ready', async () => {
     firebaseServices.initializeFirebaseAdmin('nwPlusBotAdmin', adminSDK, 'https://nwplus-bot.firebaseio.com');
     mainLogger.warning('Connected to firebase admin sdk successfully!', { event: 'Ready Event' });
 
-    // set mongoose connection
-    await mongoUtil.mongooseConnect();
-    mainLogger.warning('Connected to mongoose successfully!', { event: 'Ready Event' });
-
     firebaseUtil.initializeFirebaseAdmin('Factotum', adminSDK2, 'https://nwplus-ubc-dev.firebaseio.com');
     mainLogger.warning('Connected to nwFirebase successfully!', { event: 'Ready Event' });
     firebaseUtil.connect('Factotum');
@@ -174,17 +168,15 @@ bot.once('ready', async () => {
         // create the logger for the guild
         createALogger(guild.id, guild.name, false, isLogToConsole);
 
-        let botGuild = await BotGuild.findById(guild.id);
+        let botGuild = await firebaseUtil.getBotGuild(guild.id)
         if (!botGuild) {
-            newGuild(guild);
+            await newGuild(guild);
             mainLogger.verbose(`Created a new botGuild for the guild ${guild.id} - ${guild.name} on bot ready.`, { event: 'Ready Event' });
         } else {
             // set all non guarded commands to not enabled for the guild
             // bot.registry.groups.forEach((group, key, map) => {
             //     if (!group.guarded) guild.setGroupEnabled(group, false);
             // });
-
-            await botGuild.setCommandStatus(bot);
 
             guild.commandPrefix = botGuild.prefix;
             
@@ -211,15 +203,13 @@ bot.on('guildCreate', /** @param {sapphireClient.Guild} guild */(guild) => {
  * @param {sapphireClient.Guild} guild
  * @private
  */
-function newGuild(guild) {
+async function newGuild(guild) {
     // set all non guarded commands to not enabled for the new guild
     // bot.registry.groups.forEach((group, key, map) => {
     //     if (!group.guarded) guild.setGroupEnabled(group, false);
     // });
     // create a botGuild object for this new guild.
-    BotGuild.create({
-        _id: guild.id,
-    });
+    await firebaseUtil.createBotGuild(guild.id);
 }
 
 /**
@@ -228,8 +218,7 @@ function newGuild(guild) {
 bot.on('guildDelete', async (guild) => {
     mainLogger.warning(`The bot was removed from the guild: ${guild.id} - ${guild.name}`);
 
-    let botGuild = await BotGuild.findById(guild.id);
-    botGuild.remove();
+    await firebaseUtil.deleteBotGuild(guild.id);
     mainLogger.verbose(`BotGuild with id: ${guild.id} has been removed!`);
 });
 
@@ -270,7 +259,7 @@ bot.on('commandError', (command, error, message) => {
  * Runs when a new member joins a guild the bot is running in.
  */
 bot.on('guildMemberAdd', async member => {
-    let botGuild = await BotGuild.findById(member.guild.id);
+    let botGuild = await firebaseUtil.getBotGuild(member.guild.id);
     member.roles.add(botGuild.verification.guestRoleID);
 
     // if the guild where the user joined is complete then greet and verify.
