@@ -30,7 +30,9 @@ function initializeFirebaseAdmin(name, adminSDK, databaseURL) {
 }
 module.exports.initializeFirebaseAdmin = initializeFirebaseAdmin;
 
-
+function getFactotumDoc() {
+    return apps.get('nwPlusBotAdmin').firestore().collection('ExternalProjects').doc('Factotum');
+}
 
 /**
  * @typedef UserType
@@ -54,7 +56,7 @@ module.exports.initializeFirebaseAdmin = initializeFirebaseAdmin;
  */
 async function getQuestion(guildId) {
     //checks that the question has not been asked
-    let questionReference = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('questions').where('asked', '==', false).limit(1);
+    let questionReference = getFactotumDoc().collection('guilds').doc(guildId).collection('questions').where('asked', '==', false).limit(1);
     let question = (await questionReference.get()).docs[0];
     //if there exists an unasked question, change its status to asked
     if (question != undefined) {
@@ -75,7 +77,7 @@ module.exports.getQuestion = getQuestion;
  */
 async function getReminder(guildId) {
     //checks that the reminder has not been sent
-    var qref = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('reminders').where('sent', '==', false).limit(1);
+    var qref = getFactotumDoc().collection('guilds').doc(guildId).collection('reminders').where('sent', '==', false).limit(1);
     var reminder = (await qref.get()).docs[0];
     //if there reminder unsent, change its status to asked
     if (reminder != undefined) {
@@ -106,7 +108,7 @@ module.exports.getReminder = getReminder;
  */
 async function checkEmail(email, guildId) {
     const cleanEmail = email.trim().toLowerCase();
-    const docRef = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').doc(cleanEmail); 
+    const docRef = getFactotumDoc().collection('guilds').doc(guildId).collection('members').doc(cleanEmail); 
     const doc = await docRef.get();
     return doc.data();
     // var foundEmails = [];
@@ -181,7 +183,7 @@ function compareEmails(searchEmail, dbEmail) {
  * @private
  */
 async function checkName(firstName, lastName, guildId) {
-    const snapshot = (await apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').get()).docs; // snapshot of Firestore as array of documents
+    const snapshot = (await getFactotumDoc().collection('guilds').doc(guildId).collection('members').get()).docs; // snapshot of Firestore as array of documents
     snapshot.forEach(memberDoc => {
         if (memberDoc.get('firstName') != null && memberDoc.get('lastName') != null && memberDoc.get('firstName').toLowerCase() === firstName.toLowerCase()
             && memberDoc.get('lastName').toLowerCase() === lastName.toLowerCase()) { // for each document, check if first and last names match given names
@@ -204,7 +206,7 @@ module.exports.checkName = checkName;
  */
 async function addUserData(email, type, guildId, overwrite) {
     const cleanEmail = email.trim().toLowerCase();
-    var documentRef = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').doc(cleanEmail);
+    var documentRef = getFactotumDoc().collection('guilds').doc(guildId).collection('members').doc(cleanEmail);
     const doc = await documentRef.get();
 
     if (doc.exists && !overwrite) {
@@ -244,7 +246,7 @@ module.exports.addUserData = addUserData;
  */
 async function verify(email, id, guildId) {
     let emailLowerCase = email.trim().toLowerCase();
-    var userRef = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').where('email', '==', emailLowerCase).limit(1);
+    var userRef = getFactotumDoc().collection('guilds').doc(guildId).collection('members').where('email', '==', emailLowerCase).limit(1);
     var user = (await userRef.get()).docs[0];
     if (user) {
         let returnTypes = [];
@@ -280,7 +282,7 @@ module.exports.verify = verify;
  * @throws Error if the email provided was not found.
  */
 async function attend(id, guildId) {
-    var userRef = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').where('discordId', '==', id).limit(1);
+    var userRef = getFactotumDoc().collection('guilds').doc(guildId).collection('members').where('discordId', '==', id).limit(1);
     var user = (await userRef.get()).docs[0];
 
     if (user) {
@@ -309,7 +311,7 @@ module.exports.attend = attend;
  */
 
 async function checkCodexActive(guildId) {
-    var ref = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('codex').doc('active');
+    var ref = getFactotumDoc().collection('guilds').doc(guildId).collection('codex').doc('active');
     var activeRef = await ref.get();
     const data = activeRef.data();
     return data.active;
@@ -324,7 +326,7 @@ module.exports.checkCodexActive = checkCodexActive;
  */
 
 async function saveToFirebase(guildId, collection, email) {
-    var ref = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection(collection).doc(email.toLowerCase());
+    var ref = getFactotumDoc().collection('guilds').doc(guildId).collection(collection).doc(email.toLowerCase());
     /** @type {FirebaseUser} */
     let data = {
         email: email.toLowerCase()
@@ -335,7 +337,7 @@ async function saveToFirebase(guildId, collection, email) {
 module.exports.saveToFirebase = saveToFirebase;
 
 async function lookupById(guildId, memberId) {
-    var userRef = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('members').where('discordId', '==', memberId).limit(1);
+    var userRef = getFactotumDoc().collection('guilds').doc(guildId).collection('members').where('discordId', '==', memberId).limit(1);
     var user = (await userRef.get()).docs[0];
     if (user) {
         /** @type {FirebaseUser} */
@@ -350,7 +352,7 @@ async function lookupById(guildId, memberId) {
 module.exports.lookupById = lookupById;
 
 async function saveToLeaderboard(guildId, memberId) {
-    var userRef = apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('questionsLeaderboard').doc(memberId);
+    var userRef = getFactotumDoc().collection('guilds').doc(guildId).collection('questionsLeaderboard').doc(memberId);
     var user = await userRef.get();
     if (user.exists) {
         // var data = user.data();
@@ -368,7 +370,7 @@ async function saveToLeaderboard(guildId, memberId) {
 module.exports.saveToLeaderboard = saveToLeaderboard;
 
 async function retrieveLeaderboard(guildId) {
-    var snapshot = (await apps.get('nwPlusBotAdmin').firestore().collection('guilds').doc(guildId).collection('questionsLeaderboard').get()).docs;
+    var snapshot = (await getFactotumDoc().collection('guilds').doc(guildId).collection('questionsLeaderboard').get()).docs;
     let winners = [];
     snapshot.forEach(doc => {
         winners.push(doc.data());

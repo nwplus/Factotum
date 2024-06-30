@@ -25,32 +25,27 @@ const { LogLevel, SapphireClient } = require('@sapphire/framework');
  * Read command line args to know if prod, dev, or test and what server
  * First arg is one of prod, dev or test
  * the second is the test server, but the first one must be test
- * @param {string[]} args 
  * @returns {Map} config settings
  */
-function getConfig(args) {
-    if (args.length >= 1) {
-        if (args[0] === 'dev') {
-            // Default dev
-            return JSON.parse(process.env.DEV);
-        } else if (args[0] === 'prod') {
-            // Production
-            if (args[1] === 'yes') {
-                return JSON.parse(process.env.PROD);
-            }
-        } else if (args[0] === 'test') {
-            // Test
-            const testConfig = JSON.parse(process.env.TEST);
-            let server = args[1] ?? 0;
-            if (server === '1') {
-                return testConfig['ONE'];
-            } else if (server === '2') {
-                return testConfig['TWO'];
-            } else if (server === '3') {
-                return testConfig['THREE'];
-            } else if (server === '4') {
-                return testConfig['FOUR'];
-            }
+function getConfig() {
+    if (process.env.NODE_ENV === 'DEV') {
+        // Default dev
+        return JSON.parse(process.env.DEV);
+    } else if (process.env.NODE_ENV === 'PROD') {
+        // Production
+        return JSON.parse(process.env.PROD);
+    } else if (process.env.NODE_ENV === 'TEST') {
+        // Test
+        const testConfig = JSON.parse(process.env.TEST);
+        let server = process.env.SERVER;
+        if (server === '1') {
+            return testConfig['ONE'];
+        } else if (server === '2') {
+            return testConfig['TWO'];
+        } else if (server === '3') {
+            return testConfig['THREE'];
+        } else if (server === '4') {
+            return testConfig['FOUR'];
         }
     }
     
@@ -59,7 +54,7 @@ function getConfig(args) {
     process.exit(0);
 }
 
-const config = getConfig(process.argv.slice(2));
+const config = getConfig();
 
 const isLogToConsole = config['consoleLog'];
 
