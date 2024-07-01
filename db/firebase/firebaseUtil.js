@@ -127,28 +127,5 @@ async function createBotGuild(guildId) {
     });
 }
 
-/**
- * Deletes a BotGuild document by guild ID
- * @param {String} guildId
- * @returns {Promise<WriteResult>}
- */
-async function deleteBotGuild(guildId) {
-    try {
-        const docRef = module.exports.getBotGuildCol().doc(guildId);
-        const doc = await docRef.get();
-        if (!doc.exists) {
-            console.log(`No such document with ID ${guildId}`);
-            return null;
-        }
-        await docRef.delete();
-        console.log(`Document with ID ${guildId} successfully deleted`);
-        return docRef;
-    } catch (error) {
-        console.error(`Error deleting document with ID ${guildId}:`, error);
-        throw error;
-    }
-}
-
 module.exports.getBotGuild = getBotGuild;
 module.exports.createBotGuild = createBotGuild;
-module.exports.deleteBotGuild = deleteBotGuild;

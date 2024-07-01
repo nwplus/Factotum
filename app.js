@@ -214,9 +214,6 @@ async function newGuild(guild) {
  */
 bot.on('guildDelete', async (guild) => {
     mainLogger.warning(`The bot was removed from the guild: ${guild.id} - ${guild.name}`);
-
-    await firebaseUtil.deleteBotGuild(guild.id);
-    mainLogger.verbose(`BotGuild with id: ${guild.id} has been removed!`);
 });
 
 /**
