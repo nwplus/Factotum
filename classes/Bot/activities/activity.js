@@ -1,6 +1,6 @@
 const { Guild, Collection, Role, CategoryChannel, TextChannel, MessageEmbed, GuildMember, PermissionOverwriteOption } = require('discord.js');
 const winston = require('winston');
-const BotGuild = require('../../../db/mongo/BotGuild');
+const firebaseUtil = require('../../../db/firebase/firebaseUtil');
 const BotGuildModel = require('../bot-guild');
 const { shuffleArray, sendMsgToChannel } = require('../../../discord-services');
 const StampsManager = require('../Features/Stamps/stamps-manager');
@@ -64,7 +64,8 @@ class Activity {
 
         // add staff role
         if (isStaffAuto) {
-            let staffRoleId = (await BotGuild.findById(channel.guild.id)).roleIDs.staffRole;
+            let botGuildData = await firebaseUtil.getBotGuild(channel.guild.id);
+            let staffRoleId = botGuildData.roleIDs.staffRole;
             allowedRoles.set(staffRoleId, channel.guild.roles.resolve(staffRoleId));
         }
 
