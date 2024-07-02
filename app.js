@@ -2,7 +2,6 @@ require('dotenv-flow').config();
 const firebaseUtil = require('./db/firebase/firebaseUtil');
 // const Commando = require('discord.js-commando');
 const Discord = require('discord.js');
-const firebaseServices = require('./db/firebase/firebase-services');
 const winston = require('winston');
 const fs = require('fs');
 const discordServices = require('./discord-services');
@@ -149,11 +148,8 @@ bot.once('ready', async () => {
 
     // initialize firebase
     const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
-    const adminSDK2 = JSON.parse(process.env.NWPLUSADMINSDK2);
-    firebaseServices.initializeFirebaseAdmin('nwPlusBotAdmin', adminSDK, 'https://nwplus-bot.firebaseio.com');
-    mainLogger.warning('Connected to firebase admin sdk successfully!', { event: 'Ready Event' });
 
-    firebaseUtil.initializeFirebaseAdmin('Factotum', adminSDK2, 'https://nwplus-ubc-dev.firebaseio.com');
+    firebaseUtil.initializeFirebaseAdmin('Factotum', adminSDK, 'https://nwplus-ubc-dev.firebaseio.com');
     mainLogger.warning('Connected to nwFirebase successfully!', { event: 'Ready Event' });
     firebaseUtil.connect('Factotum');
 
@@ -422,7 +418,7 @@ async function greetNewMember(member, botGuild) {
 
             try {
                 await Verification.verify(member, email, member.guild, botGuild);
-                if (!askedAboutCodex && await firebaseServices.checkCodexActive(member.guild.id)
+                if (!askedAboutCodex && await firebaseUtil.checkCodexActive(member.guild.id)
                     && discordServices.checkForRole(member, botGuild.verification.verificationRoles.get('hacker'))) { 
                     try {
                         discordServices.askBoolQuestion(member,botGuild, 'One more thing!', 
