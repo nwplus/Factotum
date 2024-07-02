@@ -1,6 +1,6 @@
 const { GuildMember, Guild } = require('discord.js');
 const discordServices = require('../../../../discord-services');
-const firebaseServices = require('../../../../db/firebase/firebase-services');
+const firebaseUtil = require('../../../../db/firebase/firebaseUtil');
 const BotGuildModel = require('../../bot-guild');
 const winston = require('winston');
 
@@ -28,7 +28,7 @@ class Verification {
 
         // try to get member types, error will mean no email was found
         try {
-            var types = await firebaseServices.verify(email, member.id, member.guild.id);
+            let types = await firebaseUtil.verify(email, member.id, member.guild.id);
         } catch (error) {
             logger.warning(`The email provided (${email}) by user ${member.id} was not found, got an error: ${error}`, { event: 'Verification' });
             discordServices.sendEmbedToMember(member, {
@@ -97,7 +97,7 @@ class Verification {
     static async attend(member, botGuild) {
         try {
             // wait for attend to end, then give role
-            await firebaseServices.attend(member.id, member.guild.id);
+            await firebaseUtil.attend(member.id, member.guild.id);
             discordServices.addRoleToMember(member, botGuild.attendance.attendeeRoleID);
             discordServices.sendEmbedToMember(member, {
                 title: 'Attendance Success',

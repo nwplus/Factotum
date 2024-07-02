@@ -1,7 +1,7 @@
 const { Command } = require('@sapphire/framework');
 const BotGuild = require('../../db/mongo/BotGuild');
 const { Modal, MessageActionRow, TextInputComponent } = require('discord.js');
-const { addUserData } = require('../../db/firebase/firebase-services');
+const { addUserData } = require('../../db/firebase/firebaseUtil');
 
 class AddMembers extends Command {
     constructor(context, options) {

@@ -2,7 +2,7 @@ const { Command } = require('@sapphire/framework');
 const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { Message, MessageEmbed, Modal, MessageActionRow, MessageButton, TextInputComponent } = require('discord.js');
-const firebaseServices = require('../../db/firebase/firebase-services');
+const firebaseUtil = require('../../db/firebase/firebaseUtil');
 const { discordLog } = require('../../discord-services');
 
 class StartVerification extends Command {
@@ -90,7 +90,7 @@ class StartVerification extends Command {
                 const email = submitted.fields.getTextInputValue('email');
                 let types;
                 try {
-                    types = await firebaseServices.verify(email, submitted.user.id, submitted.guild.id);
+                    types = await firebaseUtil.verify(email, submitted.user.id, submitted.guild.id);
                 } catch {
                     submitted.reply({ content: 'Your email could not be found! Please try again or ask an admin for help.', ephemeral: true });
                     discordLog(interaction.guild, `VERIFY FAILURE : <@${submitted.user.id}> Verified email: ${email} but was a failure, I could not find that email!`);

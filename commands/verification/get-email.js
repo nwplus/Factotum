@@ -1,6 +1,6 @@
 const { Command } = require('@sapphire/framework');
 const BotGuild = require('../../db/mongo/BotGuild')
-const { lookupById } = require('../../db/firebase/firebase-services');
+const { lookupById } = require('../../db/firebase/firebaseUtil');
 
 class GetEmails extends Command {
     constructor(context, options) {

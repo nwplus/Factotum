@@ -1,4 +1,4 @@
-const { checkEmail } = require("../../db/firebase/firebase-services");
+const { checkEmail } = require("../../db/firebase/firebaseUtil");
 const { Command } = require('@sapphire/framework');
 const BotGuild = require('../../db/mongo/BotGuild');
 

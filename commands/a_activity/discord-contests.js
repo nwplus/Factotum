@@ -1,7 +1,7 @@
 const { Command } = require('@sapphire/framework');
 const { discordLog, checkForRole } = require('../../discord-services');
 const { Message, MessageEmbed, Snowflake, MessageActionRow, MessageButton } = require('discord.js');
-const { getQuestion, lookupById, saveToLeaderboard, retrieveLeaderboard } = require('../../db/firebase/firebase-services');
+const { getQuestion, lookupById, saveToLeaderboard, retrieveLeaderboard } = require('../../db/firebase/firebaseUtil');
 const BotGuild = require('../../db/mongo/BotGuild');
 const BotGuildModel = require('../../classes/Bot/bot-guild');
 
