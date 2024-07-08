@@ -149,7 +149,7 @@ bot.once('ready', async () => {
     // initialize firebase
     const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
 
-    firebaseUtil.initializeFirebaseAdmin('Factotum', adminSDK, 'https://nwplus-ubc-dev.firebaseio.com');
+    firebaseUtil.initializeFirebaseAdmin('Factotum', adminSDK, process.env.FIREBASE_URL);
     mainLogger.warning('Connected to nwFirebase successfully!', { event: 'Ready Event' });
     firebaseUtil.connect('Factotum');
 
@@ -159,7 +159,7 @@ bot.once('ready', async () => {
         // create the logger for the guild
         createALogger(guild.id, guild.name, false, isLogToConsole);
 
-        let botGuild = await firebaseUtil.getBotGuild(guild.id)
+        let botGuild = await firebaseUtil.getInitBotInfo(guild.id);
         if (!botGuild) {
             await newGuild(guild);
             mainLogger.verbose(`Created a new botGuild for the guild ${guild.id} - ${guild.name} on bot ready.`, { event: 'Ready Event' });
@@ -181,7 +181,7 @@ bot.once('ready', async () => {
 /**
  * Runs when the bot is added to a guild.
  */
-bot.on('guildCreate', /** @param {sapphireClient.Guild} guild */(guild) => {
+bot.on('guildCreate', /** @param {Discord.Guild} guild */(guild) => {
     mainLogger.warning(`The bot was added to a new guild: ${guild.id} - ${guild.name}.`, { event: 'Guild Create Event' });
 
     newGuild(guild);
@@ -193,7 +193,7 @@ bot.on('guildCreate', /** @param {sapphireClient.Guild} guild */(guild) => {
 
 /**
  * Will set up a new guild.
- * @param {sapphireClient.Guild} guild
+ * @param {Discord.Guild} guild
  * @private
  */
 async function newGuild(guild) {
@@ -202,7 +202,7 @@ async function newGuild(guild) {
     //     if (!group.guarded) guild.setGroupEnabled(group, false);
     // });
     // create a botGuild object for this new guild.
-    await firebaseUtil.createBotGuild(guild.id);
+    await firebaseUtil.createInitBotInfoDoc(guild.id);
 }
 
 /**
@@ -249,7 +249,7 @@ bot.on('commandError', (command, error, message) => {
  * Runs when a new member joins a guild the bot is running in.
  */
 bot.on('guildMemberAdd', async member => {
-    let botGuild = await firebaseUtil.getBotGuild(member.guild.id);
+    let botGuild = await firebaseUtil.getInitBotInfo(member.guild.id);
     member.roles.add(botGuild.verification.guestRoleID);
 
     // if the guild where the user joined is complete then greet and verify.

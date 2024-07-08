@@ -56,14 +56,14 @@ async function sendMessageToMember(member, message, isDelete = false) {
     }).catch(async error => {
         if (error.code === 50007) {
             winston.loggers.get(member?.guild?.id || 'main').warning(`A DM message was sent to user with id ${member.id} but failed, he has been asked to fix this problem!`);
-            let botGuild;
-            if (member?.guild) botGuild = await firebaseUtil.getBotGuild(member.guild.id);
+            let initBotInfo;
+            if (member?.guild) initBotInfo = await firebaseUtil.getInitBotInfo(member.guild.id);
             else {
                 winston.loggers.get(member.guild.id).error('While trying to help a user to get my DMs I could not find a botGuild for which this member is in. I could not help him!');
                 throw Error(`I could not help ${member.id} due to not finding the guild he is trying to access. I need a member and not a user!`);
             }
 
-            let botSupportChannel = member.guild.channels.resolve(botGuild.channelIDs.botSupportChannel);
+            let botSupportChannel = member.guild.channels.resolve(initBotInfo.channelIDs.botSupportChannel);
             if (botSupportChannel) botSupportChannel.send('<@' + member.id + '> I couldn\'t reach you :(. Please turn on server DMs, explained in this link: https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings-');
         } else {
             throw error;
@@ -172,9 +172,9 @@ module.exports.replaceRoleToMember = replaceRoleToMember;
  * @async
  */
 async function discordLog(guild, message) {
-    let botGuild = await firebaseUtil.getBotGuild(guild.id);
-    if (botGuild?.channelIDs?.adminLog) {
-        guild.channels.resolve(botGuild.channelIDs.adminLog)?.send(message);
+    let initBotInfo = await firebaseUtil.getInitBotInfo(guild.id);
+    if (initBotInfo?.channelIDs?.adminLog) {
+        guild.channels.resolve(initBotInfo.channelIDs.adminLog)?.send(message);
         winston.loggers.get(guild.id).silly(`The following was logged to discord: ${message}`);
     }
     else winston.loggers.get(guild.id).error('I was not able to log something to discord!! I could not find the botGuild or the adminLog channel!');

@@ -64,7 +64,9 @@ class Activity {
 
         // add staff role
         if (isStaffAuto) {
-            let botGuildData = await firebaseUtil.getBotGuild(channel.guild.id);
+            let botGuildData = await firebaseUtil.getInitBotInfo(
+                channel.guild.id
+            );
             let staffRoleId = botGuildData.roleIDs.staffRole;
             allowedRoles.set(staffRoleId, channel.guild.roles.resolve(staffRoleId));
         }
