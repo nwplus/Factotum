@@ -2,20 +2,19 @@ const { Command } = require('@sapphire/framework');
 const { Interaction } = require('discord.js');
 const { discordLog } = require('../../discord-services');
 
-
 class ClearChat extends Command {
     constructor(context, options) {
         super(context, {
-          ...options,
-          description: 'Clear most recent 100 messages younger than 2 weeks.'
+            ...options,
+            description: 'Clear most recent 100 messages younger than 2 weeks.'
         });
     }
 
     registerApplicationCommands(registry) {
         registry.registerChatInputCommand((builder) =>
-          builder
-            .setName(this.name)
-            .setDescription(this.description)
+            builder
+                .setName(this.name)
+                .setDescription(this.description)
         )
     }
 

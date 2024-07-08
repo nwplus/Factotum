@@ -1,7 +1,6 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { discordLog } = require('../../discord-services');
 const { Message } = require('discord.js');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
 
 /**
  * The !set-bot-activity will set the bot's activity.
@@ -36,7 +35,7 @@ class SetBotActivity extends PermissionCommand {
      * @param {String} args.status
      */
      
-    async runCommand(botGuild, message, {status}) {
+    async runCommand(initBotInfo, message, {status}) {
         this.client.user.setActivity(status, {type: 'PLAYING'});
     }
 }

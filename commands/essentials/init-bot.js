@@ -1,8 +1,7 @@
 const { Command } = require('@sapphire/framework');
 const { TextChannel, Snowflake, Guild, ColorResolvable, Role, Permissions, PermissionsBitField, PermissionFlagsBits } = require('discord.js');
 const { sendMsgToChannel, addRoleToMember, discordLog, } = require('../../discord-services');
-// const BotGuild = require('../../db/mongo/BotGuild');
-const firebaseUtil = require('../../db/firebase/firebaseUtil')
+const firebaseUtil = require('../../db/firebase/firebaseUtil');
 const winston = require('winston');
 const fetch = require('node-fetch');
 const { MessagePrompt, StringPrompt, NumberPrompt, SpecialPrompt, RolePrompt, ChannelPrompt } = require('advanced-discord.js-prompts');

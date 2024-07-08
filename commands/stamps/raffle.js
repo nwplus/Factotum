@@ -1,6 +1,5 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { Message, MessageEmbed } = require('discord.js');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
 
 /**
  * Picks x amount of winners from the stamp contest. The more stamps a user has, the more chances they have of winning.
@@ -37,15 +36,15 @@ class Raffle extends PermissionCommand {
      * into an array. Then it chooses random numbers and picks the id corresponding to that index until it has numberOfWinners unique 
      * winners.
      * 
-     * @param {BotGuildModel} botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      * @param {Message} message - message used to call the command
      * @param {Object} args
      * @param {integer} args.numberOfWinners - number of winners to be drawn
      */
-    async runCommand(botGuild, message, {numberOfWinners}) {
+    async runCommand(initBotInfo, message, {numberOfWinners}) {
 
         //check that numberOfWinners is less than the number of people with stamp roles or it will infinite loop
-        let validMembers = message.guild.members.cache.filter(member => member.roles.cache.has(botGuild.roleIDs.memberRole));
+        let validMembers = message.guild.members.cache.filter(member => member.roles.cache.has(initBotInfo.roleIDs.memberRole));
         var memberCount = validMembers.size;
         if (memberCount <= numberOfWinners) {
             message.channel.send('Whoa there, you want more winners than hackers!').then((msg) => {
@@ -58,9 +57,9 @@ class Raffle extends PermissionCommand {
         var entries = new Array(); 
         
         validMembers.forEach(member => {
-            let roleId = member.roles.cache.find(role => botGuild.stamps.stampRoleIDs.has(role.id));
+            let roleId = member.roles.cache.find(role => initBotInfo.stamps.stampRoleIDs.has(role.id));
             if (!roleId) return;
-            let stampNumber = botGuild.stamps.stampRoleIDs.get(roleId);
+            let stampNumber = initBotInfo.stamps.stampRoleIDs.get(roleId);
 
             for (let i = 0; i < stampNumber; i++) {
                 entries.push(member.user.id);
@@ -80,7 +79,7 @@ class Raffle extends PermissionCommand {
         }
         let winnersList = Array.from(winners);
         const embed = new MessageEmbed()
-            .setColor(botGuild.colors.embedColor)
+            .setColor(initBotInfo.colors.embedColor)
             .setTitle('The winners of the raffle draw are:')
             .setDescription( winnersList.map(id => `<@${id}>`).join(', '));
         await message.channel.send(embed);

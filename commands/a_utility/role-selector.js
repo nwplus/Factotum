@@ -2,7 +2,6 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { checkForRole, addRoleToMember, removeRolToMember } = require('../../discord-services');
 const { Message, Role, Collection } = require('discord.js');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { SpecialPrompt, RolePrompt, StringPrompt } = require('advanced-discord.js-prompts');
 const Console = require('../../classes/UI/Console/console');
 const Feature = require('../../classes/UI/Console/feature');
@@ -31,10 +30,10 @@ class RoleSelector extends PermissionCommand {
 
 
     /**
-     * @param {BotGuildModel} botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      * @param {Message} message - the command message
      */
-    async runCommand (botGuild, message) {
+    async runCommand(initBotInfo, message) {
 
         // the emoji for staff to add new transfers
         let newTransferEmoji = '🆕';
@@ -59,7 +58,7 @@ class RoleSelector extends PermissionCommand {
             callback: async (user, reaction, stopInteracting, console) => {
                 let channel = console.channel;
                 // staff add new transfer
-                if (checkForRole(message.guild.member(user), botGuild.roleIDs.staffRole)) {
+                if (checkForRole(message.guild.member(user), initBotInfo.roleIDs.staffRole)) {
                     
                     try {
                         var role = await RolePrompt.single({
