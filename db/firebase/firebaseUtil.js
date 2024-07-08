@@ -386,9 +386,7 @@ async function getInitBotInfo(guildId) {
  * @param {string} guildId
  */
 async function createInitBotInfoDoc(guildId) {
-    return await module.exports.getFactotumSubCol().doc(guildId).set({
-        _id: guildId,
-    });
+    return await module.exports.getFactotumSubCol().doc(guildId).set({});
 }
 
 module.exports.getInitBotInfo = getInitBotInfo;

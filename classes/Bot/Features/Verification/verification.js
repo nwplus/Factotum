@@ -1,7 +1,6 @@
 const { GuildMember, Guild } = require('discord.js');
 const discordServices = require('../../../../discord-services');
 const firebaseUtil = require('../../../../db/firebase/firebaseUtil');
-const BotGuildModel = require('../../bot-guild');
 const winston = require('winston');
 
 /** 
@@ -14,12 +13,12 @@ class Verification {
      * @param {GuildMember} member - member to verify
      * @param {String} email - email to verify with
      * @param {Guild} guild
-     * @param {BotGuildModel} botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      * @async
      * @static
      * @throws Error if email is not valid!
      */
-    static async verify(member, email, guild, botGuild) {
+    static async verify(member, email, guild, initBotInfo) {
         if (!discordServices.validateEmail(email)) {
             throw new Error('Email is not valid!!');
         }
@@ -55,8 +54,8 @@ class Verification {
         
         // check for correct types with botGuild verification info and give the roles
         types.forEach((type, index, array) => {
-            if (botGuild.verification.verificationRoles.has(type)) {
-                let roleId = botGuild.verification.verificationRoles.get(type);
+            if (initBotInfo.verification.verificationRoles.has(type)) {
+                let roleId = initBotInfo.verification.verificationRoles.get(type);
                 logger.verbose(`User ${member.id} has type ${type} in list index ${index} and it was found, he got the role ${roleId}`, { event: 'Verification' });
                 discordServices.addRoleToMember(member, roleId);
                 correctTypes.push(type);
@@ -68,12 +67,12 @@ class Verification {
 
         // extra check to see if types were found, give stamp role if available and let user know of success
         if (correctTypes.length > 0) {
-            discordServices.replaceRoleToMember(member, botGuild.verification.guestRoleID, botGuild.roleIDs.memberRole);
-            if (botGuild.stamps.isEnabled) discordServices.addRoleToMember(member, botGuild.stamps.stamp0thRoleId);
+            discordServices.replaceRoleToMember(member, initBotInfo.verification.guestRoleID, initBotInfo.roleIDs.memberRole);
+            if (initBotInfo.stamps.isEnabled) discordServices.addRoleToMember(member, initBotInfo.stamps.stamp0thRoleId);
             discordServices.sendEmbedToMember(member, {
                 title: `${guild.name} Verification Success`,
                 description: `You have been verified as a ${correctTypes.join()}, good luck and have fun!`,
-                color: botGuild.colors.specialDMEmbedColor,
+                color: initBotInfo.colors.specialDMEmbedColor,
             });
             discordServices.discordLog(guild, `VERIFY SUCCESS : <@${member.id}> Verified email: ${email} successfully as ${correctTypes.join()}.`);
             logger.event(`User ${member.id} was verified with email ${email} successfully as ${correctTypes.join()}.`, { event: 'Verification' });
@@ -92,24 +91,24 @@ class Verification {
     /**
      * Will attend the user and give it the attendee role.
      * @param {GuildMember} member 
-     * @param {BotGuildModel} botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      */
-    static async attend(member, botGuild) {
+    static async attend(member, initBotInfo) {
         try {
             // wait for attend to end, then give role
             await firebaseUtil.attend(member.id, member.guild.id);
-            discordServices.addRoleToMember(member, botGuild.attendance.attendeeRoleID);
+            discordServices.addRoleToMember(member, initBotInfo.attendance.attendeeRoleID);
             discordServices.sendEmbedToMember(member, {
                 title: 'Attendance Success',
                 description: 'You have been marked as attending, thank you and good luck!',
-                color: botGuild.colors.specialDMEmbedColor,
+                color: initBotInfo.colors.specialDMEmbedColor,
             });
             discordServices.discordLog(member.guild, `ATTEND SUCCESS : <@${member.id}> has been marked as attending!`);
-            winston.loggers.get(botGuild._id).event(`User ${member.id} was marked as attending!`, { event: 'Verification' });
+            winston.loggers.get(initBotInfo.id).event(`User ${member.id} was marked as attending!`, { event: 'Verification' });
         } catch (error) {
             // email was not found, let admins know!
             discordServices.discordLog(member.guild, `ATTEND WARNING : <@${member.id}> tried to attend but I could not find his discord ID! He might be an impostor!!!`);
-            winston.loggers.get(botGuild._id).warning(`User ${member.id} could not be marked as attending, I could not find his discord ID, he could be an impostor! Got the error: ${error}`, { event: 'Verification' });
+            winston.loggers.get(initBotInfo.id).warning(`User ${member.id} could not be marked as attending, I could not find his discord ID, he could be an impostor! Got the error: ${error}`, { event: 'Verification' });
         }
     }
 

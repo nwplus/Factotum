@@ -1,6 +1,6 @@
 const { checkEmail } = require("../../db/firebase/firebaseUtil");
 const { Command } = require('@sapphire/framework');
-const BotGuild = require('../../db/mongo/BotGuild');
+const firebaseUtil = require('../../db/firebase/firebaseUtil');
 
 class CheckEmail extends Command {
     constructor(context, options) {
@@ -23,17 +23,17 @@ class CheckEmail extends Command {
     }
 
     async chatInputRun(interaction) {
-        this.botGuild = await BotGuild.findById(interaction.guild.id);
+        this.initBotInfo = await firebaseUtil.getInitBotInfo(interaction.guild.id);
         const guild = interaction.guild;
         const email = interaction.options.getString('email');
 
-        if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
+        if (!guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.adminRole)) {
             return this.error({ message: 'You do not have permissions to run this command!', ephemeral: true })
         }
         
-        let botSpamChannel = guild.channels.resolve(this.botGuild.channelIDs.botSpamChannel);
+        let botSpamChannel = guild.channels.resolve(this.initBotInfo.channelIDs.botSpamChannel);
         const userData = await checkEmail(email, guild.id);       
-        interaction.reply({content: 'Visit <#' + this.botGuild.channelIDs.botSpamChannel + '> for the results', ephemeral: true});
+        interaction.reply({content: 'Visit <#' + this.initBotInfo.channelIDs.botSpamChannel + '> for the results', ephemeral: true});
 
         if (userData) {  
             if (userData.discordId && userData.types) {

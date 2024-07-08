@@ -1,5 +1,5 @@
 const { Command } = require('@sapphire/framework');
-const BotGuild = require('../../db/mongo/BotGuild');
+const firebaseUtil = require('../../db/firebase/firebaseUtil');
 const { Modal, MessageActionRow, TextInputComponent } = require('discord.js');
 const { addUserData } = require('../../db/firebase/firebaseUtil');
 
@@ -27,22 +27,18 @@ class AddMembers extends Command {
         )
     }
 
-    /**
-     * @param {BotGuildModel} botGuild
-     * @param {Message} message 
-     */
     async chatInputRun(interaction) {
-        this.botGuild = await BotGuild.findById(interaction.guild.id);
+        this.initBotInfo = await firebaseUtil.getInitBotInfo(interaction.guild.id);
         const userId = interaction.user.id;
         const guild = interaction.guild;
         const participantsType = interaction.options.getString('participantstype');
         const overwrite = interaction.options.getBoolean('overwrite') ?? false;
 
-        if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
+        if (!guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.adminRole)) {
             return this.error({ message: 'You do not have permissions to run this command!', ephemeral: true })
         }
 
-        if (!this.botGuild.verification.verificationRoles.has(participantsType)) {
+        if (!this.initBotInfo.verification.verificationRoles.has(participantsType)) {
             await interaction.reply({ content: 'The role you entered does not exist!', ephemeral: true });
             return;
         }

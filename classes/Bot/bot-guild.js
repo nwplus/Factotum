@@ -133,7 +133,7 @@ class BotGuild {
 
         this.isSetUpComplete = true;
 
-        winston.loggers.get(this._id).event(`The botGuild has run the ready up function.`, {event: "Bot Guild"});
+        winston.loggers.get(this.id).event(`The botGuild has run the ready up function.`, {event: "Bot Guild"});
 
         return this;
     }
@@ -191,13 +191,13 @@ class BotGuild {
      * @async
      */
     // async setUpStamps(client, stampAmount = 0, stampCollectionTime = 60, stampRoleIDs = []) {
-    //     let guild = await client.guilds.resolve(this._id);
+    //     let guild = await client.guilds.resolve(this.id);
 
     //     if (stampRoleIDs.length > 0) {
     //         stampRoleIDs.forEach((ID, index, array) => {
     //             this.addStamp(ID, index);
     //         });
-    //         winston.loggers.get(this._id).event(`The botGuild has set up the stamp functionality. The stamp roles were given. Stamp collection time is set at ${stampCollectionTime}.` [{stampIds: stampRoleIDs}]);
+    //         winston.loggers.get(this.id).event(`The botGuild has set up the stamp functionality. The stamp roles were given. Stamp collection time is set at ${stampCollectionTime}.` [{stampIds: stampRoleIDs}]);
     //     } else {
     //         for (let i = 0; i < stampAmount; i++) {
     //             let role = await guild.roles.create({
@@ -210,7 +210,7 @@ class BotGuild {
 
     //             this.addStamp(role.id, i);
     //         }
-    //         winston.loggers.get(this._id).event(`The botGuild has set up the stamp functionality. Stamps were created by me, I created ${stampAmount} stamps. Stamp collection time is set at ${stampCollectionTime}.`, {event: "Bot Guild"});
+    //         winston.loggers.get(this.id).event(`The botGuild has set up the stamp functionality. Stamps were created by me, I created ${stampAmount} stamps. Stamp collection time is set at ${stampCollectionTime}.`, {event: "Bot Guild"});
     //     }
 
     //     this.stamps.stampCollectionTime = stampCollectionTime;
@@ -229,7 +229,7 @@ class BotGuild {
     addStamp(roleId, stampNumber) {
         if (stampNumber === 0) this.stamps.stamp0thRoleId = roleId;
         this.stamps.stampRoleIDs.set(roleId, stampNumber);
-        winston.loggers.get(this._id).event(`The botGuild has added a stamp with number ${stampNumber} linked to role id ${roleId}`, {event: "Bot Guild"});
+        winston.loggers.get(this.id).event(`The botGuild has added a stamp with number ${stampNumber} linked to role id ${roleId}`, {event: "Bot Guild"});
     }
 
     /**
@@ -239,7 +239,7 @@ class BotGuild {
      */
     async setCommandStatus(client) {
         /** @type {SapphireClient.Guild} */
-        let guild = await client.guilds.resolve(this._id);
+        let guild = await client.guilds.resolve(this.id);
 
         // guild.setGroupEnabled('verification', this.verification.isEnabled);
         // guild.setGroupEnabled('attendance', this.attendance.isEnabled);
