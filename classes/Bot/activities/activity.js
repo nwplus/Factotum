@@ -14,7 +14,7 @@ const Feature = require('../../UI/Console/feature');
  * @property {string} activityName - the name of this activity!
  * @property {Guild} guild - the guild where the new activity lives
  * @property {Collection<String, Role>} roleParticipants - roles allowed to view activity 
- * @property {BotGuildModel} botGuild
+ * @property {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
  */
 
 /**
@@ -79,7 +79,7 @@ class Activity {
      * @constructor
      * @param {ActivityInfo} ActivityInfo 
      */
-    constructor({ activityName, guild, roleParticipants, botGuild }) {
+    constructor({ activityName, guild, roleParticipants, initBotInfo }) {
         /**
          * The name of this activity.
          * @type {string}
@@ -96,7 +96,7 @@ class Activity {
          * The room this activity lives in.
          * @type {Room}
          */
-        this.room = new Room(guild, botGuild, activityName, roleParticipants);
+        this.room = new Room(guild, initBotInfo, activityName, roleParticipants);
 
         /**
          * The admin console with activity features.
@@ -105,15 +105,15 @@ class Activity {
         this.adminConsole = new Console({
             title: `Activity ${activityName} Console`,
             description: 'This activity\'s information can be found below, you can also find the features available.',
-            channel: guild.channels.resolve(botGuild.channelIDs.adminConsole),
+            channel: guild.channels.resolve(initBotInfo.channelIDs.adminConsole),
             guild: this.guild,
         });
 
         /**
-         * The mongoose BotGuildModel Object
-         * @type {BotGuildModel}
+         * The Firestore bot info object
+         * @type {FirebaseFirestore.DocumentData | null | undefined}
          */
-        this.botGuild = botGuild;
+        this.initBotInfo = initBotInfo;
 
         winston.loggers.get(guild.id).event(`An activity named ${this.name} was created.`, { data: { permissions: roleParticipants } });
     }
@@ -165,7 +165,7 @@ class Activity {
                 description: 'Archive the activity, text channels are saved.',
                 emoji: '💼',
                 callback: (user, reaction, stopInteracting, console) => {
-                    let archiveCategory = this.guild.channels.resolve(this.botGuild.channelIDs.archiveCategory);
+                    let archiveCategory = this.guild.channels.resolve(this.initBotInfo.channelIDs.archiveCategory);
                     this.archive(archiveCategory);
                 }
             },
@@ -372,7 +372,7 @@ class Activity {
      */
     async distributeStamp(channel, userId) {
 
-        if (!this.botGuild.stamps.isEnabled) {
+        if (!this.initBotInfo.stamps.isEnabled) {
             sendMsgToChannel(channel, userId, 'The stamp system is not enabled in this server!', 10);
             return;
         }
@@ -381,8 +381,8 @@ class Activity {
         let seenUsers = new Collection();
 
         const promptEmbed = new MessageEmbed()
-            .setColor(this.botGuild.colors.embedColor)
-            .setTitle('React within ' + this.botGuild.stamps.stampCollectionTime + ' seconds of the posting of this message to get a stamp for ' + this.name + '!');
+            .setColor(this.initBotInfo.colors.embedColor)
+            .setTitle('React within ' + this.initBotInfo.stamps.stampCollectionTime + ' seconds of the posting of this message to get a stamp for ' + this.name + '!');
 
         // send embed to general text or prompt for channel
         let promptMsg;
@@ -399,14 +399,14 @@ class Activity {
         promptMsg.react('👍');
 
         // reaction collector, time is needed in milliseconds, we have it in seconds
-        const collector = promptMsg.createReactionCollector((reaction, user) => !user.bot, { time: (1000 * this.botGuild.stamps.stampCollectionTime) });
+        const collector = promptMsg.createReactionCollector((reaction, user) => !user.bot, { time: (1000 * this.initBotInfo.stamps.stampCollectionTime) });
 
         collector.on('collect', async (reaction, user) => {
             // grab the member object of the reacted user
             const member = this.guild.member(user);
 
             if (!seenUsers.has(user.id)) {
-                StampsManager.parseRole(member, this.name, this.botGuild);
+                StampsManager.parseRole(member, this.name, this.initBotInfo);
                 seenUsers.set(user.id, user.username);
             }
         });
@@ -433,7 +433,7 @@ class Activity {
 
         let joinEmoji = '🚗';
 
-        const embed = new MessageEmbed().setTitle('Activity Rules').setDescription(rules).addField('To join the activity:', `React to this message with ${joinEmoji}`).setColor(this.botGuild.colors.embedColor);
+        const embed = new MessageEmbed().setTitle('Activity Rules').setDescription(rules).addField('To join the activity:', `React to this message with ${joinEmoji}`).setColor(this.initBotInfo.colors.embedColor);
 
         const embedMsg = await rulesChannel.send(embed);
 

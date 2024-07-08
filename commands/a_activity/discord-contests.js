@@ -2,8 +2,7 @@ const { Command } = require('@sapphire/framework');
 const { discordLog, checkForRole } = require('../../discord-services');
 const { Message, MessageEmbed, Snowflake, MessageActionRow, MessageButton } = require('discord.js');
 const { getQuestion, lookupById, saveToLeaderboard, retrieveLeaderboard } = require('../../db/firebase/firebaseUtil');
-const BotGuild = require('../../db/mongo/BotGuild');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
+const firebaseUtil = require('../../db/firebase/firebaseUtil');
 
 /**
  * The DiscordContests class handles all functions related to Discord contests. It will ask questions in set intervals and pick winners
@@ -60,10 +59,10 @@ class DiscordContests extends Command {
         let userId = interaction.user.id;
         // this.botGuild = this.botGuild;
         let guild = interaction.guild;
-        this.botGuild = await BotGuild.findById(guild.id);
+        this.initBotInfo = await firebaseUtil.getInitBotInfo(guild.id);
         // let botSpamChannel = guild.channels.resolve(this.botGuild.channelIDs.botSpamChannel);
-        let adminLog = guild.channels.resolve(this.botGuild.channelIDs.adminLog);
-        let adminConsole = guild.channels.resolve(this.botGuild.channelIDs.adminConsole);
+        let adminLog = guild.channels.resolve(this.initBotInfo.channelIDs.adminLog);
+        let adminConsole = guild.channels.resolve(this.initBotInfo.channelIDs.adminConsole);
 
         var interval;
 
@@ -72,12 +71,12 @@ class DiscordContests extends Command {
         var startNow = interaction.options.getBoolean('start_question_now');
         var roleId = interaction.options.getRole('notify');
 
-        if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
+        if (!guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.adminRole)) {
             interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
             return;
         }
 
-        if (Object.values(this.botGuild.roleIDs).includes(roleId) || Object.values(this.botGuild.verification.verificationRoles).includes(roleId)) {
+        if (Object.values(this.initBotInfo.roleIDs).includes(roleId) || Object.values(this.initBotInfo.verification.verificationRoles).includes(roleId)) {
             interaction.reply({ content: 'This role cannot be used! Please pick a role that is specifically for Discord Contest notifications!', ephemeral: true });
             return;
         }
@@ -141,7 +140,7 @@ class DiscordContests extends Command {
         // });
 
         const startEmbed = new MessageEmbed()
-            .setColor(this.botGuild.embedColor)
+            .setColor(this.initBotInfo.embedColor)
             .setTitle(string)
             .setDescription('Note: Short-answer questions are non-case sensitive but any extra or missing symbols will be considered incorrect.')
             .addFields([{name: 'Click the 🍀 emoji below to be notified when a new question drops!', value: 'You can un-react to stop.'}]);
@@ -168,7 +167,7 @@ class DiscordContests extends Command {
         interaction.reply({ content: 'Discord contest has been started!', ephemeral: true });
         const controlPanel = await adminConsole.send({ content: 'Discord contests control panel. Status: Active', components: [row] });
         adminLog.send('Discord contests started by <@' + userId + '>');
-        const filter = i => !i.user.bot && (guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.roleIDs.staffRole) || guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.roleIDs.adminRole));
+        const filter = i => !i.user.bot && (guild.members.cache.get(i.user.id).roles.cache.has(this.initBotInfo.roleIDs.staffRole) || guild.members.cache.get(i.user.id).roles.cache.has(this.initBotInfo.roleIDs.adminRole));
         const collector = controlPanel.createMessageComponentCollector({filter});
         collector.on('collect', async i => {
             if (i.customId == 'refresh') {
@@ -180,8 +179,8 @@ class DiscordContests extends Command {
                 await i.reply({ content: 'Discord contests has been paused!', ephemeral: true });
                 await controlPanel.edit({ content: 'Discord contests control panel. Status: Paused'});
             } else if (paused && i.customId == 'play') {
-                await sendQuestion(this.botGuild);
-                interval = setInterval(sendQuestion, timeInterval, this.botGuild);
+                await sendQuestion(this.initBotInfo);
+                interval = setInterval(sendQuestion, timeInterval, this.initBotInfo);
                 paused = false;
                 await i.reply({ content: 'Discord contests has been un-paused!', ephemeral: true });
                 await controlPanel.edit({ content: 'Discord contests control panel. Status: Active'});
@@ -192,9 +191,9 @@ class DiscordContests extends Command {
 
         //starts the interval, and sends the first question immediately if startNow is true
         if (startNow) {
-            await sendQuestion(this.botGuild);
+            await sendQuestion(this.initBotInfo);
         }
-        interval = setInterval(sendQuestion, timeInterval, this.botGuild);
+        interval = setInterval(sendQuestion, timeInterval, this.initBotInfo);
 
         async function updateLeaderboard(memberId) {
             if (memberId) {
@@ -215,17 +214,18 @@ class DiscordContests extends Command {
         }
 
         /**
+         * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
          * sendQuestion is the function that picks and sends the next question, then picks the winner by matching participants' messages
          * against the answer(s) or receives the winner from Staff. Once it reaches the end it will notify Staff in the Logs channel and
          * list all the winners in order.
          */
-        async function sendQuestion(botGuild) {
+        async function sendQuestion(initBotInfo) {
             //get question's parameters from db 
             var data = await getQuestion(guild.id);
 
             //sends results to Staff after all questions have been asked and stops looping
             if (data === null) {
-                discordLog(guild, '<@&' + botGuild.roleIDs.staffRole + '> Discord contests have ended!');
+                discordLog(guild, '<@&' + initBotInfo.roleIDs.staffRole + '> Discord contests have ended!');
                 clearInterval(interval);
                 return;
             }
@@ -251,9 +251,9 @@ class DiscordContests extends Command {
             channel.send({ content: '<@&' + roleId + '>', embeds: [qEmbed] }).then(async (msg) => {
                 if (answers.length === 0) {
                     //send message to console
-                    const questionMsg = await adminConsole.send({ content: '<@&' + botGuild.roleIDs.staffRole + '>' + 'need manual review!', embeds: [qEmbed], components: [row] });
+                    const questionMsg = await adminConsole.send({ content: '<@&' + initBotInfo.roleIDs.staffRole + '>' + 'need manual review!', embeds: [qEmbed], components: [row] });
 
-                    const filter = i => !i.user.bot && i.customId === 'winner' && (guild.members.cache.get(i.user.id).roles.cache.has(botGuild.roleIDs.staffRole) || guild.members.cache.get(i.user.id).roles.cache.has(botGuild.roleIDs.adminRole));
+                    const filter = i => !i.user.bot && i.customId === 'winner' && (guild.members.cache.get(i.user.id).roles.cache.has(initBotInfo.roleIDs.staffRole) || guild.members.cache.get(i.user.id).roles.cache.has(initBotInfo.roleIDs.adminRole));
                     const collector = await questionMsg.createMessageComponentCollector({ filter });
 
                     collector.on('collect', async i => {
@@ -287,7 +287,7 @@ class DiscordContests extends Command {
                     });
                 } else {
                     //automatically mark answers
-                    const filter = m => !m.author.bot && (botGuild.verification.isEnabled ? checkForRole(m.member, botGuild.verification.verificationRoles.get('hacker')) : checkForRole(m.member, botGuild.roleIDs.member));
+                    const filter = m => !m.author.bot && (initBotInfo.verification.isEnabled ? checkForRole(m.member, initBotInfo.verification.roles.get('hacker')) : checkForRole(m.member, initBotInfo.roleIDs.memberRole));
                     const collector = channel.createMessageCollector({ filter, time: timeInterval * 0.75 });
 
                     collector.on('collect', async m => {
