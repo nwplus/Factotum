@@ -369,7 +369,7 @@ module.exports = {
 };
 
 function getFactotumDoc() {
-    return apps.get('nwPlusBotAdmin').firestore().collection('ExternalProjects').doc('Factotum');
+    return _db.collection('ExternalProjects').doc('Factotum');
 }
 
 /**
