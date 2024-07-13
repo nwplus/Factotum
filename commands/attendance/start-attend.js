@@ -34,10 +34,10 @@ class StartAttend extends PermissionCommand {
      * If existsChannel is true, asks user to indicate the channel to use. Else asks user to indicate the category under which the
      * channel should be created, and then creates it. In both cases it will send an embed containing the instructions for hackers to 
      * check in.
-     * @param {BotGuildModel} botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      * @param {Message} message - message containing command
      */
-    async runCommand(botGuild, message) {
+    async runCommand(initBotInfo, message) {
         var channel;
 
         // register the attend command just in case its needed
@@ -71,21 +71,21 @@ class StartAttend extends PermissionCommand {
             return;
         }
 
-        channel.updateOverwrite(botGuild.roleIDs.everyoneRole, { SEND_MESSAGES: false });
+        channel.updateOverwrite(initBotInfo.roleIDs.everyoneRole, { SEND_MESSAGES: false });
 
         //send embed with information and tagging hackers
         let attendEmoji = '🔋';
 
         const embed = new MessageEmbed()
-            .setColor(botGuild.colors.embedColor)
+            .setColor(initBotInfo.colors.embedColor)
             .setTitle('Hey there!')
             .setDescription('In order to indicate that you are participating, please react to this message with ' + attendEmoji)
             .addField('Do you need assistance?', 'Head over to the support channel and ping the admins!');
-        let embedMsg = await channel.send('<@&' + botGuild.roleIDs.memberRole + '>', {embed: embed});
+        let embedMsg = await channel.send('<@&' + initBotInfo.roleIDs.memberRole + '>', {embed: embed});
         embedMsg.pin();
         embedMsg.react(attendEmoji);
-        botGuild.blackList.set(channel.id, 1000);
-        botGuild.save();
+        initBotInfo.blackList.set(channel.id, 1000);
+        initBotInfo.save();
         
         // reaction collector to attend hackers
         let embedMsgCollector = embedMsg.createReactionCollector((reaction, user) => !user.bot && reaction.emoji.name === attendEmoji);
@@ -94,8 +94,8 @@ class StartAttend extends PermissionCommand {
             let member = message.guild.member(user.id);
 
             // check if user needs to attend
-            if (!checkForRole(member, botGuild.attendance.attendeeRoleID)) {
-                Verification.attend(member, botGuild);
+            if (!checkForRole(member, initBotInfo.attendance.attendeeRoleID)) {
+                Verification.attend(member, initBotInfo);
             } else {
                 sendEmbedToMember(member, {
                     title: 'Attend Error',

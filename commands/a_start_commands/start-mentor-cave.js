@@ -2,12 +2,11 @@ const { Command } = require('@sapphire/framework');
 const { Interaction, MessageEmbed } = require('discord.js');
 const { randomColor, discordLog } = require('../../discord-services');
 const { Message, Collection } = require('discord.js');
-const BotGuild = require('../../db/mongo/BotGuild');
 const winston = require('winston');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { NumberPrompt, SpecialPrompt, RolePrompt } = require('advanced-discord.js-prompts');
 const { MessageActionRow, MessageButton } = require('discord.js');
 const { MessageSelectMenu, Modal, TextInputComponent } = require('discord.js');
+const firebaseUtil = require('../../db/firebase/firebaseUtil');
 
 /**
  * The start mentor cave command creates a cave for mentors. To know what a cave is look at [cave]{@link Cave} class.
@@ -59,24 +58,20 @@ class StartMentorCave extends Command {
         };
     }
 
-    /**
-     * @param {BotGuildModel} botGuild
-     * @param {Message} message - the message in which the command was run
-     */
     async chatInputRun(interaction) {
         try {
             // helpful prompt vars
             let channel = interaction.channel;
             let userId = interaction.user.id;
             let guild = interaction.guild;
-            this.botGuild = await BotGuild.findById(guild.id);
+            this.initBotInfo = await firebaseUtil.getInitBotInfo(guild.id);
 
-            if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
+            if (!guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.adminRole)) {
                 await interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
                 return;
             }
 
-            let adminConsole = await guild.channels.resolve(this.botGuild.channelIDs.adminConsole);
+            let adminConsole = await guild.channels.resolve(this.initBotInfo.channelIDs.adminConsole);
             this.ticketCount = 0;
 
             // const additionalMentorRole = interaction.options.getRole('additional_mentor_role');
@@ -84,20 +79,20 @@ class StartMentorCave extends Command {
             const inactivePeriod = interaction.options.getInteger('inactivity_time');
             // const bufferTime = inactivePeriod / 2;
             const reminderTime = interaction.options.getInteger('unanswered_ticket_time');
-            const mentorRoleSelectionChannel = interaction.options.getChannel('mentor_role_selection_channel') ?? await guild.channels.resolve(this.botGuild.mentorTickets.mentorRoleSelectionChannel);
-            const incomingTicketsChannel = interaction.options.getChannel('incoming_tickets_channel') ?? await guild.channels.resolve(this.botGuild.mentorTickets.incomingTicketsChannel);
-            const requestTicketChannel = interaction.options.getChannel('request_ticket_channel') ?? await guild.channels.resolve(this.botGuild.mentorTickets.requestTicketChannel);
+            const mentorRoleSelectionChannel = interaction.options.getChannel('mentor_role_selection_channel') ?? await guild.channels.resolve(this.initBotInfo.mentorTickets.mentorRoleSelectionChannel);
+            const incomingTicketsChannel = interaction.options.getChannel('incoming_tickets_channel') ?? await guild.channels.resolve(this.initBotInfo.mentorTickets.incomingTicketsChannel);
+            const requestTicketChannel = interaction.options.getChannel('request_ticket_channel') ?? await guild.channels.resolve(this.initBotInfo.mentorTickets.requestTicketChannel);
             if (!mentorRoleSelectionChannel || !incomingTicketsChannel || !requestTicketChannel) {
                 await interaction.reply({ content: 'Please enter all 3 channels!', ephemeral: true });
                 return;
             }
 
-            if (mentorRoleSelectionChannel != this.botGuild.mentorTickets.mentorRoleSelectionChannel || incomingTicketsChannel != this.botGuild.mentorTickets.incomingTicketsChannel || requestTicketChannel != this.botGuild.mentorTickets.requestTicketChannel) {
+            if (mentorRoleSelectionChannel != this.initBotInfo.mentorTickets.mentorRoleSelectionChannel || incomingTicketsChannel != this.initBotInfo.mentorTickets.incomingTicketsChannel || requestTicketChannel != this.initBotInfo.mentorTickets.requestTicketChannel) {
                 await interaction.deferReply();
-                this.botGuild.mentorTickets.mentorRoleSelectionChannel = mentorRoleSelectionChannel.id;
-                this.botGuild.mentorTickets.incomingTicketsChannel = incomingTicketsChannel.id;
-                this.botGuild.mentorTickets.requestTicketChannel = requestTicketChannel.id;
-                await this.botGuild.save();
+                this.initBotInfo.mentorTickets.mentorRoleSelectionChannel = mentorRoleSelectionChannel.id;
+                this.initBotInfo.mentorTickets.incomingTicketsChannel = incomingTicketsChannel.id;
+                this.initBotInfo.mentorTickets.requestTicketChannel = requestTicketChannel.id;
+                await this.initBotInfo.save();
                 await interaction.editReply({ content: 'Mentor cave activated!', ephemeral: true });
             } else {
                 await interaction.reply({ content: 'Mentor cave activated!', ephemeral: true });
@@ -194,7 +189,7 @@ class StartMentorCave extends Command {
             emojisMap.set(ideationEmoji, 'Ideation');
             emojisMap.set(pitchingEmoji, 'Pitching');
 
-            const mentorRoleColour = guild.roles.cache.find(role => role.id === this.botGuild.roleIDs.mentorRole).hexColor;
+            const mentorRoleColour = guild.roles.cache.find(role => role.id === this.initBotInfo.roleIDs.mentorRole).hexColor;
             for (let value of emojisMap.values()) {
                 const findRole = guild.roles.cache.find(role => role.name.toLowerCase() === `M-${value}`.toLowerCase());
                 if (!findRole) {
@@ -357,7 +352,7 @@ class StartMentorCave extends Command {
                         });
 
                     if (submitted) {
-                        const role = i.values[0] === 'None of the above' ? this.botGuild.roleIDs.mentorRole : guild.roles.cache.find(role => role.name.toLowerCase() === `M-${i.values[0]}`.toLowerCase()).id;
+                        const role = i.values[0] === 'None of the above' ? this.initBotInfo.roleIDs.mentorRole : guild.roles.cache.find(role => role.name.toLowerCase() === `M-${i.values[0]}`.toLowerCase()).id;
                         const description = submitted.fields.getTextInputValue('ticketDescription');
                         const location = submitted.fields.getTextInputValue('location');
                         // const helpFormat = submitted.fields.getTextInputValue('helpFormat');
@@ -545,7 +540,7 @@ class StartMentorCave extends Command {
 
             const adminEmbed = new MessageEmbed()
                 .setTitle('Mentor Cave Console')
-                .setColor(this.botGuild.colors.embedColor);
+                .setColor(this.initBotInfo.colors.embedColor);
 
             const adminRow = new MessageActionRow()
                 .addComponents(
@@ -556,7 +551,7 @@ class StartMentorCave extends Command {
                 );
 
             const adminControls = await adminConsole.send({ embeds: [adminEmbed], components: [adminRow] });
-            const adminCollector = adminControls.createMessageComponentCollector({ filter: i => !i.user.bot && i.member.roles.cache.has(this.botGuild.roleIDs.adminRole) });
+            const adminCollector = adminControls.createMessageComponentCollector({ filter: i => !i.user.bot && i.member.roles.cache.has(this.initBotInfo.roleIDs.adminRole) });
             adminCollector.on('collect', async adminInteraction => {
                 if (adminInteraction.customId === 'addRole') {
                     const askForRoleName = await adminInteraction.reply({ content: `<@${adminInteraction.user.id}> name of role to add? Type "cancel" to cancel this operation.`, fetchReply: true });
@@ -632,7 +627,7 @@ class StartMentorCave extends Command {
             activityListener.on('end', async collected => {
                 if (!ticketText.parentId || !ticketVoice.parentId) return;
                 if (collected.size === 0 && ticketVoice.members.size === 0 && ticketMsg.embeds[0].color != '#90EE90') {
-                    const remainingMembers = await ticketCategory.members.filter(member => !member.roles.cache.has(this.botGuild.roleIDs.adminRole) && !member.user.bot).map(member => member.id);
+                    const remainingMembers = await ticketCategory.members.filter(member => !member.roles.cache.has(this.initBotInfo.roleIDs.adminRole) && !member.user.bot).map(member => member.id);
                     const msgText = '<@' + remainingMembers.join('><@') + '> Hello! I detected some inactivity in this channel. If you are done and would like to leave this ticket, please go to the pinned message and click the "Leave" button. If you would like to keep this channel a little longer, please click the button below.\n**If no action is taken in the next ' + bufferTime + ' minutes, the channels for this ticket will be deleted automatically.**';
                     const row = new MessageActionRow()
                         .addComponents(

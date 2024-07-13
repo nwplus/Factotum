@@ -1,7 +1,7 @@
 const { Command } = require('@sapphire/framework');
 const { TextChannel, Snowflake, Guild, ColorResolvable, Role, Permissions, PermissionsBitField, PermissionFlagsBits } = require('discord.js');
 const { sendMsgToChannel, addRoleToMember, discordLog, } = require('../../discord-services');
-const BotGuild = require('../../db/mongo/BotGuild');
+const firebaseUtil = require('../../db/firebase/firebaseUtil');
 const winston = require('winston');
 const fetch = require('node-fetch');
 const { MessagePrompt, StringPrompt, NumberPrompt, SpecialPrompt, RolePrompt, ChannelPrompt } = require('advanced-discord.js-prompts');
@@ -96,6 +96,7 @@ class InitBot extends Command {
      * @param {Message} message
      */
     async chatInputRun(interaction) {
+        await firebaseUtil.connect('Factotum');
 
         // easy constants to use
         var channel = interaction.channel;
@@ -104,7 +105,7 @@ class InitBot extends Command {
         const guild = interaction.guild;
         const everyoneRole = interaction.guild.roles.everyone;
 
-        const botGuild = await BotGuild.findById(guild.id);
+        const botGuildRef = await firebaseUtil.getFactotumSubCol().doc(guild.id);
 
         // make sure the user had manage server permission
         if (!interaction.member.permissionsIn(interaction.channel).has('ADMINISTRATOR')) {
@@ -112,7 +113,8 @@ class InitBot extends Command {
             return;
         }
 
-        if (botGuild?.isSetUpComplete) {
+        const botGuildDoc = await botGuildRef.get();
+        if (botGuildDoc.exists && botGuildDoc.data().isSetUpComplete) {
             await interaction.reply({ content: 'This server is already set up!', ephemeral: true });
             return;
         }
@@ -134,14 +136,19 @@ class InitBot extends Command {
             guest = interaction.options.getRole('guest').id;
             welcomeSupportChannel = interaction.options.getChannel('welcome_support_channel').id;
             verificationRoles = interaction.options.getAttachment('verification_roles');
-            // if ()
             try {
                 const response = await fetch(verificationRoles.url);
                 let res = await response.json();
-                await botGuild.setUpVerification(guild, guest, res, welcomeSupportChannel);
+                
+                // CHANGE 3
+                // await botGuild.setUpVerification(guild, guest, res, welcomeSupportChannel);
+                verification.roles = res;
+                verification.guestRoleID = guest;
+                verification.welcomeSupportChannel = welcomeSupportChannel;
             } catch (error) {
                 console.error('error: ' + error);
                 interaction.reply({ content: 'An error occurred with the file upload or verification roles upload!', ephemeral: true});
+                return;
             }
         }
         // const useStamps = interaction.options.getBoolean('use_stamps');
@@ -162,7 +169,7 @@ class InitBot extends Command {
         // ask the user to move our role up the list
         await interaction.reply({content: 'Before we move on, could you please move my role up the role list as high as possible, this will give me the ability to assign roles!', ephemeral: true});
 
-        await botGuild.readyUp(guild, {
+        await botGuildRef.set({
             verification,
             embedColor,
             roleIDs: {
@@ -175,10 +182,9 @@ class InitBot extends Command {
             channelIDs: {
                 adminLog: adminLog.id,
                 adminConsole: adminConsole.id
-            }
+            },
+            isSetUpComplete: true,
         });
-        await botGuild.save();
-        // botGuild.setCommandStatus(this.client);
 
         await interaction.followUp('The bot is set and ready to hack!');
         discordLog(guild, '<@' + userId + '> ran init-bot!');

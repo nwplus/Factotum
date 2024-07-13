@@ -1,7 +1,6 @@
 const Discord = require('discord.js');
 const { Command, CommandoMessage, CommandoClientOptions, CommandInfo } = require('discord.js-commando');
-const BotGuild = require('../db/mongo/BotGuild');
-const BotGuildModel = require('./Bot/bot-guild');
+const firebaseUtil = require('../db/firebase/firebaseUtil');
 const discordServices = require('../discord-services');
 const winston = require('winston');
 
@@ -71,9 +70,9 @@ class PermissionCommand extends Command {
         discordServices.deleteMessage(message);
 
         /** @type {BotGuildModel} */
-        let botGuild;
-        if (message?.guild) botGuild = await BotGuild.findById(message.guild.id);
-        else botGuild = null;
+        let initBotInfo;
+        if (message?.guild) initBotInfo = await firebaseUtil.getInitBotInfo(message.guild.id);
+        else initBotInfo = null;
 
         // check for DM only, when true, all other checks should not happen!
         if (this.permissionInfo.dmOnly) {
@@ -82,42 +81,42 @@ class PermissionCommand extends Command {
                     title: 'Error',
                     description: 'The command you just tried to use is only usable via DM!',
                 });
-                winston.loggers.get(botGuild?._id || 'main').warning(`User ${message.author.id} tried to run a permission command ${this.name} that is only available in DMs in the channel ${message.channel.name}.`);
+                winston.loggers.get(initBotInfo?.id || 'main').warning(`User ${message.author.id} tried to run a permission command ${this.name} that is only available in DMs in the channel ${message.channel.name}.`);
                 return;
             }
         } else {
             // Make sure it is only used in the permitted channel
             if (this.permissionInfo?.channel) {
-                let channelID = botGuild.channelIDs[this.permissionInfo.channel];
+                let channelID = initBotInfo.channelIDs[this.permissionInfo.channel];
 
                 if (channelID && message.channel.id != channelID) {
                     discordServices.sendMessageToMember(message.member, this.permissionInfo.channelMessage, true);
-                    winston.loggers.get(botGuild?._id || 'main').warning(`User ${message.author.id} tried to run a permission command ${this.name} that is only available in the channel ${this.permissionInfo.channel}, in the channel ${message.channel.name}.`);
+                    winston.loggers.get(initBotInfo?.id || 'main').warning(`User ${message.author.id} tried to run a permission command ${this.name} that is only available in the channel ${this.permissionInfo.channel}, in the channel ${message.channel.name}.`);
                     return;
                 }
             }
             // Make sure only the permitted role can call it
             else if (this.permissionInfo?.role) {
 
-                let roleID = botGuild.roleIDs[this.permissionInfo.role];
+                let roleID = initBotInfo.roleIDs[this.permissionInfo.role];
 
                 // if staff role then check for staff and admin, else check the given role
-                if (roleID && (roleID === botGuild.roleIDs.staffRole && 
-                    (!discordServices.checkForRole(message.member, roleID) && !discordServices.checkForRole(message.member, botGuild.roleIDs.adminRole))) || 
-                    (roleID != botGuild.roleIDs.staffRole && !discordServices.checkForRole(message.member, roleID))) {
+                if (roleID && (roleID === initBotInfo.roleIDs.staffRole && 
+                    (!discordServices.checkForRole(message.member, roleID) && !discordServices.checkForRole(message.member, initBotInfo.roleIDs.adminRole))) || 
+                    (roleID != initBotInfo.roleIDs.staffRole && !discordServices.checkForRole(message.member, roleID))) {
                     discordServices.sendMessageToMember(message.member, this.permissionInfo.roleMessage, true);
-                    winston.loggers.get(botGuild?._id || 'main').warning(`User ${message.author.id} tried to run a permission command ${this.name} that is only available for members with role ${this.permissionInfo.role}, but he has roles: ${message.member.roles.cache.array().map((role) => role.name)}`);
+                    winston.loggers.get(initBotInfo?.id || 'main').warning(`User ${message.author.id} tried to run a permission command ${this.name} that is only available for members with role ${this.permissionInfo.role}, but he has roles: ${message.member.roles.cache.array().map((role) => role.name)}`);
                     return;
                 }
             }
         }
-        this.runCommand(botGuild, message, args, fromPattern, result);
+        this.runCommand(initBotInfo, message, args, fromPattern, result);
     }
 
 
     /**
      * Required class by children, will throw error if not implemented!
-     * @param {BotGuildModel} botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      * @param {CommandoMessage} message
      * @param {Object} args
      * @param {Boolean} fromPattern
@@ -125,7 +124,7 @@ class PermissionCommand extends Command {
      * @abstract
      * @protected
      */
-    runCommand(botGuild, message, args, fromPattern, result) {
+    runCommand(initBotInfo, message, args, fromPattern, result) {
         throw new Error('You need to implement the runCommand method!');
     }
 }

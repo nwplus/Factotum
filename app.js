@@ -1,18 +1,16 @@
 require('dotenv-flow').config();
-const mongoUtil = require('./db/mongo/mongoUtil');
+const firebaseUtil = require('./db/firebase/firebaseUtil');
 // const Commando = require('discord.js-commando');
 const Discord = require('discord.js');
-const firebaseServices = require('./db/firebase/firebase-services');
 const winston = require('winston');
 const fs = require('fs');
 const discordServices = require('./discord-services');
-const BotGuild = require('./db/mongo/BotGuild');
 const BotGuildModel = require('./classes/Bot/bot-guild');
 const Verification = require('./classes/Bot/Features/Verification/verification');
 const { StringPrompt } = require('advanced-discord.js-prompts');
 const Sentry = require('@sentry/node');
 const Tracing = require('@sentry/tracing');
-const { LogLevel, SapphireClient } = require('@sapphire/framework')
+const { LogLevel, SapphireClient } = require('@sapphire/framework');
 
 /**
  * The Main App module houses the bot events, process events, and initializes
@@ -26,32 +24,27 @@ const { LogLevel, SapphireClient } = require('@sapphire/framework')
  * Read command line args to know if prod, dev, or test and what server
  * First arg is one of prod, dev or test
  * the second is the test server, but the first one must be test
- * @param {string[]} args 
  * @returns {Map} config settings
  */
-function getConfig(args) {
-    if (args.length >= 1) {
-        if (args[0] === 'dev') {
-            // Default dev
-            return JSON.parse(process.env.DEV);
-        } else if (args[0] === 'prod') {
-            // Production
-            if (args[1] === 'yes') {
-                return JSON.parse(process.env.PROD);
-            }
-        } else if (args[0] === 'test') {
-            // Test
-            const testConfig = JSON.parse(process.env.TEST);
-            let server = args[1] ?? 0;
-            if (server === '1') {
-                return testConfig['ONE'];
-            } else if (server === '2') {
-                return testConfig['TWO'];
-            } else if (server === '3') {
-                return testConfig['THREE'];
-            } else if (server === '4') {
-                return testConfig['FOUR'];
-            }
+function getConfig() {
+    if (process.env.NODE_ENV === 'DEV') {
+        // Default dev
+        return JSON.parse(process.env.DEV);
+    } else if (process.env.NODE_ENV === 'PROD') {
+        // Production
+        return JSON.parse(process.env.PROD);
+    } else if (process.env.NODE_ENV === 'TEST') {
+        // Test
+        const testConfig = JSON.parse(process.env.TEST);
+        let server = process.env.SERVER;
+        if (server === '1') {
+            return testConfig['ONE'];
+        } else if (server === '2') {
+            return testConfig['TWO'];
+        } else if (server === '3') {
+            return testConfig['THREE'];
+        } else if (server === '4') {
+            return testConfig['FOUR'];
         }
     }
     
@@ -60,7 +53,7 @@ function getConfig(args) {
     process.exit(0);
 }
 
-const config = getConfig(process.argv.slice(2));
+const config = getConfig();
 
 const isLogToConsole = config['consoleLog'];
 
@@ -77,22 +70,22 @@ if (config['sentryLog']) {
 
 const bot = new SapphireClient({
     defaultPrefix: '!',
-	caseInsensitiveCommands: true,
-	logger: {
-		level: LogLevel.Debug
-	},
-	shards: 'auto',
-	intents: [
-		'GUILDS',
-		'GUILD_MEMBERS',
-		'GUILD_BANS',
-		'GUILD_EMOJIS_AND_STICKERS',
-		'GUILD_VOICE_STATES',
-		'GUILD_MESSAGES',
-		'GUILD_MESSAGE_REACTIONS',
-		'DIRECT_MESSAGES',
-		'DIRECT_MESSAGE_REACTIONS'
-	],
+    caseInsensitiveCommands: true,
+    logger: {
+        level: LogLevel.Debug
+    },
+    shards: 'auto',
+    intents: [
+        'GUILDS',
+        'GUILD_MEMBERS',
+        'GUILD_BANS',
+        'GUILD_EMOJIS_AND_STICKERS',
+        'GUILD_VOICE_STATES',
+        'GUILD_MESSAGES',
+        'GUILD_MESSAGE_REACTIONS',
+        'DIRECT_MESSAGES',
+        'DIRECT_MESSAGE_REACTIONS'
+    ],
 });
 
 const customLoggerLevels = {
@@ -155,12 +148,10 @@ bot.once('ready', async () => {
 
     // initialize firebase
     const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
-    firebaseServices.initializeFirebaseAdmin('nwPlusBotAdmin', adminSDK, 'https://nwplus-bot.firebaseio.com');
-    mainLogger.warning('Connected to firebase admin sdk successfully!', { event: 'Ready Event' });
 
-    // set mongoose connection
-    await mongoUtil.mongooseConnect();
-    mainLogger.warning('Connected to mongoose successfully!', { event: 'Ready Event' });
+    firebaseUtil.initializeFirebaseAdmin('Factotum', adminSDK, process.env.FIREBASE_URL);
+    mainLogger.warning('Connected to nwFirebase successfully!', { event: 'Ready Event' });
+    firebaseUtil.connect('Factotum');
 
     // make sure all guilds have a botGuild, this is in case the bot goes offline and its added
     // to a guild. If botGuild is found, make sure only the correct commands are enabled.
@@ -168,9 +159,9 @@ bot.once('ready', async () => {
         // create the logger for the guild
         createALogger(guild.id, guild.name, false, isLogToConsole);
 
-        let botGuild = await BotGuild.findById(guild.id);
+        let botGuild = await firebaseUtil.getInitBotInfo(guild.id);
         if (!botGuild) {
-            newGuild(guild);
+            await newGuild(guild);
             mainLogger.verbose(`Created a new botGuild for the guild ${guild.id} - ${guild.name} on bot ready.`, { event: 'Ready Event' });
         } else {
             // set all non guarded commands to not enabled for the guild
@@ -178,7 +169,7 @@ bot.once('ready', async () => {
             //     if (!group.guarded) guild.setGroupEnabled(group, false);
             // });
 
-            await botGuild.setCommandStatus(bot);
+            // await botGuild.setCommandStatus(bot);
 
             guild.commandPrefix = botGuild.prefix;
             
@@ -190,7 +181,7 @@ bot.once('ready', async () => {
 /**
  * Runs when the bot is added to a guild.
  */
-bot.on('guildCreate', /** @param {sapphireClient.Guild} guild */(guild) => {
+bot.on('guildCreate', /** @param {Discord.Guild} guild */(guild) => {
     mainLogger.warning(`The bot was added to a new guild: ${guild.id} - ${guild.name}.`, { event: 'Guild Create Event' });
 
     newGuild(guild);
@@ -202,18 +193,16 @@ bot.on('guildCreate', /** @param {sapphireClient.Guild} guild */(guild) => {
 
 /**
  * Will set up a new guild.
- * @param {sapphireClient.Guild} guild
+ * @param {Discord.Guild} guild
  * @private
  */
-function newGuild(guild) {
+async function newGuild(guild) {
     // set all non guarded commands to not enabled for the new guild
     // bot.registry.groups.forEach((group, key, map) => {
     //     if (!group.guarded) guild.setGroupEnabled(group, false);
     // });
     // create a botGuild object for this new guild.
-    BotGuild.create({
-        _id: guild.id,
-    });
+    await firebaseUtil.createInitBotInfoDoc(guild.id);
 }
 
 /**
@@ -221,10 +210,6 @@ function newGuild(guild) {
  */
 bot.on('guildDelete', async (guild) => {
     mainLogger.warning(`The bot was removed from the guild: ${guild.id} - ${guild.name}`);
-
-    let botGuild = await BotGuild.findById(guild.id);
-    botGuild.remove();
-    mainLogger.verbose(`BotGuild with id: ${guild.id} has been removed!`);
 });
 
 /**
@@ -264,7 +249,7 @@ bot.on('commandError', (command, error, message) => {
  * Runs when a new member joins a guild the bot is running in.
  */
 bot.on('guildMemberAdd', async member => {
-    let botGuild = await BotGuild.findById(member.guild.id);
+    let botGuild = await firebaseUtil.getInitBotInfo(member.guild.id);
     member.roles.add(botGuild.verification.guestRoleID);
 
     // if the guild where the user joined is complete then greet and verify.
@@ -433,18 +418,18 @@ async function greetNewMember(member, botGuild) {
 
             try {
                 await Verification.verify(member, email, member.guild, botGuild);
-                if (!askedAboutCodex && await firebaseServices.checkCodexActive(member.guild.id)
+                if (!askedAboutCodex && await firebaseUtil.checkCodexActive(member.guild.id)
                     && discordServices.checkForRole(member, botGuild.verification.verificationRoles.get('hacker'))) { 
                     try {
                         discordServices.askBoolQuestion(member,botGuild, 'One more thing!', 
-                        'Would you like to receive free [Codex beta](https://openai.com/blog/openai-codex/) access, courtesy of our sponsor OpenAI (first come first served, while supplies last)?\n\n' + 
+                            'Would you like to receive free [Codex beta](https://openai.com/blog/openai-codex/) access, courtesy of our sponsor OpenAI (first come first served, while supplies last)?\n\n' + 
                         
                          'Open AI is giving out prizes to the best 2 projects using Codex or GPT-3:\n' +
                             '- 1st place: $120 worth of credits(2 million words in GPT-3 DaVinci)\n' +
                             '- 2nd place: $60 worth of credits (1 million words in GPT-3 DaVinci)\n\n' +
                         
                          'If you would like a Codex code, please react with a 👍',
-                        'Thanks for indicating your interest, you have been added to the list! If you are selected to receive an API key, you will get an email.', email);
+                            'Thanks for indicating your interest, you have been added to the list! If you are selected to receive an API key, you will get an email.', email);
                         askedAboutCodex = true;
                     } catch (error) {
                         discordServices.sendEmbedToMember(member, {

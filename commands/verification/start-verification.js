@@ -1,8 +1,6 @@
 const { Command } = require('@sapphire/framework');
-const BotGuild = require('../../db/mongo/BotGuild');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
+const firebaseUtil = require('../../db/firebase/firebaseUtil');
 const { Message, MessageEmbed, Modal, MessageActionRow, MessageButton, TextInputComponent } = require('discord.js');
-const firebaseServices = require('../../db/firebase/firebase-services');
 const { discordLog } = require('../../discord-services');
 
 class StartVerification extends Command {
@@ -24,19 +22,15 @@ class StartVerification extends Command {
         };
     }
 
-    /**
-     * @param {BotGuildModel} botGuild
-     * @param {Message} message 
-     */
     async chatInputRun(interaction) {
-        this.botGuild = await BotGuild.findById(interaction.guild.id);
+        this.initBotInfo = await firebaseUtil.getInitBotInfo(interaction.guild.id);
         const guild = interaction.guild;
         const userId = interaction.user.id;
-        if (!guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.botGuild.roleIDs.adminRole)) {
+        if (!guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.adminRole)) {
             interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
             return;
         }
-        if (!this.botGuild.verification.isEnabled) {
+        if (!this.initBotInfo.verification.isEnabled) {
             await interaction.reply({ content: 'Verification has not been enabled!', ephemeral: true});
             return;
         }
@@ -61,7 +55,7 @@ class StartVerification extends Command {
 
 
         checkInCollector.on('collect', async i => {
-            if (!interaction.guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.verification.guestRoleID)) {
+            if (!interaction.guild.members.cache.get(i.user.id).roles.cache.has(this.initBotInfo.verification.guestRoleID)) {
                 await i.reply({ content: 'You are not eligible to be checked in! If you don\'t have correct access to the server, please contact an organizer.', ephemeral: true});
                 return;
             }
@@ -90,7 +84,7 @@ class StartVerification extends Command {
                 const email = submitted.fields.getTextInputValue('email');
                 let types;
                 try {
-                    types = await firebaseServices.verify(email, submitted.user.id, submitted.guild.id);
+                    types = await firebaseUtil.verify(email, submitted.user.id, submitted.guild.id);
                 } catch {
                     submitted.reply({ content: 'Your email could not be found! Please try again or ask an admin for help.', ephemeral: true });
                     discordLog(interaction.guild, `VERIFY FAILURE : <@${submitted.user.id}> Verified email: ${email} but was a failure, I could not find that email!`);
@@ -105,20 +99,20 @@ class StartVerification extends Command {
 
                 var correctTypes = [];
                 types.forEach(type => {
-                    if (this.botGuild.verification.verificationRoles.has(type) || type === 'staff' || type === 'mentor') {
+                    if (this.initBotInfo.verification.verificationRoles.has(type) || type === 'staff' || type === 'mentor') {
                         const member = interaction.guild.members.cache.get(submitted.user.id);
                         let roleId;
                         if (type === 'staff') {
-                            roleId = this.botGuild.roleIDs.staffRole;
+                            roleId = this.initBotInfo.roleIDs.staffRole;
                         } else if (type === 'mentor') {
-                            roleId = this.botGuild.roleIDs.mentorRole;
+                            roleId = this.initBotInfo.roleIDs.mentorRole;
                         } else {
-                            roleId = this.botGuild.verification.verificationRoles.get(type);
+                            roleId = this.initBotInfo.verification.verificationRoles.get(type);
                         }
                         member.roles.add(roleId);
                         if (correctTypes.length === 0) {
-                            member.roles.remove(this.botGuild.verification.guestRoleID);
-                            member.roles.add(this.botGuild.roleIDs.memberRole);
+                            member.roles.remove(this.initBotInfo.verification.guestRoleID);
+                            member.roles.add(this.initBotInfo.roleIDs.memberRole);
                         }
                         correctTypes.push(type);
                     } else {

@@ -1,6 +1,6 @@
 const { Command } = require('@sapphire/framework');
 require('dotenv').config();
-const FirebaseServices = require('../../db/firebase/firebase-services');
+const firebaseUtil = require('../../db/firebase/firebaseUtil');
 const fetch = require('node-fetch');
 
 /**
@@ -45,8 +45,8 @@ class LoadQuestions extends Command {
             const response = await fetch(file.url);
             res = await response.json();
 
-            let db = FirebaseServices.apps.get('nwPlusBotAdmin').firestore();
-            var count = 0;
+            let db = firebaseUtil.apps.get('nwPlusBotAdmin').firestore();
+            let count = 0;
             res.forEach(question => {
                 count++;
 

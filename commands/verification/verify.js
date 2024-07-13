@@ -2,7 +2,6 @@ const PermissionCommand = require('../../classes/permission-command');
 const { sendEmbedToMember, sendMessageToMember, checkForRole, validateEmail } = require('../../discord-services');
 const { Message } = require('discord.js');
 const Verification = require('../../classes/Bot/Features/Verification/verification');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
 
 /**
  * Will verify the user running the command, needs the user's email and guild ID. Can only 
@@ -39,16 +38,16 @@ class Verify extends PermissionCommand {
     }
 
     /**
-     * @param {BotGuildModel} botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      * @param {Message} message
      * @param {Object} args 
      * @param {String} args.email 
      * @param {String} args.guildId
      */
-    async runCommand(botGuild, message, { email, guildId }) {
+    async runCommand(initBotInfo, message, { email, guildId }) {
 
         // check if the user needs to verify, else warn and return
-        if (!checkForRole(member, botGuild.roleIDs.guestRole)) {
+        if (!checkForRole(member, initBotInfo.roleIDs.guestRole)) {
             sendEmbedToMember(member, {
                 title: 'Verify Error',
                 description: 'You do not need to verify, you are already more than a guest!'
@@ -74,7 +73,7 @@ class Verify extends PermissionCommand {
 
         // Call the verify function
         try {
-            Verification.verify(member, email, guild, botGuild);
+            Verification.verify(member, email, guild, initBotInfo);
         } catch (error) {
             sendEmbedToMember(member, {
                 title: 'Verification Error',

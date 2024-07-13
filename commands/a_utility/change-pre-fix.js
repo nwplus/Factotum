@@ -1,6 +1,5 @@
 const { Message } = require('discord.js');
 const PermissionCommand = require('../../classes/permission-command');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { StringPrompt } = require('advanced-discord.js-prompts');
 
 /**
@@ -24,16 +23,16 @@ class ChangePreFix extends PermissionCommand {
     }
 
     /**
-     * @param {BotGuildModel} botGuild 
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo 
      * @param {Message} message 
      */
-    async runCommand(botGuild, message) {
+    async runCommand(initBotInfo, message) {
         let options = ['!', '#', '$', '%', '&', '?', '|', '°'];
 
         let prefix = StringPrompt.restricted({ prompt: 'What would you like to use as the prefix?', channel: message.channel, userId: message.author.id }, options);
 
-        botGuild.prefix = prefix;
-        botGuild.save();
+        initBotInfo.prefix = prefix;
+        initBotInfo.save();
 
         message.guild.commandPrefix = prefix;
 
