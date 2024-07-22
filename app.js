@@ -11,6 +11,7 @@ const { StringPrompt } = require('advanced-discord.js-prompts');
 const Sentry = require('@sentry/node');
 const Tracing = require('@sentry/tracing');
 const { LogLevel, SapphireClient } = require('@sapphire/framework');
+const Pronouns = require('./commands/a_utility/pronouns');
 
 /**
  * The Main App module houses the bot events, process events, and initializes
@@ -155,7 +156,8 @@ bot.once('ready', async () => {
 
     // make sure all guilds have a botGuild, this is in case the bot goes offline and its added
     // to a guild. If botGuild is found, make sure only the correct commands are enabled.
-    bot.guilds.cache.forEach(async (guild, key, guilds) => {
+    const guildsArr = Array.from(bot.guilds.cache);
+    for (const [_, guild] of guildsArr) {
         // create the logger for the guild
         createALogger(guild.id, guild.name, false, isLogToConsole);
 
@@ -171,11 +173,23 @@ bot.once('ready', async () => {
 
             // await botGuild.setCommandStatus(bot);
 
-            guild.commandPrefix = botGuild.prefix;
-            
             mainLogger.verbose(`Found a botGuild for ${guild.id} - ${guild.name} on bot ready.`, { event: 'Ready Event' });
+
+            if (botGuild.isSetUpComplete) {
+                mainLogger.verbose('Trying to restore existing pronoun command message');
+                /** @type {Pronouns} */
+                const pronounsCommand = bot.stores.get('commands').get('pronouns');
+                const error = await pronounsCommand.tryRestoreReactionListeners(guild);
+                if (error) {
+                    mainLogger.warning(error);
+                } else {
+                    mainLogger.verbose('Restored pronoun command message');
+                }
+            }
+
+            guild.commandPrefix = botGuild.prefix;
         }
-    });
+    }
 });
 
 /**

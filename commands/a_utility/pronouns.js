@@ -1,6 +1,8 @@
 const { Command } = require('@sapphire/framework');
-const { Interaction, MessageEmbed, PermissionFlagsBits } = require('discord.js');
+const { Interaction, MessageEmbed, PermissionFlagsBits, Guild, Message, MessageManager } = require('discord.js');
 const firebaseUtil = require('../../db/firebase/firebaseUtil');
+
+var emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'];
 
 /**
  * The pronouns command sends a role reaction console for users to select a pronoun role out of 4 options:
@@ -44,18 +46,14 @@ class Pronouns extends Command {
             interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
             return;
         }
-        const sheRole = interaction.guild.roles.cache.find(role => role.name === 'she/her');
-        const heRole = interaction.guild.roles.cache.find(role => role.name === 'he/him');
-        const theyRole = interaction.guild.roles.cache.find(role => role.name === 'they/them');
-        const otherRole = interaction.guild.roles.cache.find(role => role.name === 'other pronouns');
+        
+        const { sheRole, heRole, theyRole, otherRole } = getPronounRoles(guild);
 
         // check to make sure all 4 roles are available
         if (!sheRole || !heRole || !theyRole || !otherRole) {
             interaction.reply('Could not find all four roles! Make sure the role names are exactly like stated on the documentation.');
             return;
         }
-
-        var emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'];
 
         let embed = new MessageEmbed()
             .setColor('#0DEFE1')
@@ -69,47 +67,110 @@ class Pronouns extends Command {
         let messageEmbed = await interaction.channel.send({embeds: [embed]});
         emojis.forEach(emoji => messageEmbed.react(emoji));
         interaction.reply({content: 'Pronouns selector started!', ephemeral: true});
+        
+        listenToReactions(guild, messageEmbed);
 
-        let filter = (reaction, user) => {
-            return user.bot != true && emojis.includes(reaction.emoji.name);
-        };
-
-        // create collector
-        const reactionCollector = messageEmbed.createReactionCollector({filter, dispose: true});
-
-        // on emoji reaction
-        reactionCollector.on('collect', async (reaction, user) => {
-            if (reaction.emoji.name === emojis[0]) {
-                const member = interaction.guild.members.cache.get(user.id);
-                await member.roles.add(sheRole);
-            } if (reaction.emoji.name === emojis[1]) {
-                const member = interaction.guild.members.cache.get(user.id);
-                await member.roles.add(heRole);
-            } if (reaction.emoji.name === emojis[2]) {
-                const member = interaction.guild.members.cache.get(user.id);
-                await member.roles.add(theyRole);
-            } if (reaction.emoji.name === emojis[3]) {
-                const member = interaction.guild.members.cache.get(user.id);
-                await member.roles.add(otherRole);
-            }
+        const savedMessagesCol = firebaseUtil.getFactotumSubCol().doc(guild.id).collection('SavedMessages');
+        await savedMessagesCol.doc('pronouns').set({
+            messageId: messageEmbed.id,
+            channelId: messageEmbed.channel.id,
         });
+    }
 
-        reactionCollector.on('remove', async (reaction, user) => {
-            if (reaction.emoji.name === emojis[0]) {
-                const member = interaction.guild.members.cache.get(user.id);
-                await member.roles.remove(sheRole);
-            } if (reaction.emoji.name === emojis[1]) {
-                const member = interaction.guild.members.cache.get(user.id);
-                await member.roles.remove(heRole);
-            } if (reaction.emoji.name === emojis[2]) {
-                const member = interaction.guild.members.cache.get(user.id);
-                await member.roles.remove(theyRole);
-            } if (reaction.emoji.name === emojis[3]) {
-                const member = interaction.guild.members.cache.get(user.id);
-                await member.roles.remove(otherRole);
+    /**
+     * Checks Firebase for an existing stored reaction listener -
+     * restores the listeners for the reaction if it exists, otherwise does nothing
+     * @param {Guild} guild 
+     */
+    async tryRestoreReactionListeners(guild) {
+        const savedMessagesSubCol = firebaseUtil.getSavedMessagesSubCol(guild.id);
+        const pronounDoc = await savedMessagesSubCol.doc('pronouns').get();
+        if (pronounDoc.exists) {
+            const { messageId, channelId } = pronounDoc.data();
+            const channel = await this.container.client.channels.fetch(channelId);
+            if (channel) {
+                try {
+                    /** @type {Message} */
+                    const message = await channel.messages.fetch(messageId);
+                    listenToReactions(guild, message);
+                } catch (e) {
+                    // message doesn't exist anymore
+                    return e;
+                }
+            } else {
+                return 'Saved message channel does not exist';
             }
-        });
-
+        } else {
+            return 'No existing saved message for pronouns command';
+        }
     }
 }
+
+/**
+ * 
+ * @param {Guild} guild 
+ */
+function getPronounRoles(guild) {
+    const sheRole = guild.roles.cache.find(role => role.name === 'she/her');
+    const heRole = guild.roles.cache.find(role => role.name === 'he/him');
+    const theyRole = guild.roles.cache.find(role => role.name === 'they/them');
+    const otherRole = guild.roles.cache.find(role => role.name === 'other pronouns');
+    return { sheRole, heRole, theyRole, otherRole };
+}
+
+/**
+ * Adds reaction listeners to a message to add/remove pronoun rules from users upon reacting
+ * @param {Guild} guild
+ * @param {Message} message 
+ */
+function listenToReactions(guild, message) {
+    const { sheRole, heRole, theyRole, otherRole } = getPronounRoles(guild);
+
+    let filter = (reaction, user) => {
+        return user.bot != true && emojis.includes(reaction.emoji.name);
+    };
+
+    // create collector
+    const reactionCollector = message.createReactionCollector({filter, dispose: true});
+
+    // on emoji reaction
+    reactionCollector.on('collect', async (reaction, user) => {
+        if (reaction.emoji.name === emojis[0]) {
+            const member = guild.members.cache.get(user.id);
+            await member.roles.add(sheRole);
+        }
+        if (reaction.emoji.name === emojis[1]) {
+            const member = guild.members.cache.get(user.id);
+            await member.roles.add(heRole);
+        }
+        if (reaction.emoji.name === emojis[2]) {
+            const member = guild.members.cache.get(user.id);
+            await member.roles.add(theyRole);
+        }
+        if (reaction.emoji.name === emojis[3]) {
+            const member = guild.members.cache.get(user.id);
+            await member.roles.add(otherRole);
+        }
+    });
+
+    reactionCollector.on('remove', async (reaction, user) => {
+        if (reaction.emoji.name === emojis[0]) {
+            const member = guild.members.cache.get(user.id);
+            await member.roles.remove(sheRole);
+        }
+        if (reaction.emoji.name === emojis[1]) {
+            const member = guild.members.cache.get(user.id);
+            await member.roles.remove(heRole);
+        }
+        if (reaction.emoji.name === emojis[2]) {
+            const member = guild.members.cache.get(user.id);
+            await member.roles.remove(theyRole);
+        }
+        if (reaction.emoji.name === emojis[3]) {
+            const member = guild.members.cache.get(user.id);
+            await member.roles.remove(otherRole);
+        }
+    });
+}
+
 module.exports = Pronouns;
