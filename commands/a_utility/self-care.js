@@ -50,7 +50,6 @@ class SelfCareReminders extends Command {
     /**
      * 
      * @param {Command.ChatInputInteraction} interaction 
-     * @returns 
      */
     async chatInputRun(interaction) {
         let interval;
