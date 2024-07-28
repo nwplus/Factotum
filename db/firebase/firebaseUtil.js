@@ -133,7 +133,8 @@ module.exports = {
      */
     async getReminder(guildId) {
         //checks that the reminder has not been sent
-        let qref = getFactotumDoc().collection('guilds').doc(guildId).collection('reminders').where('sent', '==', false).limit(1);
+        let qref = module.exports.getFactotumSubCol().doc(guildId)
+            .collection('Reminders').where('sent', '==', false).limit(1);
         let reminder = (await qref.get()).docs[0];
         //if there reminder unsent, change its status to asked
         if (reminder != undefined) {

@@ -4,8 +4,7 @@ const firebaseUtil = require('../../db/firebase/firebaseUtil');
 const fetch = require('node-fetch');
 
 /**
- * The self care command will send pre made reminders from firebase to the command channel. These reminders are self
- * care reminders. Will prompt a role to mention with each reminder. We recommend that be an opt-in role. 
+ * Loads discord contest questions from input JSON file
  * @category Commands
  * @subcategory Admin-Utility
  * @extends Command
