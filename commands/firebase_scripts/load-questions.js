@@ -38,21 +38,17 @@ class LoadQuestions extends Command {
 
         const guildId = interaction.guild.id;
         const file = interaction.options.getAttachment('questions');
-        let res;
         await interaction.deferReply();
         try {
             const response = await fetch(file.url);
-            res = await response.json();
+            const res = await response.json();
 
-            let db = firebaseUtil.apps.get('nwPlusBotAdmin').firestore();
-            let count = 0;
             res.forEach(question => {
-                count++;
-
-                var docRef = db.collection('guilds').doc(guildId).collection('questions').doc();
+                const docRef = firebaseUtil.getFactotumSubCol().doc(guildId)
+                    .collection('Questions').doc();
                 docRef.set({ ...question, asked: false });
             });
-            await interaction.editReply({ content: count + ' questions added!', ephemeral: true });
+            await interaction.editReply({ content: res + ' questions added!', ephemeral: true });
         } catch (error) {
             await interaction.editReply({ content: 'Something went wrong! Error msg: ' + error, ephemeral: true });
         }
