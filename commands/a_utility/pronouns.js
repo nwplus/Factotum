@@ -10,7 +10,6 @@ const emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'];
  * * he/him
  * * they/them
  * * other pronouns
- * The roles must be already created on the server for this to work.
  * @category Commands
  * @subcategory Admin-Utility
  * @extends Command
@@ -47,7 +46,7 @@ class Pronouns extends Command {
             return;
         }
         
-        const { sheRole, heRole, theyRole, otherRole } = getPronounRoles(guild);
+        const { sheRole, heRole, theyRole, otherRole } = await getPronounRoles(guild);
 
         // check to make sure all 4 roles are available
         if (!sheRole || !heRole || !theyRole || !otherRole) {
@@ -110,12 +109,32 @@ class Pronouns extends Command {
  * 
  * @param {Guild} guild 
  */
-function getPronounRoles(guild) {
-    const sheRole = guild.roles.cache.find(role => role.name === 'she/her');
-    const heRole = guild.roles.cache.find(role => role.name === 'he/him');
-    const theyRole = guild.roles.cache.find(role => role.name === 'they/them');
-    const otherRole = guild.roles.cache.find(role => role.name === 'other pronouns');
+async function getPronounRoles(guild) {
+    const sheRole = guild.roles.cache.find(role => role.name === 'she/her') || await createRole(guild, 'she/her', '#99AAB5');
+    const heRole = guild.roles.cache.find(role => role.name === 'he/him') || await createRole(guild, 'he/him', '#99AAB5');
+    const theyRole = guild.roles.cache.find(role => role.name === 'they/them') || await createRole(guild, 'they/them', '#99AAB5');
+    const otherRole = guild.roles.cache.find(role => role.name === 'other pronouns') || await createRole(guild, 'other pronouns', '#99AAB5');
     return { sheRole, heRole, theyRole, otherRole };
+}
+
+/**
+ * Creates a role in the guild with the specified name and color.
+ * @param {Guild} guild 
+ * @param {string} name 
+ * @param {string} color 
+ */
+ async function createRole(guild, name, color) {
+    try {
+        const role = await guild.roles.create({
+            name: name,
+            color: color,
+            reason: `Creating ${name} role for pronoun selector`
+        });
+        return role;
+    } catch (error) {
+        console.error(`Failed to create role ${name}:`, error);
+        throw new Error(`Could not create role ${name}`);
+    }
 }
 
 /**
@@ -123,8 +142,8 @@ function getPronounRoles(guild) {
  * @param {Guild} guild
  * @param {Message} message 
  */
-function listenToReactions(guild, message) {
-    const { sheRole, heRole, theyRole, otherRole } = getPronounRoles(guild);
+async function listenToReactions(guild, message) {
+    const { sheRole, heRole, theyRole, otherRole } = await getPronounRoles(guild);
 
     let filter = (reaction, user) => {
         return user.bot != true && emojis.includes(reaction.emoji.name);
