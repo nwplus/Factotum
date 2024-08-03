@@ -2,7 +2,7 @@ const { Command } = require('@sapphire/framework');
 const { Interaction, MessageEmbed, PermissionFlagsBits, Guild, Message, MessageManager } = require('discord.js');
 const firebaseUtil = require('../../db/firebase/firebaseUtil');
 
-var emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'];
+const emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'];
 
 /**
  * The pronouns command sends a role reaction console for users to select a pronoun role out of 4 options:
