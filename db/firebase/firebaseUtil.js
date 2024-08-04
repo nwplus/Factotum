@@ -79,6 +79,13 @@ module.exports = {
         }
         return externalProjectsCol.doc('Factotum').collection('InitBotInfo');
     },
+    /**
+     * @param {string} guildId 
+     */
+    getSavedMessagesSubCol(guildId) {
+        const factotumSubCol = this.getFactotumSubCol();
+        return factotumSubCol.doc(guildId).collection('SavedMessages');
+    },
 
     /**
      * @param {String} appName
