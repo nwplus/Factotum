@@ -97,7 +97,7 @@ class StartVerification extends Command {
                     return;
                 }
 
-                var correctTypes = [];
+                let correctTypes = [];
                 types.forEach(type => {
                     console.log(type, ' is the TYPE');
                     const roleObj = this.initBotInfo.verification.roles.find(role => role.name === type);
@@ -122,8 +122,6 @@ class StartVerification extends Command {
                         } else {
                             console.warn(`Could not add role: ${roleId} for type: ${type}`);
                         }
-
-                        correctTypes.push(type);
                     } else {
                         discordLog(interaction.guild, `VERIFY WARNING: <@${submitted.user.id}> was of type ${type} but I could not find that type!`);
                     }
