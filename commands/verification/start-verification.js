@@ -99,7 +99,9 @@ class StartVerification extends Command {
 
                 var correctTypes = [];
                 types.forEach(type => {
-                    if (this.initBotInfo.verification.verificationRoles.has(type) || type === 'staff' || type === 'mentor') {
+                    console.log(type, ' is the TYPE');
+                    const roleObj = this.initBotInfo.verification.roles.find(role => role.name === type);
+                    if (roleObj || type === 'staff' || type === 'mentor') {
                         const member = interaction.guild.members.cache.get(submitted.user.id);
                         let roleId;
                         if (type === 'staff') {
@@ -107,13 +109,20 @@ class StartVerification extends Command {
                         } else if (type === 'mentor') {
                             roleId = this.initBotInfo.roleIDs.mentorRole;
                         } else {
-                            roleId = this.initBotInfo.verification.verificationRoles.get(type);
+                            roleId = roleObj.roleId;
                         }
-                        member.roles.add(roleId);
-                        if (correctTypes.length === 0) {
-                            member.roles.remove(this.initBotInfo.verification.guestRoleID);
-                            member.roles.add(this.initBotInfo.roleIDs.memberRole);
+                        if (member && roleId) {
+                            member.roles.add(roleId);
+                
+                            if (correctTypes.length === 0) {
+                                member.roles.remove(this.initBotInfo.verification.guestRoleID);
+                                member.roles.add(this.initBotInfo.roleIDs.memberRole);
+                            }
+                            correctTypes.push(type);
+                        } else {
+                            console.warn(`Could not add role: ${roleId} for type: ${type}`);
                         }
+
                         correctTypes.push(type);
                     } else {
                         discordLog(interaction.guild, `VERIFY WARNING: <@${submitted.user.id}> was of type ${type} but I could not find that type!`);
