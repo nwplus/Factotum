@@ -22,27 +22,17 @@ class CheckEmail extends Command {
         )
     }
 
-    // IS EDITED
     async chatInputRun(interaction) {
         this.initBotInfo = await firebaseUtil.getInitBotInfo(interaction.guild.id);
         const guild = interaction.guild;
-        console.log(guild, ' is the guild');
         const email = interaction.options.getString('email');
         const userId = interaction.user.id;
-        console.log(userId, ' is the userId');
 
-        console.log(email, ' is the email');
         if (!guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.adminRole)) {
             return this.error({ message: 'You do not have permissions to run this command!', ephemeral: true })
         }
         
         let botSpamChannel = guild.channels.resolve(this.initBotInfo.channelIDs.botSpamChannel);
-        if (!botSpamChannel) {
-            return interaction.reply({
-                content: `The channel with ID ${this.initBotInfo.channelIDs.botSpamChannel} could not be found. Please check the configuration.`,
-                ephemeral: true
-            });
-        }
 
         const userData = await checkEmail(email, guild.id);       
         interaction.reply({content: 'Visit <#' + this.initBotInfo.channelIDs.botSpamChannel + '> for the results', ephemeral: true});
