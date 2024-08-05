@@ -117,7 +117,6 @@ class StartMentorCave extends Command {
             }
 
             let adminConsole = await guild.channels.fetch(this.initBotInfo.channelIDs.adminConsole);
-            this.ticketCount = 0;
 
             // const additionalMentorRole = interaction.options.getRole('additional_mentor_role');
             const publicRole = interaction.options.getRole('request_ticket_role');
@@ -340,10 +339,9 @@ class StartMentorCave extends Command {
             const requestTicketConsole = await requestTicketChannel.send({ embeds: [requestTicketEmbed], components: [selectMenuRow] });
             
             listenToRequestConsole(
+                this.initBotInfo,
                 guild,
                 requestTicketConsole,
-                // requestTicketEmbed,
-                // selectMenuRow,
                 publicRole,
                 reminderTime,
                 incomingTicketsChannel
@@ -432,6 +430,19 @@ class StartMentorCave extends Command {
             });
         }
     }
+
+    /**
+     * Checks Firebase for existing stored listeners -
+     * restores the listeners if they exist, otherwise does nothing
+     * @param {Guild} guild 
+     */
+    async tryRestoreReactionListeners(guild) {
+        const savedMessagesSubCol = firebaseUtil.getSavedMessagesSubCol(guild.id);
+        const mentorCaveDoc = await savedMessagesSubCol.doc('mentor-cave').get();
+        if (mentorCaveDoc.exists) {
+            //
+        }
+    }
 }
 
 /**
@@ -460,7 +471,7 @@ async function listenToRoleReactions(guild, roleSelectionMsg) {
 }
 
 /**
- * 
+ * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo 
  * @param {Guild} guild 
  * @param {Message} requestTicketConsole 
  * @param {MessageEmbed} requestTicketEmbed 
@@ -470,10 +481,9 @@ async function listenToRoleReactions(guild, roleSelectionMsg) {
  * @param {GuildBasedChannel} incomingTicketsChannel 
  */
 function listenToRequestConsole(
+    initBotInfo,
     guild,
     requestTicketConsole,
-    // requestTicketEmbed,
-    // selectMenuRow,
     publicRole,
     reminderTime,
     incomingTicketsChannel
@@ -517,12 +527,13 @@ function listenToRequestConsole(
                 });
 
             if (submitted) {
-                const role = i.values[0] === 'None of the above' ? this.initBotInfo.roleIDs.mentorRole : guild.roles.cache.find(role => role.name.toLowerCase() === `M-${i.values[0]}`.toLowerCase()).id;
+                const role = i.values[0] === 'None of the above' ? initBotInfo.roleIDs.mentorRole : guild.roles.cache.find(role => role.name.toLowerCase() === `M-${i.values[0]}`.toLowerCase()).id;
                 const description = submitted.fields.getTextInputValue('ticketDescription');
                 const location = submitted.fields.getTextInputValue('location');
                 // const helpFormat = submitted.fields.getTextInputValue('helpFormat');
-                const ticketNumber = this.ticketCount;
-                this.ticketCount++;
+                const mentorCaveDoc = firebaseUtil.getSavedMessagesSubCol(guild.id).doc('mentor-cave');
+                const ticketNumber = (await mentorCaveDoc.get()).data()?.ticketCount ?? 1;
+                await mentorCaveDoc.set({ ticketCount: ticketNumber + 1 }, { merge: true });
                 const newTicketEmbed = new MessageEmbed()
                     .setTitle('Ticket #' + ticketNumber)
                     .setColor('#d3d3d3')
@@ -705,7 +716,7 @@ function listenToRequestConsole(
 }
 
 /**
- * 
+ * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo 
  * @param {Guild} guild 
  * @param {Message} adminControls 
  * @param {GuildBasedChannel} adminConsole

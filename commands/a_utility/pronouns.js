@@ -69,7 +69,7 @@ class Pronouns extends Command {
         
         listenToReactions(guild, messageEmbed);
 
-        const savedMessagesCol = firebaseUtil.getFactotumSubCol().doc(guild.id).collection('SavedMessages');
+        const savedMessagesCol = firebaseUtil.getSavedMessagesSubCol();
         await savedMessagesCol.doc('pronouns').set({
             messageId: messageEmbed.id,
             channelId: messageEmbed.channel.id,
