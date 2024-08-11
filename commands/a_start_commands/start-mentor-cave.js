@@ -11,6 +11,7 @@ const {
     GuildBasedChannel
 } = require('discord.js');
 const firebaseUtil = require('../../db/firebase/firebaseUtil');
+const { Client } = require('discord.js');
 
 //TODO: allow staff to add more roles
 const htmlCssEmoji = '💻';
@@ -115,8 +116,6 @@ class StartMentorCave extends Command {
                 await interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
                 return;
             }
-
-            let adminConsole = await guild.channels.fetch(this.initBotInfo.channelIDs.adminConsole);
 
             // const additionalMentorRole = interaction.options.getRole('additional_mentor_role');
             const publicRole = interaction.options.getRole('request_ticket_role');
@@ -243,22 +242,24 @@ class StartMentorCave extends Command {
                 }
             }
 
-            var fields = [];
-            for (let [key, value] of emojisMap) {
-                fields.push({ name: key + ' --> ' + value, value: '\u200b' });
-            }
+            const roleSelection = makeRoleSelectionEmbed();
 
-            const roleSelection = new MessageEmbed()
-                .setTitle('Choose what you would like to help hackers with! You can un-react to deselect a role.')
-                .setDescription('Note: You will be notified every time a hacker creates a ticket in one of your selected categories!')
-                .addFields(fields);
-
+            /** @type {Message} */
             const roleSelectionMsg = await mentorRoleSelectionChannel.send({ embeds: [roleSelection] });
-            for (let key of emojisMap.keys()) {
+            for (const key of emojisMap.keys()) {
                 roleSelectionMsg.react(key);
             }
 
             listenToRoleReactions(guild, roleSelectionMsg);
+
+            const mentorCaveDoc = firebaseUtil.getSavedMessagesSubCol(guild.id).doc('mentor-cave');
+
+            mentorCaveDoc.set({
+                roleReactions: {
+                    channelId: roleSelectionMsg.channelId,
+                    messageId: roleSelectionMsg.id
+                }
+            }, {merge: true});
 
             // channel.guild.channels.create('mentors-general',
             //     {
@@ -323,19 +324,9 @@ class StartMentorCave extends Command {
                 .setTitle('Need 1:1 mentor help?')
                 .setDescription('Select a technology you need help with and follow the instructions!');
 
-            var options = [];
-            for (let value of emojisMap.values()) {
-                options.push({ label: value, value: value });
-            }
-            options.push({ label: 'None of the above', value: 'None of the above' });
-
-            const selectMenuRow = new MessageActionRow()
-                .addComponents(
-                    new MessageSelectMenu()
-                        .setCustomId('ticketType')
-                        .addOptions(options)
-                );
-
+            const selectMenuRow = makeSelectMenuRow();
+            
+            /** @type {Message} */
             const requestTicketConsole = await requestTicketChannel.send({ embeds: [requestTicketEmbed], components: [selectMenuRow] });
             
             listenToRequestConsole(
@@ -346,6 +337,15 @@ class StartMentorCave extends Command {
                 reminderTime,
                 incomingTicketsChannel
             );
+
+            mentorCaveDoc.set({
+                requestTicketConsole: {
+                    channelId: requestTicketConsole.channelId,
+                    messageId: requestTicketConsole.id,
+                    publicRoleId: publicRole.id,
+                    reminderTime
+                }
+            }, {merge: true});
 
             const adminEmbed = new MessageEmbed()
                 .setTitle('Mentor Cave Console')
@@ -359,6 +359,10 @@ class StartMentorCave extends Command {
                         .setStyle('PRIMARY'),
                 );
             
+
+            const adminConsole = await guild.channels.fetch(this.initBotInfo.channelIDs.adminConsole);
+
+            /** @type {Message} */
             const adminControls = await adminConsole.send({ embeds: [adminEmbed], components: [adminRow] });
 
             listenToAdminControls(
@@ -367,10 +371,15 @@ class StartMentorCave extends Command {
                 adminControls,
                 adminConsole,
                 roleSelectionMsg,
-                roleSelection,
-                selectMenuRow,
                 requestTicketConsole
             );
+
+            mentorCaveDoc.set({
+                adminControls: {
+                    channelId: adminControls.channelId,
+                    messageId: adminControls.id,
+                }
+            }, {merge: true});
 
         } catch (error) {
             // winston.loggers.get(interaction.guild.id).warning(`An error was found but it was handled by not setting up the mentor cave. Error: ${error}`, { event: 'StartMentorCave Command' });
@@ -439,10 +448,112 @@ class StartMentorCave extends Command {
     async tryRestoreReactionListeners(guild) {
         const savedMessagesSubCol = firebaseUtil.getSavedMessagesSubCol(guild.id);
         const mentorCaveDoc = await savedMessagesSubCol.doc('mentor-cave').get();
-        if (mentorCaveDoc.exists) {
-            //
+        if (!mentorCaveDoc.exists) return 'Saved messages doc for mentor cave does not exist';
+        
+        const mentorCaveData = mentorCaveDoc.data();
+        if (mentorCaveData.extraEmojis) {
+            for (const [emoji, name] of Object.entries(mentorCaveData.extraEmojis)) {
+                emojisMap.set(emoji, name);
+            }
         }
+
+        // Get role reaction listener saved details
+        const { 
+            messageId: reactionMessageId,
+            channelId: reactionChannelId
+        } = mentorCaveData.roleReactions;
+        const reactionChannel = await guild.channels.fetch(reactionChannelId);
+        if (!reactionChannel) return 'Saved role reactions message info not found';
+
+        // Get request ticket console saved details
+        const {
+            channelId: consoleChannelId,
+            messageId: consoleMessageId,
+            publicRoleId,
+            reminderTime
+        } = mentorCaveData.requestTicketConsole;
+        const consoleChannel = await guild.channels.fetch(consoleChannelId);
+        if (!consoleChannel) return 'Saved request ticket console info not found';
+
+        // Get admin controls saved details
+        const {
+            channelId: controlsChannelId,
+            messageId: controlsMessageId
+        } = mentorCaveData.adminControls;
+        const adminControlsChannel = await guild.channels.fetch(controlsChannelId);
+        if (!adminControlsChannel) return 'Saved admin controls info not found';
+
+        
+        try {
+            // Restore role reactions listener
+            /** @type {Message} */
+            const roleSelectionMsg = await reactionChannel.messages.fetch(reactionMessageId);
+            await listenToRoleReactions(guild, roleSelectionMsg);
+
+            // Restore request console listener
+            /** @type {Message} */
+            const requestTicketConsole = await consoleChannel.messages.fetch(consoleMessageId);
+            const publicRole = await guild.roles.fetch(publicRoleId);
+            const initBotInfo = await firebaseUtil.getInitBotInfo(guild.id);
+            const incomingTicketsChannelId = initBotInfo.mentorTickets?.incomingTicketsChannel;
+            const incomingTicketsChannel = await guild.channels.fetch(incomingTicketsChannelId);
+            if (incomingTicketsChannelId && incomingTicketsChannel) {
+                listenToRequestConsole(
+                    initBotInfo,
+                    guild,
+                    requestTicketConsole,
+                    publicRole,
+                    reminderTime,
+                    incomingTicketsChannel
+                );
+            }
+            
+            // Restore admin controls listener
+            const adminControls = await adminControlsChannel.messages.fetch(controlsMessageId);
+            const adminConsole = await guild.channels.fetch(initBotInfo.channelIDs.adminConsole);
+            listenToAdminControls(
+                initBotInfo,
+                guild,
+                adminControls,
+                adminConsole,
+                roleSelectionMsg,
+                requestTicketConsole
+            );
+        } catch (e) {
+            // message doesn't exist anymore
+            return 'Error: ' + e;
+        }
+    }   
+}
+
+function makeRoleSelectionEmbed() {
+    const fields = [];
+    for (const [key, value] of emojisMap) {
+        fields.push({ name: key + ' --> ' + value, value: '\u200b' });
     }
+
+    const roleSelection = new MessageEmbed()
+        .setTitle('Choose what you would like to help hackers with! You can un-react to deselect a role.')
+        .setDescription('Note: You will be notified every time a hacker creates a ticket in one of your selected categories!')
+        .addFields(fields);
+
+    return roleSelection;
+}
+
+function makeSelectMenuRow() {
+    const options = [];
+    for (const value of emojisMap.values()) {
+        options.push({ label: value, value: value });
+    }
+    options.push({ label: 'None of the above', value: 'None of the above' });
+
+    const selectMenuRow = new MessageActionRow()
+        .addComponents(
+            new MessageSelectMenu()
+                .setCustomId('ticketType')
+                .addOptions(options)
+        );
+    return selectMenuRow;
 }
 
 /**
@@ -720,9 +831,7 @@ function listenToRequestConsole(
  * @param {Guild} guild 
  * @param {Message} adminControls 
  * @param {GuildBasedChannel} adminConsole
- * @param {Message} roleSelectionMsg 
- * @param {MessageEmbed} roleSelection 
- * @param {MessageActionRow} selectMenuRow 
+ * @param {Message} roleSelectionMsg
  * @param {Message} requestTicketConsole 
  */
 function listenToAdminControls(
@@ -731,8 +840,6 @@ function listenToAdminControls(
     adminControls,
     adminConsole,
     roleSelectionMsg,
-    roleSelection,
-    selectMenuRow,
     requestTicketConsole
 ) {
     const mentorRoleColour = guild.roles.cache.find(role => role.id === initBotInfo.roleIDs.mentorRole).hexColor;
@@ -759,29 +866,32 @@ function listenToAdminControls(
 
                     const askForEmoji = await adminConsole.send(`<@${adminInteraction.user.id}> React to this message with the emoji for the role!`);
                     const emojiCollector = askForEmoji.createReactionCollector({ filter: (reaction, user) => user.id === adminInteraction.user.id });
-                    emojiCollector.on('collect', collected => {
+                    emojiCollector.on('collect', (collected) => {
                         if (emojisMap.has(collected.emoji.name)) {
                             adminConsole.send(`<@${adminInteraction.user.id}> Emoji is already used in another role. Please react again.`).then(msg => {
                                 setTimeout(() => msg.delete(), 5000);
                             });
                         } else {
                             emojiCollector.stop();
+                            firebaseUtil.getSavedMessagesSubCol(guild.id).doc('mentor-cave').set({
+                                extraEmojis: {
+                                    [collected.emoji.name]: roleName
+                                }
+                            }, { merge: true });
                             emojisMap.set(collected.emoji.name, roleName);
                             adminConsole.send(`<@${adminInteraction.user.id}> Role added!`).then(msg => {
                                 setTimeout(() => msg.delete(), 5000);
                             });
-                            roleSelectionMsg.edit({ embeds: [new MessageEmbed(roleSelection).addFields([{ name: collected.emoji.name + ' --> ' + roleName, value: '\u200b' }])] });
+                            roleSelectionMsg.edit({ embeds: [new MessageEmbed(makeRoleSelectionEmbed())] });
                             roleSelectionMsg.react(collected.emoji.name);
 
-                            const oldOptions = selectMenuRow.components[0].options;
-                            const newOptions = oldOptions;
-                            newOptions.splice(-1, 0, { label: roleName, value: roleName });
-                            var newSelectMenuRow = new MessageActionRow()
-                                .addComponents(
-                                    new MessageSelectMenu()
-                                        .setCustomId('ticketType')
-                                        .addOptions(newOptions)
-                                );
+                            const selectMenuOptions = makeSelectMenuRow().components[0].options;
+                            const newSelectMenuRow =
+                              new MessageActionRow().addComponents(
+                                  new MessageSelectMenu()
+                                      .setCustomId('ticketType')
+                                      .addOptions(selectMenuOptions)
+                              );
                             requestTicketConsole.edit({ components: [newSelectMenuRow] });
                             askForEmoji.delete();
                         }
