@@ -264,27 +264,38 @@ module.exports = {
      */
     async verify(email, id, guildId) {
         let emailLowerCase = email.trim().toLowerCase();
-        let userRef = getFactotumDoc().collection('guilds').doc(guildId).collection('members').where('email', '==', emailLowerCase).limit(1);
+        let userRef = getFactotumDoc().collection('InitBotInfo').doc(guildId).collection('applicants').where('email', '==', emailLowerCase).limit(1);
         let user = (await userRef.get()).docs[0];
+        let otherRolesRef = getFactotumDoc().collection('InitBotInfo').doc(guildId).collection('otherRoles').where('email', '==', emailLowerCase).limit(1);
+        let otherRolesUser = (await otherRolesRef.get()).docs[0];
         if (user) {
             let returnTypes = [];
 
             /** @type {FirebaseUser} */
             let data = user.data();
-
-            data.types.forEach((value, index, array) => {
-                if (!value.isVerified) {
-                    value.isVerified = true;
-                    value.VerifiedTimestamp = admin.firestore.Timestamp.now();
-                    returnTypes.push(value.type);
-                }
-            });
-
-            data.discordId = id;
-
-            user.ref.update(data);
+            if (!data?.isVerified) {
+                data.isVerified = true;
+                data.VerifiedTimestamp = admin.firestore.Timestamp.now();
+                data.discordId = id;
+                await user.ref.update(data);
+                returnTypes.push("hacker")
+            }
 
             return returnTypes;
+        } else if (otherRolesUser) {
+            let returnTypes = [];
+
+            /** @type {FirebaseUser} */
+            let data = otherRolesUser.data();
+            if (!data?.isVerified) {
+                data.isVerified = true;
+                data.VerifiedTimestamp = admin.firestore.Timestamp.now();
+                data.discordId = id;
+                await otherRolesUser.ref.update(data);
+                returnTypes.push(data?.role)
+            }
+
+            return returnTypes;            
         } else {
             throw new Error('The email provided was not found!');
         }
