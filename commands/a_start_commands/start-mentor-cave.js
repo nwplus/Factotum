@@ -93,11 +93,8 @@ class StartMentorCave extends Command {
                 .addChannelOption(option =>
                     option.setName('request_ticket_channel')
                         .setDescription('Tag the channel where hackers can request tickets')
-                        .setRequired(false))
-        ),
-        {
-            idHints: '1051737344937566229'
-        };
+                        .setRequired(false)),
+        { idHints: '1051737344937566229' });
     }
 
     /**

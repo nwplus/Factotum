@@ -1,3 +1,5 @@
+/** DEPRECATED */
+
 const { Message } = require('discord.js');
 const PermissionCommand = require('../../classes/permission-command');
 const { StringPrompt } = require('advanced-discord.js-prompts');

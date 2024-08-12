@@ -22,15 +22,18 @@ class Pronouns extends Command {
         });
     }
 
+    /**
+     * 
+     * @param {Command.Registry} registry 
+     */
     registerApplicationCommands(registry) {
         registry.registerChatInputCommand((builder) =>
             builder
                 .setName(this.name)
-                .setDescription(this.description)
-        ),
+                .setDescription(this.description),
         {
             idHints: '1051737347441569813'
-        };
+        });
     }
 
     /**
@@ -69,7 +72,7 @@ class Pronouns extends Command {
         
         listenToReactions(guild, messageEmbed);
 
-        const savedMessagesCol = firebaseUtil.getSavedMessagesSubCol();
+        const savedMessagesCol = firebaseUtil.getSavedMessagesSubCol(guild.id);
         await savedMessagesCol.doc('pronouns').set({
             messageId: messageEmbed.id,
             channelId: messageEmbed.channel.id,
@@ -123,7 +126,7 @@ async function getPronounRoles(guild) {
  * @param {string} name 
  * @param {string} color 
  */
- async function createRole(guild, name, color) {
+async function createRole(guild, name, color) {
     try {
         const role = await guild.roles.create({
             name: name,
