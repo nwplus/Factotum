@@ -38,37 +38,37 @@ class AddMembers extends Command {
             return this.error({ message: 'You do not have permissions to run this command!', ephemeral: true })
         }
 
-        if (!this.initBotInfo.verification.verificationRoles.has(participantsType)) {
+        if (!this.initBotInfo.verification.roles.find((r) => r.name === participantsType)) {
             await interaction.reply({ content: 'The role you entered does not exist!', ephemeral: true });
             return;
         }
         
         const modal = new Modal()
-                        .setCustomId('emailsModal')
-                        .setTitle('Enter all emails to be added as ' + participantsType)
-                        .addComponents([
-                            new MessageActionRow().addComponents(
-                                new TextInputComponent()
-                                    .setCustomId('emails')
-                                    .setLabel('Newline-separated Emails')
-                                    .setStyle('PARAGRAPH')
-                                    .setRequired(true),
-                            ),
-                        ]);
-                    await interaction.showModal(modal);
+            .setCustomId('emailsModal')
+            .setTitle('Enter all emails to be added as ' + participantsType)
+            .addComponents([
+                new MessageActionRow().addComponents(
+                    new TextInputComponent()
+                        .setCustomId('emails')
+                        .setLabel('Newline-separated Emails')
+                        .setStyle('PARAGRAPH')
+                        .setRequired(true),
+                ),
+            ]);
+        await interaction.showModal(modal);
 
-                    const submitted = await interaction.awaitModalSubmit({ time: 300000, filter: j => j.user.id === interaction.user.id })
-                        .catch(error => {
-                        });
+        const submitted = await interaction.awaitModalSubmit({ time: 300000, filter: j => j.user.id === interaction.user.id })
+            .catch(error => {
+            });
 
-                    if (submitted) {
-                        const emailsRaw = submitted.fields.getTextInputValue('emails');
-                        const emails = emailsRaw.split(/\r?\n|\r|\n/g);
-                        emails.forEach(email => {
-                            addUserData(email, participantsType, interaction.guild.id, overwrite);
-                        });
-                        submitted.reply({ content: emails.length + ' emails have been added as ' + participantsType, ephemeral: true })
-                    }
+        if (submitted) {
+            const emailsRaw = submitted.fields.getTextInputValue('emails');
+            const emails = emailsRaw.split(/\r?\n|\r|\n/g);
+            emails.forEach(email => {
+                addUserData(email, participantsType, interaction.guild.id, overwrite);
+            });
+            submitted.reply({ content: emails.length + ' emails have been added as ' + participantsType, ephemeral: true })
+        }
 }
 }
 module.exports = AddMembers;

@@ -75,8 +75,6 @@
 const { Command } = require('@sapphire/framework');
 // const { deleteMessage, sendMessageToMember, } = require('../../discord-services');
 const { Message, MessageEmbed, Modal, MessageActionRow, MessageButton, TextInputComponent } = require('discord.js');
-const BotGuild = require('../../db/mongo/BotGuild');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { discordLog } = require('../../discord-services');
 
 /**
@@ -106,26 +104,27 @@ class StartReport extends Command {
     }
 
     /**
-     * @param {BotGuildModel} botGuild
-     * @param {Message} message
+     * 
+     * @param {Command.ChatInputInteraction} interaction 
      */
     async chatInputRun(interaction) {
-        this.botGuild = await BotGuild.findById(interaction.guild.id);
-        const guild = interaction.guild;
         // const userId = interaction.user.id;
 
         // const embed = new MessageEmbed()
         //     .setTitle(`See an issue you'd like to annoymously report at ${interaction.guild.name}? Let our organizers know!`);
 
         const embed = new MessageEmbed()
-            .setTitle('Annoymously report users who are not following server or MLH rules. Help makes our community safer!')
+            .setTitle('Anonymously report users who are not following server or MLH rules. Help makes our community safer!')
             .setDescription('Please use the format below, be as precise and accurate as possible. \n ' + 
                             'Everything you say will be 100% anonymous. We have no way of reaching back to you so again, be as detailed as possible!\n' + 
                             'Copy paste the format and send it to me in this channel!')
-            .addField('Format:', 'User(s) discord username(s) (including discord id number(s)):\n' + 
+            .addFields({
+                name: 'Format:',
+                value: 'User(s) discord username(s) (including discord id number(s)):\n' + 
                                     'Reason for report (one line):\n' + 
                                     'Detailed Explanation:\n' + 
-                                    'Name of channel where the incident occurred (if possible):');
+                                    'Name of channel where the incident occurred (if possible):'
+            });
         // modal timeout warning?
         const row = new MessageActionRow()
             .addComponents(
@@ -165,9 +164,9 @@ class StartReport extends Command {
                 const issueMessage = submitted.fields.getTextInputValue('issueMessage');
                 
                 try {
-                    discordLog(interaction.guild, `<@&${interaction.guild.roleIDs.staffRole}> New annoymous report:\n\n ${issueMessage}`);
+                    discordLog(interaction.guild, `<@&${interaction.guild.roleIDs.staffRole}> New anonymous report:\n\n ${issueMessage}`);
                 } catch {
-                    discordLog(interaction.guild, `New annoymous report:\n\n ${issueMessage}`);
+                    discordLog(interaction.guild, `New anonymous report:\n\n ${issueMessage}`);
                 }
                 submitted.reply({ content: 'Thank you for taking the time to report users who are not following server or MLH rules. You help makes our community safer!', ephemeral: true });
                 return;
