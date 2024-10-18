@@ -235,71 +235,121 @@ module.exports = {
      * @param {String} [lastName=''] - users last name
      * @async
      */
-    async addUserData(email, type, guildId, overwrite) {
+     async addUserData(email, type, guildId, overwrite) {
         const cleanEmail = email.trim().toLowerCase();
-        const documentRef = getFactotumDoc().collection('guilds').doc(guildId).collection('members').doc(cleanEmail);
-        const doc = await documentRef.get();
-
-        if (doc.exists && !overwrite) {
+        const querySnapshot = type === "hacker" ? await getFactotumDoc()
+            .collection('InitBotInfo')
+            .doc(guildId)
+            .collection('applicants')
+            .where('email', '==', cleanEmail)
+            .limit(1)
+            .get() 
+            : await getFactotumDoc()
+            .collection('InitBotInfo')
+            .doc(guildId)
+            .collection('otherRoles')
+            .where('email', '==', cleanEmail)
+            .limit(1)
+            .get()
+    
+        let docRef;
+    
+        if (!querySnapshot.empty) {
+            const doc = querySnapshot.docs[0];
+            console.log(doc, ' is doc data');
+            docRef = doc.ref;
+    
             const types = doc.data().types || [];
             const containsType = types.some(existingType => existingType.type === type);
-            if (!containsType) {
-                types.push({ type, isVerified: false });
+    
+            if (!containsType || overwrite) {
+                if (!containsType) {
+                    types.push({ type, isVerified: false });
+                }
+                await docRef.update({ types });
             }
-            await documentRef.update({ types });
         } else {
+            docRef = type=== "hacker" ? getFactotumDoc()
+                .collection('InitBotInfo')
+                .doc(guildId)
+                .collection('applicants')
+                .doc()
+                : getFactotumDoc()
+                .collection('InitBotInfo')
+                .doc(guildId)
+                .collection('otherRoles')
+                .doc();
+    
             const data = { email: cleanEmail, types: [{ isVerified: false, type }] };
-            await documentRef.set(data);
+            await docRef.set(data);
         }
     },
 
     /**
-     * Verifies the any event member via their email.
-     * @param {String} email - the user email
-     * @param {String} id - the user's discord snowflake
-     * @param {String} guildId - the guild id
-     * @returns {Promise<String[]>} - the types this user is verified
+     * Verifies any event member via their email.
+     * @param {String} email - The user's email.
+     * @param {String} id - The user's Discord ID.
+     * @param {String} guildId - The guild ID.
+     * @returns {Promise<String[]>} - The types this user is verified for.
      * @async
      * @throws Error if the email provided was not found.
      */
     async verify(email, id, guildId) {
-        let emailLowerCase = email.trim().toLowerCase();
-        let userRef = getFactotumDoc().collection('InitBotInfo').doc(guildId).collection('applicants').where('email', '==', emailLowerCase).limit(1);
-        let user = (await userRef.get()).docs[0];
-        let otherRolesRef = getFactotumDoc().collection('InitBotInfo').doc(guildId).collection('otherRoles').where('email', '==', emailLowerCase).limit(1);
-        let otherRolesUser = (await otherRolesRef.get()).docs[0];
-        if (user) {
-            let returnTypes = [];
+        const emailLowerCase = email.trim().toLowerCase();
 
-            /** @type {FirebaseUser} */
-            let data = user.data();
-            if (!data?.isVerified) {
-                data.isVerified = true;
+        const userRef = getFactotumDoc()
+            .collection('InitBotInfo')
+            .doc(guildId)
+            .collection('applicants')
+            .where('email', '==', emailLowerCase)
+            .limit(1);
+        const userSnapshot = await userRef.get();
+        const user = userSnapshot.docs[0];
+
+        const otherRolesRef = getFactotumDoc()
+            .collection('InitBotInfo')
+            .doc(guildId)
+            .collection('otherRoles')
+            .where('email', '==', emailLowerCase)
+            .limit(1);
+        const otherRolesUserSnapshot = await otherRolesRef.get();
+        const otherRolesUser = otherRolesUserSnapshot.docs[0];
+
+        if (user || otherRolesUser) {
+            let returnTypes = [];
+            let data;
+
+            if (user) {
+                data = user.data();
+            } else {
+                data = otherRolesUser.data();
+            }
+
+            if (data?.types) {
+                data.types = data.types.map((role) => {
+                    if (!role.isVerified) {
+                        role.isVerified = true;
+                        returnTypes.push(role.type);
+                    }
+                    return role;
+                });
+
                 data.VerifiedTimestamp = admin.firestore.Timestamp.now();
                 data.discordId = id;
-                await user.ref.update(data);
-                returnTypes.push("hacker")
+
+                if (user) {
+                    await user.ref.update(data);
+                } else if (otherRolesUser) {
+                    await otherRolesUser.ref.update(data);
+                }
             }
 
             return returnTypes;
-        } else if (otherRolesUser) {
-            let returnTypes = [];
-
-            /** @type {FirebaseUser} */
-            let data = otherRolesUser.data();
-            if (!data?.isVerified) {
-                data.isVerified = true;
-                data.VerifiedTimestamp = admin.firestore.Timestamp.now();
-                data.discordId = id;
-                await otherRolesUser.ref.update(data);
-                returnTypes.push(data?.role)
-            }
-
-            return returnTypes;            
         } else {
             throw new Error('The email provided was not found!');
         }
     },
+
 
     /**
      * Attends the user via their discord id
