@@ -1,10 +1,9 @@
 const { Command } = require('@sapphire/framework');
-const PermissionCommand = require('../../classes/permission-command');
 const { discordLog } = require('../../discord-services');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const { getReminder } = require('../../db/firebase/firebaseUtil');
-const { NumberPrompt, SpecialPrompt, RolePrompt } = require('advanced-discord.js-prompts');
-const firebaseUtil = require('../../db/firebase/firebaseUtil')
+const firebaseUtil = require('../../db/firebase/firebaseUtil');
+const { Message } = require('discord.js');
 
 /**
  * The self care command will send pre made reminders from firebase to the command channel. These reminders are self
@@ -21,6 +20,10 @@ class SelfCareReminders extends Command {
         });
     }
 
+    /**
+     * 
+     * @param {Command.Registry} registry 
+     */
     registerApplicationCommands(registry) {
         registry.registerChatInputCommand((builder) =>
             builder
@@ -44,27 +47,39 @@ class SelfCareReminders extends Command {
         };
     }
 
+    /**
+     * 
+     * @param {Command.ChatInputInteraction} interaction 
+     */
     async chatInputRun(interaction) {
-        var interval;
+        let interval;
 
         let channel = interaction.channel;
         let userId = interaction.user.id;
         let guild = interaction.guild;
-        this.initBotInfo = await firebaseUtil.getInitBotInfo(guild.id);
-        let adminConsole = guild.channels.resolve(this.initBotInfo.channelIDs.adminConsole);
+        let initBotInfo = await firebaseUtil.getInitBotInfo(guild.id);
+        let adminConsole = await guild.channels.fetch(initBotInfo.channelIDs.adminConsole);
 
-        var timeInterval = interaction.options.getInteger('interval') * 60000;
-        var startNow = interaction.options.getBoolean('start_reminder_now');
-        var roleId = interaction.options.getRole('notify');
+        let timeInterval = interaction.options.getInteger('interval') * 60000;
+        let startNow = interaction.options.getBoolean('start_reminder_now');
+        let roleId = interaction.options.getRole('notify');
 
-        if (!guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.adminRole)) {
+        if (!guild.members.cache.get(userId).roles.cache.has(initBotInfo.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(initBotInfo.roleIDs.adminRole)) {
             interaction.reply({ message: 'You do not have permissions to run this command!', ephemeral: true });
             return;
         }
 
         // keeps track of whether it has been paused
-        var paused = false;
+        let paused = false;
 
+        const startEmbed = new MessageEmbed()
+            .setColor(initBotInfo.embedColor)
+            .setTitle('To encourage healthy hackathon habits, we will be sending hourly self-care reminders!');
+
+        interaction.reply({ content: 'Self-care reminders started!', ephemeral: true });
+
+        roleId ? interaction.channel.send({ content: '<@&' + roleId + '>', embeds: [startEmbed] }) : interaction.channel.send({ embeds: [startEmbed] });
+        
         const row = new MessageActionRow()
             .addComponents(
                 new MessageButton()
@@ -79,28 +94,21 @@ class SelfCareReminders extends Command {
                     .setStyle('PRIMARY'),
             );
 
-        const startEmbed = new MessageEmbed()
-            .setColor(this.initBotInfo.colors.embedColor)
-            .setTitle('To encourage healthy hackathon habits, we will be sending hourly self-care reminders!');
-
-        interaction.reply({ content: 'Self-care reminders started!', ephemeral: true });
-
-        roleId ? interaction.channel.send({ content: '<@&' + roleId + '>', embeds: [startEmbed] }) : interaction.channel.send({ embeds: [startEmbed] });
-
+        /** @type {Message} */
         const controlPanel = await adminConsole.send({ content: 'Self care reminders started by <@' + userId + '>', components: [row] });
-        const filter = i => !i.user.bot && (guild.members.cache.get(i.user.id).roles.cache.has(this.initBotInfo.roleIDs.staffRole) || guild.members.cache.get(i.user.id).roles.cache.has(this.initBotInfo.roleIDs.adminRole));
-        const collector = controlPanel.createMessageComponentCollector(filter);
-        collector.on('collect', async i => {
+        const isAdminOrStaffFilter = (i) => !i.user.bot && (guild.members.cache.get(i.user.id).roles.cache.has(initBotInfo.roleIDs.staffRole) || guild.members.cache.get(i.user.id).roles.cache.has(initBotInfo.roleIDs.adminRole));
+        const collector = controlPanel.createMessageComponentCollector({ filter: isAdminOrStaffFilter });
+        collector.on('collect', async (i) => {
             if (interval != null && !paused && i.customId == 'pause') {
                 clearInterval(interval);
                 paused = true;
-                await guild.channels.resolve(this.initBotInfo.channelIDs.adminLog).send('Self care reminders paused by <@' + i.user.id + '>!');
+                discordLog(guild, 'Self care reminders paused by <@' + i.user.id + '>!');
                 await i.reply({ content: 'Self care reminders has been paused!', ephemeral: true });
             } else if (paused && i.customId == 'play') {
-                await sendReminder(this.initBotInfo);
-                interval = setInterval(sendReminder, timeInterval, this.initBotInfo);
+                await sendReminder(initBotInfo);
+                interval = setInterval(sendReminder, timeInterval, initBotInfo);
                 paused = false;
-                await guild.channels.resolve(this.initBotInfo.channelIDs.adminLog).send('Self care reminders restarted by <@' + i.user.id + '>!');
+                discordLog(guild, 'Self care reminders restarted by <@' + i.user.id + '>!');
                 await i.reply({ content: 'Self care reminders has been un-paused!', ephemeral: true });
             } else {
                 await i.reply({ content: 'Wrong button or wrong permissions!', ephemeral: true });
@@ -110,14 +118,14 @@ class SelfCareReminders extends Command {
 
         //starts the interval, and sends the first reminder immediately if startNow is true
         if (startNow) {
-            sendReminder(this.initBotInfo);
+            sendReminder(initBotInfo);
         }
-        interval = setInterval(sendReminder, timeInterval, this.initBotInfo);
+        interval = setInterval(sendReminder, timeInterval, initBotInfo);
 
         // sendReminder is the function that picks and sends the next reminder
         async function sendReminder(initBotInfo) {
             //get reminders parameters from db 
-            var data = await getReminder(guild.id);
+            const data = await getReminder(guild.id);
 
             //report in admin logs that there are no more messages
             //TODO: consider having it just loop through the db again?
@@ -130,7 +138,7 @@ class SelfCareReminders extends Command {
             let reminder = data.reminder;
 
             const qEmbed = new MessageEmbed()
-                .setColor(initBotInfo.colors.embedColor)
+                .setColor(initBotInfo.embedColor)
                 .setTitle(reminder);
 
             roleId ? channel.send({ content: 'Hey <@&' + roleId + '> remember:', embeds: [qEmbed] }) : channel.send({ embeds: [qEmbed] });

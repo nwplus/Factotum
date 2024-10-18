@@ -37,19 +37,10 @@ class AddMembers extends Command {
         const userRoles = guild.members.cache.get(userId).roles.cache;
         const staffRoleID = this.initBotInfo.roleIDs.staffRole;
         const adminRoleID = this.initBotInfo.roleIDs.adminRole;
-        console.log(this.initBotInfo, ' is the initBotInfo');
-        console.log(this.initBotInfo.roleIDs, ' is the roleIds');
-        console.log(userId);
-        console.log(guild);
-        console.log(participantsType);
-        console.log(overwrite);
-        console.log(' ');
 
         if (!userRoles.has(staffRoleID) && !userRoles.has(adminRoleID)) {
             return this.error({ message: 'You do not have permissions to run this command!', ephemeral: true });
         }
-
-        console.log('PASSED');
 
         const roles = this.initBotInfo.verification.roles;
         const roleExists = roles.some(role => role.name === participantsType);
@@ -59,22 +50,22 @@ class AddMembers extends Command {
         }
         console.log('PASSED AGAIN');
         const modal = new Modal()
-                        .setCustomId('emailsModal')
-                        .setTitle('Enter all emails to be added as ' + participantsType)
-                        .addComponents([
-                            new MessageActionRow().addComponents(
-                                new TextInputComponent()
-                                    .setCustomId('emails')
-                                    .setLabel('Newline-separated Emails')
-                                    .setStyle('PARAGRAPH')
-                                    .setRequired(true),
-                            ),
-                        ]);
-                    await interaction.showModal(modal);
+            .setCustomId('emailsModal')
+            .setTitle('Enter all emails to be added as ' + participantsType)
+            .addComponents([
+                new MessageActionRow().addComponents(
+                    new TextInputComponent()
+                        .setCustomId('emails')
+                        .setLabel('Newline-separated Emails')
+                        .setStyle('PARAGRAPH')
+                        .setRequired(true),
+                ),
+            ]);
+        await interaction.showModal(modal);
 
-                    const submitted = await interaction.awaitModalSubmit({ time: 300000, filter: j => j.user.id === interaction.user.id })
-                        .catch(error => {
-                        });
+        const submitted = await interaction.awaitModalSubmit({ time: 300000, filter: j => j.user.id === interaction.user.id })
+            .catch(error => {
+            });
 
                     if (submitted) {
                         const emailsRaw = submitted.fields.getTextInputValue('emails');

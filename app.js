@@ -12,6 +12,7 @@ const Sentry = require('@sentry/node');
 const Tracing = require('@sentry/tracing');
 const { LogLevel, SapphireClient } = require('@sapphire/framework');
 const Pronouns = require('./commands/a_utility/pronouns');
+const RoleSelector = require('./commands/a_utility/role-selector');
 
 /**
  * The Main App module houses the bot events, process events, and initializes
@@ -179,11 +180,29 @@ bot.once('ready', async () => {
                 mainLogger.verbose('Trying to restore existing pronoun command message');
                 /** @type {Pronouns} */
                 const pronounsCommand = bot.stores.get('commands').get('pronouns');
-                const error = await pronounsCommand.tryRestoreReactionListeners(guild);
-                if (error) {
-                    mainLogger.warning(error);
+                const pronounsError = await pronounsCommand.tryRestoreReactionListeners(guild);
+                if (pronounsError) {
+                    mainLogger.warning(pronounsError);
                 } else {
                     mainLogger.verbose('Restored pronoun command message');
+                }
+
+                /** @type {StartMentorCave} */
+                const mentorCaveCommand = bot.stores.get('commands').get('start-mentor-cave');
+                const mentorCaveError = await mentorCaveCommand.tryRestoreReactionListeners(guild);
+                if (mentorCaveError) {
+                    mainLogger.warning(mentorCaveError);
+                } else {
+                    mainLogger.verbose('Restored mentor cave command message');
+                }
+
+                /** @type {RoleSelector} */
+                const roleSelectorCommand = bot.stores.get('commands').get('role-selector');
+                const roleSelectorError = await roleSelectorCommand.tryRestoreReactionListeners(guild);
+                if (mentorCaveError) {
+                    mainLogger.warning(roleSelectorError);
+                } else {
+                    mainLogger.verbose('Restored role selector command message');
                 }
             }
 

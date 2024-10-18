@@ -113,7 +113,8 @@ module.exports = {
      */
     async getQuestion(guildId) {
         //checks that the question has not been asked
-        let questionReference = getFactotumDoc().collection('guilds').doc(guildId).collection('questions').where('asked', '==', false).limit(1);
+        let questionReference = module.exports.getFactotumSubCol().doc(guildId)
+            .collection('Questions').where('asked', '==', false).limit(1);
         let question = (await questionReference.get()).docs[0];
         //if there exists an unasked question, change its status to asked
         if (question != undefined) {
@@ -133,7 +134,8 @@ module.exports = {
      */
     async getReminder(guildId) {
         //checks that the reminder has not been sent
-        let qref = getFactotumDoc().collection('guilds').doc(guildId).collection('reminders').where('sent', '==', false).limit(1);
+        let qref = module.exports.getFactotumSubCol().doc(guildId)
+            .collection('Reminders').where('sent', '==', false).limit(1);
         let reminder = (await qref.get()).docs[0];
         //if there reminder unsent, change its status to asked
         if (reminder != undefined) {
@@ -416,7 +418,8 @@ module.exports = {
     },
 
     async saveToLeaderboard(guildId, memberId) {
-        const userRef = getFactotumDoc().collection('guilds').doc(guildId).collection('questionsLeaderboard').doc(memberId);
+        const userRef = module.exports.getFactotumSubCol().doc(guildId)
+            .collection('QuestionsLeaderboard').doc(memberId);
         const user = await userRef.get();
         if (user.exists) {
             const data = user.data();
@@ -429,7 +432,7 @@ module.exports = {
     },
 
     async retrieveLeaderboard(guildId) {
-        const snapshot = (await getFactotumDoc().collection('guilds').doc(guildId).collection('questionsLeaderboard').get()).docs;
+        const snapshot = (await module.exports.getFactotumSubCol().doc(guildId).collection('QuestionsLeaderboard').get()).docs;
         const winners = snapshot.map(doc => doc.data()).sort((a, b) => b.points - a.points);
         return winners;
     },
