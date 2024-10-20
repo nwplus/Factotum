@@ -13,6 +13,7 @@ const Tracing = require('@sentry/tracing');
 const { LogLevel, SapphireClient } = require('@sapphire/framework');
 const Pronouns = require('./commands/a_utility/pronouns');
 const RoleSelector = require('./commands/a_utility/role-selector');
+const StartReport = require('./commands/hacker_utility/start-report');
 
 /**
  * The Main App module houses the bot events, process events, and initializes
@@ -200,6 +201,15 @@ bot.once('ready', async () => {
                 const roleSelectorCommand = bot.stores.get('commands').get('role-selector');
                 const roleSelectorError = await roleSelectorCommand.tryRestoreReactionListeners(guild);
                 if (mentorCaveError) {
+                    mainLogger.warning(roleSelectorError);
+                } else {
+                    mainLogger.verbose('Restored role selector command message');
+                }
+
+                /** @type {StartReport} */
+                const startReportCommand = bot.stores.get('commands').get('start-report');
+                const startReportError = await startReportCommand.tryRestoreReactionListeners(guild);
+                if (startReportError) {
                     mainLogger.warning(roleSelectorError);
                 } else {
                     mainLogger.verbose('Restored role selector command message');
