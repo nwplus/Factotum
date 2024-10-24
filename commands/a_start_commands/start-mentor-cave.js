@@ -99,8 +99,7 @@ class StartMentorCave extends Command {
 
     /**
      * 
-     * @param {Command.ChatInputInteraction} interaction 
-     * @returns 
+     * @param {Command.ChatInputInteraction} interaction
      */
     async chatInputRun(interaction) {
         try {
