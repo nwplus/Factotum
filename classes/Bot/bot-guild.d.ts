@@ -18,24 +18,23 @@ interface BotGuild extends Document {
     channelIDs: {
         adminConsole: String,
         adminLog: String,
-        botSupportChannel: String,
-        archiveCategory: String,
+        botSpamChannel: String,
+    },
+
+    mentorTickets: {
+        // ticketNumber: Number,
+        incomingTicketsChannel: String,
+        mentorRoleSelectionChannel: String,
+        requestTicketChannel: String
     },
 
     verification: {
         /** @required */
         isEnabled: Boolean,
         guestRoleID: String,
-        welcomeChannelID: String,
         welcomeSupportChannelID: String,
         /** <Type, RoleId> */
         verificationRoles: Map<String, String>
-    },
-
-    attendance: {
-        /** @required */
-        isEnabled: Boolean,
-        attendeeRoleID: String,
     },
 
     stamps: {
@@ -48,51 +47,8 @@ interface BotGuild extends Document {
         stampCollectionTime: Number,
     },
 
-    report: {
-        /** @required */
-        isEnabled: Boolean,
-        incomingReportChannelID: String,
-    },
-
-    announcement: {
-        /** @required */
-        isEnabled: Boolean,
-        announcementChannelID: String,
-    },
-
-    ask: {
-        /** @required */
-        isEnabled: Boolean,
-    },
-
-    /**
-     * This is some text
-     */
-    blackList: Map<String, Number>,
-
-    /**
-     * The caves created in this guild.
-     */
-    caves: Map<String, Cave>,
-
-    /**
-     * An object with some nice colors to use!
-     */
-    colors: {
-        /** @hexColor */
-        embedColor: String,
-        /** @hexColor */
-        questionEmbedColor: String,
-        /** @hexColor */
-        announcementEmbedColor: String,
-        /** @hexColor */
-        tfTeamEmbedColor: String,
-        /** @hexColor */
-        tfHackerEmbedColor: String,
-        /** @hexColor */
-        specialDMEmbedColor: String, 
-    },
-
+    /** @hexColor */
+    embedColor: String,
     /**
      * The botGuild id must equal the guild id
      * @required
@@ -105,11 +61,6 @@ interface BotGuild extends Document {
     isSetUpComplete: Boolean,
 
     /**
-     * The prefix used by the bot in this guild.
-     */
-     prefix: String,
-
-    /**
      * Will set the minimum required information for the bot to work on this guild.
      * @param {BotGuildInfo} botGuildInfo 
      * @param {CommandoClient} client
@@ -117,6 +68,8 @@ interface BotGuild extends Document {
      * @async
      */
     async readyUp(client, botGuildInfo);
+
+    setUpVerification(guild, guestRoleId, types, welcomeSupportChannel);
 
     /**
      * Staff role permissions.

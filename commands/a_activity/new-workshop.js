@@ -1,6 +1,5 @@
 const { replyAndDelete } = require('../../discord-services');
 const { Message, Collection } = require('discord.js');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
 const Workshop = require('../../classes/Bot/activities/workshop');
 const PermissionCommand = require('../../classes/permission-command');
 const Activity = require('../../classes/Bot/activities/activity');
@@ -40,12 +39,12 @@ class NewWorkshop extends PermissionCommand {
 
     /**
      * Required class by children, should contain the command code.
-     * @param {BotGuildModel} botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      * @param {Message} message - the message that has the command
      * @param {Object} args
      * @param {String} args.activityName - the activity for this activity command
      */
-    async runCommand(botGuild, message, {activityName}) {
+    async runCommand(initBotInfo, message, {activityName}) {
 
 
         // prompt user for roles that will be allowed to see this activity.
@@ -66,7 +65,7 @@ class NewWorkshop extends PermissionCommand {
             \n We recommend the low tech solution!`, channel: message.channel, userId: message.author.id});
 
 
-        let workshop = await new Workshop({activityName, guild: message.guild, roleParticipants, botGuild}, isLowTechSolution,TARoles).init();
+        let workshop = await new Workshop({activityName, guild: message.guild, roleParticipants, initBotInfo: initBotInfo}, isLowTechSolution,TARoles).init();
 
         workshop.sendConsoles();
 

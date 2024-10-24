@@ -34,8 +34,8 @@ class Workshop extends Activity {
      * @param {Boolean} [isLowTechSolution=true]
      * @param {Collection<String, Role>} [TARoles] - roles with TA permissions
      */
-    constructor({activityName, guild, roleParticipants, botGuild}, isLowTechSolution = true, TARoles) {
-        super({activityName, guild, roleParticipants, botGuild});
+    constructor({activityName, guild, roleParticipants, initBotInfo}, isLowTechSolution = true, TARoles) {
+        super({activityName, guild, roleParticipants, initBotInfo});
 
         /**
          * @type {Collection<String, Role>} - roles with TA permissions
@@ -117,8 +117,8 @@ class Workshop extends Activity {
             isSafe: true,
         });
 
-        this.botGuild.blackList.set(this.assistanceChannel.id, 3000);
-        this.botGuild.save();
+        this.initBotInfo.blackList.set(this.assistanceChannel.id, 3000);
+        this.initBotInfo.save();
 
         if (this.isLowTechSolution) {
             this.ticketManager = new TicketManager(this, {
@@ -151,7 +151,7 @@ class Workshop extends Activity {
                     },
                     isAdvancedMode: false,
                 }
-            }, this.guild, this.botGuild);
+            }, this.guild, this.initBotInfo);
         }
 
         winston.loggers.get(this.guild.id).event(`The activity ${this.name} was transformed to a workshop.`, {event: 'Activity'});
@@ -275,7 +275,7 @@ class Workshop extends Activity {
 
             // where users can request assistance
             const outgoingTicketEmbed = new MessageEmbed()
-                .setColor(this.botGuild.colors.embedColor)
+                .setColor(this.initBotInfo.colors.embedColor)
                 .setTitle(this.name + ' Help Desk')
                 .setDescription('Welcome to the ' + this.name + ' help desk. There are two ways to get help explained below:')
                 .addField('Simple or Theoretical Questions', 'If you have simple or theory questions, ask them in the main banter channel!')
@@ -328,7 +328,7 @@ class Workshop extends Activity {
     getTAChannelPermissions() {
         /** The permissions for the TA channels */
         let TAChannelPermissions = [
-            { id: this.botGuild.roleIDs.everyoneRole, permissions: { VIEW_CHANNEL: false } },
+            { id: this.initBotInfo.roleIDs.everyoneRole, permissions: { VIEW_CHANNEL: false } },
         ];
 
         // add regular activity members to the TA perms list as non tas, so they cant see that channel
@@ -367,7 +367,7 @@ class Workshop extends Activity {
         }
 
         let qEmbed = new MessageEmbed()
-            .setColor(this.botGuild.colors.embedColor)
+            .setColor(this.initBotInfo.colors.embedColor)
             .setTitle(poll.title)
             .setDescription(description);
 
@@ -483,7 +483,7 @@ class Workshop extends Activity {
             let oneLiner = await StringPrompt.single({prompt: 'Please send to this channel a one-liner of your problem or question. You have 20 seconds to respond', channel: this.assistanceChannel, userId: user.id });
 
             const hackerEmbed = new MessageEmbed()
-                .setColor(this.botGuild.colors.embedColor)
+                .setColor(this.initBotInfo.colors.embedColor)
                 .setTitle('Hey there! We got you signed up to talk to a TA!')
                 .setDescription('You are number: ' + position + ' in the wait list.')
                 .addField(!this.isLowTechSolution ? 'JOIN THE VOICE CHANNEL!' : 'KEEP AN EYE ON YOUR DMs', 

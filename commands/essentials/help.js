@@ -2,7 +2,7 @@
 const { Command, CommandoGuild } = require('discord.js-commando');
 const { deleteMessage, checkForRole } = require('../../discord-services');
 const { MessageEmbed } = require('discord.js');
-const BotGuild = require('../../db/mongo/BotGuild');
+const firebaseUtil = require('../../db/firebase/firebaseUtil');
 
 /**
  * The help command shows all the available commands for the user via DM message.
@@ -26,7 +26,7 @@ class Help extends Command {
      */
     async run(message) {
 
-        let botGuild = await BotGuild.findById(message.guild.id);
+        let initBotInfo = await firebaseUtil.getInitBotInfo(message.guild.id);
 
         /** @type {CommandoGuild} */
         let guild = message.guild;
@@ -42,7 +42,7 @@ class Help extends Command {
         } else {
             deleteMessage(message);
 
-            if ((checkForRole(message.member, botGuild.roleIDs.staffRole))) {
+            if ((checkForRole(message.member, initBotInfo.roleIDs.staffRole))) {
                 commandGroups = this.client.registry.groups;
             } else {
                 commandGroups = this.client.registry.findGroups('utility', true);
@@ -61,7 +61,7 @@ class Help extends Command {
         var length = commands.length;
 
         const textEmbed = new MessageEmbed()
-            .setColor(botGuild.colors.embedColor)
+            .setColor(initBotInfo.colors.embedColor)
             .setTitle('Commands Available for you')
             .setDescription('All other interactions with me will be via emoji reactions!')
             .setTimestamp();

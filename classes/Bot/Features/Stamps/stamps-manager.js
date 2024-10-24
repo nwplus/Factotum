@@ -1,7 +1,6 @@
 const { Collection, MessageEmbed, GuildMember } = require('discord.js');
 const winston = require('winston');
 const { addRoleToMember, sendEmbedToMember, replaceRoleToMember, sendMessageToMember } = require('../../../../discord-services');
-const BotGuildModel = require('../../bot-guild');
 const Activity = require('../../activities/activity');
 
 /** 
@@ -13,10 +12,10 @@ class StampsManager {
      * Will let hackers get a stamp for attending the activity.
      * @param {Activity} activity - activity to use
      * @param {Number} [time] - time to wait till collector closes, in seconds
-     * @param {BotGuildModel} botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      * @async
      */
-    static async distributeStamp(activity, botGuild, time = 60) {
+    static async distributeStamp(activity, initBotInfo, time = 60) {
 
         winston.loggers.get(activity.guild.id).event(`Activity named ${activity.name} is distributing stamps.`, {event: 'Activity Manager'});
         
@@ -24,7 +23,7 @@ class StampsManager {
         let seenUsers = new Collection();
 
         const promptEmbed = new MessageEmbed()
-            .setColor(botGuild.colors.embedColor)
+            .setColor(initBotInfo.colors.embedColor)
             .setTitle('React within ' + time + ' seconds of the posting of this message to get a stamp for ' + activity.name + '!');
 
         let promptMsg = await activity.generalText.send(promptEmbed);
@@ -38,7 +37,7 @@ class StampsManager {
             const member = activity.generalText.guild.member(user);
 
             if (!seenUsers.has(user.id)) {
-                this.parseRole(member, activity.name, botGuild);
+                this.parseRole(member, activity.name, initBotInfo);
                 seenUsers.set(user.id, user.username);
             }
         });
@@ -57,41 +56,41 @@ class StampsManager {
      * Upgrade the stamp role of a member.
      * @param {GuildMember} member - the member to add the new role to
      * @param {String} activityName - the name of the activity
-     * @param {BotGuildModel} botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      * @throws Error if the botGuild has stamps disabled
      */
-    static parseRole(member, activityName, botGuild) {
-        if (!botGuild.stamps.isEnabled) {
-            winston.loggers.get(botGuild._id).error(`Stamp system is turned off for guild ${botGuild._id} but I was asked to parse a role for member ${member.id} for activity ${activityName}.`, { event: 'Activity Manager' });
-            throw Error(`Stamp system is turned of for guild ${botGuild._id} but I was asked to parse a role for member ${member.id} for activity ${activityName}.`);
+    static parseRole(member, activityName, initBotInfo) {
+        if (!initBotInfo.stamps.isEnabled) {
+            winston.loggers.get(initBotInfo.id).error(`Stamp system is turned off for guild ${initBotInfo.id} but I was asked to parse a role for member ${member.id} for activity ${activityName}.`, { event: 'Activity Manager' });
+            throw Error(`Stamp system is turned of for guild ${initBotInfo.id} but I was asked to parse a role for member ${member.id} for activity ${activityName}.`);
         }
 
-        let role = member.roles.cache.find(role => botGuild.stamps.stampRoleIDs.has(role.id));
+        let role = member.roles.cache.find(role => initBotInfo.stamps.stampRoleIDs.has(role.id));
 
         if (role === undefined) {
-            addRoleToMember(member, botGuild.stamps.stamp0thRoleId);
+            addRoleToMember(member, initBotInfo.stamps.stamp0thRoleId);
             sendEmbedToMember(member, 'I did not find an existing stamp role for you so I gave you one for attending '
                 + activityName + '. Please contact an admin if there was a problem.', true);
-            winston.loggers.get(botGuild._id).userStats(`Activity named ${activityName} tried to give a stamp to the user with id ${member.id} but he has no stamp, I gave them the first stamp!`, {event: 'Activity Manager'});
+            winston.loggers.get(initBotInfo.id).userStats(`Activity named ${activityName} tried to give a stamp to the user with id ${member.id} but he has no stamp, I gave them the first stamp!`, {event: 'Activity Manager'});
             return;
         }
 
-        let stampNumber = botGuild.stamps.stampRoleIDs.get(role.id);
-        if (stampNumber === botGuild.stamps.stampRoleIDs.size - 1) {
+        let stampNumber = initBotInfo.stamps.stampRoleIDs.get(role.id);
+        if (stampNumber === initBotInfo.stamps.stampRoleIDs.size - 1) {
             sendMessageToMember(member, 'You already have the maximum allowed number of stamps!', true);
-            winston.loggers.get(botGuild._id).userStats(`Activity named ${activityName} tried to give a stamp to the user with id ${member.id} but he is already in the max stamp ${stampNumber}`, {event: 'Activity Manager'});
+            winston.loggers.get(initBotInfo.id).userStats(`Activity named ${activityName} tried to give a stamp to the user with id ${member.id} but he is already in the max stamp ${stampNumber}`, {event: 'Activity Manager'});
             return;
         }
         let newRoleID;
 
-        botGuild.stamps.stampRoleIDs.forEach((num, key, map) => {
+        initBotInfo.stamps.stampRoleIDs.forEach((num, key, map) => {
             if (num === stampNumber + 1) newRoleID = key;
         });
 
         if (newRoleID != undefined) {
             replaceRoleToMember(member, role.id, newRoleID);
             sendMessageToMember(member, 'You have received a higher stamp for attending ' + activityName + '!', true);
-            winston.loggers.get(botGuild._id).userStats(`Activity named ${activityName} gave a stamp to the user with id ${member.id} going from stamp number ${stampNumber} to ${stampNumber + 1}`, {event: 'Activity Manager'});
+            winston.loggers.get(initBotInfo.id).userStats(`Activity named ${activityName} gave a stamp to the user with id ${member.id} going from stamp number ${stampNumber} to ${stampNumber + 1}`, {event: 'Activity Manager'});
         }
     }
 }

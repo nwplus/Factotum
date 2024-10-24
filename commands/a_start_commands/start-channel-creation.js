@@ -1,7 +1,6 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { sendEmbedToMember, replyAndDelete } = require('../../discord-services');
 const { Message, MessageEmbed } = require('discord.js');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { StringPrompt, MessagePrompt } = require('advanced-discord.js-prompts');
 const ChannelPrompt = require('advanced-discord.js-prompts/prompts/channel-prompt');
 
@@ -34,10 +33,10 @@ class StartChannelCreation extends PermissionCommand {
     }
 
     /**
-     * @param {BotGuildModel} botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      * @param {Message} message - the message in which the command was run
      */
-    async runCommand(botGuild, message) {
+    async runCommand(initBotInfo, message) {
 
         try {
             // grab current channel
@@ -49,18 +48,18 @@ class StartChannelCreation extends PermissionCommand {
 
         // grab channel creation category and update permissions
         var category = channel.parent;
-        category.updateOverwrite(botGuild.roleIDs.everyoneRole, {
+        category.updateOverwrite(initBotInfo.roleIDs.everyoneRole, {
             VIEW_CHANNEL: false,
         });
 
-        channel.updateOverwrite(botGuild.roleIDs.everyoneRole, {
+        channel.updateOverwrite(initBotInfo.roleIDs.everyoneRole, {
             VIEW_CHANNEL: true,
         });
 
         
         // create and send embed message to channel with emoji collector
         const msgEmbed = new MessageEmbed()
-            .setColor(botGuild.colors.embedColor)
+            .setColor(initBotInfo.colors.embedColor)
             .setTitle('Private Channel Creation')
             .setDescription('Do you need a private channel to work with your friends? Or a voice channel to get to know a mentor, here you can create private text or voice channels.' +
                 ' However do know that server admins will have access to these channels, and the bot will continue to monitor for bad language, so please follow the rules!')

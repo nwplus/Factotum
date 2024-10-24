@@ -1,6 +1,5 @@
 const winston = require('winston');
 const { GuildCreateChannelOptions, User, Guild, Collection, Role, CategoryChannel, VoiceChannel, TextChannel, OverwriteResolvable, PermissionOverwriteOption } = require('discord.js');
-const BotGuildModel = require('../../Bot/bot-guild');
 const { deleteChannel } = require('../../../discord-services');
 
 /**
@@ -30,12 +29,12 @@ class Room {
 
     /**
      * @param {Guild} guild - the guild in which the room lives
-     * @param {BotGuildModel} botGuild - the botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      * @param {String} name - name of the room 
      * @param {Collection<String, Role >} [rolesAllowed=Collection()] - the participants able to view this room
      * @param {Collection<String, User>} [usersAllowed=Collection()] - the individual users allowed to see the room
      */
-    constructor(guild, botGuild, name, rolesAllowed = new Collection(), usersAllowed = new Collection()) {
+    constructor(guild, initBotInfo, name, rolesAllowed = new Collection(), usersAllowed = new Collection()) {
 
         /**
          * The name of this room. Will remove all leading and trailing whitespace and
@@ -78,10 +77,10 @@ class Room {
         };
 
         /**
-         * The mongoose BotGuildModel Object
-         * @type {BotGuildModel}
+         * The Firestore bot info object
+         * @type {FirebaseFirestore.DocumentData | null | undefined}
          */
-        this.botGuild = botGuild;
+        this.initBotInfo = initBotInfo;
 
         /**
          * True if the room is locked, false otherwise.
@@ -152,7 +151,7 @@ class Room {
         /** @type {OverwriteResolvable[]} */
         let overwrites = [
             {
-                id: this.botGuild.roleIDs.everyoneRole,
+                id: this.initBotInfo.roleIDs.everyoneRole,
                 deny: ['VIEW_CHANNEL'],
             }];
         this.rolesAllowed.each(role => overwrites.push({ id: role.id, allow: ['VIEW_CHANNEL'] }));
@@ -238,7 +237,7 @@ class Room {
         // remove all voice channels in the category one at a time to not get a UI glitch
 
         this.channels.category.children.forEach(async (channel, key) => {
-            this.botGuild.blackList.delete(channel.id);
+            this.initBotInfo.blackList.delete(channel.id);
             if (channel.type === 'text') {
                 let channelName = channel.name;
                 await channel.setName(`${this.name}-${channelName}`);
@@ -248,7 +247,7 @@ class Room {
 
         await deleteChannel(this.channels.category);
 
-        this.botGuild.save();
+        this.initBotInfo.save();
 
         winston.loggers.get(this.guild.id).event(`The activity ${this.name} was archived!`, {event: 'Activity'});
     }

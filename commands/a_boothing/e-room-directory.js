@@ -1,7 +1,6 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { Message, MessageEmbed, Role, Collection} = require('discord.js');
 const { deleteMessage } = require('../../discord-services');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
 const winston = require('winston');
 const { StringPrompt, RolePrompt, SpecialPrompt } = require('advanced-discord.js-prompts');
 
@@ -36,9 +35,9 @@ class ERoomDirectory extends PermissionCommand {
      * the user) that it is open.
      * 
      * @param {Message} message - messaged that called this command
-     * @param {BotGuildModel} botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      */
-    async runCommand(botGuild, message) {
+    async runCommand(initBotInfo, message) {
 
         // helpful vars
         let channel = message.channel;
@@ -68,7 +67,7 @@ class ERoomDirectory extends PermissionCommand {
             winston.loggers.get(message.guild.id).warning(`Got an error: ${error} but I let it go since we expected it from the prompt.`, { event: 'E-Room-Directory Command' });
         }
         // add staff role
-        roomRoles.set(botGuild.roleIDs.staffRole, message.guild.roles.resolve(botGuild.roleIDs.staffRole));
+        roomRoles.set(initBotInfo.roleIDs.staffRole, message.guild.roles.resolve(initBotInfo.roleIDs.staffRole));
 
         // prompt user for emoji to use
         let emoji = await SpecialPrompt.singleEmoji({prompt: 'What emoji do you want to use to open/close the room?', channel, userId});

@@ -36,10 +36,10 @@ class StartTeamFormation extends PermissionCommand {
     }
 
     /**
-     * 
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      * @param {Message} message - the message in which the command was run
      */
-    async runCommand(botGuild, message) {
+    async runCommand(initBotInfo, message) {
         // helpful prompt vars
         let channel = message.channel;
         let userId = message.author.id;
@@ -66,7 +66,7 @@ class StartTeamFormation extends PermissionCommand {
                         TeamFormation.defaultProspectForm : await StringPrompt.single({ prompt: 'Please send your form for teams now:', channel, userId }),
                 },
                 guild: message.guild,
-                botGuild: botGuild,
+                initBotInfo,
                 activityRoles,
                 isNotificationsEnabled: await SpecialPrompt.boolean({prompt: 'Do you want to notify users when the opposite party has a new post?', channel, userId}),
             });

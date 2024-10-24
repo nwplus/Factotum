@@ -1,6 +1,5 @@
 const { Guild, Collection, Role, TextChannel, MessageEmbed, GuildEmoji, ReactionEmoji, CategoryChannel } = require('discord.js');
 const { sendMsgToChannel, addRoleToMember, removeRolToMember } = require('../../../discord-services');
-const BotGuildModel = require('../bot-guild');
 const Room = require('../../UI/Room/room');
 const Console = require('../../UI/Console/console');
 const Feature = require('../../UI/Console/feature');
@@ -54,15 +53,15 @@ class Cave extends Activity {
     /**
      * @constructor
      * @param {CaveOptions} caveOptions 
-     * @param {BotGuildModel} botGuild 
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo 
      * @param {Guild} guild
      */
-    constructor(caveOptions, botGuild, guild) {
+    constructor(caveOptions, initBotInfo, guild) {
         super({
             activityName: caveOptions.name,
             guild: guild,
             roleParticipants: new Collection([[caveOptions.role.id, caveOptions.role]]),
-            botGuild: botGuild,
+            initBotInfo,
         });
 
         /**
@@ -92,7 +91,7 @@ class Cave extends Activity {
           * The public room for this cave.
           * @type {Room}
           */
-        this.publicRoom = new Room(guild, botGuild, `👉🏽👈🏽${caveOptions.name} Help`, caveOptions.publicRoles);
+        this.publicRoom = new Room(guild, initBotInfo, `👉🏽👈🏽${caveOptions.name} Help`, caveOptions.publicRoles);
 
         /**
          * The console where cave members can get sub roles.

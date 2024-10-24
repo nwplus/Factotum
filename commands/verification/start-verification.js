@@ -1,8 +1,6 @@
 const { Command } = require('@sapphire/framework');
-const BotGuild = require('../../db/mongo/BotGuild')
-const BotGuildModel = require('../../classes/Bot/bot-guild');
+const firebaseUtil = require('../../db/firebase/firebaseUtil');
 const { Message, MessageEmbed, Modal, MessageActionRow, MessageButton, TextInputComponent } = require('discord.js');
-const firebaseServices = require('../../db/firebase/firebase-services');
 const { discordLog } = require('../../discord-services');
 
 class StartVerification extends Command {
@@ -18,32 +16,49 @@ class StartVerification extends Command {
             builder
                 .setName(this.name)
                 .setDescription(this.description)
-        )
+        ),
+        {
+            idHints: '1060545714133938309'
+        };
     }
 
-    /**
-     * @param {BotGuildModel} botGuild
-     * @param {Message} message 
-     */
     async chatInputRun(interaction) {
-        this.botGuild = await BotGuild.findById(interaction.guild.id);
+        this.initBotInfo = await firebaseUtil.getInitBotInfo(interaction.guild.id);
+        const guild = interaction.guild;
+        const userId = interaction.user.id;
+        if (!guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.adminRole)) {
+            interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
+            return;
+        }
+        if (!this.initBotInfo.verification.isEnabled) {
+            await interaction.reply({ content: 'Verification has not been enabled!', ephemeral: true});
+            return;
+        }
 
         const embed = new MessageEmbed()
-            .setTitle(`Please click the button below to check-in to the ${interaction.guild.name} server! Make sure you know which email you used to apply to nwHacks!`)
-            .setDescription('If you have not already, make sure to enable emojis and embeds/link previews in your personal Discord settings! If you have any issues, please find an organizer!')
-// modal timeout warning?
+            .setTitle(`Please click the button below to check-in to the ${interaction.guild.name} server! Make sure you know which email you used to apply to ${interaction.guild.name}!`);
+        // modal timeout warning?
         const row = new MessageActionRow()
             .addComponents(
                 new MessageButton()
                     .setCustomId('verify')
                     .setLabel('Check-in')
                     .setStyle('PRIMARY'),
-            )
+            );
         interaction.reply({ content: 'Verification started!', ephemeral: true });
-        const msg = await interaction.channel.send({ embeds: [embed], components: [row] });
+        const msg = await interaction.channel.send({ content: 'If you have not already, make sure to enable DMs, emojis, and embeds/link previews in your personal Discord settings! If you have any issues, please find an organizer!', embeds: [embed], components: [row] });
 
-        const checkInCollector = msg.createMessageComponentCollector({ filter: i => !i.user.bot && interaction.guild.members.cache.get(i.user.id).roles.cache.has(this.botGuild.verification.guestRoleID) })
+        const checkInCollector = msg.createMessageComponentCollector({ filter: i => !i.user.bot});
+
+        // console.log(this.botGuild.verification.guestRoleID)
+        // console.log(this.botGuild.verification)
+
+
         checkInCollector.on('collect', async i => {
+            if (!interaction.guild.members.cache.get(i.user.id).roles.cache.has(this.initBotInfo.verification.guestRoleID)) {
+                await i.reply({ content: 'You are not eligible to be checked in! If you don\'t have correct access to the server, please contact an organizer.', ephemeral: true});
+                return;
+            }
             const modal = new Modal()
                 .setCustomId('verifyModal')
                 .setTitle('Check-in to gain access to the server!')
@@ -69,9 +84,9 @@ class StartVerification extends Command {
                 const email = submitted.fields.getTextInputValue('email');
                 let types;
                 try {
-                    types = await firebaseServices.verify(email, submitted.user.id, submitted.guild.id);
+                    types = await firebaseUtil.verify(email, submitted.user.id, submitted.guild.id);
                 } catch {
-                    submitted.reply({ content: 'Your email could not be found! Please try again or ask an admin for help.', ephemeral: true })
+                    submitted.reply({ content: 'Your email could not be found! Please try again or ask an admin for help.', ephemeral: true });
                     discordLog(interaction.guild, `VERIFY FAILURE : <@${submitted.user.id}> Verified email: ${email} but was a failure, I could not find that email!`);
                     return;
                 }
@@ -82,24 +97,41 @@ class StartVerification extends Command {
                     return;
                 }
 
-                var correctTypes = [];
+                let correctTypes = [];
                 types.forEach(type => {
-                    if (this.botGuild.verification.verificationRoles.has(type)) {
+                    console.log(type, ' is the TYPE');
+                    const roleObj = this.initBotInfo.verification.roles.find(role => role.name === type);
+                    if (roleObj || type === 'staff' || type === 'mentor') {
                         const member = interaction.guild.members.cache.get(submitted.user.id);
-                        let roleId = this.botGuild.verification.verificationRoles.get(type);
-                        member.roles.add(roleId);
-                        if (correctTypes.length === 0) member.roles.remove(this.botGuild.verification.guestRoleID);
-                        correctTypes.push(type);
+                        let roleId;
+                        if (type === 'staff') {
+                            roleId = this.initBotInfo.roleIDs.staffRole;
+                        } else if (type === 'mentor') {
+                            roleId = this.initBotInfo.roleIDs.mentorRole;
+                        } else {
+                            roleId = roleObj.roleId;
+                        }
+                        if (member && roleId) {
+                            member.roles.add(roleId);
+                
+                            if (correctTypes.length === 0) {
+                                member.roles.remove(this.initBotInfo.verification.guestRoleID);
+                                member.roles.add(this.initBotInfo.roleIDs.memberRole);
+                            }
+                            correctTypes.push(type);
+                        } else {
+                            console.warn(`Could not add role: ${roleId} for type: ${type}`);
+                        }
                     } else {
-                        discordLog(`VERIFY WARNING: <@${submitted.user.id}> was of type ${type} but I could not find that type!`)
+                        discordLog(interaction.guild, `VERIFY WARNING: <@${submitted.user.id}> was of type ${type} but I could not find that type!`);
                     }
-                })
+                });
 
                 if (correctTypes.length > 0) {
-                    submitted.reply({ content: 'You have successfully verified as a ' + correctTypes.join(', ') + '!', ephemeral: true })
+                    submitted.reply({ content: 'You have successfully verified as a ' + correctTypes.join(', ') + '!', ephemeral: true });
                 }
             }
-        })
+        });
     }
 }
 module.exports = StartVerification;

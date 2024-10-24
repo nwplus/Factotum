@@ -1,7 +1,7 @@
 const csv = require('csv-parser');
 const fs = require('fs');
 require('dotenv').config();
-const FirebaseServices = require('./firebase-services');
+const firebaseUtil = require('./firebaseUtil');
 
 /** 
  * The firebase parser module has scripts to parse csv data to upload to 
@@ -11,7 +11,7 @@ const FirebaseServices = require('./firebase-services');
 
 
 const adminSDK = JSON.parse(process.env.NWPLUSADMINSDK);
-let app = FirebaseServices.initializeFirebaseAdmin('factotum', adminSDK, 'https://nwplus-bot.firebaseio.com');
+let app = firebaseUtil.initializeFirebaseAdmin('factotum', adminSDK, 'https://nwplus-bot.firebaseio.com');
 
 // save second argument as type of members to add
 let type = process.argv[2];
@@ -49,7 +49,7 @@ fs.createReadStream('registrations.csv') // requires a registrations.csv file in
             all_regs[email] = r;
         });
 
-        let db = FirebaseServices.apps.get('factotum').firestore();
+        let db = firebaseUtil.apps.get('factotum').firestore();
 
         var all = db.collection('guilds').doc(guildId).collection('members').get().then(snapshot => {
             // get all ids and types of members already in collections and store in idMap

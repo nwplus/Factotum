@@ -2,7 +2,6 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { checkForRole, sendMessageToMember, } = require('../../discord-services');
 const { MessageEmbed, Collection, Message, } = require('discord.js');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
 
 /**
  * The ask command tries to imitate a thread like functionality from slack. Users can ask questions, and then other 
@@ -32,12 +31,12 @@ class AskQuestion extends PermissionCommand {
     }
 
     /**
-     * @param {BotGuildModel} botGuild 
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo 
      * @param {Message} message 
      * @param {Object} args 
      * @param {String} args.question
      */
-    async runCommand(botGuild, message, {question}) {
+    async runCommand(initBotInfo, message, {question}) {
 
         // if question is blank let user know via DM and exit
         if (question === '') {
@@ -51,7 +50,7 @@ class AskQuestion extends PermissionCommand {
 
         // message embed to be used for question
         const qEmbed = new MessageEmbed()
-            .setColor(botGuild.colors.questionEmbedColor)
+            .setColor(initBotInfo.colors.questionEmbedColor)
             .setTitle('Question from ' + message.author.username)
             .setDescription(question);
         
@@ -93,7 +92,7 @@ class AskQuestion extends PermissionCommand {
                             // if cancel then do nothing
                             if (response.content.toLowerCase() != 'cancel') {
                                 // if user has a mentor role, they get a special title
-                                if (checkForRole(response.member, botGuild.roleIDs.staffRole)) {
+                                if (checkForRole(response.member, initBotInfo.roleIDs.staffRole)) {
                                     msg.edit(msg.embeds[0].addField('🤓 ' + user.username + ' Responded:', response.content));
                                 } else {
                                     // add a field to the message embed with the response
@@ -126,7 +125,7 @@ class AskQuestion extends PermissionCommand {
                 // remove emoji will remove the message
                 else if (reaction.emoji.name === '⛔') {
                     // check that user is staff
-                    if (checkForRole(msg.guild.member(user), botGuild.roleIDs.staffRole)) {
+                    if (checkForRole(msg.guild.member(user), initBotInfo.roleIDs.staffRole)) {
                         msg.delete();
                     } else {
                         sendMessageToMember(user, 'Deleting a question is only available to staff!', true);
