@@ -2,7 +2,6 @@ const PermissionCommand = require('../../classes/permission-command');
 const { Message } = require('discord.js');
 const { checkForRole, sendEmbedToMember } = require('../../discord-services');
 const Verification = require('../../classes/Bot/Features/Verification/verification');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
 
 /**
  * Attends the user who runs this command. The user must have the guild ID. Can only be run 
@@ -33,14 +32,14 @@ class Attend extends PermissionCommand {
     }
 
     /**
-     * @param {BotGuildModel} botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      * @param {Message} message
      * @param {Object} args
      * @param {String} args.guildId 
      */
-    async runCommand(botGuild, message, { guildId }) {
+    async runCommand(initBotInfo, message, { guildId }) {
         // check if the user needs to attend, else warn and return
-        if (checkForRole(message.author, botGuild.attendance.attendeeRoleID)) {
+        if (checkForRole(message.author, initBotInfo.attendance.attendeeRoleID)) {
             sendEmbedToMember(message.author, {
                 title: 'Attend Error',
                 description: 'You do not need to attend! Happy hacking!!!'
@@ -59,7 +58,7 @@ class Attend extends PermissionCommand {
         let member = guild.member(message.author.id);
         
         // call the firebase services attendHacker function
-        Verification.attend(member, botGuild);
+        Verification.attend(member, initBotInfo);
     }
 }
 module.exports = Attend;

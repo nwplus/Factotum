@@ -43,7 +43,7 @@ class Ticket {
          * @type {Room}
          */
         this.room = ticketManager.systemWideTicketInfo.isAdvancedMode ? 
-            new Room(ticketManager.parent.guild, ticketManager.parent.botGuild, `Ticket-${ticketNumber}`, new Collection(), hackers.clone()) : 
+            new Room(ticketManager.parent.guild, ticketManager.parent.initBotInfo, `Ticket-${ticketNumber}`, new Collection(), hackers.clone()) : 
             null;
 
         /**
@@ -269,7 +269,7 @@ class Ticket {
             title: 'Original Question',
             description: `<@${this.group.first().id}> has the question: ${this.question}`,
             channel: this.room.channels.generalText,
-            color: this.ticketManager.parent.botGuild.colors.embedColor,
+            color: this.ticketManager.parent.initBotInfo.colors.embedColor,
             guild: this.ticketManager.parent.guild,
         });
 
