@@ -2,7 +2,6 @@ const PermissionCommand = require('../../classes/permission-command');
 const { sendEmbedToMember } = require('../../discord-services');
 const { TextChannel, Snowflake, Message, MessageEmbed, Collection, GuildChannelManager, User } = require('discord.js');
 const Team = require('../../classes/Bot/Features/Team_Roulette/team');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
 const { MemberPrompt, SpecialPrompt, ChannelPrompt } = require('advanced-discord.js-prompts');
 
 /**
@@ -37,12 +36,12 @@ class StartTeamRoulette extends PermissionCommand {
     }
 
     /**
-     * @param {BotGuildModel} botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      * @param {Message} message - the message in which the command was run
      */
-    async runCommand(botGuild, message) {
+    async runCommand(initBotInfo, message) {
 
-        this.botGuild = botGuild;
+        this.initBotInfo = initBotInfo;
 
         /**
          * The solo join emoji.
@@ -92,7 +91,7 @@ class StartTeamRoulette extends PermissionCommand {
                 
         // create and send embed message to channel with emoji collector
         const msgEmbed = new MessageEmbed()
-            .setColor(this.botGuild.colors.embedColor)
+            .setColor(this.initBotInfo.colors.embedColor)
             .setTitle('Team Roulette Information')
             .setDescription('Welcome to the team roulette section! If you are looking to join a random team, you are in the right place!')
             .addField('How does this work?', 'Reacting to this message will get you or your team on a list. I will try to assign you a team of 4 as fast as possible. When I do I will notify you on a private text channel with your new team!')
@@ -282,7 +281,7 @@ class StartTeamRoulette extends PermissionCommand {
         let listEmoji = '📰';
 
         const adminEmbed = new MessageEmbed()
-            .setColor(this.botGuild.colors.embedColor)
+            .setColor(this.initBotInfo.colors.embedColor)
             .setTitle('Team Roulette Console')
             .setDescription('Team roulette is ready and operational! <#' + channel.id + '>.')
             .addField('Check the list!', 'React with ' + listEmoji + ' to get a message with the roulette team lists.');
@@ -296,7 +295,7 @@ class StartTeamRoulette extends PermissionCommand {
             reaction.users.remove(user.id);
 
             let infoEmbed = new MessageEmbed()
-                .setColor(this.botGuild.colors.embedColor)
+                .setColor(this.initBotInfo.colors.embedColor)
                 .setTitle('Team Roulette Information')
                 .setDescription('These are all the teams that are still waiting.');
 
@@ -315,8 +314,8 @@ class StartTeamRoulette extends PermissionCommand {
         });
 
         // add channel to black list
-        this.botGuild.blackList.set(channel.id, 5000);
-        this.botGuild.save();
+        this.initBotInfo.blackList.set(channel.id, 5000);
+        this.initBotInfo.save();
         return channel;
     }
 
@@ -370,7 +369,7 @@ class StartTeamRoulette extends PermissionCommand {
             let leaveEmoji = '👋';
 
             const infoEmbed = new MessageEmbed()
-                .setColor(this.botGuild.colors.embedColor)
+                .setColor(this.initBotInfo.colors.embedColor)
                 .setTitle('WELCOME TO YOUR NEW TEAM!!!')
                 .setDescription('This is your new team, please get to know each other by creating a voice channel in a new Discord server or via this text channel. Best of luck!')
                 .addField('Leave the Team', 'If you would like to leave this team react to this message with ' + leaveEmoji);

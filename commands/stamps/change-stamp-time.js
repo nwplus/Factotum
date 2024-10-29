@@ -1,7 +1,6 @@
 const PermissionCommand = require('../../classes/permission-command');
 const { replyAndDelete } = require('../../discord-services');
 const { Message } = require('discord.js');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
 
 /**
  * Change the time users get to react to get a stamp from activity stamp distributions. It defaults to 60 seconds.
@@ -32,15 +31,15 @@ class ChangeStampTime extends PermissionCommand {
     }
 
     /**
-     * @param {BotGuildModel} botGuild 
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo 
      * @param {Message} message 
      * @param {Object} args
      * @param {Number} args.newTime 
      */
-    async runCommand(botGuild, message, {newTime}) {
+    async runCommand(initBotInfo, message, {newTime}) {
 
-        botGuild.stamps.stampCollectionTime = newTime;
-        botGuild.save();
+        initBotInfo.stamps.stampCollectionTime = newTime;
+        initBotInfo.save();
 
         replyAndDelete(message, 'Stamp collection will now give hackers ' + newTime + ' seconds to collect stamp.');
     }

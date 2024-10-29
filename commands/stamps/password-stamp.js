@@ -1,7 +1,6 @@
 const { sendEmbedToMember, sendMessageToMember, deleteMessage } = require('../../discord-services');
 const { MessageEmbed, Message, Snowflake, Collection } = require('discord.js');
 const PermissionCommand = require('../../classes/permission-command');
-const BotGuildModel = require('../../classes/Bot/bot-guild');
 const StampsManager = require('../../classes/Bot/Features/Stamps/stamps-manager');
 const { StringPrompt, ChannelPrompt } = require('advanced-discord.js-prompts');
 
@@ -49,14 +48,14 @@ class PasswordStamp extends PermissionCommand {
     }
 
     /**
-     * @param {BotGuildModel} botGuild
+     * @param {FirebaseFirestore.DocumentData | null | undefined} initBotInfo
      * @param {Message} message
      * @param {Object} args
      * @param {String} args.activityName
      * @param {String} args.password
      * @param {Number} args.stopTime
      */
-    async runCommand(botGuild, message, {activityName, password, stopTime}) {
+    async runCommand(initBotInfo, message, {activityName, password, stopTime}) {
         // helpful vars
         let channel = message.channel;
         let userId = message.author.id;
@@ -77,7 +76,7 @@ class PasswordStamp extends PermissionCommand {
         }
 
         const qEmbed = new MessageEmbed()
-            .setColor(botGuild.colors.embedColor)
+            .setColor(initBotInfo.colors.embedColor)
             .setTitle('React with anything to claim a stamp for attending ' + activityName)
             .setDescription('Once you react to this message, check for a DM from this bot. **You can only emoji this message once!**')
             .addField('A Password Is Required!', 'Through the Bot\'s DM, you will have 3 attempts in the first 60 seconds to enter the correct password.');
@@ -122,7 +121,7 @@ class PasswordStamp extends PermissionCommand {
                     //update role and stop collecting if password matches
                     if (m.content.toLowerCase() === password.toLowerCase()) {
 
-                        StampsManager.parseRole(member, activityName, botGuild);
+                        StampsManager.parseRole(member, activityName, initBotInfo);
                         
                         correctPassword = true;
                         pwdCollector.stop();
