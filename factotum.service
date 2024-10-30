@@ -1,0 +1,18 @@
+[Unit]
+Description=The do-it-all hackathon Discord bot.
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/actions-runner/_work/Factotum/Factotum
+ExecStart=/usr/bin/docker compose up
+ExecStop=/usr/bin/docker compose down
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Restart=always
