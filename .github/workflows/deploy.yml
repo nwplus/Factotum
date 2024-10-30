@@ -1,0 +1,78 @@
+name: Dockerize and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  dockerize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: nwplus/factotum:latest
+      - name: Upload systemd service file
+        uses: actions/upload-artifact@v3
+        with:
+          name: factotum-service-file
+          path: ./factotum.service
+      - name: Upload docker-compose file
+        uses: actions/upload-artifact@v3
+        with:
+          name: factotum-docker-compose
+          path: ./docker-compose.yml
+
+  deploy:
+    runs-on: self-hosted
+    needs: dockerize
+
+    steps:
+      - name: Pull Docker image
+        run: docker pull nwplus/factotum:latest
+
+      - name: Download systemd service file
+        uses: actions/download-artifact@v3
+        with:
+          name: factotum-service-file
+          path: .
+
+      - name: Download docker-compose file
+        uses: actions/download-artifact@v3
+        with:
+          name: factotum-docker-compose
+          path: .
+
+      - name: Copy systemd service file
+        run: sudo cp factotum.service /etc/systemd/system/factotum.service
+
+      - name: Create .env file from secret
+        run: echo '${{ secrets.ENV_FILE }}' > .env
+
+      - name: Create service_account.json file from secret
+        run: echo '${{ secrets.SERVICE_ACCOUNT_JSON }}' > service_account.json
+
+      - name: Reload systemd daemon
+        run: sudo systemctl daemon-reload
+
+      - name: Stop existing Factotum service
+        run: sudo systemctl stop factotum
+
+      - name: Enable and start Factotum service
+        run: |
+          sudo systemctl enable factotum
+          sudo systemctl start factotum
