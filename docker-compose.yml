@@ -1,0 +1,8 @@
+services:
+  factotum:
+    image: nwplus/factotum
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - ./.env:/app/.env:ro
