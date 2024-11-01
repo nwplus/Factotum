@@ -210,9 +210,9 @@ bot.once('ready', async () => {
                 const startReportCommand = bot.stores.get('commands').get('start-report');
                 const startReportError = await startReportCommand.tryRestoreReactionListeners(guild);
                 if (startReportError) {
-                    mainLogger.warning(roleSelectorError);
+                    mainLogger.warning(startReportError);
                 } else {
-                    mainLogger.verbose('Restored role selector command message');
+                    mainLogger.verbose('Restored start report command message');
                 }
             }
 
