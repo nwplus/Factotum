@@ -24,7 +24,7 @@ class AddMembers extends Command {
                     option.setName('overwrite')
                         .setDescription('Overwrite existing role?')
                         .setRequired(false))
-        )
+        );
     }
 
     async chatInputRun(interaction) {
@@ -67,15 +67,15 @@ class AddMembers extends Command {
             .catch(error => {
             });
 
-                    if (submitted) {
-                        const emailsRaw = submitted.fields.getTextInputValue('emails');
-                        console.log(emailsRaw, ' is the raw emails');
-                        const emails = emailsRaw.split(/[\r?\n|\r|\n|,]+/g).map(email => email.trim()).filter(Boolean);
-                        emails.forEach(email => {
-                            addUserData(email, participantsType, interaction.guild.id, overwrite);
-                        });
-                        submitted.reply({ content: emails.length + ' emails have been added as ' + participantsType, ephemeral: true })
-                    }
-}
+        if (submitted) {
+            const emailsRaw = submitted.fields.getTextInputValue('emails');
+            console.log(emailsRaw, ' is the raw emails');
+            const emails = emailsRaw.split(/[\r?\n|\r|\n|,]+/g).map(email => email.trim()).filter(Boolean);
+            emails.forEach(email => {
+                addUserData(email, participantsType, interaction.guild.id, overwrite);
+            });
+            submitted.reply({ content: emails.length + ' emails have been added as ' + participantsType, ephemeral: true });
+        }
+    }
 }
 module.exports = AddMembers;

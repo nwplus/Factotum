@@ -132,6 +132,41 @@ class StartVerification extends Command {
                 }
             }
         });
+
+        const savedMessagesCol = firebaseUtil.getSavedMessagesSubCol(interaction.guild.id);
+        await savedMessagesCol.doc('startverification').set({
+            messageId: msg.id,
+            channelId: msg.channel.id,
+        });
+        const mentorCaveDoc = await savedMessagesCol.doc('startverification').get();
+        if (!mentorCaveDoc.exists) return 'Saved messages doc for start verification cave does not exist';
+    }
+
+    /**
+     * 
+     * @param {Guild} guild 
+     */
+    async tryRestoreReactionListeners(guild) {
+        const savedMessagesCol = firebaseUtil.getSavedMessagesSubCol(guild.id);
+        const reportDoc = await savedMessagesCol.doc('startverification').get();
+        if (reportDoc.exists) {
+            const { messageId, channelId } = reportDoc.data();
+            const channel = await this.container.client.channels.fetch(channelId);
+            if (channel) {
+                try {
+                    /** @type {Message} */
+                    const message = await channel.messages.fetch(messageId);
+                    this.listenToReports(guild, message);
+                } catch (e) {
+                    // message doesn't exist anymore
+                    return e;
+                }
+            } else {
+                return 'Saved message channel does not exist';
+            }
+        } else {
+            return 'No existing saved message for start verification command';
+        }
     }
 }
 module.exports = StartVerification;
