@@ -63,7 +63,7 @@ class StartReport extends Command {
         interaction.reply({ content: 'Report started!', ephemeral: true });
         const msg = await interaction.channel.send({ embeds: [embed], components: [row] });
 
-        await this.listenToReports(interaction, msg);
+        await this.listenToReports(interaction.guild, msg);
 
         const savedMessagesCol = firebaseUtil.getSavedMessagesSubCol(interaction.guild.id);
         await savedMessagesCol.doc('report').set({
@@ -74,10 +74,10 @@ class StartReport extends Command {
 
     /**
      * 
-     * @param {Command.ChatInputInteraction} interaction 
+     * @param {Guild} guild 
      * @param {Message<boolean>} msg
      */
-    async listenToReports(interaction, msg) {
+    async listenToReports(guild, msg) {
         const checkInCollector = msg.createMessageComponentCollector({ filter: i => !i.user.bot});
 
         checkInCollector.on('collect', async i => {
@@ -106,9 +106,9 @@ class StartReport extends Command {
                 const issueMessage = submitted.fields.getTextInputValue('issueMessage');
                 
                 try {
-                    discordLog(interaction.guild, `<@&${interaction.guild.roleIDs.staffRole}> New anonymous report:\n\n ${issueMessage}`);
+                    discordLog(guild, `<@&${guild.roleIDs.staffRole}> New anonymous report:\n\n ${issueMessage}`);
                 } catch {
-                    discordLog(interaction.guild, `New anonymous report:\n\n ${issueMessage}`);
+                    discordLog(guild, `New anonymous report:\n\n ${issueMessage}`);
                 }
                 submitted.reply({ content: 'Thank you for taking the time to report users who are not following server or MLH rules. You help makes our community safer!', ephemeral: true });
                 return;
