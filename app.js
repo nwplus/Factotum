@@ -188,6 +188,15 @@ bot.once('ready', async () => {
                     mainLogger.verbose('Restored pronoun command message');
                 }
 
+                /** @type {StartVerification} */
+                const startVerificationCommand = bot.stores.get('commands').get('start-verification');
+                const verificationError = await startVerificationCommand.tryRestoreReactionListeners(guild);
+                if (verificationError) {
+                    mainLogger.warning(verificationError);
+                } else {
+                    mainLogger.verbose('Restored start verification command message');
+                }
+
                 /** @type {StartMentorCave} */
                 const mentorCaveCommand = bot.stores.get('commands').get('start-mentor-cave');
                 const mentorCaveError = await mentorCaveCommand.tryRestoreReactionListeners(guild);
