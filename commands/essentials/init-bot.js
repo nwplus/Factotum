@@ -86,6 +86,10 @@ class InitBot extends Command {
                     option.setName('embed_colour')
                         .setDescription('Hex code of embed colour')
                         .setRequired(false))
+                .addStringOption(option =>
+                    option.setName('hackathon_name')
+                        .setDescription('Optional: Name of the hackathon')
+                        .setRequired(false))
         ),
         {
             idHints: '1051737348502728764'
@@ -98,6 +102,7 @@ class InitBot extends Command {
     async chatInputRun(interaction) {
         await firebaseUtil.connect('Factotum');
 
+        await interaction.deferReply({ ephemeral: true });
         // easy constants to use
         var channel = interaction.channel;
         const userId = interaction.user.id;
@@ -105,17 +110,29 @@ class InitBot extends Command {
         const guild = interaction.guild;
         const everyoneRole = interaction.guild.roles.everyone;
 
-        const botGuildRef = await firebaseUtil.getFactotumSubCol().doc(guild.id);
+        const botGuildRef = firebaseUtil.getFactotumSubCol().doc(guild.id);
+        const hackathonName = interaction.options.getString('hackathon_name') || 'unspecified hackathon';
 
         // make sure the user had manage server permission
         if (!interaction.member.permissionsIn(interaction.channel).has('ADMINISTRATOR')) {
-            await interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
+            await interaction.followUp({ content: 'You do not have permissions to run this command!', ephemeral: true });
             return;
         }
 
         const botGuildDoc = await botGuildRef.get();
         if (botGuildDoc.exists && botGuildDoc.data().isSetUpComplete) {
-            await interaction.reply({ content: 'This server is already set up!', ephemeral: true });
+            await interaction.followUp({ content: 'This server is already set up!', ephemeral: true });
+            return;
+        }
+    
+        const initBotInfoRef = firebaseUtil.getFactotumSubCol();
+        const duplicateQuery = await initBotInfoRef.where('hackathonName', '==', hackathonName).get();
+    
+        if (!duplicateQuery.empty && hackathonName !== 'unspecified hackathon') {
+            await interaction.followUp({
+                content: `The hackathon name "${hackathonName}" is already in use. Please use a different name or leave it unspecified.`,
+                ephemeral: true,
+            });
             return;
         }
 
@@ -139,15 +156,15 @@ class InitBot extends Command {
             try {
                 const response = await fetch(verificationRoles.url);
                 let res = await response.json();
-                
-                // CHANGE 3
-                // await botGuild.setUpVerification(guild, guest, res, welcomeSupportChannel);
                 verification.roles = res;
                 verification.guestRoleID = guest;
                 verification.welcomeSupportChannel = welcomeSupportChannel;
             } catch (error) {
                 console.error('error: ' + error);
-                interaction.reply({ content: 'An error occurred with the file upload or verification roles upload!', ephemeral: true});
+                await interaction.followUp({
+                    content: 'An error occurred with the file upload or verification roles upload!',
+                    ephemeral: true,
+                });
                 return;
             }
         }
@@ -167,8 +184,7 @@ class InitBot extends Command {
         const embedColor = interaction.options.getString('embed_colour') || '#26fff4';
 
         // ask the user to move our role up the list
-        await interaction.reply({content: 'Before we move on, could you please move my role up the role list as high as possible, this will give me the ability to assign roles!', ephemeral: true});
-
+        await interaction.followUp({content: 'Before we move on, could you please move my role up the role list as high as possible, this will give me the ability to assign roles!', ephemeral: true});
         await botGuildRef.set({
             verification,
             embedColor,
@@ -183,10 +199,11 @@ class InitBot extends Command {
                 adminLog: adminLog.id,
                 adminConsole: adminConsole.id
             },
+            hackathonName,
             isSetUpComplete: true,
         });
 
-        await interaction.followUp('The bot is set and ready to hack!');
+        await interaction.followUp(`The bot is set and ready to hack for ${hackathonName}!`);
         discordLog(guild, '<@' + userId + '> ran init-bot!');
     }
 
