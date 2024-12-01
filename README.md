@@ -1,4 +1,4 @@
-# Factotum The do-it-all Discord Bot
+# Factotum The do-it-all Discord Bot!
 
 Previously known as nwPlus Discord Bot, Factotum started as a Discord bot to support small and medium hackathons run on the Discord platform for free. Now it has become a fully customizable, feature rich bot to support any and all types of events over discord. 
 
