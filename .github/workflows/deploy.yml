@@ -27,12 +27,12 @@ jobs:
           push: true
           tags: nwplus/factotum:latest
       - name: Upload systemd service file
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: factotum-service-file
           path: ./factotum.service
       - name: Upload docker-compose file
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: factotum-docker-compose
           path: ./docker-compose.yml
@@ -46,13 +46,13 @@ jobs:
         run: docker pull nwplus/factotum:latest
 
       - name: Download systemd service file
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: factotum-service-file
           path: .
 
       - name: Download docker-compose file
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: factotum-docker-compose
           path: .
