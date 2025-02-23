@@ -230,7 +230,7 @@ class DiscordContests extends Command {
             
             /** @type {string} */
             let question = data.question;
-            /** @type {string[]} */
+            /** @type {string[] | undefined} */
             let answers = data.answers;
             let needAllAnswers = data.needAllAnswers;
 
@@ -249,7 +249,7 @@ class DiscordContests extends Command {
 
 
             await channel.send({ content: '<@&' + roleId + '>', embeds: [qEmbed] });
-            if (answers.length === 0) {
+            if (!answers?.length) {
                 //send message to console
                 const questionMsg = await adminConsole.send({ content: '<@&' + initBotInfo.roleIDs.staffRole + '>' + 'need manual review!', embeds: [qEmbed], components: [row] });
 
@@ -274,7 +274,7 @@ class DiscordContests extends Command {
                             // winners.push(memberId);
                             await updateLeaderboard(memberId);
                             collector.stop();
-                            // await recordWinner(memberId);
+                            await recordWinner(memberId);
                         } else {
                             await m.delete();
                             // await winnerRequest.deleteReply();
@@ -299,7 +299,7 @@ class DiscordContests extends Command {
                                 // winners.push(m.author.id);
                                 await updateLeaderboard(m.author.id);
                                 collector.stop();
-                                recordWinner(m.member);
+                                recordWinner(m.member.id);
                             }
                         } else if (answers.some(correctAnswer => m.content.toLowerCase().includes(correctAnswer.toLowerCase()))) {
                             //for most questions, an answer that contains at least once item of the answer array is correct
@@ -307,7 +307,7 @@ class DiscordContests extends Command {
                             // winners.push(m.author.id);
                             await updateLeaderboard(m.author.id);
                             collector.stop();
-                            recordWinner(m.member);
+                            recordWinner(m.member.id);
                         }
                     } else {
                         //check if all answers in answer array are in the message
@@ -316,7 +316,7 @@ class DiscordContests extends Command {
                             // winners.push(m.author.id);
                             await updateLeaderboard(m.author.id);
                             collector.stop();
-                            recordWinner(m.member);
+                            recordWinner(m.member.id);
                         }
                     }
                 });
@@ -327,10 +327,10 @@ class DiscordContests extends Command {
             }
         }
 
-        async function recordWinner(member) {
+        async function recordWinner(memberId) {
             try {
-                let email = await lookupById(guild.id, member.id);
-                discordLog(guild, `Discord contest winner: <@${member.id}> - ${email}`);
+                let email = await lookupById(guild.id, memberId);
+                discordLog(guild, `Discord contest winner: <@${memberId}> - ${email}`);
             } catch (error) {
                 console.log(error);
             }
