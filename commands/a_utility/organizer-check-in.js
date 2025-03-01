@@ -3,7 +3,9 @@ const { Interaction, MessageEmbed, Guild, Message, MessageActionRow, MessageButt
 const firebaseUtil = require('../../db/firebase/firebaseUtil');
 
 /**
- * The organizer-check-in command lets organizers check in/out for attendance.
+ * The organizer-check-in command lets organizers check in/out for attendance. It uses the organizerAttendance
+ * field in the InitBotInfo document to store the list of organizers present. organizerAttendance is a map of
+ * organizer username to organizer display name.
  * @category Commands
  * @subcategory Admin-Utility
  * @extends Command
