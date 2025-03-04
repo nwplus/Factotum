@@ -412,7 +412,12 @@ module.exports = {
     },
 
     async lookupById(guildId, memberId) {
-        const userRef = getFactotumDoc().collection('guilds').doc(guildId).collection('members').where('discordId', '==', memberId).limit(1);
+        const userRef = module.exports
+            .getFactotumSubCol()
+            .doc(guildId)
+            .collection("applicants")
+            .where("discordId", "==", memberId)
+            .limit(1);
         const user = (await userRef.get()).docs[0];
         return user ? user.data().email : undefined;
     },
@@ -436,6 +441,11 @@ module.exports = {
         const winners = snapshot.map(doc => doc.data()).sort((a, b) => b.points - a.points);
         return winners;
     },
+
+    async updateOrganizerAttendance(guildId, organizerAttendance) {
+        const ref = module.exports.getFactotumSubCol().doc(guildId);
+        await ref.update({ organizerAttendance });
+    }
 
 };
 

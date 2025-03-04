@@ -14,6 +14,7 @@ const { LogLevel, SapphireClient } = require('@sapphire/framework');
 const Pronouns = require('./commands/a_utility/pronouns');
 const RoleSelector = require('./commands/a_utility/role-selector');
 const StartReport = require('./commands/hacker_utility/start-report');
+const OrganizerCheckIn = require('./commands/a_utility/organizer-check-in');
 
 /**
  * The Main App module houses the bot events, process events, and initializes
@@ -222,6 +223,15 @@ bot.once('ready', async () => {
                     mainLogger.warning(startReportError);
                 } else {
                     mainLogger.verbose('Restored start report command message');
+                }
+
+                /** @type {OrganizerCheckIn} */
+                const organizerCheckInCommand = bot.stores.get('commands').get('organizer-check-in');
+                const organizerCheckInError = await organizerCheckInCommand.tryRestoreReactionListeners(guild);
+                if (organizerCheckInError) {
+                    mainLogger.warning(organizerCheckInError);
+                } else {
+                    mainLogger.verbose('Restored organizer check-in command message');
                 }
             }
 
