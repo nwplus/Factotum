@@ -437,6 +437,11 @@ module.exports = {
         return winners;
     },
 
+    async updateOrganizerAttendance(guildId, organizerAttendance) {
+        const ref = module.exports.getFactotumSubCol().doc(guildId);
+        await ref.update({ organizerAttendance });
+    }
+
 };
 
 function getFactotumDoc() {
