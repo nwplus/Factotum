@@ -1,11 +1,14 @@
 {
   "name": "factotum",
   "version": "6.0.0",
-  "main": "index.js",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch index.ts"
+    "dev": "tsx watch src/index.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write ."
   },
   "repository": {
     "type": "git",
@@ -20,13 +23,16 @@
   "description": "",
   "dependencies": {
     "@sapphire/framework": "^5.3.6",
-    "discord.js": "^14.19.3"
+    "discord.js": "^14.19.3",
+    "dotenv": "^16.5.0"
   },
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/node": "^22.15.30",
     "eslint": "^9.28.0",
     "prettier": "^3.5.3",
     "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.33.1"
   }
 }
