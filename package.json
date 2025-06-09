@@ -1,0 +1,32 @@
+{
+  "name": "factotum",
+  "version": "6.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx watch index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nwplus/Factotum.git"
+  },
+  "author": "JP Garcia, Maggie Wang, Shu Ting Hu, Daniel Pan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nwplus/Factotum/issues"
+  },
+  "homepage": "https://github.com/nwplus/Factotum#readme",
+  "description": "",
+  "dependencies": {
+    "@sapphire/framework": "^5.3.6",
+    "discord.js": "^14.19.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "eslint": "^9.28.0",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
