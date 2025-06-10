@@ -1,0 +1,28 @@
+import { db } from "./firestore";
+
+export interface FactotumDoc {
+  guilds: {
+    setupComplete: boolean;
+    roleIds: {
+      admin: string;
+      member: string;
+      mentor: string;
+    };
+    channelIds: {
+      adminConsole: string;
+      adminLog: string;
+    };
+  };
+}
+
+interface CommandDataDoc {
+  mentorCave: {};
+}
+
+const getFactotumBaseDocRef = () => {
+  return db.collection("ExternalProjects").doc("Factotum");
+};
+
+export const getGuildDocRef = (guildId: string) => {
+  return getFactotumBaseDocRef().collection("guilds").doc(guildId);
+};

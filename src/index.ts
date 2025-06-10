@@ -2,7 +2,9 @@ import { SapphireClient } from "@sapphire/framework";
 import { GatewayIntentBits } from "discord.js";
 import "dotenv/config";
 
-const ENV_KEYS = ["DISCORD_BOT_TOKEN"] as const;
+import { initializeFirebase } from "./util/firestore";
+
+const ENV_KEYS = ["DISCORD_BOT_TOKEN", "FIREBASE_SERVICE_ACCOUNT"] as const;
 const env = Object.fromEntries(
   ENV_KEYS.map((key) => {
     // Dev environment variables are prefixed with DEV_
@@ -18,3 +20,5 @@ const client = new SapphireClient({
 });
 
 client.login(env.DISCORD_BOT_TOKEN);
+
+initializeFirebase(env.FIREBASE_SERVICE_ACCOUNT);

@@ -24,7 +24,8 @@
   "dependencies": {
     "@sapphire/framework": "^5.3.6",
     "discord.js": "^14.19.3",
-    "dotenv": "^16.5.0"
+    "dotenv": "^16.5.0",
+    "firebase-admin": "^13.4.0"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
