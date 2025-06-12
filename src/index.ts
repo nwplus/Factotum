@@ -16,7 +16,16 @@ const env = Object.fromEntries(
 ) as Record<(typeof ENV_KEYS)[number], string>;
 
 const client = new SapphireClient({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
+  intents: [
+    GatewayIntentBits.GuildModeration,
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildExpressions,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.DirectMessageReactions,
+  ],
+  shards: "auto",
 });
 
 client.login(env.DISCORD_BOT_TOKEN);

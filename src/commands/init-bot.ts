@@ -1,14 +1,15 @@
-import { Command } from "@sapphire/framework";
+import BaseCommand from "@/classes/BaseCommand";
+import { requireAdminPermission } from "@/util/discord";
+import { getGuildDocRef } from "@/util/nwplus-firestore";
 
-import { getGuildDocRef } from "../util/nwplus-firestore";
-import { requireAdminPermission } from "../util/discord";
-import { MessageFlags } from "discord.js";
+import { Command } from "@sapphire/framework";
+import { MessageFlags, SlashCommandBuilder } from "discord.js";
 
 /**
  * The InitBot command initializes the bot on the guild. It will prompt the user for information needed
  * to set up the bot. It is only usable by server administrators. It can only be run once.
  */
-class InitBot extends Command {
+class InitBot extends BaseCommand {
   constructor(context: Command.LoaderContext, options: Command.Options) {
     super(context, {
       ...options,
@@ -17,31 +18,44 @@ class InitBot extends Command {
     });
   }
 
-  public override registerApplicationCommands(registry: Command.Registry) {
-    registry.registerChatInputCommand(
-      (builder) =>
-        builder
-          .setName(this.name)
-          .setDescription(this.description)
-          .addRoleOption((option) =>
-            option.setName("admin-role").setDescription("The admin role.").setRequired(true),
-          )
-          .addRoleOption((option) =>
-            option.setName("member-role").setDescription("The member role.").setRequired(true),
-          )
-          .addRoleOption((option) =>
-            option.setName("mentor-role").setDescription("The mentor role.").setRequired(true),
-          )
-          .addChannelOption((option) =>
-            option.setName("admin-console").setDescription("The admin console channel.").setRequired(true),
-          )
-          .addChannelOption((option) =>
-            option.setName("admin-log").setDescription("The admin log channel.").setRequired(true),
-          ),
-      {
-        idHints: ["1381884387972612129"],
-      },
-    );
+  protected override buildCommand(builder: SlashCommandBuilder) {
+    return builder
+      .addRoleOption((option) =>
+        option
+          .setName("admin-role")
+          .setDescription("The admin role.")
+          .setRequired(true),
+      )
+      .addRoleOption((option) =>
+        option
+          .setName("member-role")
+          .setDescription("The member role.")
+          .setRequired(true),
+      )
+      .addRoleOption((option) =>
+        option
+          .setName("mentor-role")
+          .setDescription("The mentor role.")
+          .setRequired(true),
+      )
+      .addChannelOption((option) =>
+        option
+          .setName("admin-console")
+          .setDescription("The admin console channel.")
+          .setRequired(true),
+      )
+      .addChannelOption((option) =>
+        option
+          .setName("admin-log")
+          .setDescription("The admin log channel.")
+          .setRequired(true),
+      );
+  }
+
+  protected override setCommandOptions() {
+    return {
+      idHints: ["1381884387972612129"],
+    };
   }
 
   @requireAdminPermission
@@ -52,7 +66,7 @@ class InitBot extends Command {
     if (!guildId) {
       return interaction.reply({
         content: "This command can only be run in a server.",
-        flags: MessageFlags.Ephemeral
+        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -75,7 +89,7 @@ class InitBot extends Command {
     const mentorRole = interaction.options.getRole("mentor-role");
     const adminConsole = interaction.options.getChannel("admin-console");
     const adminLog = interaction.options.getChannel("admin-log");
-    
+
     await guildDocRef.set({
       setupComplete: true,
       roleIds: {

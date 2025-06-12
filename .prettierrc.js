@@ -7,4 +7,5 @@ export default {
   importOrderSortSpecifiers: true,
   importOrderGroupNamespaceSpecifiers: true,
   importOrderCaseInsensitive: true,
+  importOrderParserPlugins: ["decorators", "typescript"],
 };

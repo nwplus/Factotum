@@ -1,17 +1,21 @@
 import { db } from "./firestore";
 
+export interface GuildDoc {
+  setupComplete: boolean;
+  roleIds: {
+    admin: string;
+    member: string;
+    mentor: string;
+  };
+  channelIds: {
+    adminConsole: string;
+    adminLog: string;
+  };
+}
+
 export interface FactotumDoc {
   guilds: {
-    setupComplete: boolean;
-    roleIds: {
-      admin: string;
-      member: string;
-      mentor: string;
-    };
-    channelIds: {
-      adminConsole: string;
-      adminLog: string;
-    };
+    [guildId: string]: GuildDoc;
   };
 }
 
