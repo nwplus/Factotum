@@ -28,14 +28,32 @@ class InitBot extends BaseCommand {
       )
       .addRoleOption((option) =>
         option
-          .setName("member-role")
-          .setDescription("The member role.")
+          .setName("staff-role")
+          .setDescription("The staff role.")
+          .setRequired(true),
+      )
+      .addRoleOption((option) =>
+        option
+          .setName("hacker-role")
+          .setDescription("The hacker role.")
           .setRequired(true),
       )
       .addRoleOption((option) =>
         option
           .setName("mentor-role")
           .setDescription("The mentor role.")
+          .setRequired(true),
+      )
+      .addRoleOption((option) =>
+        option
+          .setName("verified-role")
+          .setDescription("The verified role.")
+          .setRequired(true),
+      )
+      .addRoleOption((option) =>
+        option
+          .setName("unverified-role")
+          .setDescription("The unverified role.")
           .setRequired(true),
       )
       .addChannelOption((option) =>
@@ -48,6 +66,14 @@ class InitBot extends BaseCommand {
         option
           .setName("admin-log")
           .setDescription("The admin log channel.")
+          .setRequired(true),
+      )
+      .addStringOption((option) =>
+        option
+          .setName("hackathon-name")
+          .setDescription(
+            "The hackathon name. Either 'HackCamp20xx', 'nwHacks20xx', or 'cmd-f20xx'.",
+          )
           .setRequired(true),
       );
   }
@@ -81,21 +107,37 @@ class InitBot extends BaseCommand {
       });
     }
 
-    this.container.logger.info(`Initializing bot on guild ${guildId}`);
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
     const adminRole = interaction.options.getRole("admin-role");
-    const memberRole = interaction.options.getRole("member-role");
+    const staffRole = interaction.options.getRole("staff-role");
+    const hackerRole = interaction.options.getRole("hacker-role");
     const mentorRole = interaction.options.getRole("mentor-role");
+    const verifiedRole = interaction.options.getRole("verified-role");
+    const unverifiedRole = interaction.options.getRole("unverified-role");
     const adminConsole = interaction.options.getChannel("admin-console");
     const adminLog = interaction.options.getChannel("admin-log");
 
+    const hackathonName = interaction.options.getString("hackathon-name");
+    if (!hackathonName?.match(/(HackCamp|nwHacks|cmd-f)20\d{2}/)) {
+      return interaction.reply({
+        content:
+          "Invalid hackathon name. Please use the format 'HackCamp20xx', 'nwHacks20xx', or 'cmd-f20xx'.",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    this.container.logger.info(`Initializing bot on guild ${guildId}`);
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
     await guildDocRef.set({
       setupComplete: true,
+      hackathonName,
       roleIds: {
         admin: adminRole?.id,
-        member: memberRole?.id,
+        staff: staffRole?.id,
+        hacker: hackerRole?.id,
         mentor: mentorRole?.id,
+        verified: verifiedRole?.id,
+        unverified: unverifiedRole?.id,
       },
       channelIds: {
         adminConsole: adminConsole?.id,

@@ -2,10 +2,14 @@ import { db } from "./firestore";
 
 export interface GuildDoc {
   setupComplete: boolean;
+  hackathonName: string;
   roleIds: {
     admin: string;
-    member: string;
+    staff: string;
     mentor: string;
+    hacker: string;
+    verified: string;
+    unverified: string;
   };
   channelIds: {
     adminConsole: string;
