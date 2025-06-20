@@ -22,12 +22,16 @@
   "homepage": "https://github.com/nwplus/Factotum#readme",
   "description": "",
   "dependencies": {
+    "@sapphire/decorators": "^6.2.0",
+    "@sapphire/discord.js-utilities": "^7.3.3",
     "@sapphire/framework": "^5.3.6",
-    "discord.js": "^14.19.3",
+    "@sapphire/utilities": "^3.18.2",
+    "discord.js": "^14.20.0",
     "dotenv": "^16.5.0",
     "firebase-admin": "^13.4.0"
   },
   "devDependencies": {
+    "@sapphire/cli": "^1.9.3",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/node": "^22.15.30",
     "eslint": "^9.28.0",

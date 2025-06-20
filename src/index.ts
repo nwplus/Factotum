@@ -1,4 +1,4 @@
-import { SapphireClient } from "@sapphire/framework";
+import { LogLevel, SapphireClient } from "@sapphire/framework";
 import { GatewayIntentBits } from "discord.js";
 import "dotenv/config";
 
@@ -26,6 +26,10 @@ const client = new SapphireClient({
     GatewayIntentBits.DirectMessageReactions,
   ],
   shards: "auto",
+  logger: {
+    level:
+      process.env.NODE_ENV === "development" ? LogLevel.Debug : LogLevel.Info,
+  },
 });
 
 client.login(env.DISCORD_BOT_TOKEN);

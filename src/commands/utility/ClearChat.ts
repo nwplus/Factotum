@@ -1,18 +1,20 @@
 import BaseCommand from "@/classes/BaseCommand";
-import { requireAdminRole } from "@/util/discord";
 
-import { Command } from "@sapphire/framework";
-import { MessageFlags, SlashCommandBuilder } from "discord.js";
+import { ApplyOptions } from "@sapphire/decorators";
+import { Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
+import {
+  GuildTextBasedChannel,
+  MessageFlags,
+  SlashCommandBuilder,
+} from "discord.js";
 
+@ApplyOptions<Command.Options>({
+  name: "clear-chat",
+  description: "Clear most recent 100 messages younger than 2 weeks.",
+  runIn: CommandOptionsRunTypeEnum.GuildText,
+  preconditions: ["AdminRoleOnly"],
+})
 class ClearChat extends BaseCommand {
-  constructor(context: Command.LoaderContext, options: Command.Options) {
-    super(context, {
-      ...options,
-      name: "clear-chat",
-      description: "Clear most recent 100 messages younger than 2 weeks.",
-    });
-  }
-
   protected override buildCommand(builder: SlashCommandBuilder) {
     return builder.addBooleanOption((option) =>
       option
@@ -23,21 +25,14 @@ class ClearChat extends BaseCommand {
 
   protected override setCommandOptions() {
     return {
-      idHints: [],
+      idHints: ["1382593420328960000"],
     };
   }
 
-  @requireAdminRole
   public override async chatInputRun(
     interaction: Command.ChatInputCommandInteraction,
   ) {
-    const channel = interaction.channel;
-    if (!channel || channel.isDMBased()) {
-      return interaction.reply({
-        content: "This command can only be used in a text channel.",
-        flags: MessageFlags.Ephemeral,
-      });
-    }
+    const channel = interaction.channel! as GuildTextBasedChannel;
 
     const keepPinned = interaction.options.getBoolean("keep_pinned", false);
     if (keepPinned) {

@@ -1,23 +1,24 @@
 import BaseCommand from "@/classes/BaseCommand";
-import { requireAdminPermission } from "@/util/discord";
 import { getGuildDocRef } from "@/util/nwplus-firestore";
 
+import { ApplyOptions } from "@sapphire/decorators";
 import { Command } from "@sapphire/framework";
-import { MessageFlags, SlashCommandBuilder } from "discord.js";
+import {
+  MessageFlags,
+  PermissionsBitField,
+  SlashCommandBuilder,
+} from "discord.js";
 
 /**
  * The InitBot command initializes the bot on the guild. It will prompt the user for information needed
  * to set up the bot. It is only usable by server administrators. It can only be run once.
  */
+@ApplyOptions<Command.Options>({
+  name: "init-bot",
+  description: "Initializes the bot on the guild.",
+  requiredUserPermissions: [PermissionsBitField.Flags.Administrator],
+})
 class InitBot extends BaseCommand {
-  constructor(context: Command.LoaderContext, options: Command.Options) {
-    super(context, {
-      ...options,
-      name: "init-bot",
-      description: "Initializes the bot on the guild.",
-    });
-  }
-
   protected override buildCommand(builder: SlashCommandBuilder) {
     return builder
       .addRoleOption((option) =>
@@ -84,7 +85,6 @@ class InitBot extends BaseCommand {
     };
   }
 
-  @requireAdminPermission
   public override async chatInputRun(
     interaction: Command.ChatInputCommandInteraction,
   ) {

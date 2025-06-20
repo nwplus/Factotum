@@ -17,14 +17,25 @@ export interface GuildDoc {
   };
 }
 
-export interface FactotumDoc {
-  guilds: {
-    [guildId: string]: GuildDoc;
-  };
+interface CommandDataCollection {
+  mentorCave: {};
 }
 
-interface CommandDataDoc {
-  mentorCave: {};
+interface SavedMessage {
+  messageId: string;
+  channelId: string;
+}
+
+export interface VerificationDoc {
+  roleIds: {
+    hacker: string;
+    sponsor: string;
+    mentor: string;
+    organizer: string;
+    photographer: string;
+    volunteer: string;
+  };
+  savedMessage: SavedMessage;
 }
 
 const getFactotumBaseDocRef = () => {
