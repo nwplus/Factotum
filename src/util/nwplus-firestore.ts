@@ -1,3 +1,5 @@
+import { Guild } from "discord.js";
+
 import { db } from "./firestore";
 
 export interface GuildDoc {
@@ -56,4 +58,16 @@ const getFactotumBaseDocRef = () => {
 
 export const getGuildDocRef = (guildId: string) => {
   return getFactotumBaseDocRef().collection("guilds").doc(guildId);
+};
+
+export const logToAdminLog = async (guild: Guild, message: string) => {
+  const guildDocRef = getGuildDocRef(guild.id);
+  const guildDocData = (await guildDocRef.get()).data() as GuildDoc;
+
+  const adminLogChannel = guild.channels.cache.get(
+    guildDocData.channelIds.adminLog,
+  );
+  if (!adminLogChannel || !adminLogChannel.isTextBased()) return;
+
+  await adminLogChannel.send(message);
 };
