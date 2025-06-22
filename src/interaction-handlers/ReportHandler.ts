@@ -43,8 +43,9 @@ class ReportHandler extends InteractionHandler {
           new TextInputBuilder()
             .setCustomId("explanation")
             .setLabel("Detailed explanation")
-            .setStyle(TextInputStyle.Short)
+            .setStyle(TextInputStyle.Paragraph)
             .setPlaceholder("Detailed explanation")
+            .setMaxLength(300)
             .setRequired(true),
         ),
         new ActionRowBuilder<TextInputBuilder>().addComponents(

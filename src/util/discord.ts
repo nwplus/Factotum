@@ -1,5 +1,6 @@
 import {
   APIInteractionGuildMember,
+  Guild,
   GuildMember,
   GuildMemberRoleManager,
 } from "discord.js";
@@ -15,4 +16,14 @@ export const checkMemberRoles = (
     }
     return memberRoles.includes(role);
   });
+};
+
+export const getSavedMessage = async (
+  guild: Guild,
+  messageId: string,
+  channelId: string,
+) => {
+  const channel = await guild.channels.fetch(channelId);
+  if (!channel?.isTextBased()) return null;
+  return channel.messages.fetch(messageId);
 };

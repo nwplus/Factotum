@@ -34,7 +34,7 @@ const initializeBot = async () => {
     },
   });
 
-  client.login(env.DISCORD_BOT_TOKEN);
+  await client.login(env.DISCORD_BOT_TOKEN);
   initializeFirebase(env.FIREBASE_SERVICE_ACCOUNT);
 
   console.log("Fetching saved messages into cache...");
@@ -43,7 +43,7 @@ const initializeBot = async () => {
     .collection("guilds")
     .get();
 
-  querySnapshot.docs.map(async (doc) => {
+  const loadMessagePromises = querySnapshot.docs.map(async (doc) => {
     const guild = await client.guilds.fetch(doc.id);
     console.log(`Processing guild: ${doc.id} - ${guild.name}`);
 
@@ -65,6 +65,8 @@ const initializeBot = async () => {
       }
     }
   });
+
+  await Promise.all(loadMessagePromises);
 
   console.log("Finished processing all guild documents");
 };
