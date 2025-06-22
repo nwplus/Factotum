@@ -79,7 +79,7 @@ class StartVerification extends BaseCommand {
         .setStyle(ButtonStyle.Primary),
     );
 
-    const msg = await interaction.reply({
+    await interaction.reply({
       content:
         "If you have not already, make sure to enable DMs, emojis, and embeds/link previews in your personal Discord settings! If you have any issues, please find an organizer!",
       embeds: [embed],
@@ -107,10 +107,6 @@ class StartVerification extends BaseCommand {
         organizer: organizerRole.id,
         photographer: photographerRole.id,
         volunteer: volunteerRole.id,
-      },
-      savedMessage: {
-        messageId: msg.id,
-        channelId: interaction.channelId,
       },
     } satisfies VerificationDoc);
   }

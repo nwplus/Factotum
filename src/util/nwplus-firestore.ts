@@ -37,7 +37,6 @@ export interface VerificationDoc {
     photographer: string;
     volunteer: string;
   };
-  savedMessage: SavedMessage;
 }
 
 export interface PronounsDoc {
@@ -52,7 +51,7 @@ export interface PronounsDoc {
 
 export const PRONOUN_REACTION_EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣"];
 
-const getFactotumBaseDocRef = () => {
+export const getFactotumBaseDocRef = () => {
   return db.collection("ExternalProjects").doc("Factotum");
 };
 
