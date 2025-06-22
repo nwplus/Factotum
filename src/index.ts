@@ -2,8 +2,13 @@ import { LogLevel, SapphireClient } from "@sapphire/framework";
 import { GatewayIntentBits } from "discord.js";
 import "dotenv/config";
 
+import { getSavedMessage } from "./util/discord";
 import { initializeFirebase } from "./util/firestore";
-import { getFactotumBaseDocRef, PronounsDoc } from "./util/nwplus-firestore";
+import {
+  getFactotumBaseDocRef,
+  PronounsDoc,
+  TicketDoc,
+} from "./util/nwplus-firestore";
 
 const ENV_KEYS = ["DISCORD_BOT_TOKEN", "FIREBASE_SERVICE_ACCOUNT"] as const;
 const env = Object.fromEntries(
@@ -37,7 +42,7 @@ const initializeBot = async () => {
   await client.login(env.DISCORD_BOT_TOKEN);
   initializeFirebase(env.FIREBASE_SERVICE_ACCOUNT);
 
-  console.log("Fetching saved messages into cache...");
+  console.log("Fetching saved messages into cache to listen for emojis...");
 
   const querySnapshot = await getFactotumBaseDocRef()
     .collection("guilds")
@@ -49,19 +54,35 @@ const initializeBot = async () => {
 
     const commandDataDocRef = doc.ref.collection("command-data");
 
-    // Load /pronouns message
+    // Load pronouns message
     const pronounsDataDoc = await commandDataDocRef.doc("pronouns").get();
     if (pronounsDataDoc.exists) {
       const { savedMessage } = pronounsDataDoc.data() as PronounsDoc;
-      const pronounsMessageChannel = await guild.channels.fetch(
+      const pronounsMessage = await getSavedMessage(
+        guild,
+        savedMessage.messageId,
         savedMessage.channelId,
       );
-      if (pronounsMessageChannel?.isTextBased()) {
-        const message = await pronounsMessageChannel.messages.fetch(
-          savedMessage.messageId,
+      if (pronounsMessage) {
+        pronounsMessage.fetch();
+        console.log("Loaded pronouns message into listener cache");
+      }
+    }
+
+    // Load request ticket message
+    const ticketsDataDoc = await commandDataDocRef.doc("tickets").get();
+    if (ticketsDataDoc.exists) {
+      const { savedMessages } = ticketsDataDoc.data() as TicketDoc;
+      const mentorSpecialtySelectionMessage = await getSavedMessage(
+        guild,
+        savedMessages.mentorSpecialtySelection.messageId,
+        savedMessages.mentorSpecialtySelection.channelId,
+      );
+      if (mentorSpecialtySelectionMessage) {
+        await mentorSpecialtySelectionMessage.fetch();
+        console.log(
+          "Loaded mentor specialty selection message into listener cache",
         );
-        message.fetch();
-        console.log("Loaded /pronouns message into listener cache");
       }
     }
   });

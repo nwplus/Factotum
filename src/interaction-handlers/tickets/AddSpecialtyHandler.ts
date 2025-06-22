@@ -33,22 +33,7 @@ class AddSpecialtyHandler extends InteractionHandler {
     const guildDocRef = getGuildDocRef(interaction.guildId!);
     const guildDocData = (await guildDocRef.get()).data() as GuildDoc;
 
-    const modal = new ModalBuilder()
-      .setCustomId("add-specialty-role-modal")
-      .setTitle("Add Mentor Specialty Role")
-      .addComponents(
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-          new TextInputBuilder()
-            .setCustomId("specialty-name")
-            .setLabel("Specialty Name")
-            .setStyle(TextInputStyle.Short)
-            .setPlaceholder("Specialty Name")
-            .setRequired(true),
-        ),
-      );
-
-    await interaction.showModal(modal);
-
+    await interaction.showModal(this.makeSpecialtyModal());
     const submitted = await interaction.awaitModalSubmit({
       time: 300000,
       filter: (j) => j.user.id === interaction.user.id,
@@ -60,12 +45,9 @@ class AddSpecialtyHandler extends InteractionHandler {
         flags: [MessageFlags.Ephemeral],
       });
     }
-    await submitted.reply({
-      content:
-        "New role received. Please react to the message with the emoji for the role!",
-      flags: [MessageFlags.Ephemeral],
-    });
+    await submitted.deferReply();
 
+    // Get role for new specialty
     const specialtyName = submitted.fields
       .getTextInputValue("specialty-name")
       .replace(/\s+/g, "-");
@@ -83,16 +65,18 @@ class AddSpecialtyHandler extends InteractionHandler {
       });
     }
 
+    // Wait for emoji reaction
     const ticketDocRef = guildDocRef.collection("command-data").doc("tickets");
     const ticketDocData = (await ticketDocRef.get()).data() as TicketDoc;
-    const askForEmoji = await channel.send({
-      content: `React to this message with the emoji for the role!`,
+    // Replying doesn't return the correct message type, so we need to use followUp
+    const askForEmoji = await submitted.followUp({
+      content:
+        "New role received. Please react to this message with the emoji for the role!",
     });
     const emojiCollector = askForEmoji.createReactionCollector({
       filter: (reaction, user) => user.id === interaction.user.id,
     });
     emojiCollector.on("collect", async (collected) => {
-      await askForEmoji.delete();
       if (
         MENTOR_SPECIALTIES_MAP.has(collected.emoji.name!) ||
         ticketDocData.extraSpecialties[collected.emoji.name!]
@@ -102,25 +86,14 @@ class AddSpecialtyHandler extends InteractionHandler {
         );
         setTimeout(() => rejectMsg.delete(), 5000);
       } else {
+        await askForEmoji.delete();
         emojiCollector.stop();
-
-        await ticketDocRef.update({
-          extraSpecialties: {
-            ...ticketDocData.extraSpecialties,  
-            [collected.emoji.name!]: specialtyName,
-          },
-        });
-        const successMsg = await channel.send(
-          `<@${interaction.user.id}> M-${specialtyName} role with emoji ${collected.emoji.name} added!`,
-        );
-        setTimeout(() => successMsg.delete(), 5000);
 
         const mentorSpecialtySelectionMessage = await getSavedMessage(
           guild,
           ticketDocData.savedMessages.mentorSpecialtySelection.messageId,
           ticketDocData.savedMessages.mentorSpecialtySelection.channelId,
         );
-
         const requestTicketMessage = await getSavedMessage(
           guild,
           ticketDocData.savedMessages.requestTicket.messageId,
@@ -133,6 +106,7 @@ class AddSpecialtyHandler extends InteractionHandler {
           );
         }
 
+        // Update saved messages with new specialty
         await mentorSpecialtySelectionMessage!.edit({
           embeds: [
             StartTickets.makeMentorSpecialtySelectionEmbed({
@@ -141,7 +115,7 @@ class AddSpecialtyHandler extends InteractionHandler {
             }),
           ],
         });
-        await mentorSpecialtySelectionMessage?.react(collected.emoji);
+        await mentorSpecialtySelectionMessage!.react(collected.emoji);
         await requestTicketMessage!.edit({
           components: [
             StartTickets.makeRequestTicketComponents({
@@ -150,6 +124,18 @@ class AddSpecialtyHandler extends InteractionHandler {
             }).actionRow,
           ],
         });
+
+        // Save new specialty to firestore
+        await ticketDocRef.update({
+          extraSpecialties: {
+            ...ticketDocData.extraSpecialties,
+            [collected.emoji.name!]: specialtyName,
+          },
+        });
+        const successMsg = await channel.send(
+          `<@${interaction.user.id}> M-${specialtyName} role with emoji ${collected.emoji.name} added!`,
+        );
+        setTimeout(() => successMsg.delete(), 5000);
       }
     });
   }
@@ -157,6 +143,22 @@ class AddSpecialtyHandler extends InteractionHandler {
   public override parse(interaction: ButtonInteraction) {
     if (interaction.customId !== "add-specialty-role") return this.none();
     return this.some();
+  }
+
+  private makeSpecialtyModal() {
+    return new ModalBuilder()
+      .setCustomId("add-specialty-role-modal")
+      .setTitle("Add Mentor Specialty Role")
+      .addComponents(
+        new ActionRowBuilder<TextInputBuilder>().addComponents(
+          new TextInputBuilder()
+            .setCustomId("specialty-name")
+            .setLabel("Specialty Name")
+            .setStyle(TextInputStyle.Short)
+            .setPlaceholder("Specialty Name")
+            .setRequired(true),
+        ),
+      );
   }
 }
 

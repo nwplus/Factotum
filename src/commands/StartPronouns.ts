@@ -64,16 +64,7 @@ class StartPronouns extends BaseCommand {
     const theyThemRole = interaction.options.getRole("they-them-role")!;
     const otherRole = interaction.options.getRole("other-role")!;
 
-    const embed = new EmbedBuilder()
-      .setTitle("Set your pronouns by reacting to one or more of the emojis!")
-      .setDescription(
-        `${PRONOUN_REACTION_EMOJIS[0]} he/him\n` +
-          `${PRONOUN_REACTION_EMOJIS[1]} she/her\n` +
-          `${PRONOUN_REACTION_EMOJIS[2]} they/them\n` +
-          `${PRONOUN_REACTION_EMOJIS[3]} other pronouns\n`,
-      );
-
-    const message = await channel.send({ embeds: [embed] });
+    const message = await channel.send({ embeds: [this.makePronounsEmbed()] });
     PRONOUN_REACTION_EMOJIS.forEach((emoji) => message.react(emoji));
 
     await interaction.reply({
@@ -97,6 +88,17 @@ class StartPronouns extends BaseCommand {
         channelId: channel.id,
       },
     } satisfies PronounsDoc);
+  }
+
+  private makePronounsEmbed() {
+    return new EmbedBuilder()
+      .setTitle("Set your pronouns by reacting to one or more of the emojis!")
+      .setDescription(
+        `${PRONOUN_REACTION_EMOJIS[0]} he/him\n` +
+          `${PRONOUN_REACTION_EMOJIS[1]} she/her\n` +
+          `${PRONOUN_REACTION_EMOJIS[2]} they/them\n` +
+          `${PRONOUN_REACTION_EMOJIS[3]} other pronouns\n`,
+      );
   }
 }
 
