@@ -25,25 +25,25 @@ class StartPronouns extends BaseCommand {
     return builder
       .addRoleOption((option) =>
         option
-          .setName("he-him-role")
+          .setName("he_him_role")
           .setDescription("The he/him role.")
           .setRequired(true),
       )
       .addRoleOption((option) =>
         option
-          .setName("she-her-role")
+          .setName("she_her_role")
           .setDescription("The she/her role.")
           .setRequired(true),
       )
       .addRoleOption((option) =>
         option
-          .setName("they-them-role")
+          .setName("they_them_role")
           .setDescription("The they/them role.")
           .setRequired(true),
       )
       .addRoleOption((option) =>
         option
-          .setName("other-role")
+          .setName("other_role")
           .setDescription("The other role.")
           .setRequired(true),
       );
@@ -59,10 +59,10 @@ class StartPronouns extends BaseCommand {
     interaction: Command.ChatInputCommandInteraction,
   ) {
     const channel = interaction.channel! as GuildTextBasedChannel;
-    const heHimRole = interaction.options.getRole("he-him-role")!;
-    const sheHerRole = interaction.options.getRole("she-her-role")!;
-    const theyThemRole = interaction.options.getRole("they-them-role")!;
-    const otherRole = interaction.options.getRole("other-role")!;
+    const heHimRole = interaction.options.getRole("he_him_role")!;
+    const sheHerRole = interaction.options.getRole("she_her_role")!;
+    const theyThemRole = interaction.options.getRole("they_them_role")!;
+    const otherRole = interaction.options.getRole("other_role")!;
 
     const message = await channel.send({ embeds: [this.makePronounsEmbed()] });
     PRONOUN_REACTION_EMOJIS.forEach((emoji) => message.react(emoji));

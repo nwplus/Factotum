@@ -22,37 +22,37 @@ class StartVerification extends BaseCommand {
     return builder
       .addRoleOption((option) =>
         option
-          .setName("hacker-role")
+          .setName("hacker_role")
           .setDescription("The hacker role.")
           .setRequired(true),
       )
       .addRoleOption((option) =>
         option
-          .setName("sponsor-role")
+          .setName("sponsor_role")
           .setDescription("The sponsor role.")
           .setRequired(true),
       )
       .addRoleOption((option) =>
         option
-          .setName("mentor-role")
+          .setName("mentor_role")
           .setDescription("The mentor role.")
           .setRequired(true),
       )
       .addRoleOption((option) =>
         option
-          .setName("organizer-role")
+          .setName("organizer_role")
           .setDescription("The organizer role.")
           .setRequired(true),
       )
       .addRoleOption((option) =>
         option
-          .setName("photographer-role")
+          .setName("photographer_role")
           .setDescription("The photographer role.")
           .setRequired(true),
       )
       .addRoleOption((option) =>
         option
-          .setName("volunteer-role")
+          .setName("volunteer_role")
           .setDescription("The volunteer role.")
           .setRequired(true),
       );
@@ -86,12 +86,12 @@ class StartVerification extends BaseCommand {
       components: [row as ActionRowBuilder<ButtonBuilder>],
     });
 
-    const hackerRole = interaction.options.getRole("hacker-role")!;
-    const sponsorRole = interaction.options.getRole("sponsor-role")!;
-    const mentorRole = interaction.options.getRole("mentor-role")!;
-    const organizerRole = interaction.options.getRole("organizer-role")!;
-    const photographerRole = interaction.options.getRole("photographer-role")!;
-    const volunteerRole = interaction.options.getRole("volunteer-role")!;
+    const hackerRole = interaction.options.getRole("hacker_role")!;
+    const sponsorRole = interaction.options.getRole("sponsor_role")!;
+    const mentorRole = interaction.options.getRole("mentor_role")!;
+    const organizerRole = interaction.options.getRole("organizer_role")!;
+    const photographerRole = interaction.options.getRole("photographer_role")!;
+    const volunteerRole = interaction.options.getRole("volunteer_role")!;
 
     const guildDocRef = getGuildDocRef(guildId);
 
