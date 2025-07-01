@@ -1,5 +1,5 @@
 import BaseCommand from "@/classes/BaseCommand";
-import { getGuildDocRef } from "@/util/nwplus-firestore";
+import { getGuildDocRef, GuildDoc } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import { Command } from "@sapphire/framework";
@@ -31,18 +31,6 @@ class InitBot extends BaseCommand {
         option
           .setName("staff-role")
           .setDescription("The staff role.")
-          .setRequired(true),
-      )
-      .addRoleOption((option) =>
-        option
-          .setName("hacker-role")
-          .setDescription("The hacker role.")
-          .setRequired(true),
-      )
-      .addRoleOption((option) =>
-        option
-          .setName("mentor-role")
-          .setDescription("The mentor role.")
           .setRequired(true),
       )
       .addRoleOption((option) =>
@@ -109,14 +97,12 @@ class InitBot extends BaseCommand {
       });
     }
 
-    const adminRole = interaction.options.getRole("admin-role");
-    const staffRole = interaction.options.getRole("staff-role");
-    const hackerRole = interaction.options.getRole("hacker-role");
-    const mentorRole = interaction.options.getRole("mentor-role");
-    const verifiedRole = interaction.options.getRole("verified-role");
-    const unverifiedRole = interaction.options.getRole("unverified-role");
-    const adminConsole = interaction.options.getChannel("admin-console");
-    const adminLog = interaction.options.getChannel("admin-log");
+    const adminRole = interaction.options.getRole("admin-role")!;
+    const staffRole = interaction.options.getRole("staff-role")!;
+    const verifiedRole = interaction.options.getRole("verified-role")!;
+    const unverifiedRole = interaction.options.getRole("unverified-role")!;
+    const adminConsole = interaction.options.getChannel("admin-console")!;
+    const adminLog = interaction.options.getChannel("admin-log")!;
 
     const hackathonName = interaction.options.getString("hackathon-name");
     if (!hackathonName?.match(/(HackCamp|nwHacks|cmd-f)20\d{2}/)) {
@@ -150,18 +136,16 @@ class InitBot extends BaseCommand {
       setupComplete: true,
       hackathonName,
       roleIds: {
-        admin: adminRole?.id,
-        staff: staffRole?.id,
-        hacker: hackerRole?.id,
-        mentor: mentorRole?.id,
-        verified: verifiedRole?.id,
-        unverified: unverifiedRole?.id,
+        admin: adminRole.id,
+        staff: staffRole.id,
+        verified: verifiedRole.id,
+        unverified: unverifiedRole.id,
       },
       channelIds: {
         adminConsole: adminConsole?.id,
         adminLog: adminLog?.id,
       },
-    });
+    } satisfies GuildDoc);
 
     return interaction.followUp({
       content: "The bot has been successfully initialized on this server.",

@@ -100,6 +100,7 @@ class StartVerification extends BaseCommand {
       .doc("verification");
 
     await verificationDocRef.set({
+      extraRoles: {},
       roleIds: {
         hacker: hackerRole.id,
         sponsor: sponsorRole.id,

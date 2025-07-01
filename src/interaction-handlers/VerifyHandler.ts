@@ -24,11 +24,7 @@ class VerifyHandler extends InteractionHandler {
 
     const guildDocRef = getGuildDocRef(interaction.guildId!);
     const guildDocData = (await guildDocRef.get()).data() as GuildDoc;
-
-    const unverifiedRole = interaction.guild!.roles.cache.get(
-      guildDocData.roleIds.unverified,
-    )!;
-    if (!checkMemberRoles(member, [unverifiedRole.id])) {
+    if (!checkMemberRoles(member, [guildDocData.roleIds.unverified])) {
       return interaction.reply({
         content:
           "You are not eligible to be checked in! If you don't have correct access to the server, please contact an organizer.",

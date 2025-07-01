@@ -8,11 +8,10 @@ export interface GuildDoc {
   roleIds: {
     admin: string;
     staff: string;
-    mentor: string;
-    hacker: string;
     verified: string;
     unverified: string;
   };
+  /** Guaranteed to be guild text-based channels */
   channelIds: {
     adminConsole: string;
     adminLog: string;
@@ -25,6 +24,9 @@ interface SavedMessage {
 }
 
 export interface VerificationDoc {
+  extraRoles: {
+    [roleName: string]: string;
+  };
   roleIds: {
     hacker: string;
     sponsor: string;
@@ -33,6 +35,15 @@ export interface VerificationDoc {
     photographer: string;
     volunteer: string;
   };
+}
+
+export interface HackersDoc {
+  applicantId: string;
+}
+
+export interface OtherAttendeesDoc {
+  roles: string[];
+  email: string;
 }
 
 export interface PronounsDoc {

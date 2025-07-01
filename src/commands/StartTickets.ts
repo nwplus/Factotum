@@ -4,6 +4,7 @@ import {
   GuildDoc,
   MENTOR_SPECIALTIES_MAP,
   TicketDoc,
+  VerificationDoc,
 } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
@@ -105,9 +106,15 @@ class StartTickets extends BaseCommand {
 
     const guildDocRef = getGuildDocRef(guild.id);
     const guildData = (await guildDocRef.get()).data() as GuildDoc;
+    const verificationData = (
+      await guildDocRef.collection("command-data").doc("verification").get()
+    ).data() as VerificationDoc;
 
     // Create all base mentor roles if not already created
-    await this.createMentorSpecialtyRoles(guild, guildData.roleIds.mentor);
+    await this.createMentorSpecialtyRoles(
+      guild,
+      verificationData.roleIds.mentor,
+    );
 
     // Mentor specialty selection message
     const mentorSpecialtySelectionMessage =
