@@ -88,19 +88,21 @@ class InitBot extends BaseCommand {
   public override async chatInputRun(
     interaction: Command.ChatInputCommandInteraction,
   ) {
-    const guildId = interaction.guildId;
-    if (!guildId) {
+    const guild = interaction.guild!;
+    if (!guild) {
       return interaction.reply({
         content: "This command can only be run in a server.",
         flags: MessageFlags.Ephemeral,
       });
     }
 
-    const guildDocRef = getGuildDocRef(guildId);
+    const guildDocRef = getGuildDocRef(guild.id);
 
     const guildDoc = await guildDocRef.get();
     if (guildDoc.exists && guildDoc.get("setupComplete")) {
-      this.container.logger.info(`Bot already initialized on guild ${guildId}`);
+      this.container.logger.info(
+        `Bot already initialized on guild ${guild.id}`,
+      );
       return interaction.reply({
         content: "The bot is already initialized on this server.",
         flags: MessageFlags.Ephemeral,
@@ -125,7 +127,23 @@ class InitBot extends BaseCommand {
       });
     }
 
-    this.container.logger.info(`Initializing bot on guild ${guildId}`);
+    const adminConsoleChannel = await guild.channels.fetch(adminConsole!.id);
+    if (!adminConsoleChannel?.isTextBased()) {
+      return interaction.reply({
+        content: "Admin console channel must be an existing text channel.",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    const adminLogChannel = await guild.channels.fetch(adminLog!.id);
+    if (!adminLogChannel?.isTextBased()) {
+      return interaction.reply({
+        content: "Admin log channel must be an existing text channel.",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    this.container.logger.info(`Initializing bot on guild ${guild.id}`);
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     await guildDocRef.set({

@@ -23,6 +23,9 @@ class PronounsReactionAdd extends Listener<typeof Events.MessageReactionAdd> {
 
     const pronounsDocData = pronounsDoc.data() as PronounsDoc;
 
+    const { savedMessage } = pronounsDocData;
+    if (reaction.message.id !== savedMessage.messageId) return;
+
     const { heHimRole, sheHerRole, theyThemRole, otherRole } =
       pronounsDocData.roleIds;
 

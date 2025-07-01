@@ -25,6 +25,9 @@ class PronounsReactionRemove extends Listener<
 
     const pronounsDocData = pronounsDoc.data() as PronounsDoc;
 
+    const { savedMessage } = pronounsDocData;
+    if (reaction.message.id !== savedMessage.messageId) return;
+
     const { heHimRole, sheHerRole, theyThemRole, otherRole } =
       pronounsDocData.roleIds;
 

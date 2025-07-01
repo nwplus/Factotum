@@ -87,7 +87,7 @@ const initializeBot = async () => {
     }
   });
 
-  await Promise.all(loadMessagePromises);
+  await Promise.allSettled(loadMessagePromises);
 
   console.log("Finished processing all guild documents");
 };
