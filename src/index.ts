@@ -31,6 +31,7 @@ const initializeBot = async () => {
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.GuildMessageReactions,
       GatewayIntentBits.DirectMessageReactions,
+      GatewayIntentBits.MessageContent,
     ],
     shards: "auto",
     logger: {
