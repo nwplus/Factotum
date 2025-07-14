@@ -137,6 +137,14 @@ export interface TriviaLeaderboardDoc {
   answeredQuestions: string[];
 }
 
+export interface OrganizerCheckInDoc {
+  /** Map of username to display name */
+  organizerAttendance: {
+    [username: string]: string;
+  };
+  savedMessage: SavedMessage;
+}
+
 export const getFactotumBaseDocRef = () => {
   return db.collection("ExternalProjects").doc("Factotum");
 };
