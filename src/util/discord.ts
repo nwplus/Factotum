@@ -9,7 +9,7 @@ export const checkMemberRoles = (
   member: GuildMember | APIInteractionGuildMember,
   rolesToCheck: string[],
 ) => {
-  return rolesToCheck.every((role) => {
+  return rolesToCheck.some((role) => {
     const memberRoles = member.roles;
     if (memberRoles instanceof GuildMemberRoleManager) {
       return memberRoles.cache.has(role);
