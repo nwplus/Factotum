@@ -6,6 +6,8 @@ import { getSavedMessage } from "./util/discord";
 import { initializeFirebase } from "./util/firestore";
 import {
   getFactotumBaseDocRef,
+  getGuildDocRef,
+  GuildDoc,
   PronounsDoc,
   TicketDoc,
 } from "./util/nwplus-firestore";
@@ -88,9 +90,16 @@ const initializeBot = async () => {
     }
   });
 
+  // Keep going if there are any errors with loading any messages
   await Promise.allSettled(loadMessagePromises);
 
   console.log("Finished processing all guild documents");
+
+  client.on("guildMemberAdd", async (member) => {
+    const guildDocRef = await getGuildDocRef(member.guild.id).get();
+    const guildDocData = guildDocRef.data() as GuildDoc;
+    await member.roles.add(guildDocData.roleIds.unverified);
+  });
 };
 
 initializeBot();

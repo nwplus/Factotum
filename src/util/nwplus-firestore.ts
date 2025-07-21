@@ -1,4 +1,5 @@
 import { Guild } from "discord.js";
+import { Timestamp } from "firebase-admin/firestore";
 
 import { db } from "./firestore";
 
@@ -37,13 +38,18 @@ export interface VerificationDoc {
   };
 }
 
+/** Created at time of verification since we pull valid hackers from hackathon doc */
 export interface HackersDoc {
-  applicantId: string;
+  discordId: string;
+  verifiedTimestamp: Timestamp;
 }
 
+/** Manually created beforehand by organizers */
 export interface OtherAttendeesDoc {
   roles: string[];
   email: string;
+  discordId?: string;
+  verifiedTimestamp?: Timestamp;
 }
 
 export interface PronounsDoc {
@@ -151,6 +157,10 @@ export const getFactotumBaseDocRef = () => {
 
 export const getGuildDocRef = (guildId: string) => {
   return getFactotumBaseDocRef().collection("guilds").doc(guildId);
+};
+
+export const getHackathonDocRef = (hackathonName: string) => {
+  return db.collection("Hackathons").doc(hackathonName);
 };
 
 export const logToAdminLog = async (guild: Guild, message: string) => {
