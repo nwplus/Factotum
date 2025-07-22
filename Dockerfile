@@ -6,12 +6,12 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN yarn install
+RUN npm ci
 
 COPY . .
 
 ENV NAME=factotum
 
-ENV NODE_ENV=PROD
+ENV NODE_ENV=production
 
-CMD ["node", "app.js"] 
+CMD ["npm", "start"] 
