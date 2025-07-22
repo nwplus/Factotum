@@ -1,5 +1,9 @@
 import BaseCommand from "@/classes/BaseCommand";
-import { getGuildDocRef, VerificationDoc } from "@/util/nwplus-firestore";
+import {
+  getGuildDocRef,
+  GuildDoc,
+  VerificationDoc,
+} from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import { Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
@@ -8,6 +12,8 @@ import {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
+  GuildTextBasedChannel,
+  RoleSelectMenuBuilder,
   SlashCommandBuilder,
 } from "discord.js";
 
@@ -86,14 +92,27 @@ class StartVerification extends BaseCommand {
       components: [row as ActionRowBuilder<ButtonBuilder>],
     });
 
+    const { row: addRoleRow, embed: addRoleEmbed } =
+      this.makeAddExtraRoleComponents();
+
+    const guildDocRef = getGuildDocRef(guildId);
+
+    const guildDocData = (await guildDocRef.get()).data() as GuildDoc;
+    const adminConsoleChannel = (await interaction.guild?.channels.fetch(
+      guildDocData.channelIds.adminConsole,
+    )) as GuildTextBasedChannel;
+
+    await adminConsoleChannel.send({
+      components: [addRoleRow],
+      embeds: [addRoleEmbed],
+    });
+
     const hackerRole = interaction.options.getRole("hacker_role")!;
     const sponsorRole = interaction.options.getRole("sponsor_role")!;
     const mentorRole = interaction.options.getRole("mentor_role")!;
     const organizerRole = interaction.options.getRole("organizer_role")!;
     const photographerRole = interaction.options.getRole("photographer_role")!;
     const volunteerRole = interaction.options.getRole("volunteer_role")!;
-
-    const guildDocRef = getGuildDocRef(guildId);
 
     const verificationDocRef = guildDocRef
       .collection("command-data")
@@ -110,6 +129,26 @@ class StartVerification extends BaseCommand {
         volunteer: volunteerRole.id,
       },
     } satisfies VerificationDoc);
+  }
+
+  private makeAddExtraRoleComponents() {
+    const embed = new EmbedBuilder()
+      .setTitle("Add Extra Verification Role")
+      .setDescription(
+        "Select a role from the dropdown below to add it as a new verification role option.",
+      );
+
+    const roleSelect = new RoleSelectMenuBuilder()
+      .setCustomId("add-extra-role-select")
+      .setPlaceholder("Select a role to add...")
+      .setMinValues(1)
+      .setMaxValues(1);
+
+    const row = new ActionRowBuilder<RoleSelectMenuBuilder>().addComponents(
+      roleSelect,
+    );
+
+    return { embed, row };
   }
 }
 
