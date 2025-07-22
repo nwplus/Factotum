@@ -45,4 +45,8 @@ This will create a new file `src/commands/MyCommand.ts` with a barebones templat
 
 ---
 
+## Schema
+
+![Database Schema](./SCHEMA.png)
+
 Built by [nwPlus](https://github.com/nwplus) • [Issues](https://github.com/nwplus/Factotum/issues)
