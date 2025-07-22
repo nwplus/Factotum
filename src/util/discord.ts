@@ -5,6 +5,7 @@ import {
   GuildMemberRoleManager,
 } from "discord.js";
 
+/** Checks if the provided member has any of the given roles */
 export const checkMemberRoles = (
   member: GuildMember | APIInteractionGuildMember,
   rolesToCheck: string[],
@@ -18,6 +19,7 @@ export const checkMemberRoles = (
   });
 };
 
+/** Fetches the message from the provided guild using given message and channel IDs */
 export const getSavedMessage = async (
   guild: Guild,
   messageId: string,
