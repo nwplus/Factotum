@@ -39,9 +39,16 @@ Use the Sapphire CLI to add new commands with the provided template:
 npx sapphire generate slashcommand MyCommand
 ```
 
-This will create a new file `src/commands/MyCommand.ts` with a barebones template for a new command.a
+This will create a new file `src/commands/MyCommand.ts` with a barebones template for a new command.
 
-**Docker:** `docker-compose up -d`
+### Docker
+
+Use the provided Dockerfile and compose file:
+
+```
+docker compose up
+docker compose down
+```
 
 ---
 
