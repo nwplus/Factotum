@@ -1,4 +1,5 @@
-import { getGuildDocRef, TriviaDoc } from "@/util/nwplus-firestore";
+import { TriviaDoc } from "@/types/db/trivia";
+import { getGuildDocRef } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import { Events, Listener } from "@sapphire/framework";

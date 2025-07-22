@@ -1,11 +1,8 @@
 import StartTickets from "@/commands/StartTickets";
+import { MENTOR_SPECIALTIES_MAP, TicketDoc } from "@/types/db/ticket";
+import { VerificationDoc } from "@/types/db/verification";
 import { getSavedMessage } from "@/util/discord";
-import {
-  getGuildDocRef,
-  GuildDoc,
-  MENTOR_SPECIALTIES_MAP,
-  TicketDoc,
-} from "@/util/nwplus-firestore";
+import { getGuildDocRef } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import {
@@ -31,7 +28,13 @@ class AddSpecialtyHandler extends InteractionHandler {
     const channel = interaction.channel! as GuildTextBasedChannel;
 
     const guildDocRef = getGuildDocRef(interaction.guildId!);
-    const guildDocData = (await guildDocRef.get()).data() as GuildDoc;
+
+    const verificationDocRef = guildDocRef
+      .collection("command-data")
+      .doc("verification");
+    const verificationDocData = (
+      await verificationDocRef.get()
+    ).data() as VerificationDoc;
 
     await interaction.showModal(this.makeSpecialtyModal());
     const submitted = await interaction.awaitModalSubmit({
@@ -53,7 +56,7 @@ class AddSpecialtyHandler extends InteractionHandler {
       .replace(/\s+/g, "-");
 
     const mentorRole = guild.roles.cache.find(
-      (role) => role.id === guildDocData.roleIds.mentor,
+      (role) => role.id === verificationDocData.roleIds.mentor,
     )!;
     const existingSpecialtyRole = guild.roles.cache.find(
       (role) => role.name.toLowerCase() === `M-${specialtyName}`.toLowerCase(),

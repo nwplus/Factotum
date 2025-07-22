@@ -40,7 +40,7 @@
 //         // only members with the staff tag can run this command!
 //         if (!(discordServices.checkForRole(message.member, discordServices.roleIDs.staffRole))) {
 //             discordServices.replyAndDelete(message, 'You do not have permission for this command, only staff can use it!');
-//             return;             
+//             return;
 //         }
 
 //         // get category
@@ -50,7 +50,6 @@
 //         } else {
 //             category = message.guild.channels.resolve(categoryChannelKey);
 //         }
-
 
 //         // if no category then report failure and return
 //         if (category === undefined) {
@@ -64,7 +63,6 @@
 //         // * For our purposes, we are okay with hiding it only initially and then un-hiding, after that no more hiding allowed
 //         // * Will make sure this rule is followed in !new-activity console
 //         // * UPDATE: it appears the problem was using category.name inside the setName method, using a simple variable solved the issue
-
 
 //         // update overwrites
 //         if (toHide) {

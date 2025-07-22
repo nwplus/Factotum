@@ -1,10 +1,8 @@
 import StartOrganizerCheckIn from "@/commands/StartOrganizerCheckIn";
+import { GuildDoc } from "@/types/db/guild";
+import { OrganizerCheckInDoc } from "@/types/db/organizer-check-in";
 import { checkMemberRoles } from "@/util/discord";
-import {
-  getGuildDocRef,
-  GuildDoc,
-  OrganizerCheckInDoc,
-} from "@/util/nwplus-firestore";
+import { getGuildDocRef } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import {

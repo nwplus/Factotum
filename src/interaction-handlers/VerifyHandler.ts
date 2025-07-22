@@ -1,12 +1,11 @@
-import { checkMemberRoles } from "@/util/discord";
+import { GuildDoc } from "@/types/db/guild";
 import {
-  getGuildDocRef,
-  getHackathonDocRef,
-  GuildDoc,
   HackersDoc,
   OtherAttendeesDoc,
   VerificationDoc,
-} from "@/util/nwplus-firestore";
+} from "@/types/db/verification";
+import { checkMemberRoles } from "@/util/discord";
+import { getGuildDocRef, getHackathonDocRef } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import {

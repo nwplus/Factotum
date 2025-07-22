@@ -1,22 +1,22 @@
 {
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": "explicit"
-    },
-      "eslint.validate": ["javascript"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.validate": ["javascript"],
 
-    "cSpell.words": [
-        "'s",
-        "Bot",
-        "Bot\\'s",
-        "COVID",
-        "Hackathons",
-        "boothing",
-        "deletable",
-        "firestore",
-        "hacakthons",
-        "hackathon",
-        "nwhacks",
-        "unhide",
-        "waitlist"
-    ],
+  "cSpell.words": [
+    "'s",
+    "Bot",
+    "Bot\\'s",
+    "COVID",
+    "Hackathons",
+    "boothing",
+    "deletable",
+    "firestore",
+    "hacakthons",
+    "hackathon",
+    "nwhacks",
+    "unhide",
+    "waitlist"
+  ]
 }

@@ -1,4 +1,5 @@
-import { getGuildDocRef, OtherAttendeesDoc } from "@/util/nwplus-firestore";
+import { OtherAttendeesDoc } from "@/types/db/verification";
+import { getGuildDocRef } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import {

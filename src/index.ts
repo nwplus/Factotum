@@ -2,15 +2,12 @@ import { LogLevel, SapphireClient } from "@sapphire/framework";
 import { GatewayIntentBits } from "discord.js";
 import "dotenv/config";
 
+import { GuildDoc } from "./types/db/guild";
+import { PronounsDoc } from "./types/db/pronouns";
+import { TicketDoc } from "./types/db/ticket";
 import { getSavedMessage } from "./util/discord";
 import { initializeFirebase } from "./util/firestore";
-import {
-  getFactotumBaseDocRef,
-  getGuildDocRef,
-  GuildDoc,
-  PronounsDoc,
-  TicketDoc,
-} from "./util/nwplus-firestore";
+import { getFactotumBaseDocRef, getGuildDocRef } from "./util/nwplus-firestore";
 
 const ENV_KEYS = ["DISCORD_BOT_TOKEN", "FIREBASE_SERVICE_ACCOUNT"] as const;
 const env = Object.fromEntries(

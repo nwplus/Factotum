@@ -1,9 +1,7 @@
 import BaseCommand from "@/classes/BaseCommand";
-import {
-  getGuildDocRef,
-  GuildDoc,
-  VerificationDoc,
-} from "@/util/nwplus-firestore";
+import { GuildDoc } from "@/types/db/guild";
+import { VerificationDoc } from "@/types/db/verification";
+import { getGuildDocRef } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import { Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";

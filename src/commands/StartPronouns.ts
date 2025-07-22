@@ -1,9 +1,6 @@
 import BaseCommand from "@/classes/BaseCommand";
-import {
-  getGuildDocRef,
-  PRONOUN_REACTION_EMOJIS,
-  PronounsDoc,
-} from "@/util/nwplus-firestore";
+import { PRONOUN_REACTION_EMOJIS, PronounsDoc } from "@/types/db/pronouns";
+import { getGuildDocRef } from "@/util/nwplus-firestore";
 
 import { EmbedBuilder } from "@discordjs/builders";
 import { ApplyOptions } from "@sapphire/decorators";

@@ -1,5 +1,6 @@
 import BaseCommand from "@/classes/BaseCommand";
-import { getGuildDocRef, OrganizerCheckInDoc } from "@/util/nwplus-firestore";
+import { OrganizerCheckInDoc } from "@/types/db/organizer-check-in";
+import { getGuildDocRef } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import { Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";

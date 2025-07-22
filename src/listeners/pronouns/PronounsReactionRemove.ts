@@ -1,8 +1,5 @@
-import {
-  getGuildDocRef,
-  PRONOUN_REACTION_EMOJIS,
-  PronounsDoc,
-} from "@/util/nwplus-firestore";
+import { PRONOUN_REACTION_EMOJIS, PronounsDoc } from "@/types/db/pronouns";
+import { getGuildDocRef } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import { Events, Listener } from "@sapphire/framework";

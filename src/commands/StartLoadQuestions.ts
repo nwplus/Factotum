@@ -1,5 +1,6 @@
 import BaseCommand from "@/classes/BaseCommand";
-import { getGuildDocRef, TriviaQuestionDoc } from "@/util/nwplus-firestore";
+import { TriviaQuestionDoc } from "@/types/db/trivia";
+import { getGuildDocRef } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import { Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";

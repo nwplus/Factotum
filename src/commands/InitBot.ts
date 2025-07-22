@@ -1,5 +1,6 @@
 import BaseCommand from "@/classes/BaseCommand";
-import { getGuildDocRef, GuildDoc } from "@/util/nwplus-firestore";
+import { GuildDoc } from "@/types/db/guild";
+import { getGuildDocRef } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import { Command } from "@sapphire/framework";

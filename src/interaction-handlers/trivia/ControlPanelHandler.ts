@@ -1,6 +1,7 @@
 import StartTrivia from "@/commands/StartTrivia";
+import { TriviaDoc } from "@/types/db/trivia";
 import { getSavedMessage } from "@/util/discord";
-import { getGuildDocRef, TriviaDoc } from "@/util/nwplus-firestore";
+import { getGuildDocRef } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import {

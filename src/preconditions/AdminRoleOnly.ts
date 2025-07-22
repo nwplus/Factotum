@@ -1,5 +1,6 @@
+import { GuildDoc } from "@/types/db/guild";
 import { checkMemberRoles } from "@/util/discord";
-import { getGuildDocRef, GuildDoc } from "@/util/nwplus-firestore";
+import { getGuildDocRef } from "@/util/nwplus-firestore";
 
 import { Precondition } from "@sapphire/framework";
 import { ChatInputCommandInteraction } from "discord.js";

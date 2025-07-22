@@ -1,4 +1,5 @@
-import { getGuildDocRef, TicketDoc } from "@/util/nwplus-firestore";
+import { TicketDoc } from "@/types/db/ticket";
+import { getGuildDocRef } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import {

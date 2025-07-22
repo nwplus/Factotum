@@ -1,58 +1,104 @@
 const { checkEmail } = require("../../db/firebase/firebaseUtil");
-const { Command } = require('@sapphire/framework');
-const firebaseUtil = require('../../db/firebase/firebaseUtil');
+const { Command } = require("@sapphire/framework");
+const firebaseUtil = require("../../db/firebase/firebaseUtil");
 
 class CheckEmail extends Command {
-    constructor(context, options) {
-        super(context, {
-            ...options,
-            description: 'Return user information given an email.'
-        });
+  constructor(context, options) {
+    super(context, {
+      ...options,
+      description: "Return user information given an email.",
+    });
+  }
+
+  registerApplicationCommands(registry) {
+    registry.registerChatInputCommand((builder) =>
+      builder
+        .setName(this.name)
+        .setDescription(this.description)
+        .addStringOption((option) =>
+          option
+            .setName("email")
+            .setDescription("Email to be checked")
+            .setRequired(true),
+        ),
+    );
+  }
+
+  async chatInputRun(interaction) {
+    this.initBotInfo = await firebaseUtil.getInitBotInfo(interaction.guild.id);
+    const guild = interaction.guild;
+    const email = interaction.options.getString("email");
+
+    if (
+      !guild.members.cache
+        .get(userId)
+        .roles.cache.has(this.initBotInfo.roleIDs.staffRole) &&
+      !guild.members.cache
+        .get(userId)
+        .roles.cache.has(this.initBotInfo.roleIDs.adminRole)
+    ) {
+      return this.error({
+        message: "You do not have permissions to run this command!",
+        ephemeral: true,
+      });
     }
 
-    registerApplicationCommands(registry) {
-        registry.registerChatInputCommand((builder) =>
-            builder
-                .setName(this.name)
-                .setDescription(this.description)
-                .addStringOption(option =>
-                    option.setName('email')
-                        .setDescription('Email to be checked')
-                        .setRequired(true))
-        )
+    let botSpamChannel = guild.channels.resolve(
+      this.initBotInfo.channelIDs.botSpamChannel,
+    );
+    const userData = await checkEmail(email, guild.id);
+    interaction.reply({
+      content:
+        "Visit <#" +
+        this.initBotInfo.channelIDs.botSpamChannel +
+        "> for the results",
+      ephemeral: true,
+    });
+
+    if (userData) {
+      if (userData.discordId && userData.types) {
+        const roleToString = await Promise.all(
+          userData.types.map(
+            (type) =>
+              type.type +
+              ": " +
+              (type.isVerified ? "verified" : "not verified"),
+          ),
+        );
+        botSpamChannel.send(
+          'The user associated with the email "' +
+            email +
+            '" is <@' +
+            userData.discordId +
+            ">. \n" +
+            "Their role is:\n" +
+            roleToString.join("\n"),
+        );
+        return;
+      } else if (userData.discordId) {
+        botSpamChannel.send(
+          'The user associated with the email "' +
+            email +
+            '" is <@' +
+            userData.discordId +
+            ">.",
+        );
+        return;
+      } else {
+        botSpamChannel.send(
+          'Hmm. No Discord user is associated with the email "' +
+            email +
+            '" but we do have their email on file.',
+        );
+        return;
+      }
+    } else {
+      botSpamChannel.send(
+        'The email "' + email + '" does not exist in our database',
+      );
+      return;
     }
-
-    async chatInputRun(interaction) {
-        this.initBotInfo = await firebaseUtil.getInitBotInfo(interaction.guild.id);
-        const guild = interaction.guild;
-        const email = interaction.options.getString('email');
-
-        if (!guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.staffRole) && !guild.members.cache.get(userId).roles.cache.has(this.initBotInfo.roleIDs.adminRole)) {
-            return this.error({ message: 'You do not have permissions to run this command!', ephemeral: true })
-        }
-        
-        let botSpamChannel = guild.channels.resolve(this.initBotInfo.channelIDs.botSpamChannel);
-        const userData = await checkEmail(email, guild.id);       
-        interaction.reply({content: 'Visit <#' + this.initBotInfo.channelIDs.botSpamChannel + '> for the results', ephemeral: true});
-
-        if (userData) {  
-            if (userData.discordId && userData.types) {
-                const roleToString = await Promise.all(userData.types.map(type => (type.type + ': ' + (type.isVerified ? 'verified' : 'not verified'))));
-                botSpamChannel.send('The user associated with the email "' + email + '" is <@' + userData.discordId + '>. \n'
-                    + 'Their role is:\n' + roleToString.join('\n'))
-                return;
-            } else if (userData.discordId) {
-                botSpamChannel.send('The user associated with the email "' + email + '" is <@' + userData.discordId + '>.');
-                return;
-            } else {
-                botSpamChannel.send('Hmm. No Discord user is associated with the email "' + email + '" but we do have their email on file.');
-                return;
-            }
-        } else {
-            botSpamChannel.send('The email "' + email +'" does not exist in our database');
-            return;
-        }
-    }
+  }
 }
 
 module.exports = CheckEmail;

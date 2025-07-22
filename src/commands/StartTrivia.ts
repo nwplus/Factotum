@@ -1,13 +1,12 @@
 import BaseCommand from "@/classes/BaseCommand";
-import { checkMemberRoles } from "@/util/discord";
+import { GuildDoc } from "@/types/db/guild";
 import {
-  getGuildDocRef,
-  GuildDoc,
-  logToAdminLog,
   TriviaDoc,
   TriviaLeaderboardDoc,
   TriviaQuestionDoc,
-} from "@/util/nwplus-firestore";
+} from "@/types/db/trivia";
+import { checkMemberRoles } from "@/util/discord";
+import { getGuildDocRef, logToAdminLog } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import { Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
