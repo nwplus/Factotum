@@ -144,6 +144,7 @@ class VerifyHandler extends InteractionHandler {
     const hackerDoc = await hackathonDocRef
       .collection("Applicants")
       .where("basicInfo.email", "==", email)
+      .where("status.applicationStatus", "==", "acceptedAndAttending")
       .limit(1)
       .get();
     if (hackerDoc.empty) return VerifyResult.FAILURE;
