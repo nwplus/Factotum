@@ -1,4 +1,5 @@
 import BaseCommand from "@/classes/BaseCommand";
+import { idHints } from "@/constants/id-hints";
 import { GuildDoc } from "@/types/db/guild";
 import { VerificationDoc } from "@/types/db/verification";
 import { getGuildDocRef } from "@/util/nwplus-firestore";
@@ -64,7 +65,7 @@ class StartVerification extends BaseCommand {
 
   protected override setCommandOptions() {
     return {
-      idHints: ["1385475309876412540"],
+      idHints: [idHints.startVerification],
     };
   }
 

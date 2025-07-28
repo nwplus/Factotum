@@ -1,4 +1,5 @@
 import BaseCommand from "@/classes/BaseCommand";
+import { idHints } from "@/constants/id-hints";
 import { GuildDoc } from "@/types/db/guild";
 import {
   TriviaDoc,
@@ -66,7 +67,7 @@ class StartTrivia extends BaseCommand {
 
   protected override setCommandOptions() {
     return {
-      idHints: ["1386423290645712967"],
+      idHints: [idHints.startTrivia],
     };
   }
 

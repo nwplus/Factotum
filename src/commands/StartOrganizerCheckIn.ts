@@ -1,4 +1,5 @@
 import BaseCommand from "@/classes/BaseCommand";
+import { idHints } from "@/constants/id-hints";
 import { OrganizerCheckInDoc } from "@/types/db/organizer-check-in";
 import { getGuildDocRef } from "@/util/nwplus-firestore";
 
@@ -26,7 +27,7 @@ class StartOrganizerCheckIn extends BaseCommand {
 
   protected override setCommandOptions() {
     return {
-      idHints: ["1392322993039867995"],
+      idHints: [idHints.startOrganizerCheckIn],
     };
   }
 

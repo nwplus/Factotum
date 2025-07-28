@@ -1,4 +1,5 @@
 import BaseCommand from "@/classes/BaseCommand";
+import { idHints } from "@/constants/id-hints";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import { Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
@@ -25,7 +26,7 @@ class ClearChat extends BaseCommand {
 
   protected override setCommandOptions() {
     return {
-      idHints: ["1382593420328960000"],
+      idHints: [idHints.clearChat],
     };
   }
 

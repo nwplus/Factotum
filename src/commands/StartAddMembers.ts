@@ -1,4 +1,5 @@
 import BaseCommand from "@/classes/BaseCommand";
+import { idHints } from "@/constants/id-hints";
 import { VerificationDoc } from "@/types/db/verification";
 import { getGuildDocRef } from "@/util/nwplus-firestore";
 
@@ -21,7 +22,7 @@ import {
 class StartAddMembers extends BaseCommand {
   protected override setCommandOptions() {
     return {
-      idHints: ["1396765715939463250"],
+      idHints: [idHints.startAddMembers],
     };
   }
 

@@ -1,4 +1,5 @@
 import BaseCommand from "@/classes/BaseCommand";
+import { idHints } from "@/constants/id-hints";
 import { PRONOUN_REACTION_EMOJIS, PronounsDoc } from "@/types/db/pronouns";
 import { getGuildDocRef } from "@/util/nwplus-firestore";
 
@@ -48,7 +49,7 @@ class StartPronouns extends BaseCommand {
 
   protected override setCommandOptions() {
     return {
-      guildIds: ["1386121970944442559"],
+      idHints: [idHints.startPronouns],
     };
   }
 

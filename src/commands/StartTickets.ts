@@ -1,4 +1,5 @@
 import BaseCommand from "@/classes/BaseCommand";
+import { idHints } from "@/constants/id-hints";
 import { GuildDoc } from "@/types/db/guild";
 import { MENTOR_SPECIALTIES_MAP, TicketDoc } from "@/types/db/ticket";
 import { VerificationDoc } from "@/types/db/verification";
@@ -59,7 +60,7 @@ class StartTickets extends BaseCommand {
 
   protected override setCommandOptions() {
     return {
-      idHints: ["1386149185748861038"],
+      idHints: [idHints.startTickets],
     };
   }
 

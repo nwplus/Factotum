@@ -1,4 +1,5 @@
 import BaseCommand from "@/classes/BaseCommand";
+import { idHints } from "@/constants/id-hints";
 import { GuildDoc } from "@/types/db/guild";
 import { getGuildDocRef } from "@/util/nwplus-firestore";
 
@@ -70,7 +71,7 @@ class InitBot extends BaseCommand {
 
   protected override setCommandOptions() {
     return {
-      idHints: ["1381884387972612129"],
+      idHints: [idHints.initBot],
     };
   }
 

@@ -1,4 +1,5 @@
 import BaseCommand from "@/classes/BaseCommand";
+import { idHints } from "@/constants/id-hints";
 import { TriviaQuestionDoc } from "@/types/db/trivia";
 import { getGuildDocRef } from "@/util/nwplus-firestore";
 
@@ -26,7 +27,7 @@ class StartLoadQuestions extends BaseCommand {
 
   protected override setCommandOptions() {
     return {
-      idHints: ["1392070950526390283"],
+      idHints: [idHints.startLoadQuestions],
     };
   }
 

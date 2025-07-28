@@ -1,4 +1,5 @@
 import BaseCommand from "@/classes/BaseCommand";
+import { idHints } from "@/constants/id-hints";
 
 import { ApplyOptions } from "@sapphire/decorators";
 import { Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
@@ -23,7 +24,7 @@ class StartReport extends BaseCommand {
 
   protected override setCommandOptions() {
     return {
-      idHints: ["1386124055664525363"],
+      idHints: [idHints.startReport],
     };
   }
 
