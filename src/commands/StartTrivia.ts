@@ -322,7 +322,7 @@ class StartTrivia extends BaseCommand {
       needAllAnswers: boolean,
     ) => {
       const pred = (answer: string) =>
-        m.content.toLowerCase().includes(answer.toLowerCase());
+        m.content.toLowerCase().includes(answer.trim().toLowerCase());
       return needAllAnswers ? answers.every(pred) : answers.some(pred);
     };
 
