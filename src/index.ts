@@ -65,7 +65,7 @@ const initializeBot = async () => {
       );
       if (pronounsMessage) {
         pronounsMessage.fetch();
-        console.log("Loaded pronouns message into listener cache");
+        console.log(`Loaded pronouns message into listener cache for ${guild.name}`);
       }
     }
 
@@ -81,7 +81,7 @@ const initializeBot = async () => {
       if (mentorSpecialtySelectionMessage) {
         await mentorSpecialtySelectionMessage.fetch();
         console.log(
-          "Loaded mentor specialty selection message into listener cache",
+          `Loaded mentor specialty selection message into listener cache for ${guild.name}`,
         );
       }
     }
