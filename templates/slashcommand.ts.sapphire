@@ -1,0 +1,33 @@
+{ "category": "commands" }
+---
+import BaseCommand from "@/classes/BaseCommand";
+
+import { ApplyOptions } from "@sapphire/decorators";
+import { Command, CommandOptionsRunTypeEnum } from "@sapphire/framework";
+import { MessageFlags, SlashCommandBuilder } from "discord.js";
+
+@ApplyOptions<Command.Options>({
+  name: "new-command",
+  description: "A basic command",
+  runIn: CommandOptionsRunTypeEnum.GuildText,
+  preconditions: ["AdminRoleOnly"],
+})
+class {{name}} extends BaseCommand {
+  protected override buildCommand(builder: SlashCommandBuilder) {
+    return builder;
+  }
+
+  protected override setCommandOptions() {
+    return {
+      idHints: [],
+    };
+  }
+
+  public override async chatInputRun(
+    interaction: Command.ChatInputCommandInteraction,
+  ) {
+    return interaction.reply({ content: 'hi!', flags: MessageFlags.Ephemeral })
+  }
+}
+
+export default {{name}};
