@@ -34,8 +34,7 @@ const initializeBot = async () => {
     ],
     shards: "auto",
     logger: {
-      level:
-        process.env.NODE_ENV === "development" ? LogLevel.Debug : LogLevel.Info,
+      level: LogLevel.Debug,
     },
   });
 
@@ -65,7 +64,9 @@ const initializeBot = async () => {
       );
       if (pronounsMessage) {
         pronounsMessage.fetch();
-        console.log(`Loaded pronouns message into listener cache for ${guild.name}`);
+        console.log(
+          `Loaded pronouns message into listener cache for ${guild.name}`,
+        );
       }
     }
 

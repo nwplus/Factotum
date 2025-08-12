@@ -17,16 +17,16 @@ const devIdHints = {
 };
 
 const prodIdHints = {
-  clearChat: "1051737346720137246",
-  initBot: "1051737348502728764",
-  startAddMembers: "1402484807379714088",
-  startLoadQuestions: "1402484809653162086",
-  startOrganizerCheckIn: "1402484796579643433",
-  startPronouns: "1402484814208045240",
-  startReport: "1214159059880517652",
-  startTickets: "1402484799821578270",
-  startTrivia: "1402484818427514910",
-  startVerification: "1060545714133938309",
+  clearChat: "1404733924453912677",
+  initBot: "1404734015310925864",
+  startAddMembers: "1404733927901495358",
+  startLoadQuestions: "1404733929919090730",
+  startOrganizerCheckIn: "1404733921614102548",
+  startPronouns: "1404734013884858410",
+  startReport: "1404734008872665128",
+  startTickets: "1404733926160728084",
+  startTrivia: "1404734018066448448",
+  startVerification: "1404734012332965969",
 };
 
 export const idHints =
