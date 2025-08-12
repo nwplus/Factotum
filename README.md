@@ -7,9 +7,9 @@ The official nwPlus Discord bot for hackathon management. Handles mentor tickets
 **Requirements:** Node.js 18+, Discord bot token, Firebase service account
 
 ```bash
-git clone https://github.com/nwplus/Factotum.git
-cd Factotum
-npm install
+$ git clone https://github.com/nwplus/Factotum.git
+$ cd Factotum
+$ npm install
 ```
 
 **Environment variables (.env):**
@@ -25,8 +25,13 @@ Fields prefixed with `DEV_` will be used when running in development mode and on
 **Run:**
 
 ```bash
-npm run dev  # Development
-npm start    # Production
+$ npm run dev
+```
+
+or
+
+```bash
+$ npm start
 ```
 
 **Configure:** Use `/init-bot` command to set roles and channels
@@ -36,7 +41,7 @@ npm start    # Production
 Use the Sapphire CLI to add new commands with the provided template:
 
 ```bash
-npx sapphire generate slashcommand MyCommand
+$ npx sapphire generate slashcommand MyCommand
 ```
 
 This will create a new file `src/commands/MyCommand.ts` with a barebones template for a new command.
@@ -45,9 +50,9 @@ This will create a new file `src/commands/MyCommand.ts` with a barebones templat
 
 Use the provided Dockerfile and compose file:
 
-```
-docker compose up
-docker compose down
+```bash
+$ docker compose up
+$ docker compose down
 ```
 
 ---
