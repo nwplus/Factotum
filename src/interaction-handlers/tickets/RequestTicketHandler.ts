@@ -1,4 +1,5 @@
 import { TicketDoc } from "@/types/db/ticket";
+import { checkMemberRoles } from "@/util/discord";
 import { getGuildDocRef } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
@@ -36,6 +37,20 @@ class RequestTicketHandler extends InteractionHandler {
       });
     }
 
+    const ticketDocRef = getGuildDocRef(interaction.guild!.id)
+      .collection("command-data")
+      .doc("tickets");
+
+    const ticketData = (await ticketDocRef.get()).data() as TicketDoc;
+    const requiredRoleId = ticketData.roleIds.requestTicketRole;
+
+    if (!checkMemberRoles(interaction.member!, [requiredRoleId])) {
+      return interaction.reply({
+        content: "You don't have permission to request tickets.",
+        flags: [MessageFlags.Ephemeral],
+      });
+    }
+
     await interaction.showModal(this.makeRequestTicketModal());
     const submitted = await interaction.awaitModalSubmit({
       time: 300000,
@@ -50,10 +65,6 @@ class RequestTicketHandler extends InteractionHandler {
     }
     await submitted.deferReply({ flags: [MessageFlags.Ephemeral] });
 
-    const ticketDocRef = getGuildDocRef(interaction.guild!.id)
-      .collection("command-data")
-      .doc("tickets");
-
     const description =
       submitted.fields.getTextInputValue("ticket-description");
     const location = submitted.fields.getTextInputValue("location");
@@ -66,7 +77,6 @@ class RequestTicketHandler extends InteractionHandler {
     });
 
     // Send ticket to incoming tickets channel
-    const ticketData = (await ticketDocRef.get()).data() as TicketDoc;
     const ticketNumber = ticketData.currentTicketCount + 1;
     const { newTicketEmbed, acceptTicketRow } = this.makeNewTicketComponents(
       ticketNumber,
