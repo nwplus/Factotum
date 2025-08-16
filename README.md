@@ -36,16 +36,6 @@ $ npm start
 
 **Configure:** Use `/init-bot` command to set roles and channels
 
-## Development
-
-Use the Sapphire CLI to add new commands with the provided template:
-
-```bash
-$ npx sapphire generate slashcommand MyCommand
-```
-
-This will create a new file `src/commands/MyCommand.ts` with a barebones template for a new command.
-
 ### Docker
 
 Use the provided Dockerfile and compose file:
@@ -55,10 +45,10 @@ $ docker compose up
 $ docker compose down
 ```
 
+## Development
+
+See [./DEVELOP.md](./DEVELOP.MD)
+
 ---
-
-## Schema
-
-![Database Schema](./SCHEMA.png)
 
 Built by [nwPlus](https://github.com/nwplus) • [Issues](https://github.com/nwplus/Factotum/issues)
