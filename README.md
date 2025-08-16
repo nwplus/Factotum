@@ -47,7 +47,7 @@ $ docker compose down
 
 ## Development
 
-See [./DEVELOP.md](./DEVELOP.MD)
+See [DEVELOP.md](./DEVELOP.md)
 
 ---
 

@@ -7,6 +7,7 @@ Sapphire separates the lifecycle of bot interactions into a few main categories:
 
 ## Commands
 
+Commands are the entry point for organizers to direct the bot.
 All commands should go in `src/commands/` and should be named like `MyCommand.ts`.
 Use the Sapphire CLI to add new commands with the provided template:
 
@@ -29,6 +30,7 @@ For example, we use the `AdminRoleOnly` precondition to enforce that a command c
 
 ## Interaction Handlers
 
+Interactions are the main way that users interact with the bot by interacting with the messages it sends.
 Interaction handlers are defined in `src/interaction-handlers/` and should be named like `MyInteractionHandler.ts`.
 
 Use an interaction handler if you have any long-lived interactive elements, such as buttons, select menus, etc.
@@ -44,7 +46,7 @@ Listeners are defined in `src/listeners/` and should be named like `MyListener.t
 Listeners are used to handle any events that could be emitted by Discord.
 Follow https://sapphirejs.dev/docs/Guide/listeners/what-are-listeners-and-how-do-they-work for more information.
 
-The main thing we use listeners for is to listen for emoji reactions.
+The main thing we use listeners for is to listen for emoji reactions from users.
 When we send a message that we want to track, we save the message and channel ID to Firebase.
 In our listener, we listen for the reaction add/remove event and check if the message matches the one we saved.
 
@@ -87,6 +89,21 @@ For example:
 import { MessageFlags } from "discord.js";
 
 await interaction.reply({ content: "...", flags: [MessageFlags.Ephemeral] });
+```
+
+### Working with Firebase
+
+Make use of the utils and types that we have for working with Firebase.
+The general pattern we use is to get a reference to the document we want to work with,
+and then use the `get()` method to fetch the data and `.data()` to get the full object which we can then typecast to the correct type.
+
+These types correspond to the structure of data stored in collections in Firebase. Use the schema below as reference.
+
+For example:
+
+```ts
+const guildDocRef = getGuildDocRef(guild.id);
+const guildDocData = (await guildDocRef.get()).data() as GuildDoc;
 ```
 
 ---
