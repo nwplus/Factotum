@@ -63,7 +63,7 @@ class AddMembersRoleSelectHandler extends InteractionHandler {
     const emailsRaw = interaction.fields.getTextInputValue("emails");
     const emails = emailsRaw
       .split(/[\r?\n|\r|\n|,]+/g)
-      .map((email: string) => email.trim())
+      .map((email: string) => email.trim().toLowerCase())
       .filter(Boolean);
 
     if (emails.length === 0) {

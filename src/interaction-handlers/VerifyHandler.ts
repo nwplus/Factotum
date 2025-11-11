@@ -88,7 +88,7 @@ class VerifyHandler extends InteractionHandler {
       [this.verifyHacker, this.verifyOtherRole],
       {
         guildDocRef,
-        email: submitted.fields.getTextInputValue("email"),
+        email: submitted.fields.getTextInputValue("email").toLowerCase(),
         member,
       },
     );
