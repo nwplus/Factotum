@@ -44,14 +44,6 @@ class VerifyHandler extends InteractionHandler {
     const member = interaction.member as GuildMember;
 
     const guildDocRef = getGuildDocRef(interaction.guildId!);
-    const guildDocData = (await guildDocRef.get()).data() as GuildDoc;
-    if (!checkMemberRoles(member, [guildDocData.roleIds.unverified])) {
-      return interaction.reply({
-        content:
-          "You are not eligible to be checked in! If you don't have correct access to the server, please contact an organizer.",
-        flags: [MessageFlags.Ephemeral],
-      });
-    }
 
     const modal = new ModalBuilder()
       .setCustomId("verifyModal")
@@ -118,7 +110,7 @@ class VerifyHandler extends InteractionHandler {
         case VerifyResult.ALREADY_VERIFIED:
           await interaction.followUp({
             content:
-              "You have already been verified! If you are having trouble seeing any channels, please use the check-in support channel to contact an organizer.",
+              "You have already been verified! If you are still having trouble seeing any channels, please use the check-in support channel to contact an organizer.",
             flags: [MessageFlags.Ephemeral],
           });
           return;
@@ -126,7 +118,7 @@ class VerifyHandler extends InteractionHandler {
         default:
           await interaction.followUp({
             content:
-              "Successfully verified! If you are still unable to see any channels, please use the check-in support channel to contact an organizer.",
+              "Successfully verified! You should now be able to see all channels..",
             flags: [MessageFlags.Ephemeral],
           });
           return;
