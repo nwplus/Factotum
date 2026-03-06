@@ -6,8 +6,9 @@ export interface PronounsDoc {
     sheHerRole: string;
     theyThemRole: string;
     otherRole: string;
+    hideRole: string;
   };
   savedMessage: SavedMessage;
 }
 
-export const PRONOUN_REACTION_EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣"];
+export const PRONOUN_REACTION_EMOJIS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"];
