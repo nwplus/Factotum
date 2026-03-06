@@ -25,10 +25,16 @@ class PronounsReactionRemove extends Listener<
     const { savedMessage } = pronounsDocData;
     if (reaction.message.id !== savedMessage.messageId) return;
 
-    const { heHimRole, sheHerRole, theyThemRole, otherRole } =
+    const { heHimRole, sheHerRole, theyThemRole, otherRole, hideRole } =
       pronounsDocData.roleIds;
 
-    const roleOrder = [heHimRole, sheHerRole, theyThemRole, otherRole];
+    const roleOrder = [
+      heHimRole,
+      sheHerRole,
+      theyThemRole,
+      otherRole,
+      hideRole,
+    ].filter(Boolean);
 
     const roleIndex = PRONOUN_REACTION_EMOJIS.findIndex(
       (emoji) => emoji === reaction.emoji.name,
