@@ -14,6 +14,7 @@ const devIdHints = {
   startTickets: "1402483611156086924",
   startTrivia: "1386423290645712967",
   startVerification: "1385475309876412540",
+  uploadSchedule: "",
 };
 
 const prodIdHints = {
@@ -27,6 +28,7 @@ const prodIdHints = {
   startTickets: "1404733926160728084",
   startTrivia: "1404734018066448448",
   startVerification: "1404734012332965969",
+  uploadSchedule: "",
 };
 
 export const idHints =
