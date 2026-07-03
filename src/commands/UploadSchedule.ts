@@ -17,6 +17,9 @@ import { FieldValue, Timestamp } from "firebase-admin/firestore";
 // Firestore caps a write batch at 500 operations.
 const BATCH_LIMIT = 500;
 
+const MAX_FILE_SIZE_BYTES = 1024 * 1024; // 1 MB
+const DOWNLOAD_TIMEOUT_MS = 10_000;
+
 const toShiftDoc = (shift: ParsedShift): ShiftDoc => ({
   startTime: Timestamp.fromDate(shift.startTime),
   durationMinutes: shift.durationMinutes,
@@ -69,17 +72,31 @@ class UploadSchedule extends BaseCommand {
     if (!file.name.toLowerCase().endsWith(".csv")) {
       return interaction.editReply({ content: "Please upload a `.csv` file." });
     }
-
-    let text: string;
-    try {
-      text = await (await fetch(file.url)).text();
-    } catch {
+    if (file.size > MAX_FILE_SIZE_BYTES) {
       return interaction.editReply({
-        content: "Failed to download the uploaded file. Please try again.",
+        content: `File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Please upload a CSV under 1 MB.`,
       });
     }
 
-    const { shifts, errors, duplicateRows } = parseScheduleCsv(text);
+    let text: string;
+    try {
+      const response = await fetch(file.url, {
+        signal: AbortSignal.timeout(DOWNLOAD_TIMEOUT_MS),
+      });
+      if (!response.ok) {
+        return interaction.editReply({
+          content: `Failed to download the uploaded file (HTTP ${response.status}). Please try again.`,
+        });
+      }
+      text = await response.text();
+    } catch {
+      return interaction.editReply({
+        content:
+          "Failed to download the uploaded file (network error or timeout). Please try again.",
+      });
+    }
+
+    const { shifts, errors } = parseScheduleCsv(text);
 
     if (errors.length > 0) {
       const report = formatErrors(errors);
@@ -103,7 +120,8 @@ class UploadSchedule extends BaseCommand {
       return interaction.editReply({ content: "No shifts found in the file." });
     }
 
-    // Replace the existing schedule: clear the shifts subcollection, then write the new set.
+    // Replace the existing schedule atomically: deletes, writes, and metadata
+    // go in a single batch so a failure leaves the old schedule intact.
     const scheduleDocRef = getGuildDocRef(guild.id)
       .collection("command-data")
       .doc("shift-schedule");
@@ -111,25 +129,22 @@ class UploadSchedule extends BaseCommand {
     const { firestore } = shiftsCollection;
 
     const existing = await shiftsCollection.listDocuments();
-    for (let i = 0; i < existing.length; i += BATCH_LIMIT) {
-      const batch = firestore.batch();
-      for (const ref of existing.slice(i, i + BATCH_LIMIT)) batch.delete(ref);
-      await batch.commit();
+    if (existing.length + shifts.length + 1 > BATCH_LIMIT) {
+      return interaction.editReply({
+        content: `Schedule is too large to replace atomically (existing + new shifts must be under ${BATCH_LIMIT - 1}). Nothing was saved.`,
+      });
     }
 
-    const shiftDocs = shifts.map(toShiftDoc);
-    for (let i = 0; i < shiftDocs.length; i += BATCH_LIMIT) {
-      const batch = firestore.batch();
-      for (const data of shiftDocs.slice(i, i + BATCH_LIMIT)) {
-        batch.set(shiftsCollection.doc(), data);
-      }
-      await batch.commit();
-    }
-
-    await scheduleDocRef.set(
+    const batch = firestore.batch();
+    for (const ref of existing) batch.delete(ref);
+    for (const shift of shifts)
+      batch.set(shiftsCollection.doc(), toShiftDoc(shift));
+    batch.set(
+      scheduleDocRef,
       { active: true, lastUpdated: FieldValue.serverTimestamp() },
       { merge: true },
     );
+    await batch.commit();
 
     await logToAdminLog(
       guild,
@@ -147,12 +162,6 @@ class UploadSchedule extends BaseCommand {
         value: `${earliest.toLocaleString()} → ${latest.toLocaleString()}`,
       },
     );
-    if (duplicateRows.length > 0) {
-      embed.addFields({
-        name: "Duplicate rows skipped",
-        value: duplicateRows.join(", "),
-      });
-    }
 
     return interaction.editReply({ embeds: [embed] });
   }

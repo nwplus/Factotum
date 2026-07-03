@@ -21,8 +21,6 @@ export interface RowError {
 export interface ParseResult {
   shifts: ParsedShift[];
   errors: RowError[];
-  // rows dropped as duplicates
-  duplicateRows: number[];
 }
 
 const REQUIRED_COLUMNS = [
@@ -147,7 +145,6 @@ export function parseScheduleCsv(content: string): ParseResult {
       errors: [
         { row: 1, messages: [`Could not parse file as CSV: ${message}`] },
       ],
-      duplicateRows: [],
     };
   }
 
@@ -155,7 +152,6 @@ export function parseScheduleCsv(content: string): ParseResult {
     return {
       shifts: [],
       errors: [{ row: 1, messages: ["File is empty."] }],
-      duplicateRows: [],
     };
   }
 
@@ -174,7 +170,6 @@ export function parseScheduleCsv(content: string): ParseResult {
           ],
         },
       ],
-      duplicateRows: [],
     };
   }
 
@@ -188,8 +183,7 @@ export function parseScheduleCsv(content: string): ParseResult {
 
   const shifts: ParsedShift[] = [];
   const errors: RowError[] = [];
-  const duplicateRows: number[] = [];
-  const seenKeys = new Set<string>();
+  const seenKeys = new Map<string, number>();
 
   for (let i = 1; i < rows.length; i++) {
     const rowNumber = i + 1; // header is row 1
@@ -200,19 +194,28 @@ export function parseScheduleCsv(content: string): ParseResult {
       continue;
     }
 
-    // dedupe valid rows
+    // rows identical in every field are duplicates, and fail the upload
     const duplicateKey = [
       shift.startTime.getTime(),
       shift.location.toLowerCase(),
       [...shift.organizerEmails].sort().join(","),
+      [...shift.shiftLeadEmails].sort().join(","),
+      shift.durationMinutes,
+      shift.description,
+      shift.channelId ?? "",
+      shift.link ?? "",
     ].join("|");
-    if (seenKeys.has(duplicateKey)) {
-      duplicateRows.push(rowNumber);
+    const firstSeenRow = seenKeys.get(duplicateKey);
+    if (firstSeenRow !== undefined) {
+      errors.push({
+        row: rowNumber,
+        messages: [`Duplicate of row ${firstSeenRow}.`],
+      });
       continue;
     }
-    seenKeys.add(duplicateKey);
+    seenKeys.set(duplicateKey, rowNumber);
     shifts.push(shift);
   }
 
-  return { shifts, errors, duplicateRows };
+  return { shifts, errors };
 }
