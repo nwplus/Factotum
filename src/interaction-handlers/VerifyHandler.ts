@@ -4,7 +4,6 @@ import {
   OtherAttendeesDoc,
   VerificationDoc,
 } from "@/types/db/verification";
-import { checkMemberRoles } from "@/util/discord";
 import { getGuildDocRef, getHackathonDocRef } from "@/util/nwplus-firestore";
 
 import { ApplyOptions } from "@sapphire/decorators";
