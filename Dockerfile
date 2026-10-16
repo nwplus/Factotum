@@ -14,4 +14,4 @@ ENV NAME=factotum
 
 ENV NODE_ENV=production
 
-CMD ["npm", "start"] 
+CMD ["npm", "start"]

@@ -2,6 +2,7 @@ import { LogLevel, SapphireClient } from "@sapphire/framework";
 import { GatewayIntentBits } from "discord.js";
 import "dotenv/config";
 
+import { shiftReminderScheduler } from "./services/shift-reminder-scheduler";
 import { GuildDoc } from "./types/db/guild";
 import { PronounsDoc } from "./types/db/pronouns";
 import { TicketDoc } from "./types/db/ticket";
@@ -92,6 +93,8 @@ const initializeBot = async () => {
   await Promise.allSettled(loadMessagePromises);
 
   console.log("Finished processing all guild documents");
+
+  shiftReminderScheduler.start(client);
 
   client.on("guildMemberAdd", async (member) => {
     const guildDocRef = await getGuildDocRef(member.guild.id).get();
