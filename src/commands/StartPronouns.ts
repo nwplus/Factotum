@@ -44,6 +44,12 @@ class StartPronouns extends BaseCommand {
           .setName("other_role")
           .setDescription("The other role.")
           .setRequired(true),
+      )
+      .addRoleOption((option) =>
+        option
+          .setName("hide_role")
+          .setDescription("The prefer not to disclose role.")
+          .setRequired(true),
       );
   }
 
@@ -61,6 +67,7 @@ class StartPronouns extends BaseCommand {
     const sheHerRole = interaction.options.getRole("she_her_role")!;
     const theyThemRole = interaction.options.getRole("they_them_role")!;
     const otherRole = interaction.options.getRole("other_role")!;
+    const hideRole = interaction.options.getRole("hide_role")!;
 
     const message = await channel.send({ embeds: [this.makePronounsEmbed()] });
     PRONOUN_REACTION_EMOJIS.forEach((emoji) => message.react(emoji));
@@ -80,6 +87,7 @@ class StartPronouns extends BaseCommand {
         sheHerRole: sheHerRole.id,
         theyThemRole: theyThemRole.id,
         otherRole: otherRole.id,
+        hideRole: hideRole.id
       },
       savedMessage: {
         messageId: message.id,
@@ -93,9 +101,10 @@ class StartPronouns extends BaseCommand {
       .setTitle("Set your pronouns by reacting to one or more of the emojis!")
       .setDescription(
         `${PRONOUN_REACTION_EMOJIS[0]} he/him\n` +
-          `${PRONOUN_REACTION_EMOJIS[1]} she/her\n` +
-          `${PRONOUN_REACTION_EMOJIS[2]} they/them\n` +
-          `${PRONOUN_REACTION_EMOJIS[3]} other pronouns\n`,
+        `${PRONOUN_REACTION_EMOJIS[1]} she/her\n` +
+        `${PRONOUN_REACTION_EMOJIS[2]} they/them\n` +
+        `${PRONOUN_REACTION_EMOJIS[3]} other pronouns\n` +
+        `${PRONOUN_REACTION_EMOJIS[4]} prefer not to disclose\n`,
       );
   }
 }
